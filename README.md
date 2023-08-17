@@ -1,0 +1,2 @@
+# cli
+Nullify CLI tool
