@@ -1,0 +1,73 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: Create a draft release
+        required: true
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+concurrency:
+  group: release
+  cancel-in-progress: true
+run-name: Release by @${{ github.actor }} ${{ github.sha }}
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+  pull-requests: read
+jobs:
+  get-version:
+    name: Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get Release Version
+        id: get-version
+        uses: nullify-platform/github-actions/actions/release-version@main
+      - run: |
+          echo "**Version:** ${{ steps.get-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Short SHA:** $(git rev-parse --short HEAD)" >> $GITHUB_STEP_SUMMARY
+  build:
+    if: ${{ needs.get-version.outputs.version != 'undefined' || (github.event_name == 'workflow_dispatch' && needs.get-version.outputs.version != 'undefined') }}
+    name: Build
+    needs: [ get-version ]
+    runs-on: ubuntu-latest
+    container: golang:1.21.0-alpine
+    steps:
+      - name: Build Scan Push
+        uses: nullify-platform/private-github-actions/actions/ci-lambda-build@main
+        with:
+          ghcr-repository: nullify-platform/cli
+          s3-key: cli
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  deploy:
+    if: ${{ needs.get-version.outputs.version != 'undefined' || (github.event_name == 'workflow_dispatch' && needs.get-version.outputs.version != 'undefined') }}
+    name: Deploy
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    needs: [ get-version, build ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Dev
+        uses: nullify-platform/private-github-actions/actions/ci-lambda-deploy@main
+        with:
+          service-name: cli
+          service-type: cli
+  release:
+    if: ${{ needs.get-version.outputs.version != 'undefined' || (github.event_name == 'workflow_dispatch' && needs.get-version.outputs.version != 'undefined') }}
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [ get-version, build, deploy ]
+    steps:
+      - name: Generate Release
+        uses: nullify-platform/private-github-actions/actions/release@main
+        with:
+          draft: ${{ inputs.releaseType }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
