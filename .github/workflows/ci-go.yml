@@ -1,0 +1,34 @@
+name: CI Go
+on:
+  pull_request:
+    paths:
+      - .github/workflows/ci-go.yml
+      - '**.go'
+      - go.*
+      - Makefile
+run-name: CI Go by @${{ github.actor }} ${{ github.sha }}
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    container: golang:1.21.0
+    steps:
+      - name: setup
+        run: git config --global --add safe.directory $(pwd)
+      - uses: actions/checkout@v3
+      - name: build
+        run: make build
+      - name: tidy
+        run: |
+          go mod tidy
+          git diff --exit-code
+      - name: test
+        run: make unit
+  lint:
+    runs-on: ubuntu-latest
+    container: golangci/golangci-lint:v1.54.1
+    steps:
+      - name: setup
+        run: git config --global --add safe.directory $(pwd)
+      - uses: actions/checkout@v3
+      - name: lint
+        run: golangci-lint run ./...
