@@ -29,6 +29,8 @@ var args struct {
 	Host    string `arg:"-h,--host" default:"https://api.nullify.ai"`
 	Verbose bool   `arg:"-v" help:"enable verbose logging"`
 	Debug   bool   `arg:"-d" help:"enable debug logging"`
+
+	models.AuthSources
 }
 
 func main() {
@@ -96,7 +98,11 @@ func main() {
 			authHeaders[headerName] = headerValue
 		}
 
-		httpClient := client.NewHTTPClient()
+		httpClient, err := client.NewHTTPClient(args.Host, &args.AuthSources)
+		if err != nil {
+			logger.Error("failed to create http client", logger.Err(err))
+			os.Exit(1)
+		}
 
 		out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
 			AppName:     args.DAST.AppName,
