@@ -40,12 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:1.21.0-alpine
     steps:
+      - run: apk add --no-cache make
       - name: Set Release Variables
-        shell: sh
-        id: vars
         run: echo "VERSION=${{ needs.get-version.outputs.version }}" >> $GITHUB_ENV
       - name: Build CLI
-        shell: sh
         run: make package
       - name: Upload Binaries
         uses: actions/upload-artifact@v3
