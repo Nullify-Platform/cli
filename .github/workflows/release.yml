@@ -26,7 +26,6 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
       - name: Get Release Version
         id: get-version
         uses: nullify-platform/github-actions/actions/release-version@main
