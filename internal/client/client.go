@@ -54,6 +54,10 @@ func getToken(nullifyHost string, authSources *models.AuthSources) (string, erro
 
 		parts := strings.Split(repo, "/")
 
+		if len(parts) != 2 {
+			return "", fmt.Errorf("invalid repository: %s", repo)
+		}
+
 		owner := parts[0]
 
 		url := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, authSources.GitHubToken, owner)

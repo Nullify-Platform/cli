@@ -25,7 +25,7 @@ type DAST struct {
 }
 
 var args struct {
-	DAST    *DAST  `arg:"subcommand:test" help:"test the given API for bugs and vulnerabilities"`
+	DAST    *DAST  `arg:"subcommand:dast" help:"test the given API for bugs and vulnerabilities"`
 	Host    string `arg:"-h,--host" default:"https://api.nullify.ai"`
 	Verbose bool   `arg:"-v" help:"enable verbose logging"`
 	Debug   bool   `arg:"-d" help:"enable debug logging"`
