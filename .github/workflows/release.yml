@@ -40,13 +40,19 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:1.21.0-alpine
     steps:
-      - name: Build Scan Push
-        uses: nullify-platform/private-github-actions/actions/ci-lambda-build@main
+      - name: Set Release Variables
+        shell: sh
+        id: vars
+        run: echo "VERSION=${{ needs.get-version.outputs.version }}" >> $GITHUB_ENV
+      - name: Build CLI
+        shell: sh
+        run: make package
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v3
         with:
-          ghcr-repository: nullify-platform/cli
-          s3-key: cli
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: binaries
+          retention-days: 2
+          path: bin/*
   release:
     if: ${{ needs.get-version.outputs.version != 'undefined' || (github.event_name == 'workflow_dispatch' && needs.get-version.outputs.version != 'undefined') }}
     name: Release
@@ -54,7 +60,14 @@ jobs:
     needs: [ get-version, build ]
     steps:
       - name: Generate Release
-        uses: nullify-platform/private-github-actions/actions/release@main
+        uses: softprops/action-gh-release@v1
+        env:
+          VERSION: ${{ needs.get-version.outputs.version }}
         with:
-          draft: ${{ inputs.releaseType }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          generate_release_notes: true
+          append_body: true
+          tag_name: ${{ env.VERSION }}
+          token: ${{ github.token }}
+          files: |
+            ${{ github.workspace }}/binaries/*
