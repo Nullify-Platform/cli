@@ -58,6 +58,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ get-version, build ]
     steps:
+      - name: Download Binaries
+        uses: actions/download-artifact@v3
+        with:
+          path: ${{ github.workspace }}
       - name: Generate Release
         uses: softprops/action-gh-release@v1
         env:
