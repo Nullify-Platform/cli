@@ -26,7 +26,6 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
       - name: Get Release Version
         id: get-version
         uses: nullify-platform/github-actions/actions/release-version@main
@@ -40,21 +39,38 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:1.21.0-alpine
     steps:
-      - name: Build Scan Push
-        uses: nullify-platform/private-github-actions/actions/ci-lambda-build@main
+      - uses: actions/checkout@v3
+      - name: Set Release Variables
+        run: echo "VERSION=${{ needs.get-version.outputs.version }}" >> $GITHUB_ENV
+      - name: Build CLI
+        run: |
+          apk add --no-cache make
+          make package
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v3
         with:
-          ghcr-repository: nullify-platform/cli
-          s3-key: cli
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: binaries
+          retention-days: 2
+          path: bin/*
   release:
     if: ${{ needs.get-version.outputs.version != 'undefined' || (github.event_name == 'workflow_dispatch' && needs.get-version.outputs.version != 'undefined') }}
     name: Release
     runs-on: ubuntu-latest
     needs: [ get-version, build ]
     steps:
-      - name: Generate Release
-        uses: nullify-platform/private-github-actions/actions/release@main
+      - name: Download Binaries
+        uses: actions/download-artifact@v3
         with:
-          draft: ${{ inputs.releaseType }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ github.workspace }}
+      - name: Generate Release
+        uses: softprops/action-gh-release@v1
+        env:
+          VERSION: ${{ needs.get-version.outputs.version }}
+        with:
+          draft: false
+          generate_release_notes: true
+          append_body: true
+          tag_name: ${{ env.VERSION }}
+          token: ${{ github.token }}
+          files: |
+            ${{ github.workspace }}/binaries/*
