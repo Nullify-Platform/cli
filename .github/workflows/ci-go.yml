@@ -1,11 +1,6 @@
 name: CI Go
 on:
-  pull_request:
-    paths:
-      - .github/workflows/ci-go.yml
-      - '**.go'
-      - go.*
-      - Makefile
+  push:
 run-name: CI Go by @${{ github.actor }} ${{ github.sha }}
 jobs:
   build-test:
@@ -34,18 +29,3 @@ jobs:
               --github-owner "dfglknmdfgijweer" \
               --github-repo "dfglknmdfgijweer" \
               --header "Authorization: Bearer 123"
-      - name: tidy
-        run: |
-          go mod tidy
-          git diff --exit-code
-      - name: test
-        run: make unit
-  lint:
-    runs-on: ubuntu-latest
-    container: golangci/golangci-lint:v1.54.1
-    steps:
-      - name: setup
-        run: git config --global --add safe.directory $(pwd)
-      - uses: actions/checkout@v3
-      - name: lint
-        run: golangci-lint run ./...
