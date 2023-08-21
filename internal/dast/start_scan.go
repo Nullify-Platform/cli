@@ -36,7 +36,7 @@ func StartScan(httpClient *http.Client, nullifyHost string, input *StartScanInpu
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/dast/scans", nullifyHost)
+	url := fmt.Sprintf("https://%s/dast/scans", nullifyHost)
 
 	con := strings.NewReader(string(requestBody))
 	req, err := http.NewRequest("POST", url, con)
