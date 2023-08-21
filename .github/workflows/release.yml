@@ -70,7 +70,7 @@ jobs:
           draft: false
           generate_release_notes: true
           append_body: true
-          tag_name: ${{ env.VERSION }}
+          tag_name: v${{ env.VERSION }}
           token: ${{ github.token }}
           files: |
             ${{ github.workspace }}/binaries/*
