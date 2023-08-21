@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/models"
+	"github.com/nullify-platform/logger/pkg/logger"
 )
 
 type authTransport struct {
@@ -68,11 +70,24 @@ func getToken(nullifyHost string, authSources *models.AuthSources) (string, erro
 		}
 
 		var token githubToken
-		err = json.NewDecoder(res.Body).Decode(&token)
+
+		data, err := io.ReadAll(res.Body)
 		if err != nil {
 			return "", err
 		}
 
+		if err := json.Unmarshal(data, &token); err != nil {
+			return "", err
+		}
+
+		logger.Info("raw github token", logger.String("data", string(data)))
+
+		// err = json.NewDecoder(res.Body).Decode(&token)
+		// if err != nil {
+		// 	return "", err
+		// }
+
+		logger.Info("using github token", logger.String("token", token.Token))
 		return token.Token, nil
 	}
 
