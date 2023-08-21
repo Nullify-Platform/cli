@@ -17,6 +17,23 @@ jobs:
       - uses: actions/checkout@v3
       - name: build
         run: make build
+      - name: test
+        run: |
+          repo_fullname=${{ github.repository }}
+          repo_owner=${repo_fullname%%/*}
+          repo_name=${repo_fullname#*/}
+          export GITHUB_ACTIONS=true
+          export GITHUB_ACTION_REPOSITORY=${{ github.repository }}
+          ./bin/cli -d \
+            --host "api.tim.dev.nullify.ai" \
+            --github-token "${{ github.token }}" \
+            dast \
+              --app-name "My App" \
+              --spec-path "openapi.json" \
+              --target-host "https://521c-202-179-135-199.ngrok-free.app" \
+              --github-owner "dfglknmdfgijweer" \
+              --github-repo "dfglknmdfgijweer" \
+              --header "Authorization: Bearer 123"
       - name: tidy
         run: |
           go mod tidy
