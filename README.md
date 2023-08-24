@@ -28,7 +28,7 @@
   <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
 </a>
 
-[Nullify](https://nullify.ai) CLI dynamically tests and fuzzes your endpoints for security vulnerabilities.
+[Nullify](https://nullify.ai) dynamically tests and fuzzes your endpoints for security vulnerabilities.
 
 ## Getting Started
  * Download the [latest release](https://github.com/Nullify-Platform/cli/releases) or build from source
