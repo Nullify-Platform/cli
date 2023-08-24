@@ -99,23 +99,23 @@ nullify dast \
 
 ## Global Options
 
-| Name                  | Description                                                                                      | Required | Default                 |
-|-----------------------|--------------------------------------------------------------------------------------------------|----------|-------------------------|
-| **`host`**            | The base URL of your Nullify API instance, e.g. https://api.nullify.ai                           | `false`  | https://api.nullify.ai  |
-| **`verbose`**         | Enable verbose logging                                                                           | `false`  |                         |
-| **`debug`**           | Enable debug logging                                                                             | `false`  |                         |
-| **`nullify-token`**   | Nullify API token                                                                                | `false`  |                         |
-| **`github-token`**    | GitHub actions job token to exchange for a Nullify API token                                     | `false`  |                         |
-| **`help`**            | Display help and exit                                                                            | `false`  |                         |
-| **`version`**         | Display version and exit                                                                         | `false`  |                         |
+| Name                | Description                                                            | Required | Default                |
+|---------------------|------------------------------------------------------------------------|----------|------------------------|
+| **`host`**          | The base URL of your Nullify API instance, e.g. https://api.nullify.ai | `false`  | https://api.nullify.ai |
+| **`verbose`**       | Enable verbose logging                                                 | `false`  |                        |
+| **`debug`**         | Enable debug logging                                                   | `false`  |                        |
+| **`nullify-token`** | Nullify API token                                                      | `false`  |                        |
+| **`github-token`**  | GitHub actions job token to exchange for a Nullify API token           | `false`  |                        |
+| **`help`**          | Display help and exit                                                  | `false`  |                        |
+| **`version`**       | Display version and exit                                               | `false`  |                        |
 
 ## DAST Options
 
-| Name                  | Description                                                                                          | Required | Default |
-|-----------------------|------------------------------------------------------------------------------------------------------|----------|---------|
-| **`app-name`**        | The unique name of the app to be scanned, e.g. Core API                                            | `true`   |         |
-| **`spec-path`**       | The file path to the OpenAPI file (both yaml and json are supported), e.g. ./openapi.yaml       | `true`   |         |
-| **`target-host`**     | The base URL of the API to be scanned, e.g. https://api.nullify.ai                                 | `true`   |         |
-| **`github-owner`**    | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
-| **`github-repo`**     | The repository name to create the Nullify issue dashboard in, e.g. cli                               | `true`   |         |
-| **`header`**          | List of headers for the DAST agent to authenticate with your API                                    | `false`  |         |
+| Name               | Description                                                                                         | Required | Default |
+|--------------------|-----------------------------------------------------------------------------------------------------|----------|---------|
+| **`app-name`**     | The unique name of the app to be scanned, e.g. Core API                                             | `true`   |         |
+| **`spec-path`**    | The file path to the OpenAPI file (both yaml and json are supported), e.g. ./openapi.yaml           | `true`   |         |
+| **`target-host`**  | The base URL of the API to be scanned, e.g. https://api.nullify.ai                                  | `true`   |         |
+| **`github-owner`** | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
+| **`github-repo`**  | The repository name to create the Nullify issue dashboard in, e.g. cli                              | `true`   |         |
+| **`header`**       | List of headers for the DAST agent to authenticate with your API                                    | `false`  |         |
