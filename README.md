@@ -1,4 +1,5 @@
 <a href="https://nullify.ai">
+[![Coverage](https://img.shields.io/badge/Coverage-0.0%25-red)](https://github.com/Nullify-Platform/cli/actions/workflows/go-coverage.yml)
   <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
 </a>
 
