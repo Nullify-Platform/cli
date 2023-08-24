@@ -1,5 +1,4 @@
 <a href="https://nullify.ai">
-[![Coverage](https://img.shields.io/badge/Coverage-0.0%25-red)](https://github.com/Nullify-Platform/cli/actions/workflows/go-coverage.yml)
   <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
 </a>
 
@@ -29,12 +28,9 @@
   <a href="https://goreportcard.com/report/github.com/nullify-platform/cli">
     <img src="https://goreportcard.com/badge/github.com/nullify-platform/cli" alt="Go Report Card" />
   </a>
-  <a href="https://github.com/Nullify-Platform/cli/actions/workflows/ci-go-coverage.yml">
-    <img src="https://img.shields.io/badge/Coverage-100.0%25-brightgreen" alt="Go Coverage" />
-  </a>
 </p>
 
-[Nullify](https://nullify.ai) dynamically tests and fuzzes your endpoints for security vulnerabilities.
+[Nullify](https://nullify.ai) CLI dynamically tests and fuzzes your endpoints for security vulnerabilities.
 
 ## Getting Started
  * Download the [latest release](https://github.com/Nullify-Platform/cli/releases) or build from source
