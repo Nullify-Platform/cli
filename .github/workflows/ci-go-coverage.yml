@@ -8,6 +8,8 @@ on:
 run-name: Go Coverage by @${{ github.actor }} ${{ github.sha }}
 jobs:
   coverage:
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
     name: Update coverage badge
     steps:
