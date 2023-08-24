@@ -33,7 +33,7 @@ package:
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock coverage.*
 
-format: 
+format:
 	gofmt -w ./...
 
 lint: lint-go lint-docker

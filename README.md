@@ -1,6 +1,43 @@
+<a href="https://nullify.ai">
+  <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
+</a>
+
 # Nullify CLI
 
-This project is for a CLI tool to interact with Nullify.
+<p align="center">
+  <a href="https://github.com/Nullify-Platform/cli/releases">
+    <img src="https://img.shields.io/github/v/release/Nullify-Platform/cli" alt="GitHub release" />
+  </a>
+  <a href="https://github.com/Nullify-Platform/Kuat-Shipyards/actions/workflows/release.yml">
+    <img src="https://github.com/Nullify-Platform/Kuat-Shipyards/actions/workflows/release.yml/badge.svg" alt="Release Status" />
+  </a>
+  <a href="https://join.slack.com/t/nullifycommunity/shared_invite/zt-1ve4xgket-PfkFjSDJK_kG8l~OA_GXUg">
+    <img src="https://img.shields.io/badge/Slack-10%2B%20members-black" alt="Slack invite" />
+  </a>
+  <a href="https://docs.nullify.ai/features/api-scanning/cli/">
+    <img src="https://img.shields.io/badge/docs-docs.nullify.ai-purple" alt="Documentation" />
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License" />
+  </a>
+</p>
+<p align="center">
+  <a href="https://securityscorecards.dev/viewer/?uri=github.com/Nullify-Platform/cli">
+    <img src="https://api.securityscorecards.dev/projects/github.com/Nullify-Platform/cli/badge" alt="OpenSSF Scorecard" />
+  </a>
+  <a href="https://goreportcard.com/report/github.com/nullify-platform/cli">
+    <img src="https://goreportcard.com/badge/github.com/nullify-platform/cli" alt="Go Report Card" />
+  </a>
+  <a href="https://github.com/Nullify-Platform/cli/actions/workflows/ci-go-coverage.yml">
+    <img src="https://img.shields.io/badge/Coverage-100.0%25-brightgreen" alt="Go Coverage" />
+  </a>
+</p>
+
+[Nullify](https://nullify.ai) dynamically tests and fuzzes your endpoints for security vulnerabilities.
+
+## Getting Started
+ * Download the [latest release](https://github.com/Nullify-Platform/cli/releases) or build from source
+ * See our [quickstart guide](https://docs.nullify.ai/features/api-testing) for more info
 
 ## Usage
 
@@ -51,7 +88,7 @@ Global options:
   --version              display version and exit
 ```
 
-example:
+### Example DAST Scan
 
 ```sh
 nullify dast \
@@ -62,3 +99,26 @@ nullify dast \
   --github-repo  "my-repo" \
   --header       "Authorization: Bearer 1234" \
 ```
+
+## Global Options
+
+| Name                  | Description                                                                                      | Required | Default                 |
+|-----------------------|--------------------------------------------------------------------------------------------------|----------|-------------------------|
+| **`host`**            | The base URL of your Nullify API instance, e.g. https://api.nullify.ai                           | `false`  | https://api.nullify.ai  |
+| **`verbose`**         | Enable verbose logging                                                                           | `false`  |                         |
+| **`debug`**           | Enable debug logging                                                                             | `false`  |                         |
+| **`nullify-token`**   | Nullify API token                                                                                | `false`  |                         |
+| **`github-token`**    | GitHub actions job token to exchange for a Nullify API token                                     | `false`  |                         |
+| **`help`**            | Display help and exit                                                                            | `false`  |                         |
+| **`version`**         | Display version and exit                                                                         | `false`  |                         |
+
+## DAST Options
+
+| Name                  | Description                                                                                          | Required | Default |
+|-----------------------|------------------------------------------------------------------------------------------------------|----------|---------|
+| **`app-name`**        | The unique name of the app to be scanned, e.g. Core API                                            | `true`   |         |
+| **`spec-path`**       | The file path to the OpenAPI file (both yaml and json are supported), e.g. ./openapi.yaml       | `true`   |         |
+| **`target-host`**     | The base URL of the API to be scanned, e.g. https://api.nullify.ai                                 | `true`   |         |
+| **`github-owner`**    | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
+| **`github-repo`**     | The repository name to create the Nullify issue dashboard in, e.g. cli                               | `true`   |         |
+| **`header`**          | List of headers for the DAST agent to authenticate with your API                                    | `false`  |         |
