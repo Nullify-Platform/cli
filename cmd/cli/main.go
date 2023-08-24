@@ -24,7 +24,7 @@ type DAST struct {
 	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 }
 
-var args struct {
+type args struct {
 	DAST *DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
 
 	Host    string `arg:"--host" default:"https://api.nullify.ai" help:"The base URL of your Nullify API instance"`
@@ -34,8 +34,13 @@ var args struct {
 	models.AuthSources
 }
 
+func (args) Version() string {
+	return logger.Version
+}
+
 func main() {
-	arg.MustParse(&args)
+	var args args
+	p := arg.MustParse(&args)
 
 	// Configure logger
 	logLevel := "warn"
@@ -126,7 +131,6 @@ func main() {
 
 		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
 	default:
-		p := arg.MustParse(&args)
 		p.WriteHelp(os.Stdout)
 	}
 }

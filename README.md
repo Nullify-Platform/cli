@@ -16,6 +16,7 @@ Options:
   --github-token GITHUB-TOKEN
                          GitHub actions job token to exchange for a Nullify API token
   --help, -h             display this help and exit
+  --version              display version and exit
 
 Commands:
   dast                   Test the given app for bugs and vulnerabilities
@@ -47,6 +48,7 @@ Global options:
   --github-token GITHUB-TOKEN
                          GitHub actions job token to exchange for a Nullify API token
   --help, -h             display this help and exit
+  --version              display version and exit
 ```
 
 example:
