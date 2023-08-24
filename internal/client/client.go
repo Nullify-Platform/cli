@@ -67,6 +67,10 @@ func getToken(nullifyHost string, authSources *models.AuthSources) (string, erro
 			return "", err
 		}
 
+		if res.StatusCode != http.StatusOK {
+			return "", HandleError(res)
+		}
+
 		var token githubToken
 		err = json.NewDecoder(res.Body).Decode(&token)
 		if err != nil {
