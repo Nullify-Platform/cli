@@ -1,11 +1,5 @@
-<a href="https://nullify.ai">
-[![Coverage](https://img.shields.io/badge/Coverage-0.0%25-red)](https://github.com/Nullify-Platform/cli/actions/workflows/go-coverage.yml)
-  <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
-</a>
-
 # Nullify CLI
-
-<p align="center">
+[![Coverage](https://img.shields.io/badge/Coverage-0.0%25-red)](https://github.com/Nullify-Platform/cli/actions/workflows/go-coverage.yml)
   <a href="https://github.com/Nullify-Platform/cli/releases">
     <img src="https://img.shields.io/github/v/release/Nullify-Platform/cli" alt="GitHub release" />
   </a>
@@ -18,21 +12,21 @@
   <a href="https://docs.nullify.ai/features/api-scanning/cli/">
     <img src="https://img.shields.io/badge/docs-docs.nullify.ai-purple" alt="Documentation" />
   </a>
+<p align="left">
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License" />
   </a>
-</p>
-<p align="center">
   <a href="https://securityscorecards.dev/viewer/?uri=github.com/Nullify-Platform/cli">
     <img src="https://api.securityscorecards.dev/projects/github.com/Nullify-Platform/cli/badge" alt="OpenSSF Scorecard" />
   </a>
   <a href="https://goreportcard.com/report/github.com/nullify-platform/cli">
     <img src="https://goreportcard.com/badge/github.com/nullify-platform/cli" alt="Go Report Card" />
   </a>
-  <a href="https://github.com/Nullify-Platform/cli/actions/workflows/ci-go-coverage.yml">
-    <img src="https://img.shields.io/badge/Coverage-100.0%25-brightgreen" alt="Go Coverage" />
-  </a>
 </p>
+
+<a href="https://nullify.ai">
+  <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
+</a>
 
 [Nullify](https://nullify.ai) dynamically tests and fuzzes your endpoints for security vulnerabilities.
 
