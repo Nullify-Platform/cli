@@ -16,19 +16,20 @@ import (
 )
 
 type DAST struct {
-	AppName          string   `arg:"--app-name" help:"name of the app to be scanned"`
-	Path             string   `arg:"--spec-path" help:"file path to the open api file"`
-	TargetHost       string   `arg:"--target-host"`
-	GitHubOwner      string   `arg:"--github-owner" help:"github owner to create the issue in e.g. nullify-platform"`
-	GitHubRepository string   `arg:"--github-repo" help:"repository name to create the issue in e.g. cli"`
-	AuthHeaders      []string `arg:"--header" help:"headers for the DAST agent to authenticate with your API"`
+	AppName          string   `arg:"--app-name" help:"The unique name of the app to be scanned, you can set this to anything e.g. Core API"`
+	Path             string   `arg:"--spec-path" help:"The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml"`
+	TargetHost       string   `arg:"--target-host" help:"The base URL of the API to be scanned e.g. https://api.nullify.ai"`
+	GitHubOwner      string   `arg:"--github-owner" help:"The GitHub username or organisation to create the Nullify issue dashboard in e.g. nullify-platform"`
+	GitHubRepository string   `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
+	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 }
 
 var args struct {
-	DAST    *DAST  `arg:"subcommand:dast" help:"test the given API for bugs and vulnerabilities"`
-	Host    string `arg:"-h,--host" default:"https://api.nullify.ai"`
-	Verbose bool   `arg:"-v" help:"enable verbose logging"`
-	Debug   bool   `arg:"-d" help:"enable debug logging"`
+	DAST *DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
+
+	Host    string `arg:"--host" default:"https://api.nullify.ai" help:"The base URL of your Nullify API instance"`
+	Verbose bool   `arg:"-v" help:"Enable verbose logging"`
+	Debug   bool   `arg:"-d" help:"Enable debug logging"`
 
 	models.AuthSources
 }
