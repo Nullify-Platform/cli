@@ -37,7 +37,7 @@ jobs:
     name: Build
     needs: [ get-version ]
     runs-on: ubuntu-latest
-    container: golang:1.21.0-alpine
+    container: golang:1.21.1-alpine
     steps:
       - uses: actions/checkout@v3
       - name: Set Release Variables
