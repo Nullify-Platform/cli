@@ -9,6 +9,7 @@ import (
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/dast"
 	"github.com/nullify-platform/cli/internal/models"
+	"github.com/nullify-platform/cli/internal/sast"
 	"github.com/nullify-platform/logger/pkg/logger"
 
 	"github.com/alexflint/go-arg"
@@ -24,8 +25,13 @@ type DAST struct {
 	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 }
 
+type SAST struct {
+	GitHubOwner string `arg:"--github-owner" help:"The GitHub username or organisation to query metrics from e.g. nullify-platform"`
+}
+
 type args struct {
 	DAST *DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
+	SAST *SAST `arg:"subcommand:sast" help:"Get SAST metrics"`
 
 	Host    string `arg:"--host" default:"https://api.nullify.ai" help:"The base URL of your Nullify API instance"`
 	Verbose bool   `arg:"-v" help:"Enable verbose logging"`
@@ -130,6 +136,30 @@ func main() {
 		}
 
 		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
+	case args.SAST != nil:
+		httpClient, err := client.NewHTTPClient(args.Host, &args.AuthSources)
+		if err != nil {
+			logger.Error("failed to create http client", logger.Err(err))
+			os.Exit(1)
+		}
+
+		out, err := sast.GetSummary(httpClient, args.Host, &sast.SASTSummaryInput{
+			RequestProvider: models.RequestProvider{
+				GitHubOwner: args.SAST.GitHubOwner,
+			},
+		})
+		if err != nil {
+			logger.Error("failed to send request", logger.Err(err))
+			os.Exit(1)
+		}
+
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		err = enc.Encode(out)
+		if err != nil {
+			logger.Error("failed to encode json", logger.Err(err))
+			os.Exit(1)
+		}
 	default:
 		p.WriteHelp(os.Stdout)
 	}
