@@ -24,12 +24,17 @@ type DAST struct {
 	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 }
 
-type args struct {
-	DAST *DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
+type LocalScan struct {
+	Image     string `arg:"--image" help:"Name of the dast image to be used in local scan"`
+	LocalScan bool   `arg:"--local" help:"Enable local dast scan"`
+}
 
-	Host    string `arg:"--host" default:"https://api.nullify.ai" help:"The base URL of your Nullify API instance"`
-	Verbose bool   `arg:"-v" help:"Enable verbose logging"`
-	Debug   bool   `arg:"-d" help:"Enable debug logging"`
+type args struct {
+	DAST      *DAST      `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
+	LocalScan *LocalScan `arg:"subcommand:local" help:"Test the given app locally for bugs and vulnerabilities"`
+	Host      string     `arg:"--host" default:"https://api.nullify.ai" help:"The base URL of your Nullify API instance"`
+	Verbose   bool       `arg:"-v" help:"Enable verbose logging"`
+	Debug     bool       `arg:"-d" help:"Enable debug logging"`
 
 	models.AuthSources
 }
@@ -108,6 +113,24 @@ func main() {
 		if err != nil {
 			logger.Error("failed to create http client", logger.Err(err))
 			os.Exit(1)
+		}
+
+		if args.LocalScan.LocalScan {
+			dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedInput{
+				AppName:     args.DAST.AppName,
+				Host:        args.DAST.TargetHost,
+				OpenAPISpec: openAPISpec,
+				AuthConfig: dast.StartScanAuthConfig{
+					Headers: authHeaders,
+				},
+				Image: args.LocalScan.Image,
+				RequestProvider: models.RequestProvider{
+					GitHubOwner: args.DAST.GitHubOwner,
+				},
+				RequestDashboardTarget: models.RequestDashboardTarget{
+					GitHubRepository: args.DAST.GitHubRepository,
+				},
+			})
 		}
 
 		out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
