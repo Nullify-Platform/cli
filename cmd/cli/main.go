@@ -116,7 +116,7 @@ func main() {
 		}
 
 		if args.LocalScan.LocalScan {
-			dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedInput{
+			out, err := dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedInput{
 				AppName:     args.DAST.AppName,
 				Host:        args.DAST.TargetHost,
 				OpenAPISpec: openAPISpec,
@@ -131,28 +131,34 @@ func main() {
 					GitHubRepository: args.DAST.GitHubRepository,
 				},
 			})
-		}
+			if err != nil {
+				logger.Error("failed to send request", logger.Err(err))
+				os.Exit(1)
+			}
+			logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
 
-		out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
-			AppName:     args.DAST.AppName,
-			Host:        args.DAST.TargetHost,
-			OpenAPISpec: openAPISpec,
-			AuthConfig: dast.StartScanAuthConfig{
-				Headers: authHeaders,
-			},
-			RequestProvider: models.RequestProvider{
-				GitHubOwner: args.DAST.GitHubOwner,
-			},
-			RequestDashboardTarget: models.RequestDashboardTarget{
-				GitHubRepository: args.DAST.GitHubRepository,
-			},
-		})
-		if err != nil {
-			logger.Error("failed to send request", logger.Err(err))
-			os.Exit(1)
-		}
+		} else {
+			out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
+				AppName:     args.DAST.AppName,
+				Host:        args.DAST.TargetHost,
+				OpenAPISpec: openAPISpec,
+				AuthConfig: dast.StartScanAuthConfig{
+					Headers: authHeaders,
+				},
+				RequestProvider: models.RequestProvider{
+					GitHubOwner: args.DAST.GitHubOwner,
+				},
+				RequestDashboardTarget: models.RequestDashboardTarget{
+					GitHubRepository: args.DAST.GitHubRepository,
+				},
+			})
+			if err != nil {
+				logger.Error("failed to send request", logger.Err(err))
+				os.Exit(1)
+			}
 
-		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
+			logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
+		}
 	default:
 		p.WriteHelp(os.Stdout)
 	}
