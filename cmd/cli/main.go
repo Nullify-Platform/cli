@@ -1,18 +1,15 @@
 package main
 
 import (
-	"encoding/json"
-	"io"
 	"os"
-	"strings"
 
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/dast"
+	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
 
 	"github.com/alexflint/go-arg"
-	"gopkg.in/yaml.v3"
 )
 
 type DAST struct {
@@ -25,13 +22,17 @@ type DAST struct {
 }
 
 type LocalScan struct {
-	Image     string `arg:"--image" help:"Name of the dast image to be used in local scan"`
-	LocalScan bool   `arg:"--local" help:"Enable local dast scan"`
+	AppName          string   `arg:"--app-name" help:"The unique name of the app to be scanned, you can set this to anything e.g. Core API"`
+	Path             string   `arg:"--spec-path" help:"The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml"`
+	TargetHost       string   `arg:"--target-host" help:"The base URL of the API to be scanned e.g. https://api.nullify.ai"`
+	GitHubOwner      string   `arg:"--github-owner" help:"The GitHub username or organisation to create the Nullify issue dashboard in e.g. nullify-platform"`
+	GitHubRepository string   `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
+	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 }
 
 type args struct {
-	DAST      *DAST      `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
-	LocalScan *LocalScan `arg:"subcommand:local" help:"Test the given app locally for bugs and vulnerabilities"`
+	DAST      *DAST      `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities in public networks"`
+	LocalScan *LocalScan `arg:"subcommand:local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
 	Host      string     `arg:"--host" default:"https://api.nullify.ai" help:"The base URL of your Nullify API instance"`
 	Verbose   bool       `arg:"-v" help:"Enable verbose logging"`
 	Debug     bool       `arg:"-d" help:"Enable debug logging"`
@@ -68,45 +69,56 @@ func main() {
 			logger.String("path", args.DAST.Path),
 			logger.String("targetHost", args.DAST.TargetHost),
 		)
-
-		data, err := os.Open(args.DAST.Path)
+		openAPISpec, err := lib.CreateOpenAPIFile(args.DAST.Path)
 		if err != nil {
-			logger.Error(
-				"failed to open open api file",
-				logger.Err(err),
-				logger.String("path", args.DAST.Path),
-			)
-			os.Exit(1)
-		}
-		fileData, err := io.ReadAll(data)
-		if err != nil {
-			logger.Error(
-				"failed to read file",
-				logger.Err(err),
-			)
 			os.Exit(1)
 		}
 
-		var openAPISpec map[string]interface{}
-		if err := json.Unmarshal(fileData, &openAPISpec); err != nil {
-			if err := yaml.Unmarshal(fileData, &openAPISpec); err != nil {
-				logger.Error("please provide either a json or yaml file")
-				os.Exit(1)
-			}
+		authHeaders, err := lib.ParseAuthHeaders(args.DAST.AuthHeaders)
+		if err != nil {
+			os.Exit(1)
 		}
 
-		authHeaders := map[string]string{}
+		httpClient, err := client.NewHTTPClient(args.Host, &args.AuthSources)
+		if err != nil {
+			logger.Error("failed to create http client", logger.Err(err))
+			os.Exit(1)
+		}
+		out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
+			AppName:     args.DAST.AppName,
+			Host:        args.DAST.TargetHost,
+			OpenAPISpec: openAPISpec,
+			AuthConfig: dast.StartScanAuthConfig{
+				Headers: authHeaders,
+			},
+			RequestProvider: models.RequestProvider{
+				GitHubOwner: args.DAST.GitHubOwner,
+			},
+			RequestDashboardTarget: models.RequestDashboardTarget{
+				GitHubRepository: args.DAST.GitHubRepository,
+			},
+		})
+		if err != nil {
+			logger.Error("failed to send request", logger.Err(err))
+			os.Exit(1)
+		}
 
-		for _, header := range args.DAST.AuthHeaders {
-			headerParts := strings.Split(header, ": ")
-			if len(headerParts) != 2 {
-				logger.Error("please provide headers in the format of 'key: value'")
-				os.Exit(1)
-			}
+		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
 
-			headerName := strings.TrimSpace(headerParts[0])
-			headerValue := strings.TrimSpace(headerParts[1])
-			authHeaders[headerName] = headerValue
+	case args.LocalScan != nil && args.LocalScan.Path != "":
+		logger.Info(
+			"running local fuzz test",
+			logger.String("path", args.LocalScan.Path),
+			logger.String("targetHost", args.LocalScan.TargetHost),
+		)
+		openAPISpec, err := lib.CreateOpenAPIFile(args.LocalScan.Path)
+		if err != nil {
+			os.Exit(1)
+		}
+
+		authHeaders, err := lib.ParseAuthHeaders(args.LocalScan.AuthHeaders)
+		if err != nil {
+			os.Exit(1)
 		}
 
 		httpClient, err := client.NewHTTPClient(args.Host, &args.AuthSources)
@@ -115,50 +127,25 @@ func main() {
 			os.Exit(1)
 		}
 
-		if args.LocalScan.LocalScan {
-			out, err := dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedInput{
-				AppName:     args.DAST.AppName,
-				Host:        args.DAST.TargetHost,
-				OpenAPISpec: openAPISpec,
-				AuthConfig: dast.StartScanAuthConfig{
-					Headers: authHeaders,
-				},
-				Image: args.LocalScan.Image,
-				RequestProvider: models.RequestProvider{
-					GitHubOwner: args.DAST.GitHubOwner,
-				},
-				RequestDashboardTarget: models.RequestDashboardTarget{
-					GitHubRepository: args.DAST.GitHubRepository,
-				},
-			})
-			if err != nil {
-				logger.Error("failed to send request", logger.Err(err))
-				os.Exit(1)
-			}
-			logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
-
-		} else {
-			out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
-				AppName:     args.DAST.AppName,
-				Host:        args.DAST.TargetHost,
-				OpenAPISpec: openAPISpec,
-				AuthConfig: dast.StartScanAuthConfig{
-					Headers: authHeaders,
-				},
-				RequestProvider: models.RequestProvider{
-					GitHubOwner: args.DAST.GitHubOwner,
-				},
-				RequestDashboardTarget: models.RequestDashboardTarget{
-					GitHubRepository: args.DAST.GitHubRepository,
-				},
-			})
-			if err != nil {
-				logger.Error("failed to send request", logger.Err(err))
-				os.Exit(1)
-			}
-
-			logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
+		out, err := dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedInput{
+			AppName:     args.LocalScan.AppName,
+			Host:        args.LocalScan.TargetHost,
+			OpenAPISpec: openAPISpec,
+			AuthConfig: dast.StartScanAuthConfig{
+				Headers: authHeaders,
+			},
+			RequestProvider: models.RequestProvider{
+				GitHubOwner: args.LocalScan.GitHubOwner,
+			},
+			RequestDashboardTarget: models.RequestDashboardTarget{
+				GitHubRepository: args.LocalScan.GitHubRepository,
+			},
+		})
+		if err != nil {
+			logger.Error("failed to send request", logger.Err(err))
+			os.Exit(1)
 		}
+		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
 	default:
 		p.WriteHelp(os.Stdout)
 	}

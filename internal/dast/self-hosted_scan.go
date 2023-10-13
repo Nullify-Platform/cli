@@ -1,17 +1,16 @@
 package dast
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
-	"strings"
 
-	"github.com/nullify-platform/cli/internal/client"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	docker "github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/models"
-	"github.com/nullify-platform/logger/pkg/logger"
 )
 
 type SelfHostedInput struct {
@@ -19,7 +18,6 @@ type SelfHostedInput struct {
 	Host        string                 `json:"host"`
 	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
 	AuthConfig  StartScanAuthConfig    `json:"authConfig"`
-	Image       string                 `json:"image"`
 
 	models.RequestProvider
 	models.RequestDashboardTarget
@@ -42,67 +40,94 @@ type SelfHostedOutput struct {
 }
 
 func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHostedInput) (*SelfHostedOutput, error) {
-	cmd := exec.Command("docker", "run", input.Image)
+	ctx := context.Background()
 
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Start()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
+	defer cli.Close()
 
-	err = cmd.Wait()
+	reader, err := cli.ImagePull(ctx, "docker.io/library/alpine", types.ImagePullOptions{})
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
+	io.Copy(os.Stdout, reader)
 
-	// send request with findings from dast scan
-	requestBody, err := json.Marshal(SelfHostedRequest{})
+	containerResp, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: "alpine",
+		Cmd:   []string{"echo", "hello world"},
+	}, nil, nil, nil, "")
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	url := fmt.Sprintf("https://%s/dast/scans", nullifyHost)
 
-	con := strings.NewReader(string(requestBody))
-	req, err := http.NewRequest("POST", url, con)
+	if err := cli.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
+		panic(err)
+	}
+
+	statusCh, errCh := cli.ContainerWait(ctx, containerResp.ID, container.WaitConditionNotRunning)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			panic(err)
+		}
+	case <-statusCh:
+	}
+
+	out, err := cli.ContainerLogs(ctx, containerResp.ID, types.ContainerLogsOptions{ShowStdout: true})
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
-	logger.Debug(
-		"sending request to nullify dast",
-		logger.String("url", url),
-	)
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	// // send request with findings from dast scan
+	// requestBody, err := json.Marshal(SelfHostedRequest{})
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// url := fmt.Sprintf("https://%s/dast/scans", nullifyHost)
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, client.HandleError(resp)
-	}
+	// con := strings.NewReader(string(requestBody))
+	// req, err := http.NewRequest("POST", url, con)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	// req.Header.Set("Content-Type", "application/json")
 
-	logger.Debug(
-		"nullify dast response",
-		logger.String("status", resp.Status),
-		logger.String("body", string(body)),
-	)
+	// logger.Debug(
+	// 	"sending request to nullify dast",
+	// 	logger.String("url", url),
+	// )
 
-	var output SelfHostedOutput
-	err = json.Unmarshal(body, &output)
-	if err != nil {
-		return nil, err
-	}
+	// resp, err := httpClient.Do(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer resp.Body.Close()
 
-	return &output, nil
+	// if resp.StatusCode != http.StatusOK {
+	// 	return nil, client.HandleError(resp)
+	// }
+
+	// body, err := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// logger.Debug(
+	// 	"nullify dast response",
+	// 	logger.String("status", resp.Status),
+	// 	logger.String("body", string(body)),
+	// )
+
+	// var output SelfHostedOutput
+	// err = json.Unmarshal(body, &output)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	return nil, nil
 }
