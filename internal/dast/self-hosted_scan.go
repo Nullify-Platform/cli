@@ -11,6 +11,7 @@ import (
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/models"
+	"github.com/nullify-platform/logger/pkg/logger"
 )
 
 type SelfHostedInput struct {
@@ -44,13 +45,21 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 
 	cli, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
 	if err != nil {
-		panic(err)
+		logger.Error(
+			"unable to create new docker client",
+			logger.Err(err),
+		)
+		return nil, err
 	}
 	defer cli.Close()
 
 	reader, err := cli.ImagePull(ctx, "docker.io/library/alpine", types.ImagePullOptions{})
 	if err != nil {
-		panic(err)
+		logger.Error(
+			"unable to pull image from docker public registry",
+			logger.Err(err),
+		)
+		return nil, err
 	}
 	io.Copy(os.Stdout, reader)
 
@@ -59,75 +68,44 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 		Cmd:   []string{"echo", "hello world"},
 	}, nil, nil, nil, "")
 	if err != nil {
-		panic(err)
+		logger.Error(
+			"unable to create new docker container",
+			logger.Err(err),
+		)
+		return nil, err
 	}
 
 	if err := cli.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
-		panic(err)
+		logger.Error(
+			"unable to start docker container",
+			logger.Err(err),
+		)
+		return nil, err
 	}
 
 	statusCh, errCh := cli.ContainerWait(ctx, containerResp.ID, container.WaitConditionNotRunning)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			panic(err)
+			logger.Error(
+				"unable to create new docker client",
+				logger.Err(err),
+			)
+			return nil, err
 		}
 	case <-statusCh:
 	}
 
 	out, err := cli.ContainerLogs(ctx, containerResp.ID, types.ContainerLogsOptions{ShowStdout: true})
 	if err != nil {
-		panic(err)
+		logger.Error(
+			"unable to create docker container logs",
+			logger.Err(err),
+		)
+		return nil, err
 	}
 
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
-
-	// // send request with findings from dast scan
-	// requestBody, err := json.Marshal(SelfHostedRequest{})
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// url := fmt.Sprintf("https://%s/dast/scans", nullifyHost)
-
-	// con := strings.NewReader(string(requestBody))
-	// req, err := http.NewRequest("POST", url, con)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// req.Header.Set("Content-Type", "application/json")
-
-	// logger.Debug(
-	// 	"sending request to nullify dast",
-	// 	logger.String("url", url),
-	// )
-
-	// resp, err := httpClient.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer resp.Body.Close()
-
-	// if resp.StatusCode != http.StatusOK {
-	// 	return nil, client.HandleError(resp)
-	// }
-
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// logger.Debug(
-	// 	"nullify dast response",
-	// 	logger.String("status", resp.Status),
-	// 	logger.String("body", string(body)),
-	// )
-
-	// var output SelfHostedOutput
-	// err = json.Unmarshal(body, &output)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	return nil, nil
 }
