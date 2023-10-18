@@ -2,7 +2,7 @@ package dast
 
 import (
 	"context"
-	"io"
+	"encoding/json"
 	"net/http"
 	"os"
 
@@ -17,6 +17,7 @@ import (
 type SelfHostedInput struct {
 	AppName     string                 `json:"appName"`
 	Host        string                 `json:"host"`
+	TargetHost  string                 `json:"targetHost"`
 	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
 	AuthConfig  StartScanAuthConfig    `json:"authConfig"`
 
@@ -41,9 +42,14 @@ type SelfHostedOutput struct {
 }
 
 func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHostedInput) (*SelfHostedOutput, error) {
+	requestBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+
 	ctx := context.Background()
 
-	cli, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
+	client, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
 	if err != nil {
 		logger.Error(
 			"unable to create new docker client",
@@ -51,22 +57,22 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 		)
 		return nil, err
 	}
-	defer cli.Close()
+	defer client.Close()
 
-	reader, err := cli.ImagePull(ctx, "docker.io/library/alpine", types.ImagePullOptions{})
-	if err != nil {
-		logger.Error(
-			"unable to pull image from docker public registry",
-			logger.Err(err),
-		)
-		return nil, err
-	}
-	io.Copy(os.Stdout, reader)
+	// reader, err := client.ImagePull(ctx, "docker.io/library/alpine", types.ImagePullOptions{})
+	// if err != nil {
+	// 	logger.Error(
+	// 		"unable to pull image from docker public registry",
+	// 		logger.Err(err),
+	// 	)
+	// 	return nil, err
+	// }
+	// io.Copy(os.Stdout, reader)
 
-	containerResp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: "alpine",
-		Cmd:   []string{"echo", "hello world"},
-	}, nil, nil, nil, "")
+	containerResp, err := client.ContainerCreate(ctx, &container.Config{
+		Image: "self-hosted-dast",
+		Cmd:   []string{"/cli", string(requestBody)},
+	}, nil, nil, nil, "self-hosted-dast-1")
 	if err != nil {
 		logger.Error(
 			"unable to create new docker container",
@@ -75,7 +81,7 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 		return nil, err
 	}
 
-	if err := cli.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
+	if err := client.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
 		logger.Error(
 			"unable to start docker container",
 			logger.Err(err),
@@ -83,12 +89,12 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 		return nil, err
 	}
 
-	statusCh, errCh := cli.ContainerWait(ctx, containerResp.ID, container.WaitConditionNotRunning)
+	statusCh, errCh := client.ContainerWait(ctx, containerResp.ID, container.WaitConditionNotRunning)
 	select {
 	case err := <-errCh:
 		if err != nil {
 			logger.Error(
-				"unable to create new docker client",
+				"unable to create new docker clientent",
 				logger.Err(err),
 			)
 			return nil, err
@@ -96,7 +102,7 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 	case <-statusCh:
 	}
 
-	out, err := cli.ContainerLogs(ctx, containerResp.ID, types.ContainerLogsOptions{ShowStdout: true})
+	out, err := client.ContainerLogs(ctx, containerResp.ID, types.ContainerLogsOptions{ShowStdout: true})
 	if err != nil {
 		logger.Error(
 			"unable to create docker container logs",
@@ -107,5 +113,5 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
-	return nil, nil
+	return &SelfHostedOutput{ScanID: "1"}, nil
 }

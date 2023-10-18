@@ -129,7 +129,8 @@ func main() {
 
 		out, err := dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedInput{
 			AppName:     args.LocalScan.AppName,
-			Host:        args.LocalScan.TargetHost,
+			Host:        args.Host,
+			TargetHost:  args.LocalScan.TargetHost,
 			OpenAPISpec: openAPISpec,
 			AuthConfig: dast.StartScanAuthConfig{
 				Headers: authHeaders,
