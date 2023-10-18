@@ -12,25 +12,7 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
-type StartScanInput struct {
-	AppName     string                 `json:"appName"`
-	Host        string                 `json:"host"`
-	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
-	AuthConfig  StartScanAuthConfig    `json:"authConfig"`
-
-	models.RequestProvider
-	models.RequestDashboardTarget
-}
-
-type StartScanAuthConfig struct {
-	Headers map[string]string `json:"headers"`
-}
-
-type StartScanOutput struct {
-	ScanID string `json:"scanId"`
-}
-
-func StartScan(httpClient *http.Client, nullifyHost string, input *StartScanInput) (*StartScanOutput, error) {
+func StartScan(httpClient *http.Client, nullifyHost string, input *models.ScanInput) (*models.ScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -71,7 +53,7 @@ func StartScan(httpClient *http.Client, nullifyHost string, input *StartScanInpu
 		logger.String("body", string(body)),
 	)
 
-	var output StartScanOutput
+	var output models.ScanOutput
 	err = json.Unmarshal(body, &output)
 	if err != nil {
 		return nil, err

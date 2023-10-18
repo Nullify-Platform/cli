@@ -84,11 +84,11 @@ func main() {
 			logger.Error("failed to create http client", logger.Err(err))
 			os.Exit(1)
 		}
-		out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
+		out, err := dast.StartScan(httpClient, args.Host, &models.ScanInput{
 			AppName:     args.DAST.AppName,
 			Host:        args.DAST.TargetHost,
 			OpenAPISpec: openAPISpec,
-			AuthConfig: dast.StartScanAuthConfig{
+			AuthConfig: models.ScanAuthConfig{
 				Headers: authHeaders,
 			},
 			RequestProvider: models.RequestProvider{
@@ -127,12 +127,12 @@ func main() {
 			os.Exit(1)
 		}
 
-		out, err := dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedInput{
+		out, err := dast.SelfHostedScan(httpClient, args.Host, &models.ScanInput{
 			AppName:     args.LocalScan.AppName,
 			Host:        args.Host,
 			TargetHost:  args.LocalScan.TargetHost,
 			OpenAPISpec: openAPISpec,
-			AuthConfig: dast.StartScanAuthConfig{
+			AuthConfig: models.ScanAuthConfig{
 				Headers: authHeaders,
 			},
 			RequestProvider: models.RequestProvider{

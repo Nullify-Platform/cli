@@ -14,34 +14,9 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
-type SelfHostedInput struct {
-	AppName     string                 `json:"appName"`
-	Host        string                 `json:"host"`
-	TargetHost  string                 `json:"targetHost"`
-	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
-	AuthConfig  StartScanAuthConfig    `json:"authConfig"`
+const ImageName = "self-hosted-dast"
 
-	models.RequestProvider
-	models.RequestDashboardTarget
-}
-
-type SelfHostedRequest struct {
-	AppName  string               `json:"appName"`
-	Findings []models.DASTFinding `json:"findings"`
-
-	models.RequestProvider
-	models.RequestDashboardTarget
-}
-
-type SelfHostedConfig struct {
-	Headers map[string]string `json:"headers"`
-}
-
-type SelfHostedOutput struct {
-	ScanID string `json:"scanId"`
-}
-
-func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHostedInput) (*SelfHostedOutput, error) {
+func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *models.ScanInput) (*models.ScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -70,9 +45,9 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 	// io.Copy(os.Stdout, reader)
 
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
-		Image: "self-hosted-dast",
+		Image: ImageName,
 		Cmd:   []string{"/cli", string(requestBody)},
-	}, nil, nil, nil, "self-hosted-dast-1")
+	}, nil, nil, nil, ImageName)
 	if err != nil {
 		logger.Error(
 			"unable to create new docker container",
@@ -81,7 +56,18 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 		return nil, err
 	}
 
-	if err := client.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
+	defer func() (*models.ScanOutput, error) {
+		if err = client.ContainerRemove(ctx, containerResp.ID, types.ContainerRemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
+			logger.Error(
+				"unable to remove container",
+				logger.Err(err),
+			)
+			return nil, err
+		}
+		return nil, nil
+	}()
+
+	if err = client.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
 		logger.Error(
 			"unable to start docker container",
 			logger.Err(err),
@@ -113,5 +99,5 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
-	return &SelfHostedOutput{ScanID: "1"}, nil
+	return &models.ScanOutput{ScanID: "1"}, nil
 }
