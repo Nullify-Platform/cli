@@ -73,15 +73,13 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 		return err
 	}
 
-	defer func() error {
+	defer func() {
 		if err = client.ContainerRemove(ctx, containerResp.ID, types.ContainerRemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
 			logger.Error(
 				"unable to remove container",
 				logger.Err(err),
 			)
-			return err
 		}
-		return nil
 	}()
 
 	if err = client.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
@@ -114,7 +112,14 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 		return err
 	}
 
-	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	if err != nil {
+		logger.Error(
+			"unable to copy stdout from container to cli",
+			logger.Err(err),
+		)
+		return err
+	}
 
 	return nil
 }
