@@ -127,7 +127,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		out, err := dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedScanInput{
+		err = dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedScanInput{
 			AppName:     args.LocalScan.AppName,
 			Host:        args.Host,
 			TargetHost:  args.LocalScan.TargetHost,
@@ -147,7 +147,6 @@ func main() {
 			logger.Error("failed to send request", logger.Err(err))
 			os.Exit(1)
 		}
-		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
 	default:
 		p.WriteHelp(os.Stdout)
 	}

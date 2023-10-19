@@ -32,10 +32,10 @@ type SelfHostedScanOutput struct {
 
 const ImageName = "self-hosted-dast"
 
-func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHostedScanInput) (*SelfHostedScanOutput, error) {
+func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHostedScanInput) error {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	ctx := context.Background()
@@ -46,17 +46,18 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 			"unable to create new docker client",
 			logger.Err(err),
 		)
-		return nil, err
+		return err
 	}
 	defer client.Close()
 
+	// TODO add image to public repository
 	// reader, err := client.ImagePull(ctx, "docker.io/library/alpine", types.ImagePullOptions{})
 	// if err != nil {
 	// 	logger.Error(
 	// 		"unable to pull image from docker public registry",
 	// 		logger.Err(err),
 	// 	)
-	// 	return nil, err
+	// 	return err
 	// }
 	// io.Copy(os.Stdout, reader)
 
@@ -69,18 +70,18 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 			"unable to create new docker container",
 			logger.Err(err),
 		)
-		return nil, err
+		return err
 	}
 
-	defer func() (*SelfHostedScanOutput, error) {
+	defer func() error {
 		if err = client.ContainerRemove(ctx, containerResp.ID, types.ContainerRemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
 			logger.Error(
 				"unable to remove container",
 				logger.Err(err),
 			)
-			return nil, err
+			return err
 		}
-		return nil, nil
+		return nil
 	}()
 
 	if err = client.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
@@ -88,7 +89,7 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 			"unable to start docker container",
 			logger.Err(err),
 		)
-		return nil, err
+		return err
 	}
 
 	statusCh, errCh := client.ContainerWait(ctx, containerResp.ID, container.WaitConditionNotRunning)
@@ -99,7 +100,7 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 				"error while waiting for container to finish scan",
 				logger.Err(err),
 			)
-			return nil, err
+			return err
 		}
 	case <-statusCh:
 	}
@@ -110,10 +111,10 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 			"unable to create docker container logs",
 			logger.Err(err),
 		)
-		return nil, err
+		return err
 	}
 
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
-	return nil, nil
+	return nil
 }
