@@ -14,9 +14,25 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
+type SelfHostedScanInput struct {
+	AppName     string                 `json:"appName"`
+	Host        string                 `json:"host"`
+	TargetHost  string                 `json:"targetHost"`
+	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
+	AuthConfig  models.AuthConfig      `json:"authConfig"`
+
+	models.AuthSources
+	models.RequestProvider
+	models.RequestDashboardTarget
+}
+
+type SelfHostedScanOutput struct {
+	ScanID string `json:"scanId"`
+}
+
 const ImageName = "self-hosted-dast"
 
-func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *models.ScanInput) (*models.ScanOutput, error) {
+func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHostedScanInput) (*SelfHostedScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -56,7 +72,7 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *models.S
 		return nil, err
 	}
 
-	defer func() (*models.ScanOutput, error) {
+	defer func() (*SelfHostedScanOutput, error) {
 		if err = client.ContainerRemove(ctx, containerResp.ID, types.ContainerRemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
 			logger.Error(
 				"unable to remove container",
@@ -80,7 +96,7 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *models.S
 	case err := <-errCh:
 		if err != nil {
 			logger.Error(
-				"unable to create new docker clientent",
+				"error while waiting for container to finish scan",
 				logger.Err(err),
 			)
 			return nil, err
@@ -99,5 +115,5 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *models.S
 
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
-	return &models.ScanOutput{ScanID: "1"}, nil
+	return nil, nil
 }
