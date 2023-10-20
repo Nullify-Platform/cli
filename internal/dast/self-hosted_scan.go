@@ -63,7 +63,7 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
 		Image: ImageName,
-		Cmd:   []string{"/cli", string(requestBody)},
+		Cmd:   []string{"/local", string(requestBody)},
 	}, nil, nil, nil, ImageName)
 	if err != nil {
 		logger.Error(
