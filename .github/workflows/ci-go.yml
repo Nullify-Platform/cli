@@ -25,7 +25,7 @@ jobs:
         run: make unit
   lint:
     runs-on: ubuntu-latest
-    container: golangci/golangci-lint:v1.54.2
+    container: golangci/golangci-lint:v1.55.0
     steps:
       - name: setup
         run: git config --global --add safe.directory $(pwd)
