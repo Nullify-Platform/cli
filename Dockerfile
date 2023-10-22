@@ -1,2 +1,2 @@
-FROM golangci/golangci-lint:v1.54.2@sha256:2082f5379c48c46e447bc1b890512f3aa9339db5eeed1a483a34aae9476ba6ee as golangci-lint
+FROM golangci/golangci-lint:v1.55.0@sha256:6d35004e5b67de36dbdde54a5062d51eb51a076e291f2a71870ea8c980027c47 as golangci-lint
 FROM hadolint/hadolint:2.12.0@sha256:30a8fd2e785ab6176eed53f74769e04f125afb2f74a6c52aef7d463583b6d45e as hadolint
