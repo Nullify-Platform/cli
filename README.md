@@ -72,6 +72,7 @@ Options:
   --github-repo GITHUB-REPO
                          The repository name to create the Nullify issue dashboard in e.g. cli
   --header HEADER        List of headers for the DAST agent to authenticate with your API
+  --local                Test the given app locally for bugs and vulnerabilities in private networks
 
 Global options:
   --host HOST            The base URL of your Nullify API instance [default: https://api.nullify.ai]
@@ -89,12 +90,13 @@ Global options:
 
 ```sh
 nullify dast \
-  --app-name     "My REST API" \
-  --spec-path    "./openapi.json" \
-  --target-host  "https://api.myapp1234.dev" \
-  --github-owner "my-username" \
-  --github-repo  "my-repo" \
-  --header       "Authorization: Bearer 1234" \
+  --app-name      "My REST API" \
+  --spec-path     "./openapi.json" \
+  --target-host   "https://api.myapp1234.dev" \
+  --github-owner  "my-username" \
+  --github-repo   "my-repo" \
+  --header        "Authorization: Bearer 1234" \
+  --nullify-token "nullify-token"
 ```
 
 ## Global Options
@@ -119,3 +121,5 @@ nullify dast \
 | **`github-owner`** | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
 | **`github-repo`**  | The repository name to create the Nullify issue dashboard in, e.g. cli                              | `true`   |         |
 | **`header`**       | List of headers for the DAST agent to authenticate with your API                                    | `false`  |         |
+| **`local`**        | Test the given app locally for bugs and vulnerabilities in private networks                         | `false`  |         |
+

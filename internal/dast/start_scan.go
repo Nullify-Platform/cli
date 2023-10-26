@@ -16,14 +16,10 @@ type StartScanInput struct {
 	AppName     string                 `json:"appName"`
 	Host        string                 `json:"host"`
 	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
-	AuthConfig  StartScanAuthConfig    `json:"authConfig"`
+	AuthConfig  models.AuthConfig      `json:"authConfig"`
 
 	models.RequestProvider
 	models.RequestDashboardTarget
-}
-
-type StartScanAuthConfig struct {
-	Headers map[string]string `json:"headers"`
 }
 
 type StartScanOutput struct {
