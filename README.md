@@ -72,34 +72,7 @@ Options:
   --github-repo GITHUB-REPO
                          The repository name to create the Nullify issue dashboard in e.g. cli
   --header HEADER        List of headers for the DAST agent to authenticate with your API
-
-Global options:
-  --host HOST            The base URL of your Nullify API instance [default: https://api.nullify.ai]
-  --verbose, -v          Enable verbose logging
-  --debug, -d            Enable debug logging
-  --nullify-token NULLIFY-TOKEN
-                         Nullify API token
-  --github-token GITHUB-TOKEN
-                         GitHub actions job token to exchange for a Nullify API token
-  --help, -h             display this help and exit
-  --version              display version and exit
-```
-
-## Running DAST Local Scans 
-```
-Usage: nullify local [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--header HEADER]
-
-Options:
-  --app-name APP-NAME    The unique name of the app to be scanned, you can set this to anything e.g. Core API
-  --spec-path SPEC-PATH
-                         The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml
-  --target-host TARGET-HOST
-                         The base URL of the API to be scanned e.g. https://api.nullify.ai
-  --github-owner GITHUB-OWNER
-                         The GitHub username or organisation to create the Nullify issue dashboard in e.g. nullify-platform
-  --github-repo GITHUB-REPO
-                         The repository name to create the Nullify issue dashboard in e.g. cli
-  --header HEADER        List of headers for the DAST agent to authenticate with your API
+  --local                Test the given app locally for bugs and vulnerabilities in private networks
 
 Global options:
   --host HOST            The base URL of your Nullify API instance [default: https://api.nullify.ai]
@@ -117,24 +90,13 @@ Global options:
 
 ```sh
 nullify dast \
-  --app-name     "My REST API" \
-  --spec-path    "./openapi.json" \
-  --target-host  "https://api.myapp1234.dev" \
-  --github-owner "my-username" \
-  --github-repo  "my-repo" \
-  --header       "Authorization: Bearer 1234" \
-```
-
-### Example DAST Local Scan 
-```sh
-nullify local \
   --app-name      "My REST API" \
   --spec-path     "./openapi.json" \
   --target-host   "https://api.myapp1234.dev" \
   --github-owner  "my-username" \
   --github-repo   "my-repo" \
-  --host          "nullify-host" \
-  --nullify-token "token"
+  --header        "Authorization: Bearer 1234" \
+  --nullify-token "nullify-token"
 ```
 
 ## Global Options
@@ -159,3 +121,5 @@ nullify local \
 | **`github-owner`** | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
 | **`github-repo`**  | The repository name to create the Nullify issue dashboard in, e.g. cli                              | `true`   |         |
 | **`header`**       | List of headers for the DAST agent to authenticate with your API                                    | `false`  |         |
+| **`local`**        | Test the given app locally for bugs and vulnerabilities in private networks                         | `false`  |         |
+
