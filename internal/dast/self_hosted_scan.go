@@ -50,17 +50,6 @@ func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHost
 	}
 	defer client.Close()
 
-	// TODO add image to public repository
-	// reader, err := client.ImagePull(ctx, "docker.io/library/alpine", types.ImagePullOptions{})
-	// if err != nil {
-	// 	logger.Error(
-	// 		"unable to pull image from docker public registry",
-	// 		logger.Err(err),
-	// 	)
-	// 	return err
-	// }
-	// io.Copy(os.Stdout, reader)
-
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
 		Image: ImageName,
 		Cmd:   []string{"/local", string(requestBody)},

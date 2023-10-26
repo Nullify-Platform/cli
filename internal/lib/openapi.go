@@ -2,14 +2,19 @@ package lib
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/nullify-platform/logger/pkg/logger"
 	"gopkg.in/yaml.v3"
 )
 
 func CreateOpenAPIFile(filePath string) (map[string]interface{}, error) {
+	if strings.Contains(filePath, "/") || strings.Contains(filePath, "..") {
+		return nil, errors.New("invalid file path")
+	}
 	data, err := os.Open(filePath)
 	if err != nil {
 		logger.Error(
