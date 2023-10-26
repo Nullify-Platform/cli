@@ -14,7 +14,7 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
-type SelfHostedScanInput struct {
+type DASTLocalScanInput struct {
 	AppName     string                 `json:"appName"`
 	Host        string                 `json:"host"`
 	TargetHost  string                 `json:"targetHost"`
@@ -26,13 +26,13 @@ type SelfHostedScanInput struct {
 	models.RequestDashboardTarget
 }
 
-type SelfHostedScanOutput struct {
+type DASTLocalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-const ImageName = "self-hosted-dast"
+const ImageName = "dast-local"
 
-func SelfHostedScan(httpClient *http.Client, nullifyHost string, input *SelfHostedScanInput) error {
+func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocalScanInput) error {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return err

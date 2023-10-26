@@ -77,7 +77,7 @@ func main() {
 		}
 
 		if args.DAST.Local {
-			err = dast.SelfHostedScan(httpClient, args.Host, &dast.SelfHostedScanInput{
+			err = dast.DASTLocalScan(httpClient, args.Host, &dast.DASTLocalScanInput{
 				AppName:     args.DAST.AppName,
 				Host:        args.Host,
 				TargetHost:  args.DAST.TargetHost,
