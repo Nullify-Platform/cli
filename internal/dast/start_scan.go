@@ -27,6 +27,12 @@ type StartScanOutput struct {
 }
 
 func StartScan(httpClient *http.Client, nullifyHost string, input *StartScanInput) (*StartScanOutput, error) {
+	logger.Info(
+		"starting server side scan",
+		logger.String("appName", input.AppName),
+		logger.String("host", input.Host),
+	)
+
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
