@@ -22,5 +22,6 @@ func ParseAuthHeaders(authHeaders []string) (map[string]string, error) {
 		headerValue := strings.TrimSpace(headerParts[1])
 		result[headerName] = headerValue
 	}
+
 	return result, nil
 }
