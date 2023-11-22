@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/models"
+	"github.com/nullify-platform/logger/pkg/logger"
 )
 
 type authTransport struct {
@@ -22,10 +23,15 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 func NewHTTPClient(nullifyHost string, authSources *models.AuthSources) (*http.Client, error) {
-	token, error := getToken(nullifyHost, authSources)
-	if error != nil {
-		return nil, error
+	token, err := getToken(nullifyHost, authSources)
+	if err != nil {
+		return nil, err
 	}
+
+	logger.Debug(
+		"using token",
+		logger.String("token", token),
+	)
 
 	return &http.Client{
 		Transport: &authTransport{
@@ -39,11 +45,13 @@ var ErrNoToken = errors.New("no token detected")
 
 func getToken(nullifyHost string, authSources *models.AuthSources) (string, error) {
 	if authSources.NullifyToken != "" {
+		logger.Debug("using token from config")
 		return authSources.NullifyToken, nil
 	}
 
 	token := os.Getenv("NULLIFY_TOKEN")
 	if token != "" {
+		logger.Debug("using token from env")
 		return token, nil
 	}
 
@@ -51,6 +59,12 @@ func getToken(nullifyHost string, authSources *models.AuthSources) (string, erro
 		authSources.GitHubToken != "" &&
 		os.Getenv("GITHUB_ACTION_REPOSITORY") != "" {
 		repo := os.Getenv("GITHUB_ACTION_REPOSITORY")
+
+		logger.Debug(
+			"exchanging github actions token for a nullify token",
+			logger.String("repository", repo),
+			logger.String("githubToken", authSources.GitHubToken),
+		)
 
 		parts := strings.Split(repo, "/")
 
@@ -76,6 +90,12 @@ func getToken(nullifyHost string, authSources *models.AuthSources) (string, erro
 		if err != nil {
 			return "", err
 		}
+
+		logger.Debug(
+			"exchanged github actions token for a nullify token",
+			logger.String("repository", repo),
+			logger.String("token", token.Token),
+		)
 
 		return token.Token, nil
 	}

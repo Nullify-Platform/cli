@@ -56,17 +56,20 @@ func main() {
 	switch {
 	case args.DAST != nil && args.DAST.Path != "":
 		logger.Info(
-			"running fuzz test",
+			"running dast scan",
 			logger.String("path", args.DAST.Path),
 			logger.String("targetHost", args.DAST.TargetHost),
 		)
+
 		openAPISpec, err := lib.CreateOpenAPIFile(args.DAST.Path)
 		if err != nil {
+			logger.Error("failed to create openapi file", logger.Err(err))
 			os.Exit(1)
 		}
 
 		authHeaders, err := lib.ParseAuthHeaders(args.DAST.AuthHeaders)
 		if err != nil {
+			logger.Error("failed to parse auth headers", logger.Err(err))
 			os.Exit(1)
 		}
 

@@ -33,6 +33,12 @@ type DASTLocalScanOutput struct {
 const ImageName = "dast-local"
 
 func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocalScanInput) error {
+	logger.Info(
+		"starting local scan",
+		logger.String("appName", input.AppName),
+		logger.String("host", input.TargetHost),
+	)
+
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return err
