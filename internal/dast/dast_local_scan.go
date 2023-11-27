@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/docker/docker/api/types/container"
-	docker "github.com/docker/docker/client"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
@@ -29,8 +29,6 @@ type DASTLocalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-const ImageName = "dast-local"
-
 func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocalScanInput) error {
 	logger.Info(
 		"starting local scan",
@@ -45,7 +43,7 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 
 	ctx := context.Background()
 
-	client, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
+	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		logger.Error(
 			"unable to create new docker client",
@@ -55,10 +53,21 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 	}
 	defer client.Close()
 
+	imageRef := "public.ecr.aws/nullify/dast:0.1.0"
+	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	if err != nil {
+		logger.Error(
+			"unable to pull image from nullify public ecr",
+			logger.Err(err),
+		)
+		return err
+	}
+	defer image.Close()
+
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
-		Image: ImageName,
+		Image: imageRef,
 		Cmd:   []string{"/local", string(requestBody)},
-	}, nil, nil, nil, ImageName)
+	}, nil, nil, nil, imageRef)
 	if err != nil {
 		logger.Error(
 			"unable to create new docker container",
