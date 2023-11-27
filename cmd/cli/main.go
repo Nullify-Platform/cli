@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/dast"
@@ -19,7 +20,7 @@ type DAST struct {
 	GitHubOwner      string   `arg:"--github-owner" help:"The GitHub username or organisation to create the Nullify issue dashboard in e.g. nullify-platform"`
 	GitHubRepository string   `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
 	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
-	Local            bool     `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
+	Local            string   `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
 }
 
 type args struct {
@@ -79,7 +80,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		if args.DAST.Local {
+		if strings.ToLower(args.DAST.Local) == "true" {
 			err = dast.DASTLocalScan(httpClient, args.Host, &dast.DASTLocalScanInput{
 				AppName:     args.DAST.AppName,
 				Host:        args.Host,
