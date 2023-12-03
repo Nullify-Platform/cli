@@ -2,11 +2,14 @@ package dast
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/models"
@@ -17,6 +20,7 @@ type DASTLocalScanInput struct {
 	AppName     string                 `json:"appName"`
 	Host        string                 `json:"host"`
 	TargetHost  string                 `json:"targetHost"`
+	Version     string                 `json:"version"`
 	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
 	AuthConfig  models.AuthConfig      `json:"authConfig"`
 
@@ -53,11 +57,28 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 	}
 	defer client.Close()
 
-	imageRef := "public.ecr.aws/nullify/dast:0.1.0"
-	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	authConfig := registry.AuthConfig{
+		Username: input.GitHubOwner,
+		Password: input.GitHubToken,
+	}
+	logger.Debug(
+		"auth config in dast local scan",
+		logger.Any("authConfig", authConfig),
+	)
+	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {
 		logger.Error(
-			"unable to pull image from nullify public ecr",
+			"error in marshalling auth config to json",
+			logger.Err(err),
+		)
+		return err
+	}
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
+	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{RegistryAuth: authStr})
+	if err != nil {
+		logger.Error(
+			"unable to pull image from nullify platform ghrc",
 			logger.Err(err),
 		)
 		return err
@@ -67,7 +88,7 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
 		Image: imageRef,
 		Cmd:   []string{"/local", string(requestBody)},
-	}, nil, nil, nil, imageRef)
+	}, nil, nil, nil, "")
 	if err != nil {
 		logger.Error(
 			"unable to create new docker container",
