@@ -20,7 +20,7 @@ type DAST struct {
 	GitHubRepository string   `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
 	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 	Local            bool     `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
-	Version          string   `arg:"--version" default:"0.0.0" help:"Version of the DAST local image that is used for scanning"`
+	Version          string   `arg:"--version" default:"latest" help:"Version of the DAST local image that is used for scanning"`
 }
 
 type args struct {
