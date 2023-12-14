@@ -35,6 +35,10 @@ func StartScan(httpClient *http.Client, nullifyHost string, input *StartScanInpu
 
 	requestBody, err := json.Marshal(input)
 	if err != nil {
+		logger.Error(
+			"error in marshalling input",
+			logger.Err(err),
+		)
 		return nil, err
 	}
 
@@ -43,6 +47,10 @@ func StartScan(httpClient *http.Client, nullifyHost string, input *StartScanInpu
 	con := strings.NewReader(string(requestBody))
 	req, err := http.NewRequest("POST", url, con)
 	if err != nil {
+		logger.Error(
+			"error in sending post request to /dast/scans endpoint",
+			logger.Err(err),
+		)
 		return nil, err
 	}
 
@@ -76,6 +84,10 @@ func StartScan(httpClient *http.Client, nullifyHost string, input *StartScanInpu
 	var output StartScanOutput
 	err = json.Unmarshal(body, &output)
 	if err != nil {
+		logger.Error(
+			"error in unmarshalling response",
+			logger.Err(err),
+		)
 		return nil, err
 	}
 
