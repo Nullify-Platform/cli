@@ -73,6 +73,7 @@ Options:
                          The repository name to create the Nullify issue dashboard in e.g. cli
   --header HEADER        List of headers for the DAST agent to authenticate with your API
   --local                Test the given app locally for bugs and vulnerabilities in private networks
+  --version VERSION      Version of the DAST local image that is used for scanning [default: latest]
 
 Global options:
   --host HOST            The base URL of your Nullify API instance [default: https://api.nullify.ai]
@@ -122,4 +123,5 @@ nullify dast \
 | **`github-repo`**  | The repository name to create the Nullify issue dashboard in, e.g. cli                              | `true`   |         |
 | **`header`**       | List of headers for the DAST agent to authenticate with your API                                    | `false`  |         |
 | **`local`**        | Test the given app locally for bugs and vulnerabilities in private networks                         | `false`  |         |
+| **`version`**      | Version of the DAST local image that is used for scanning [default: ]                               | `false`  | latest  |
 
