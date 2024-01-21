@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/docker/docker v24.0.7+incompatible
-	github.com/nullify-platform/logger v1.5.5
+	github.com/nullify-platform/logger v1.5.6
 )
 
 require (
