@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -69,7 +68,7 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 	}
 
 	defer func() {
-		if err = client.ContainerRemove(ctx, containerResp.ID, types.ContainerRemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
+		if err = client.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
 			logger.Error(
 				"unable to remove container",
 				logger.Err(err),
@@ -77,7 +76,7 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 		}
 	}()
 
-	if err = client.ContainerStart(ctx, containerResp.ID, types.ContainerStartOptions{}); err != nil {
+	if err = client.ContainerStart(ctx, containerResp.ID, container.StartOptions{}); err != nil {
 		logger.Error(
 			"unable to start docker container",
 			logger.Err(err),
@@ -98,7 +97,7 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 	case <-statusCh:
 	}
 
-	out, err := client.ContainerLogs(ctx, containerResp.ID, types.ContainerLogsOptions{ShowStdout: true})
+	out, err := client.ContainerLogs(ctx, containerResp.ID, container.LogsOptions{ShowStdout: true})
 	if err != nil {
 		logger.Error(
 			"unable to create docker container logs",
