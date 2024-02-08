@@ -2,14 +2,13 @@ package dast
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/models"
@@ -56,26 +55,8 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 		return err
 	}
 	defer client.Close()
-
-	authConfig := registry.AuthConfig{
-		Username: input.GitHubOwner,
-		Password: input.GitHubToken,
-	}
-	logger.Debug(
-		"auth config in dast local scan",
-		logger.Any("authConfig", authConfig),
-	)
-	encodedJSON, err := json.Marshal(authConfig)
-	if err != nil {
-		logger.Error(
-			"error in marshalling auth config to json",
-			logger.Err(err),
-		)
-		return err
-	}
-	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
 	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
-	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{RegistryAuth: authStr})
+	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
 	if err != nil {
 		logger.Error(
 			"unable to pull image from nullify platform ghrc",
@@ -144,6 +125,8 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 		)
 		return err
 	}
+
+	logger.Info("finished local scan")
 
 	return nil
 }
