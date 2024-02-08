@@ -3,11 +3,13 @@ package dast
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	docker "github.com/docker/docker/client"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
@@ -17,6 +19,7 @@ type DASTLocalScanInput struct {
 	AppName     string                 `json:"appName"`
 	Host        string                 `json:"host"`
 	TargetHost  string                 `json:"targetHost"`
+	Version     string                 `json:"version"`
 	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
 	AuthConfig  models.AuthConfig      `json:"authConfig"`
 
@@ -28,8 +31,6 @@ type DASTLocalScanInput struct {
 type DASTLocalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
-
-const ImageName = "dast-local"
 
 func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocalScanInput) error {
 	logger.Info(
@@ -45,7 +46,7 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 
 	ctx := context.Background()
 
-	client, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
+	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		logger.Error(
 			"unable to create new docker client",
@@ -54,11 +55,21 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 		return err
 	}
 	defer client.Close()
+	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
+	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	if err != nil {
+		logger.Error(
+			"unable to pull image from nullify platform ghrc",
+			logger.Err(err),
+		)
+		return err
+	}
+	defer image.Close()
 
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
-		Image: ImageName,
+		Image: imageRef,
 		Cmd:   []string{"/local", string(requestBody)},
-	}, nil, nil, nil, ImageName)
+	}, nil, nil, nil, "")
 	if err != nil {
 		logger.Error(
 			"unable to create new docker container",
@@ -114,6 +125,8 @@ func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocal
 		)
 		return err
 	}
+
+	logger.Info("finished local scan")
 
 	return nil
 }
