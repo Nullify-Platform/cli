@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/url"
 	"os"
 
 	"github.com/nullify-platform/cli/internal/client"
@@ -25,7 +26,7 @@ type DAST struct {
 
 type args struct {
 	DAST    *DAST  `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities in public networks"`
-	Host    string `arg:"--host" default:"https://api.nullify.ai" help:"The base URL of your Nullify API instance"`
+	Host    string `arg:"--host" default:"api.nullify.ai" help:"The base URL of your Nullify API instance"`
 	Verbose bool   `arg:"-v" help:"Enable verbose logging"`
 	Debug   bool   `arg:"-d" help:"Enable debug logging"`
 
@@ -54,6 +55,16 @@ func main() {
 	}
 	defer log.Sync()
 
+	nullifyURL, err := url.Parse(args.Host)
+	if err != nil {
+		logger.Error(
+			"failed to parse host",
+			logger.Err(err),
+			logger.String("host", args.Host),
+		)
+		os.Exit(1)
+	}
+
 	switch {
 	case args.DAST != nil && args.DAST.Path != "":
 		logger.Info(
@@ -74,16 +85,16 @@ func main() {
 			os.Exit(1)
 		}
 
-		httpClient, err := client.NewHTTPClient(args.Host, &args.AuthSources)
+		httpClient, err := client.NewHTTPClient(nullifyURL.Host, &args.AuthSources)
 		if err != nil {
 			logger.Error("failed to create http client", logger.Err(err))
 			os.Exit(1)
 		}
 
 		if args.DAST.Local {
-			err = dast.DASTLocalScan(httpClient, args.Host, &dast.DASTLocalScanInput{
+			err = dast.DASTLocalScan(httpClient, &dast.DASTLocalScanInput{
 				AppName:     args.DAST.AppName,
-				Host:        args.Host,
+				Host:        nullifyURL.Host,
 				TargetHost:  args.DAST.TargetHost,
 				Version:     args.DAST.Version,
 				OpenAPISpec: openAPISpec,
@@ -103,7 +114,7 @@ func main() {
 				os.Exit(1)
 			}
 		} else {
-			out, err := dast.StartScan(httpClient, args.Host, &dast.StartScanInput{
+			out, err := dast.StartScan(httpClient, nullifyURL.Host, &dast.StartScanInput{
 				AppName:     args.DAST.AppName,
 				Host:        args.DAST.TargetHost,
 				OpenAPISpec: openAPISpec,

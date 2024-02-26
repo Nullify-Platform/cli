@@ -32,7 +32,7 @@ type DASTLocalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func DASTLocalScan(httpClient *http.Client, nullifyHost string, input *DASTLocalScanInput) error {
+func DASTLocalScan(httpClient *http.Client, input *DASTLocalScanInput) error {
 	logger.Info(
 		"starting local scan",
 		logger.String("appName", input.AppName),
