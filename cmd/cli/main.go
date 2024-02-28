@@ -1,9 +1,7 @@
 package main
 
 import (
-	"net/url"
 	"os"
-	"strings"
 
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/dast"
@@ -56,20 +54,20 @@ func main() {
 	}
 	defer log.Sync()
 
-	nullifyURL, err := url.Parse(args.Host)
+	nullifyHost, err := lib.SanitizeNullifyHost(args.Host)
 	if err != nil {
 		logger.Error(
-			"failed to parse host",
-			logger.Err(err),
+			"invalid host, must be in the format api.<your-instance>.nullify.ai",
 			logger.String("host", args.Host),
 		)
 		os.Exit(1)
 	}
 
-	if !strings.HasPrefix(nullifyURL.Host, "api.") || !strings.HasSuffix(nullifyURL.Host, ".nullify.ai") {
+	nullifyToken, err := lib.GetNullifyToken(nullifyHost, &args.AuthSources)
+	if err != nil {
 		logger.Error(
-			"invalid host, must be in the format api.<your-instance>.nullify.ai",
-			logger.String("host", args.Host),
+			"failed to get token",
+			logger.Err(err),
 		)
 		os.Exit(1)
 	}
@@ -94,20 +92,20 @@ func main() {
 			os.Exit(1)
 		}
 
-		httpClient, err := client.NewHTTPClient(nullifyURL.Host, &args.AuthSources)
+		httpClient, err := client.NewHTTPClient(nullifyHost, nullifyToken)
 		if err != nil {
 			logger.Error("failed to create http client", logger.Err(err))
 			os.Exit(1)
 		}
 
 		if args.DAST.Local {
-			err = dast.DASTLocalScan(httpClient, &dast.DASTLocalScanInput{
-				AppName:     args.DAST.AppName,
-				Host:        nullifyURL.Host,
-				TargetHost:  args.DAST.TargetHost,
-				Version:     args.DAST.Version,
-				OpenAPISpec: openAPISpec,
-				AuthSources: args.AuthSources,
+			err = dast.StartLocalScan(httpClient, &dast.StartLocalScanInput{
+				AppName:      args.DAST.AppName,
+				Host:         nullifyHost,
+				TargetHost:   args.DAST.TargetHost,
+				Version:      args.DAST.Version,
+				OpenAPISpec:  openAPISpec,
+				NullifyToken: nullifyToken,
 				AuthConfig: models.AuthConfig{
 					Headers: authHeaders,
 				},
@@ -123,7 +121,7 @@ func main() {
 				os.Exit(1)
 			}
 		} else {
-			out, err := dast.StartScan(httpClient, nullifyURL.Host, &dast.StartScanInput{
+			out, err := dast.StartCloudScan(httpClient, nullifyHost, &dast.StartCloudScanInput{
 				AppName:     args.DAST.AppName,
 				Host:        args.DAST.TargetHost,
 				OpenAPISpec: openAPISpec,

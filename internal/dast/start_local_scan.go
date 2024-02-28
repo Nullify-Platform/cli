@@ -15,24 +15,24 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
-type DASTLocalScanInput struct {
-	AppName     string                 `json:"appName"`
-	Host        string                 `json:"host"`
-	TargetHost  string                 `json:"targetHost"`
-	Version     string                 `json:"version"`
-	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
-	AuthConfig  models.AuthConfig      `json:"authConfig"`
+type StartLocalScanInput struct {
+	AppName      string                 `json:"appName"`
+	Host         string                 `json:"host"`
+	TargetHost   string                 `json:"targetHost"`
+	Version      string                 `json:"version"`
+	OpenAPISpec  map[string]interface{} `json:"openAPISpec"`
+	AuthConfig   models.AuthConfig      `json:"authConfig"`
+	NullifyToken string                 `json:"nullifyToken"`
 
-	models.AuthSources
 	models.RequestProvider
 	models.RequestDashboardTarget
 }
 
-type DASTLocalScanOutput struct {
+type StartLocalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func DASTLocalScan(httpClient *http.Client, input *DASTLocalScanInput) error {
+func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 	logger.Info(
 		"starting local scan",
 		logger.String("appName", input.AppName),
@@ -55,7 +55,9 @@ func DASTLocalScan(httpClient *http.Client, input *DASTLocalScanInput) error {
 		return err
 	}
 	defer client.Close()
+
 	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
+
 	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
 	if err != nil {
 		logger.Error(
@@ -68,7 +70,7 @@ func DASTLocalScan(httpClient *http.Client, input *DASTLocalScanInput) error {
 
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
 		Image: imageRef,
-		Cmd:   []string{"/local", string(requestBody)},
+		Cmd:   []string{string(requestBody)},
 	}, nil, nil, nil, "")
 	if err != nil {
 		logger.Error(
