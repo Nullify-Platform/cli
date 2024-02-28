@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -58,7 +59,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 
 	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
 
-	image, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	pullOut, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
 	if err != nil {
 		logger.Error(
 			"unable to pull image from nullify platform ghrc",
@@ -66,7 +67,16 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 		)
 		return err
 	}
-	defer image.Close()
+	defer pullOut.Close()
+
+	_, err = io.Copy(os.Stdout, pullOut)
+	if err != nil {
+		logger.Error(
+			"unable to copy image pull output to stdout",
+			logger.Err(err),
+		)
+		return err
+	}
 
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
 		Image: imageRef,
@@ -110,7 +120,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 	case <-statusCh:
 	}
 
-	out, err := client.ContainerLogs(ctx, containerResp.ID, container.LogsOptions{ShowStdout: true})
+	logsOut, err := client.ContainerLogs(ctx, containerResp.ID, container.LogsOptions{ShowStdout: true})
 	if err != nil {
 		logger.Error(
 			"unable to create docker container logs",
@@ -119,7 +129,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 		return err
 	}
 
-	_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, logsOut)
 	if err != nil {
 		logger.Error(
 			"unable to copy stdout from container to cli",
