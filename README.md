@@ -56,7 +56,7 @@ Commands:
   dast                   Test the given app for bugs and vulnerabilities
 ```
 
-## Running DAST Scans
+## Usage: DAST Scans
 
 ```
 Usage: nullify dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--header HEADER]
@@ -87,8 +87,29 @@ Global options:
   --version              display version and exit
 ```
 
+## Usage: Authentication
+
+The Nullify CLI need to authenticate with the Nullify API.
+
+This can be done in the following ways:
+
+- Using the `--nullify-token` option
+- Using the `NULLIFY_TOKEN` environment variable
+
 ### Example DAST Scan
 
+Cloud Hosted Scan:
+```sh
+nullify dast \
+  --app-name      "My REST API" \
+  --spec-path     "./openapi.json" \
+  --target-host   "https://api.myapp1234.dev" \
+  --github-owner  "my-username" \
+  --github-repo   "my-repo" \
+  --header        "Authorization: Bearer 1234"
+```
+
+Locally Hosted Scan:
 ```sh
 nullify dast \
   --app-name      "My REST API" \
@@ -97,8 +118,10 @@ nullify dast \
   --github-owner  "my-username" \
   --github-repo   "my-repo" \
   --header        "Authorization: Bearer 1234" \
-  --nullify-token "nullify-token"
+  --local
 ```
+
+The locally hosted scan can be run from within private networks to test private APIs.
 
 ## Global Options
 
