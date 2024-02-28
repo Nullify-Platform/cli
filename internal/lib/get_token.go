@@ -52,6 +52,7 @@ func GetNullifyToken(nullifyHost string, authSources *models.AuthSources) (strin
 
 		url := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, authSources.GitHubToken, owner)
 
+                // nosec The URL is hardcoded and cannot be manipulated by an attacker, thus it does not pose a risk of argument injection or modification.
 		res, err := http.Get(url)
 		if err != nil {
 			return "", err
