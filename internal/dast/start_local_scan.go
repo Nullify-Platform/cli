@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -17,6 +16,7 @@ import (
 )
 
 type StartLocalScanInput struct {
+	ScanID       string                 `json:"scanId"`
 	AppName      string                 `json:"appName"`
 	Host         string                 `json:"host"`
 	TargetHost   string                 `json:"targetHost"`
@@ -59,24 +59,24 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 
 	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
 
-	pullOut, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
-	if err != nil {
-		logger.Error(
-			"unable to pull image from nullify platform ghrc",
-			logger.Err(err),
-		)
-		return err
-	}
-	defer pullOut.Close()
+	// pullOut, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	// if err != nil {
+	// 	logger.Error(
+	// 		"unable to pull image from nullify platform ghrc",
+	// 		logger.Err(err),
+	// 	)
+	// 	return err
+	// }
+	// defer pullOut.Close()
 
-	_, err = io.Copy(os.Stdout, pullOut)
-	if err != nil {
-		logger.Error(
-			"unable to copy image pull output to stdout",
-			logger.Err(err),
-		)
-		return err
-	}
+	// _, err = io.Copy(os.Stdout, pullOut)
+	// if err != nil {
+	// 	logger.Error(
+	// 		"unable to copy image pull output to stdout",
+	// 		logger.Err(err),
+	// 	)
+	// 	return err
+	// }
 
 	containerResp, err := client.ContainerCreate(ctx, &container.Config{
 		Image: imageRef,
@@ -137,8 +137,15 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 		)
 		return err
 	}
-
+	s, err := io.ReadAll(logsOut)
+	if err != nil {
+		logger.Error(
+			"unable to read logs from container",
+			logger.Err(err),
+		)
+		return err
+	}
+	logger.Info("stdout from container", logger.String("logsOut", string(s)))
 	logger.Info("finished local scan")
-
 	return nil
 }

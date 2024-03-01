@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/dast"
 	"github.com/nullify-platform/cli/internal/lib"
@@ -100,6 +101,7 @@ func main() {
 
 		if args.DAST.Local {
 			err = dast.StartLocalScan(httpClient, &dast.StartLocalScanInput{
+				ScanID:       uuid.New().String(),
 				AppName:      args.DAST.AppName,
 				Host:         nullifyHost,
 				TargetHost:   args.DAST.TargetHost,
