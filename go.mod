@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/docker/docker v25.0.3+incompatible
-	github.com/nullify-platform/logger v1.5.7
+	github.com/nullify-platform/logger v1.5.8
 )
 
 require (
@@ -44,8 +44,8 @@ require (
 require (
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/stretchr/testify v1.8.4
-	go.uber.org/zap v1.26.0 // indirect
+	github.com/stretchr/testify v1.9.0
+	go.uber.org/zap v1.27.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1
 )
