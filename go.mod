@@ -5,12 +5,8 @@ go 1.20
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/docker/docker v25.0.3+incompatible
-<<<<<<< HEAD
-	github.com/nullify-platform/logger v1.5.8
-=======
 	github.com/google/uuid v1.6.0
 	github.com/nullify-platform/logger v1.5.7
->>>>>>> b6e1bbd (updated local scan for new local image)
 )
 
 require (
