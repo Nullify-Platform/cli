@@ -12,22 +12,11 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
-type DAST struct {
-	AppName          string   `arg:"--app-name" help:"The unique name of the app to be scanned, you can set this to anything e.g. Core API"`
-	Path             string   `arg:"--spec-path" help:"The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml"`
-	TargetHost       string   `arg:"--target-host" help:"The base URL of the API to be scanned e.g. https://api.nullify.ai"`
-	GitHubOwner      string   `arg:"--github-owner" help:"The GitHub username or organisation to create the Nullify issue dashboard in e.g. nullify-platform"`
-	GitHubRepository string   `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
-	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
-	Local            bool     `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
-	Version          string   `arg:"--version" default:"latest" help:"Version of the DAST local image that is used for scanning"`
-}
-
 type args struct {
-	DAST    *DAST  `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities in public networks"`
-	Host    string `arg:"--host" default:"api.nullify.ai" help:"The base URL of your Nullify API instance"`
-	Verbose bool   `arg:"-v" help:"Enable verbose logging"`
-	Debug   bool   `arg:"-d" help:"Enable debug logging"`
+	DAST    *dast.DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities in public networks"`
+	Host    string     `arg:"--host" default:"api.nullify.ai" help:"The base URL of your Nullify API instance"`
+	Verbose bool       `arg:"-v" help:"Enable verbose logging"`
+	Debug   bool       `arg:"-d" help:"Enable debug logging"`
 
 	models.AuthSources
 }
@@ -72,75 +61,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	nullifyClient := client.NewNullifyClient(nullifyHost, nullifyToken)
+
 	switch {
 	case args.DAST != nil && args.DAST.Path != "":
-		logger.Info(
-			"running dast scan",
-			logger.String("path", args.DAST.Path),
-			logger.String("targetHost", args.DAST.TargetHost),
-		)
-
-		openAPISpec, err := lib.CreateOpenAPIFile(args.DAST.Path)
+		err = dast.StartDASTScan(args.DAST, nullifyClient)
 		if err != nil {
-			logger.Error("failed to create openapi file", logger.Err(err))
+			logger.Error(
+				"failed to start dast scan",
+				logger.Err(err),
+			)
 			os.Exit(1)
-		}
-
-		authHeaders, err := lib.ParseAuthHeaders(args.DAST.AuthHeaders)
-		if err != nil {
-			logger.Error("failed to parse auth headers", logger.Err(err))
-			os.Exit(1)
-		}
-
-		httpClient, err := client.NewHTTPClient(nullifyHost, nullifyToken)
-		if err != nil {
-			logger.Error("failed to create http client", logger.Err(err))
-			os.Exit(1)
-		}
-
-		if args.DAST.Local {
-			err = dast.StartLocalScan(httpClient, &dast.StartLocalScanInput{
-				AppName:      args.DAST.AppName,
-				Host:         nullifyHost,
-				TargetHost:   args.DAST.TargetHost,
-				Version:      args.DAST.Version,
-				OpenAPISpec:  openAPISpec,
-				NullifyToken: nullifyToken,
-				AuthConfig: models.AuthConfig{
-					Headers: authHeaders,
-				},
-				RequestProvider: models.RequestProvider{
-					GitHubOwner: args.DAST.GitHubOwner,
-				},
-				RequestDashboardTarget: models.RequestDashboardTarget{
-					GitHubRepository: args.DAST.GitHubRepository,
-				},
-			})
-			if err != nil {
-				logger.Error("failed to send request", logger.Err(err))
-				os.Exit(1)
-			}
-		} else {
-			out, err := dast.StartCloudScan(httpClient, nullifyHost, &dast.StartCloudScanInput{
-				AppName:     args.DAST.AppName,
-				Host:        args.DAST.TargetHost,
-				OpenAPISpec: openAPISpec,
-				AuthConfig: models.AuthConfig{
-					Headers: authHeaders,
-				},
-				RequestProvider: models.RequestProvider{
-					GitHubOwner: args.DAST.GitHubOwner,
-				},
-				RequestDashboardTarget: models.RequestDashboardTarget{
-					GitHubRepository: args.DAST.GitHubRepository,
-				},
-			})
-			if err != nil {
-				logger.Error("failed to send request", logger.Err(err))
-				os.Exit(1)
-			}
-
-			logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
 		}
 	default:
 		p.WriteHelp(os.Stdout)
