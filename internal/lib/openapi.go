@@ -51,6 +51,9 @@ func CreateOpenAPIFile(filePath string) (map[string]any, error) {
 	return openAPISpec, nil
 }
 
+// convert converts the map[interface{}]interface{} to map[string]interface{}.
+// this is required for YAML spec files as the keys are of type interface{}
+// because YAML keys can be either string or int but JSON only supports strings
 func convert(i interface{}) interface{} {
 	switch x := i.(type) {
 	case map[interface{}]interface{}:
