@@ -29,7 +29,6 @@ func main() {
 	var args args
 	p := arg.MustParse(&args)
 
-	// Configure logger
 	logLevel := "warn"
 	if args.Verbose {
 		logLevel = "info"

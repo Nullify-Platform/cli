@@ -1,8 +1,6 @@
 package dast
 
 import (
-	"os"
-
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/models"
@@ -24,13 +22,13 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 	spec, err := lib.CreateOpenAPIFile(dast.Path)
 	if err != nil {
 		logger.Error("failed to create openapi file", logger.Err(err))
-		os.Exit(1)
+		return err
 	}
 
 	authHeaders, err := lib.ParseAuthHeaders(dast.AuthHeaders)
 	if err != nil {
 		logger.Error("failed to parse auth headers", logger.Err(err))
-		os.Exit(1)
+		return err
 	}
 
 	if dast.Local {
@@ -52,7 +50,7 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 		})
 		if err != nil {
 			logger.Error("failed to send request", logger.Err(err))
-			os.Exit(1)
+			return err
 		}
 	} else {
 		logger.Info("starting server side scan")
@@ -73,7 +71,7 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 		})
 		if err != nil {
 			logger.Error("failed to send request", logger.Err(err))
-			os.Exit(1)
+			return err
 		}
 
 		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
