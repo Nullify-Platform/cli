@@ -36,10 +36,10 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 	if dast.Local {
 		logger.Info("starting local scan")
 		err = StartLocalScan(nullifyClient, &StartLocalScanInput{
-			AppName:    dast.AppName,
-			TargetHost: dast.TargetHost,
-			Version:    dast.Version,
-			Spec:       spec,
+			AppName:     dast.AppName,
+			TargetHost:  dast.TargetHost,
+			Version:     dast.Version,
+			OpenAPISpec: spec,
 			AuthConfig: models.AuthConfig{
 				Headers: authHeaders,
 			},
@@ -57,10 +57,10 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 	} else {
 		logger.Info("starting server side scan")
 		out, err := nullifyClient.DASTStartCloudScan(&client.DASTStartCloudScanInput{
-			AppName:    dast.AppName,
-			Host:       dast.TargetHost,
-			TargetHost: dast.TargetHost,
-			Spec:       spec,
+			AppName:     dast.AppName,
+			Host:        dast.TargetHost,
+			TargetHost:  dast.TargetHost,
+			OpenAPISpec: spec,
 			AuthConfig: models.AuthConfig{
 				Headers: authHeaders,
 			},

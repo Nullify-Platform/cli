@@ -20,7 +20,7 @@ type StartLocalScanInput struct {
 	AppName      string            `json:"appName"`
 	TargetHost   string            `json:"targetHost"`
 	Version      string            `json:"version"`
-	Spec         string            `json:"openAPISpec"`
+	OpenAPISpec  map[string]any    `json:"openAPISpec"`
 	AuthConfig   models.AuthConfig `json:"authConfig"`
 	NullifyToken string            `json:"nullifyToken"`
 

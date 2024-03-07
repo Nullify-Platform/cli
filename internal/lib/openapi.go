@@ -5,12 +5,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/nullify-platform/logger/pkg/logger"
 	"gopkg.in/yaml.v3"
 )
 
-func CreateOpenAPIFile(filePath string) (string, error) {
+func CreateOpenAPIFile(filePath string) (map[string]any, error) {
 	filePath = filepath.Clean(filePath)
 	data, err := os.Open(filePath)
 	if err != nil {
@@ -19,7 +20,7 @@ func CreateOpenAPIFile(filePath string) (string, error) {
 			logger.Err(err),
 			logger.String("path", filePath),
 		)
-		return "", err
+		return nil, err
 	}
 
 	fileData, err := io.ReadAll(data)
@@ -28,16 +29,51 @@ func CreateOpenAPIFile(filePath string) (string, error) {
 			"failed to read file",
 			logger.Err(err),
 		)
-		return "", err
+		return nil, err
 	}
 
-	var openAPISpec map[string]interface{}
-	if err := json.Unmarshal(fileData, &openAPISpec); err != nil {
-		if err := yaml.Unmarshal(fileData, &openAPISpec); err != nil {
+	var openAPISpecAny any
+	err = json.Unmarshal(fileData, &openAPISpecAny)
+	if err != nil {
+		err = yaml.Unmarshal(fileData, &openAPISpecAny)
+		if err != nil {
 			logger.Error("please provide a valid json or yaml openapi spec file")
-			return "", err
+			return nil, err
 		}
 	}
 
-	return string(fileData), nil
+	openAPISpec, ok := convert(openAPISpecAny).(map[string]interface{})
+	if !ok {
+		logger.Error("failed to parse openapi spec")
+		return nil, err
+	}
+
+	return openAPISpec, nil
+}
+
+func convert(i interface{}) interface{} {
+	switch x := i.(type) {
+	case map[interface{}]interface{}:
+		m2 := map[string]interface{}{}
+		for k, v := range x {
+			switch key := k.(type) {
+			case string:
+				m2[key] = convert(v)
+			case int:
+				m2[strconv.Itoa(key)] = convert(v)
+			}
+		}
+		return m2
+	case map[string]interface{}:
+		m2 := map[string]interface{}{}
+		for k, v := range x {
+			m2[k] = convert(v)
+		}
+		return m2
+	case []interface{}:
+		for i, v := range x {
+			x[i] = convert(v)
+		}
+	}
+	return i
 }
