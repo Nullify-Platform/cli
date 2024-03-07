@@ -17,12 +17,12 @@ import (
 )
 
 type StartLocalScanInput struct {
-	AppName      string                 `json:"appName"`
-	TargetHost   string                 `json:"targetHost"`
-	Version      string                 `json:"version"`
-	OpenAPISpec  map[string]interface{} `json:"openAPISpec"`
-	AuthConfig   models.AuthConfig      `json:"authConfig"`
-	NullifyToken string                 `json:"nullifyToken"`
+	AppName      string            `json:"appName"`
+	TargetHost   string            `json:"targetHost"`
+	Version      string            `json:"version"`
+	Spec         string            `json:"openAPISpec"`
+	AuthConfig   models.AuthConfig `json:"authConfig"`
+	NullifyToken string            `json:"nullifyToken"`
 
 	models.RequestProvider
 	models.RequestDashboardTarget

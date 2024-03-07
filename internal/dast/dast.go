@@ -21,7 +21,7 @@ type DAST struct {
 }
 
 func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
-	openAPISpec, err := lib.CreateOpenAPIFile(dast.Path)
+	spec, err := lib.CreateOpenAPIFile(dast.Path)
 	if err != nil {
 		logger.Error("failed to create openapi file", logger.Err(err))
 		os.Exit(1)
@@ -36,10 +36,10 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 	if dast.Local {
 		logger.Info("starting local scan")
 		err = StartLocalScan(nullifyClient, &StartLocalScanInput{
-			AppName:     dast.AppName,
-			TargetHost:  dast.TargetHost,
-			Version:     dast.Version,
-			OpenAPISpec: openAPISpec,
+			AppName:    dast.AppName,
+			TargetHost: dast.TargetHost,
+			Version:    dast.Version,
+			Spec:       spec,
 			AuthConfig: models.AuthConfig{
 				Headers: authHeaders,
 			},
@@ -57,10 +57,10 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 	} else {
 		logger.Info("starting server side scan")
 		out, err := nullifyClient.DASTStartCloudScan(&client.DASTStartCloudScanInput{
-			AppName:     dast.AppName,
-			Host:        dast.TargetHost,
-			TargetHost:  dast.TargetHost,
-			OpenAPISpec: openAPISpec,
+			AppName:    dast.AppName,
+			Host:       dast.TargetHost,
+			TargetHost: dast.TargetHost,
+			Spec:       spec,
 			AuthConfig: models.AuthConfig{
 				Headers: authHeaders,
 			},

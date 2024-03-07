@@ -12,11 +12,10 @@ import (
 )
 
 type DASTStartCloudScanInput struct {
-	AppName    string `json:"appName"`
-	TargetHost string `json:"targetHost"`
-
-	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
-	AuthConfig  models.AuthConfig      `json:"authConfig"`
+	AppName    string            `json:"appName"`
+	TargetHost string            `json:"targetHost"`
+	Spec       string            `json:"spec"`
+	AuthConfig models.AuthConfig `json:"authConfig"`
 
 	// TODO deprecate
 	Host string `json:"host"`

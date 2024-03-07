@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func CreateOpenAPIFile(filePath string) (map[string]interface{}, error) {
+func CreateOpenAPIFile(filePath string) (string, error) {
 	filePath = filepath.Clean(filePath)
 	data, err := os.Open(filePath)
 	if err != nil {
@@ -19,23 +19,25 @@ func CreateOpenAPIFile(filePath string) (map[string]interface{}, error) {
 			logger.Err(err),
 			logger.String("path", filePath),
 		)
-		return nil, err
+		return "", err
 	}
+
 	fileData, err := io.ReadAll(data)
 	if err != nil {
 		logger.Error(
 			"failed to read file",
 			logger.Err(err),
 		)
-		return nil, err
+		return "", err
 	}
 
 	var openAPISpec map[string]interface{}
 	if err := json.Unmarshal(fileData, &openAPISpec); err != nil {
 		if err := yaml.Unmarshal(fileData, &openAPISpec); err != nil {
-			logger.Error("please provide either a json or yaml file")
-			return nil, err
+			logger.Error("please provide a valid json or yaml openapi spec file")
+			return "", err
 		}
 	}
-	return openAPISpec, nil
+
+	return string(fileData), nil
 }
