@@ -5,8 +5,10 @@ import (
 )
 
 type NullifyClient struct {
-	baseURL    string
-	httpClient *http.Client
+	Host       string
+	BaseURL    string
+	Token      string
+	HttpClient *http.Client
 }
 
 func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
@@ -18,7 +20,9 @@ func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 	}
 
 	return &NullifyClient{
-		baseURL:    "https://" + nullifyHost,
-		httpClient: httpClient,
+		Host:       nullifyHost,
+		BaseURL:    "https://" + nullifyHost,
+		Token:      token,
+		HttpClient: httpClient,
 	}
 }

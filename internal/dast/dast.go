@@ -35,12 +35,14 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 		logger.Info("starting local scan")
 		err = StartLocalScan(nullifyClient, &StartLocalScanInput{
 			AppName:     dast.AppName,
+			Host:        nullifyClient.Host,
 			TargetHost:  dast.TargetHost,
 			Version:     dast.Version,
 			OpenAPISpec: spec,
 			AuthConfig: models.AuthConfig{
 				Headers: authHeaders,
 			},
+			NullifyToken: nullifyClient.Token,
 			RequestProvider: models.RequestProvider{
 				GitHubOwner: dast.GitHubOwner,
 			},
