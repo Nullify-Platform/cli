@@ -42,6 +42,7 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 			AuthConfig: models.AuthConfig{
 				Headers: authHeaders,
 			},
+			NullifyToken: nullifyClient.Token,
 			RequestProvider: models.RequestProvider{
 				GitHubOwner: dast.GitHubOwner,
 			},
