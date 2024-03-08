@@ -18,6 +18,7 @@ import (
 
 type StartLocalScanInput struct {
 	AppName      string            `json:"appName"`
+	Host         string            `json:"host"`
 	TargetHost   string            `json:"targetHost"`
 	Version      string            `json:"version"`
 	OpenAPISpec  map[string]any    `json:"openAPISpec"`

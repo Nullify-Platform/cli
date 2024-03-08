@@ -36,7 +36,7 @@ func (c *NullifyClient) DASTStartCloudScan(input *DASTStartCloudScanInput) (*Sta
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/dast/scans", c.baseURL),
+		fmt.Sprintf("%s/dast/scans", c.BaseURL),
 		strings.NewReader(string(requestBody)),
 	)
 	if err != nil {
@@ -45,7 +45,7 @@ func (c *NullifyClient) DASTStartCloudScan(input *DASTStartCloudScanInput) (*Sta
 
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
