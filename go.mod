@@ -4,8 +4,8 @@ go 1.20
 
 require (
 	github.com/alexflint/go-arg v1.4.3
-	github.com/docker/docker v25.0.3+incompatible
-	github.com/nullify-platform/logger v1.5.8
+	github.com/docker/docker v25.0.4+incompatible
+	github.com/nullify-platform/logger v1.6.1
 )
 
 require (
