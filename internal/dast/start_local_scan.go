@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -59,24 +60,24 @@ func StartLocalScan(nullifyClient *client.NullifyClient, input *StartLocalScanIn
 
 	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
 
-	// pullOut, err := client.ImagePull(ctx, imageRef, types.ImagePullOptions{})
-	// if err != nil {
-	// 	logger.Error(
-	// 		"unable to pull image from nullify platform ghrc",
-	// 		logger.Err(err),
-	// 	)
-	// 	return err
-	// }
-	// defer pullOut.Close()
+	pullOut, err := dockerclient.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	if err != nil {
+		logger.Error(
+			"unable to pull image from nullify platform ghrc",
+			logger.Err(err),
+		)
+		return err
+	}
+	defer pullOut.Close()
 
-	// _, err = io.Copy(os.Stdout, pullOut)
-	// if err != nil {
-	// 	logger.Error(
-	// 		"unable to copy image pull output to stdout",
-	// 		logger.Err(err),
-	// 	)
-	// 	return err
-	// }
+	_, err = io.Copy(os.Stdout, pullOut)
+	if err != nil {
+		logger.Error(
+			"unable to copy image pull output to stdout",
+			logger.Err(err),
+		)
+		return err
+	}
 
 	containerResp, err := dockerclient.ContainerCreate(ctx, &container.Config{
 		Image: imageRef,
