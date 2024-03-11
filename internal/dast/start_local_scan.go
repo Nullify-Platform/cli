@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
+	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
 )
@@ -33,7 +33,7 @@ type StartLocalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
+func StartLocalScan(nullifyClient *client.NullifyClient, input *StartLocalScanInput) error {
 	logger.Info(
 		"starting local scan",
 		logger.String("appName", input.AppName),
@@ -47,7 +47,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 
 	ctx := context.Background()
 
-	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	dockerclient, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
 	if err != nil {
 		logger.Error(
 			"unable to create new docker client",
@@ -55,7 +55,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 		)
 		return err
 	}
-	defer client.Close()
+	defer dockerclient.Close()
 
 	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
 
@@ -78,7 +78,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 	// 	return err
 	// }
 
-	containerResp, err := client.ContainerCreate(ctx, &container.Config{
+	containerResp, err := dockerclient.ContainerCreate(ctx, &container.Config{
 		Image: imageRef,
 		Cmd:   []string{string(requestBody)},
 	}, nil, nil, nil, "")
@@ -91,7 +91,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 	}
 
 	defer func() {
-		if err = client.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
+		if err = dockerclient.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{RemoveVolumes: true, RemoveLinks: false, Force: true}); err != nil {
 			logger.Error(
 				"unable to remove container",
 				logger.Err(err),
@@ -99,7 +99,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 		}
 	}()
 
-	if err = client.ContainerStart(ctx, containerResp.ID, container.StartOptions{}); err != nil {
+	if err = dockerclient.ContainerStart(ctx, containerResp.ID, container.StartOptions{}); err != nil {
 		logger.Error(
 			"unable to start docker container",
 			logger.Err(err),
@@ -107,7 +107,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 		return err
 	}
 
-	statusCh, errCh := client.ContainerWait(ctx, containerResp.ID, container.WaitConditionNotRunning)
+	statusCh, errCh := dockerclient.ContainerWait(ctx, containerResp.ID, container.WaitConditionNotRunning)
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -120,7 +120,7 @@ func StartLocalScan(httpClient *http.Client, input *StartLocalScanInput) error {
 	case <-statusCh:
 	}
 
-	logsOut, err := client.ContainerLogs(ctx, containerResp.ID, container.LogsOptions{ShowStdout: true})
+	logsOut, err := dockerclient.ContainerLogs(ctx, containerResp.ID, container.LogsOptions{ShowStdout: true})
 	if err != nil {
 		logger.Error(
 			"unable to create docker container logs",

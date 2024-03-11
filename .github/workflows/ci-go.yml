@@ -10,7 +10,7 @@ run-name: CI Go by @${{ github.actor }} ${{ github.sha }}
 jobs:
   build-test:
     runs-on: ubuntu-latest
-    container: golang:1.22.0
+    container: golang:1.22.1
     steps:
       - name: setup
         run: git config --global --add safe.directory $(pwd)
