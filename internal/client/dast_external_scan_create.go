@@ -6,29 +6,29 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
-type DASTStartCloudScanInput struct {
-	AppName     string            `json:"appName"`
-	TargetHost  string            `json:"targetHost"`
-	OpenAPISpec map[string]any    `json:"openAPISpec"`
-	AuthConfig  models.AuthConfig `json:"authConfig"`
+type DASTCreateExternalScanInput struct {
+	AppName string `json:"appName"`
 
-	// TODO deprecate
-	Host string `json:"host"`
+	Progress  *int       `json:"progress"`
+	Status    *string    `json:"status"`
+	StartTime *time.Time `json:"startTime"`
+	EndTime   *time.Time `json:"endTime"`
 
 	models.RequestProvider
 	models.RequestDashboardTarget
 }
 
-type StartCloudScanOutput struct {
+type DASTCreateExternalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func (c *NullifyClient) DASTStartCloudScan(input *DASTStartCloudScanInput) (*StartCloudScanOutput, error) {
+func (c *NullifyClient) DASTCreateExternalScan(input *DASTCreateExternalScanInput) (*DASTCreateExternalScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (c *NullifyClient) DASTStartCloudScan(input *DASTStartCloudScanInput) (*Sta
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/dast/scans", c.BaseURL),
+		fmt.Sprintf("%s/dast/external", c.BaseURL),
 		strings.NewReader(string(requestBody)),
 	)
 	if err != nil {
@@ -66,7 +66,7 @@ func (c *NullifyClient) DASTStartCloudScan(input *DASTStartCloudScanInput) (*Sta
 		logger.String("body", string(body)),
 	)
 
-	var output StartCloudScanOutput
+	var output DASTCreateExternalScanOutput
 	err = json.Unmarshal(body, &output)
 	if err != nil {
 		logger.Error(

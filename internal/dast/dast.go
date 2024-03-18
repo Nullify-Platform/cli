@@ -1,6 +1,8 @@
 package dast
 
 import (
+	"context"
+
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/models"
@@ -16,9 +18,10 @@ type DAST struct {
 	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 	Local            bool     `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
 	Version          string   `arg:"--version" default:"latest" help:"Version of the DAST local image that is used for scanning"`
+	ForcePullImage   bool     `arg:"--pull" help:"Force a docker pull of the latest version of the DAST local image"`
 }
 
-func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
+func StartDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyClient) error {
 	spec, err := lib.CreateOpenAPIFile(dast.Path)
 	if err != nil {
 		logger.Error("failed to create openapi file", logger.Err(err))
@@ -33,23 +36,28 @@ func StartDASTScan(dast *DAST, nullifyClient *client.NullifyClient) error {
 
 	if dast.Local {
 		logger.Info("starting local scan")
-		err = StartLocalScan(nullifyClient, &StartLocalScanInput{
-			AppName:     dast.AppName,
-			Host:        nullifyClient.Host,
-			TargetHost:  dast.TargetHost,
-			Version:     dast.Version,
-			OpenAPISpec: spec,
-			AuthConfig: models.AuthConfig{
-				Headers: authHeaders,
+		err = StartExternalScan(
+			ctx,
+			nullifyClient,
+			&DASTExternalScanInput{
+				AppName:     dast.AppName,
+				Host:        nullifyClient.Host,
+				TargetHost:  dast.TargetHost,
+				Version:     dast.Version,
+				OpenAPISpec: spec,
+				AuthConfig: models.AuthConfig{
+					Headers: authHeaders,
+				},
+				NullifyToken: nullifyClient.Token,
+				RequestProvider: models.RequestProvider{
+					GitHubOwner: dast.GitHubOwner,
+				},
+				RequestDashboardTarget: models.RequestDashboardTarget{
+					GitHubRepository: dast.GitHubRepository,
+				},
 			},
-			NullifyToken: nullifyClient.Token,
-			RequestProvider: models.RequestProvider{
-				GitHubOwner: dast.GitHubOwner,
-			},
-			RequestDashboardTarget: models.RequestDashboardTarget{
-				GitHubRepository: dast.GitHubRepository,
-			},
-		})
+			dast.ForcePullImage,
+		)
 		if err != nil {
 			logger.Error("failed to send request", logger.Err(err))
 			return err
