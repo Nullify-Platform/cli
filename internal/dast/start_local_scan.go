@@ -39,6 +39,7 @@ func StartExternalScan(
 	githubOwner string,
 	input *DASTExternalScanInput,
 	forcePullImage bool,
+	logLevel string,
 ) error {
 	logger.Info(
 		"starting local scan",
@@ -57,7 +58,7 @@ func StartExternalScan(
 		return err
 	}
 
-	findings, err := runDASTInDocker(ctx, input, forcePullImage)
+	findings, err := runDASTInDocker(ctx, input, forcePullImage, logLevel)
 	if err != nil {
 		return err
 	}
@@ -85,6 +86,7 @@ func runDASTInDocker(
 	ctx context.Context,
 	input *DASTExternalScanInput,
 	forcePullImage bool,
+	logLevel string,
 ) ([]models.DASTFinding, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
@@ -144,6 +146,9 @@ func runDASTInDocker(
 			AttachStdin:  true,
 			AttachStdout: true,
 			AttachStderr: true,
+			Env: []string{
+				fmt.Sprintf("LOG_LEVEL=%s", logLevel),
+			},
 		},
 		&container.HostConfig{
 			AutoRemove:  true,
