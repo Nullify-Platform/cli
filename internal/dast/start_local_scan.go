@@ -82,6 +82,9 @@ func StartExternalScan(
 	return nil
 }
 
+const initialBufferSize = 64 * 1024
+const maxBufferSize = 1024 * 1024
+
 func runDASTInDocker(
 	ctx context.Context,
 	input *DASTExternalScanInput,
@@ -223,8 +226,8 @@ func runDASTInDocker(
 	var lastLine string
 
 	scanner := bufio.NewScanner(logsOut)
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 1024*1024)
+	buf := make([]byte, 0, initialBufferSize)
+	scanner.Buffer(buf, maxBufferSize)
 	for scanner.Scan() {
 		if lastLine != "" {
 			var output map[string]any
