@@ -10,15 +10,16 @@ import (
 )
 
 type DAST struct {
-	AppName          string   `arg:"--app-name" help:"The unique name of the app to be scanned, you can set this to anything e.g. Core API"`
-	Path             string   `arg:"--spec-path" help:"The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml"`
-	TargetHost       string   `arg:"--target-host" help:"The base URL of the API to be scanned e.g. https://api.nullify.ai"`
-	GitHubOwner      string   `arg:"--github-owner" help:"The GitHub username or organisation to create the Nullify issue dashboard in e.g. nullify-platform"`
-	GitHubRepository string   `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
-	AuthHeaders      []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
-	Local            bool     `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
-	Version          string   `arg:"--version" default:"latest" help:"Version of the DAST local image that is used for scanning"`
-	ForcePullImage   bool     `arg:"--pull" help:"Force a docker pull of the latest version of the DAST local image"`
+	AppName        string   `arg:"--app-name" help:"The unique name of the app to be scanned, you can set this to anything e.g. Core API"`
+	Path           string   `arg:"--spec-path" help:"The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml"`
+	TargetHost     string   `arg:"--target-host" help:"The base URL of the API to be scanned e.g. https://api.nullify.ai"`
+	AuthHeaders    []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
+	Local          bool     `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
+	Version        string   `arg:"--version" default:"latest" help:"Version of the DAST local image that is used for scanning"`
+	ForcePullImage bool     `arg:"--pull" help:"Force a docker pull of the latest version of the DAST local image"`
+
+	GitHubOwner      string `arg:"--github-owner" help:"The GitHub username or organisation"`
+	GitHubRepository string `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
 }
 
 func StartDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyClient) error {
@@ -39,6 +40,7 @@ func StartDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.Nullif
 		err = StartExternalScan(
 			ctx,
 			nullifyClient,
+			dast.GitHubOwner,
 			&DASTExternalScanInput{
 				AppName:     dast.AppName,
 				Host:        nullifyClient.Host,
@@ -64,7 +66,7 @@ func StartDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.Nullif
 		}
 	} else {
 		logger.Info("starting server side scan")
-		out, err := nullifyClient.DASTStartCloudScan(&client.DASTStartCloudScanInput{
+		out, err := nullifyClient.DASTStartCloudScan(dast.GitHubOwner, &client.DASTStartCloudScanInput{
 			AppName:     dast.AppName,
 			Host:        dast.TargetHost,
 			TargetHost:  dast.TargetHost,

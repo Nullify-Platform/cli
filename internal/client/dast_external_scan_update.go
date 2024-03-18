@@ -19,7 +19,7 @@ type DASTUpdateExternalScanInput struct {
 	*models.RequestDashboardTarget
 }
 
-func (c *NullifyClient) DASTUpdateExternalScan(scanID string, input *DASTUpdateExternalScanInput) error {
+func (c *NullifyClient) DASTUpdateExternalScan(githubOwner string, scanID string, input *DASTUpdateExternalScanInput) error {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func (c *NullifyClient) DASTUpdateExternalScan(scanID string, input *DASTUpdateE
 
 	req, err := http.NewRequest(
 		"PATCH",
-		fmt.Sprintf("%s/dast/external/%s", c.BaseURL, scanID),
+		fmt.Sprintf("%s/dast/external/%s?githubOwner=%s", c.BaseURL, scanID, githubOwner),
 		strings.NewReader(string(requestBody)),
 	)
 	if err != nil {

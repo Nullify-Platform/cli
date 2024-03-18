@@ -28,7 +28,7 @@ type DASTStartCloudScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func (c *NullifyClient) DASTStartCloudScan(input *DASTStartCloudScanInput) (*DASTStartCloudScanOutput, error) {
+func (c *NullifyClient) DASTStartCloudScan(githubOwner string, input *DASTStartCloudScanInput) (*DASTStartCloudScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (c *NullifyClient) DASTStartCloudScan(input *DASTStartCloudScanInput) (*DAS
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/dast/scans", c.BaseURL),
+		fmt.Sprintf("%s/dast/scans??githubOwner=%s", c.BaseURL, githubOwner),
 		strings.NewReader(string(requestBody)),
 	)
 	if err != nil {

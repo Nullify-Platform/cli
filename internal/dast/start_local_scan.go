@@ -36,6 +36,7 @@ type DASTExternalScanOutput struct {
 func StartExternalScan(
 	ctx context.Context,
 	nullifyClient *client.NullifyClient,
+	githubOwner string,
 	input *DASTExternalScanInput,
 	forcePullImage bool,
 ) error {
@@ -45,7 +46,7 @@ func StartExternalScan(
 		logger.String("host", input.TargetHost),
 	)
 
-	externalDASTScan, err := nullifyClient.DASTCreateExternalScan(&client.DASTCreateExternalScanInput{
+	externalDASTScan, err := nullifyClient.DASTCreateExternalScan(githubOwner, &client.DASTCreateExternalScanInput{
 		AppName: input.AppName,
 	})
 	if err != nil {
@@ -66,7 +67,7 @@ func StartExternalScan(
 		logger.Int("findingsCount", len(findings)),
 	)
 
-	err = nullifyClient.DASTUpdateExternalScan(externalDASTScan.ScanID, &client.DASTUpdateExternalScanInput{
+	err = nullifyClient.DASTUpdateExternalScan(githubOwner, externalDASTScan.ScanID, &client.DASTUpdateExternalScanInput{
 		Findings: findings,
 	})
 	if err != nil {

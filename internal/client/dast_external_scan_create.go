@@ -28,15 +28,21 @@ type DASTCreateExternalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func (c *NullifyClient) DASTCreateExternalScan(input *DASTCreateExternalScanInput) (*DASTCreateExternalScanOutput, error) {
+func (c *NullifyClient) DASTCreateExternalScan(githubOwner string, input *DASTCreateExternalScanInput) (*DASTCreateExternalScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
 	}
 
+	logger.Info(
+		"creating external scan",
+		logger.String("appName", input.AppName),
+		logger.String("baseURL", c.BaseURL),
+	)
+
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/dast/external", c.BaseURL),
+		fmt.Sprintf("%s/dast/external?githubOwner=%s", c.BaseURL, githubOwner),
 		strings.NewReader(string(requestBody)),
 	)
 	if err != nil {
