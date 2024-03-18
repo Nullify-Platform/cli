@@ -14,8 +14,9 @@ type NullifyClient struct {
 func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 	httpClient := &http.Client{
 		Transport: &authTransport{
-			token:     token,
-			transport: http.DefaultTransport,
+			nullifyHost: nullifyHost,
+			token:       token,
+			transport:   http.DefaultTransport,
 		},
 	}
 

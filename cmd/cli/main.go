@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/nullify-platform/cli/internal/client"
@@ -26,6 +27,8 @@ func (args) Version() string {
 }
 
 func main() {
+	ctx := context.TODO()
+
 	var args args
 	p := arg.MustParse(&args)
 
@@ -64,7 +67,7 @@ func main() {
 
 	switch {
 	case args.DAST != nil && args.DAST.Path != "":
-		err = dast.StartDASTScan(args.DAST, nullifyClient)
+		err = dast.StartDASTScan(ctx, args.DAST, nullifyClient, logLevel)
 		if err != nil {
 			logger.Error(
 				"failed to start dast scan",
