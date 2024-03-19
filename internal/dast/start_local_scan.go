@@ -264,9 +264,15 @@ func runDASTInDocker(
 		logger.Error(
 			"error reading output from dast local container",
 			logger.Err(err),
+			logger.String("lastLine", lastLine),
 		)
 		return nil, err
 	}
+
+	logger.Debug(
+		"last line from dast local container",
+		logger.String("lastLine", lastLine),
+	)
 
 	// the last line before exiting is the findings
 	var output DASTExternalScanOutput
