@@ -22,7 +22,7 @@ type DAST struct {
 	GitHubRepository string `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
 }
 
-func StartDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyClient, logLevel string) error {
+func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyClient, logLevel string) error {
 	spec, err := lib.CreateOpenAPIFile(dast.Path)
 	if err != nil {
 		logger.Error("failed to create openapi file", logger.Err(err))
@@ -37,7 +37,7 @@ func StartDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.Nullif
 
 	if dast.Local {
 		logger.Info("starting local scan")
-		err = StartExternalScan(
+		err = RunLocalScan(
 			ctx,
 			nullifyClient,
 			dast.GitHubOwner,

@@ -27,7 +27,7 @@ type DASTExternalScanOutput struct {
 	Findings []models.DASTFinding `json:"findings"`
 }
 
-func StartExternalScan(
+func RunLocalScan(
 	ctx context.Context,
 	nullifyClient *client.NullifyClient,
 	githubOwner string,
@@ -77,7 +77,6 @@ func StartExternalScan(
 	return nil
 }
 
-const initialBufferSize = 64 * 1024
 const maxBufferSize = 1024 * 1024
 
 func runDASTInDocker(
@@ -106,17 +105,32 @@ func runDASTInDocker(
 
 	// check if image exists on local machine
 	imageExists := true
-	_, _, err = dockerclient.ImageInspectWithRaw(ctx, imageRef)
+	imageInspect, _, err := dockerclient.ImageInspectWithRaw(ctx, imageRef)
 	if err != nil {
 		imageExists = false
 		logger.Info(
-			"unable to find image on local machine, pulling from nullify platform ghcr",
+			"unable to find image on local machine",
 			logger.String("imageRef", imageRef),
+		)
+	} else {
+		logger.Info(
+			"image found on local machine",
+			logger.String("imageRef", imageRef),
+			logger.String("imageID", imageInspect.ID),
+		)
+		logger.Debug(
+			"image inspect",
+			logger.Any("imageInspect", imageInspect),
 		)
 	}
 
 	// pull image if it doesn't exist or forcePullImage is true
 	if !imageExists || forcePullImage {
+		logger.Info(
+			"pulling image from nullify platform ghcr",
+			logger.String("imageRef", imageRef),
+		)
+
 		pullOut, err := dockerclient.ImagePull(ctx, imageRef, types.ImagePullOptions{})
 		if err != nil {
 			logger.Error(
@@ -162,6 +176,11 @@ func runDASTInDocker(
 		)
 		return nil, err
 	}
+
+	logger.Debug(
+		"container create response",
+		logger.Any("containerResp", containerResp),
+	)
 
 	err = dockerclient.ContainerStart(ctx, containerResp.ID, container.StartOptions{})
 	if err != nil {
@@ -222,7 +241,7 @@ func runDASTInDocker(
 	var lastLine string
 
 	scanner := bufio.NewScanner(logsOut)
-	buf := make([]byte, initialBufferSize)
+	buf := make([]byte, maxBufferSize)
 	scanner.Buffer(buf, maxBufferSize)
 	for scanner.Scan() {
 		if lastLine != "" {

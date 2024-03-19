@@ -67,10 +67,10 @@ func main() {
 
 	switch {
 	case args.DAST != nil && args.DAST.Path != "":
-		err = dast.StartDASTScan(ctx, args.DAST, nullifyClient, logLevel)
+		err = dast.RunDASTScan(ctx, args.DAST, nullifyClient, logLevel)
 		if err != nil {
 			logger.Error(
-				"failed to start dast scan",
+				"failed to run dast scan",
 				logger.Err(err),
 			)
 			os.Exit(1)

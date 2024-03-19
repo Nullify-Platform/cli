@@ -67,7 +67,7 @@ func (c *NullifyClient) DASTCreateExternalScan(githubOwner string, input *DASTCr
 	}
 
 	logger.Debug(
-		"nullify dast response",
+		"nullify dast create external scan response",
 		logger.String("status", resp.Status),
 		logger.String("body", string(body)),
 	)
