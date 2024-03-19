@@ -39,7 +39,7 @@ func RunLocalScan(
 	logger.Info(
 		"starting local scan",
 		logger.String("appName", input.AppName),
-		logger.String("host", input.TargetHost),
+		logger.String("targetHost", input.TargetHost),
 	)
 
 	externalDASTScan, err := nullifyClient.DASTCreateExternalScan(githubOwner, &client.DASTCreateExternalScanInput{
@@ -243,6 +243,12 @@ func runDASTInDocker(
 	scanner := bufio.NewScanner(logsOut)
 	buf := make([]byte, maxBufferSize)
 	scanner.Buffer(buf, maxBufferSize)
+
+	if scanner.Scan() {
+		// ignore first line of logs as it is the request body
+		_ = scanner.Text()
+	}
+
 	for scanner.Scan() {
 		if lastLine != "" {
 			var output map[string]any
