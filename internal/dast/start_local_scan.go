@@ -154,8 +154,7 @@ func runDASTInDocker(
 
 	containerResp, err := dockerclient.ContainerCreate(
 		ctx, &container.Config{
-			Image: imageRef,
-			// Tty:          true,
+			Image:        imageRef,
 			OpenStdin:    true,
 			AttachStdin:  true,
 			AttachStdout: true,
@@ -182,17 +181,17 @@ func runDASTInDocker(
 		logger.Any("containerResp", containerResp),
 	)
 
-	// defer func() {
-	// 	err := dockerclient.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{
-	// 		Force: true,
-	// 	})
-	// 	if err != nil {
-	// 		logger.Error(
-	// 			"unable to remove docker container",
-	// 			logger.Err(err),
-	// 		)
-	// 	}
-	// }()
+	defer func() {
+		err := dockerclient.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{
+			Force: true,
+		})
+		if err != nil {
+			logger.Error(
+				"unable to remove docker container",
+				logger.Err(err),
+			)
+		}
+	}()
 
 	err = dockerclient.ContainerStart(ctx, containerResp.ID, container.StartOptions{})
 	if err != nil {
