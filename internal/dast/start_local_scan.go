@@ -252,7 +252,13 @@ func runDASTInDocker(
 		defer stdoutWriter.Close()
 		defer stderrWriter.Close()
 
-		stdcopy.StdCopy(stdoutWriter, stderrWriter, containerLogs.Reader)
+		_, err := stdcopy.StdCopy(stdoutWriter, stderrWriter, containerLogs.Reader)
+		if err != nil {
+			logger.Error(
+				"unable to copy container logs to stdout/stderr",
+				logger.Err(err),
+			)
+		}
 	}()
 
 	var lastLine string
