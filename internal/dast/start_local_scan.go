@@ -17,16 +17,10 @@ import (
 )
 
 type DASTExternalScanInput struct {
-	AppName      string            `json:"appName"`
-	Host         string            `json:"host"`
-	TargetHost   string            `json:"targetHost"`
-	Version      string            `json:"version"`
-	OpenAPISpec  map[string]any    `json:"openAPISpec"`
-	AuthConfig   models.AuthConfig `json:"authConfig"`
-	NullifyToken string            `json:"nullifyToken"`
-
-	models.RequestProvider
-	models.RequestDashboardTarget
+	AppName     string                 `json:"appName"`
+	TargetHost  string                 `json:"targetHost"`
+	OpenAPISpec map[string]interface{} `json:"openAPISpec"`
+	AuthConfig  models.AuthConfig      `json:"authConfig"`
 }
 
 type DASTExternalScanOutput struct {
@@ -38,6 +32,7 @@ func StartExternalScan(
 	nullifyClient *client.NullifyClient,
 	githubOwner string,
 	input *DASTExternalScanInput,
+	imageLabel string,
 	forcePullImage bool,
 	logLevel string,
 ) error {
@@ -58,7 +53,7 @@ func StartExternalScan(
 		return err
 	}
 
-	findings, err := runDASTInDocker(ctx, input, forcePullImage, logLevel)
+	findings, err := runDASTInDocker(ctx, input, imageLabel, forcePullImage, logLevel)
 	if err != nil {
 		return err
 	}
@@ -88,6 +83,7 @@ const maxBufferSize = 1024 * 1024
 func runDASTInDocker(
 	ctx context.Context,
 	input *DASTExternalScanInput,
+	imageLabel string,
 	forcePullImage bool,
 	logLevel string,
 ) ([]models.DASTFinding, error) {
@@ -106,7 +102,7 @@ func runDASTInDocker(
 	}
 	defer dockerclient.Close()
 
-	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", input.Version)
+	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", imageLabel)
 
 	// check if image exists on local machine
 	imageExists := true
@@ -226,7 +222,7 @@ func runDASTInDocker(
 	var lastLine string
 
 	scanner := bufio.NewScanner(logsOut)
-	buf := make([]byte, 0, initialBufferSize)
+	buf := make([]byte, initialBufferSize)
 	scanner.Buffer(buf, maxBufferSize)
 	for scanner.Scan() {
 		if lastLine != "" {

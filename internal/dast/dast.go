@@ -15,7 +15,7 @@ type DAST struct {
 	TargetHost     string   `arg:"--target-host" help:"The base URL of the API to be scanned e.g. https://api.nullify.ai"`
 	AuthHeaders    []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
 	Local          bool     `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
-	Version        string   `arg:"--version" default:"latest" help:"Version of the DAST local image that is used for scanning"`
+	ImageLabel     string   `arg:"--image-label" default:"latest" help:"Version of the DAST local image that is used for scanning"`
 	ForcePullImage bool     `arg:"--pull" help:"Force a docker pull of the latest version of the DAST local image"`
 
 	GitHubOwner      string `arg:"--github-owner" help:"The GitHub username or organisation"`
@@ -43,21 +43,13 @@ func StartDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.Nullif
 			dast.GitHubOwner,
 			&DASTExternalScanInput{
 				AppName:     dast.AppName,
-				Host:        nullifyClient.Host,
 				TargetHost:  dast.TargetHost,
-				Version:     dast.Version,
 				OpenAPISpec: spec,
 				AuthConfig: models.AuthConfig{
 					Headers: authHeaders,
 				},
-				NullifyToken: nullifyClient.Token,
-				RequestProvider: models.RequestProvider{
-					GitHubOwner: dast.GitHubOwner,
-				},
-				RequestDashboardTarget: models.RequestDashboardTarget{
-					GitHubRepository: dast.GitHubRepository,
-				},
 			},
+			dast.ImageLabel,
 			dast.ForcePullImage,
 			logLevel,
 		)
