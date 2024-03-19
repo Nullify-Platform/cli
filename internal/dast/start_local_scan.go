@@ -164,7 +164,6 @@ func runDASTInDocker(
 			},
 		},
 		&container.HostConfig{
-			AutoRemove:  true,
 			NetworkMode: "host",
 		},
 		nil, nil, "",
@@ -181,6 +180,18 @@ func runDASTInDocker(
 		"container create response",
 		logger.Any("containerResp", containerResp),
 	)
+
+	defer func() {
+		err := dockerclient.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{
+			Force: true,
+		})
+		if err != nil {
+			logger.Error(
+				"unable to remove docker container",
+				logger.Err(err),
+			)
+		}
+	}()
 
 	err = dockerclient.ContainerStart(ctx, containerResp.ID, container.StartOptions{})
 	if err != nil {
@@ -278,6 +289,29 @@ func runDASTInDocker(
 	logger.Debug(
 		"last line from dast local container",
 		logger.String("lastLine", lastLine),
+	)
+
+	containerInspect, err := dockerclient.ContainerInspect(ctx, containerResp.ID)
+	if err != nil {
+		logger.Error(
+			"unable to inspect container",
+			logger.Err(err),
+		)
+
+		return nil, err
+	}
+
+	if containerInspect.State.ExitCode != 0 {
+		logger.Error(
+			"container exited with non-zero exit code",
+			logger.Int("exitCode", containerInspect.State.ExitCode),
+		)
+		return nil, fmt.Errorf("container exited with non-zero exit code")
+	}
+
+	logger.Debug(
+		"container inspect",
+		logger.Any("containerInspect", containerInspect),
 	)
 
 	// the last line before exiting is the findings
