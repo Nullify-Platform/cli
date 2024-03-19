@@ -61,7 +61,7 @@ func (c *NullifyClient) DASTStartCloudScan(githubOwner string, input *DASTStartC
 	}
 
 	logger.Debug(
-		"nullify dast response",
+		"nullify dast start cloud scan response",
 		logger.String("status", resp.Status),
 		logger.String("body", string(body)),
 	)

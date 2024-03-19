@@ -52,7 +52,7 @@ func (c *NullifyClient) DASTUpdateExternalScan(githubOwner string, scanID string
 	}
 
 	logger.Debug(
-		"nullify dast response",
+		"nullify dast update external scan response",
 		logger.String("status", resp.Status),
 		logger.String("body", string(body)),
 	)
