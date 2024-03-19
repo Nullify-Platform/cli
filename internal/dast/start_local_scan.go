@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
@@ -153,8 +154,8 @@ func runDASTInDocker(
 
 	containerResp, err := dockerclient.ContainerCreate(
 		ctx, &container.Config{
-			Image:        imageRef,
-			Tty:          true,
+			Image: imageRef,
+			// Tty:          true,
 			OpenStdin:    true,
 			AttachStdin:  true,
 			AttachStdout: true,
@@ -181,17 +182,17 @@ func runDASTInDocker(
 		logger.Any("containerResp", containerResp),
 	)
 
-	defer func() {
-		err := dockerclient.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{
-			Force: true,
-		})
-		if err != nil {
-			logger.Error(
-				"unable to remove docker container",
-				logger.Err(err),
-			)
-		}
-	}()
+	// defer func() {
+	// 	err := dockerclient.ContainerRemove(ctx, containerResp.ID, container.RemoveOptions{
+	// 		Force: true,
+	// 	})
+	// 	if err != nil {
+	// 		logger.Error(
+	// 			"unable to remove docker container",
+	// 			logger.Err(err),
+	// 		)
+	// 	}
+	// }()
 
 	err = dockerclient.ContainerStart(ctx, containerResp.ID, container.StartOptions{})
 	if err != nil {
@@ -202,9 +203,9 @@ func runDASTInDocker(
 		return nil, err
 	}
 
-	hijackedResponse, err := dockerclient.ContainerAttach(ctx, containerResp.ID, container.AttachOptions{
-		Stderr: true,
-		Stdout: true,
+	logger.Debug("container started, attaching to container")
+
+	waiter, err := dockerclient.ContainerAttach(ctx, containerResp.ID, container.AttachOptions{
 		Stdin:  true,
 		Stream: true,
 	})
@@ -216,7 +217,9 @@ func runDASTInDocker(
 		return nil, err
 	}
 
-	_, err = hijackedResponse.Conn.Write(append(requestBody, '\n'))
+	logger.Debug("attached to container, writing request body to container stdin")
+
+	_, err = waiter.Conn.Write(requestBody)
 	if err != nil {
 		logger.Error(
 			"unable to write request body to container",
@@ -225,19 +228,14 @@ func runDASTInDocker(
 		return nil, err
 	}
 
-	err = hijackedResponse.Conn.Close()
-	if err != nil {
-		logger.Error(
-			"unable to close connection to container",
-			logger.Err(err),
-		)
-		return nil, err
-	}
+	waiter.Close()
 
-	logsOut, err := dockerclient.ContainerLogs(ctx, containerResp.ID, container.LogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-		Follow:     true,
+	logger.Debug("request body written to container stdin")
+
+	containerLogs, err := dockerclient.ContainerAttach(ctx, containerResp.ID, container.AttachOptions{
+		Stdout: true,
+		Stderr: false,
+		Stream: true,
 	})
 	if err != nil {
 		logger.Error(
@@ -246,19 +244,22 @@ func runDASTInDocker(
 		)
 		return nil, err
 	}
+	defer containerLogs.Close()
 
-	defer logsOut.Close()
+	stdout, stdoutWriter := io.Pipe()
+	_, stderrWriter := io.Pipe()
+
+	go func() {
+		defer stdoutWriter.Close()
+		defer stderrWriter.Close()
+
+		stdcopy.StdCopy(stdoutWriter, stderrWriter, containerLogs.Reader)
+	}()
 
 	var lastLine string
-
-	scanner := bufio.NewScanner(logsOut)
+	scanner := bufio.NewScanner(stdout)
 	buf := make([]byte, maxBufferSize)
 	scanner.Buffer(buf, maxBufferSize)
-
-	if scanner.Scan() {
-		// ignore first line of logs as it is the request body
-		_ = scanner.Text()
-	}
 
 	for scanner.Scan() {
 		if lastLine != "" {
