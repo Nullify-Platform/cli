@@ -32,6 +32,7 @@ func RunLocalScan(
 	ctx context.Context,
 	nullifyClient *client.NullifyClient,
 	githubOwner string,
+	githubRepository string,
 	input *DASTExternalScanInput,
 	imageLabel string,
 	forcePullImage bool,
@@ -65,7 +66,7 @@ func RunLocalScan(
 		logger.Int("findingsCount", len(findings)),
 	)
 
-	err = nullifyClient.DASTUpdateExternalScan(githubOwner, externalDASTScan.ScanID, &client.DASTUpdateExternalScanInput{
+	err = nullifyClient.DASTUpdateExternalScan(githubOwner, githubRepository, externalDASTScan.ScanID, &client.DASTUpdateExternalScanInput{
 		Findings: findings,
 	})
 	if err != nil {
