@@ -39,7 +39,7 @@
 ## Usage
 
 ```
-Usage: cli [--host HOST] [--verbose] [--debug] [--nullify-token NULLIFY-TOKEN] [--github-token GITHUB-TOKEN] <command> [<args>]
+Usage: nullify [--host HOST] [--verbose] [--debug] [--nullify-token NULLIFY-TOKEN] [--github-token GITHUB-TOKEN] <command> [<args>]
 
 Options:
   --host HOST            The base URL of your Nullify API instance [default: api.nullify.ai]
@@ -59,7 +59,7 @@ Commands:
 ## Usage: DAST Scans
 
 ```
-Usage: cli dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--header HEADER] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--local] [--image-label IMAGE-LABEL] [--force-pull] [--use-host-network]
+Usage: nullify dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--header HEADER] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--local] [--image-label IMAGE-LABEL] [--force-pull] [--use-host-network]
 
 Options:
   --app-name APP-NAME    The unique name of the app to be scanned, you can set this to anything e.g. Core API
