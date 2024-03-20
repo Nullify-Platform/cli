@@ -42,7 +42,7 @@
 Usage: nullify [--host HOST] [--verbose] [--debug] [--nullify-token NULLIFY-TOKEN] [--github-token GITHUB-TOKEN] <command> [<args>]
 
 Options:
-  --host HOST            The base URL of your Nullify API instance [default: https://api.nullify.ai]
+  --host HOST            The base URL of your Nullify API instance [default: api.nullify.ai]
   --verbose, -v          Enable verbose logging
   --debug, -d            Enable debug logging
   --nullify-token NULLIFY-TOKEN
@@ -59,7 +59,7 @@ Commands:
 ## Usage: DAST Scans
 
 ```
-Usage: nullify dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--header HEADER]
+Usage: nullify dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--header HEADER] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--local] [--image-label IMAGE-LABEL] [--force-pull] [--use-host-network]
 
 Options:
   --app-name APP-NAME    The unique name of the app to be scanned, you can set this to anything e.g. Core API
@@ -67,16 +67,19 @@ Options:
                          The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml
   --target-host TARGET-HOST
                          The base URL of the API to be scanned e.g. https://api.nullify.ai
+  --header HEADER        List of headers for the DAST agent to authenticate with your API
   --github-owner GITHUB-OWNER
-                         The GitHub username or organisation to create the Nullify issue dashboard in e.g. nullify-platform
+                         The GitHub username or organisation
   --github-repo GITHUB-REPO
                          The repository name to create the Nullify issue dashboard in e.g. cli
-  --header HEADER        List of headers for the DAST agent to authenticate with your API
   --local                Test the given app locally for bugs and vulnerabilities in private networks
-  --version VERSION      Version of the DAST local image that is used for scanning [default: latest]
+  --image-label IMAGE-LABEL
+                         Version of the DAST local image that is used for scanning [default: latest]
+  --force-pull           Force a docker pull of the latest version of the DAST local image
+  --use-host-network     Use the host network for the DAST local scan
 
 Global options:
-  --host HOST            The base URL of your Nullify API instance [default: https://api.nullify.ai]
+  --host HOST            The base URL of your Nullify API instance [default: api.nullify.ai]
   --verbose, -v          Enable verbose logging
   --debug, -d            Enable debug logging
   --nullify-token NULLIFY-TOKEN
@@ -118,6 +121,19 @@ nullify dast \
   --github-owner  "my-username" \
   --github-repo   "my-repo" \
   --header        "Authorization: Bearer 1234" \
+  --local
+```
+
+Same Machine Scan:
+```sh
+nullify dast \
+  --app-name      "My REST API" \
+  --spec-path     "./openapi.json" \
+  --target-host   "https://api.myapp1234.dev" \
+  --github-owner  "my-username" \
+  --github-repo   "my-repo" \
+  --header        "Authorization: Bearer 1234" \
+  --use-host-network \
   --local
 ```
 

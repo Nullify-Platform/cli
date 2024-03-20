@@ -14,7 +14,7 @@ import (
 )
 
 type args struct {
-	DAST    *dast.DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities in public networks"`
+	DAST    *dast.DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
 	Host    string     `arg:"--host" default:"api.nullify.ai" help:"The base URL of your Nullify API instance"`
 	Verbose bool       `arg:"-v" help:"Enable verbose logging"`
 	Debug   bool       `arg:"-d" help:"Enable debug logging"`
@@ -45,6 +45,23 @@ func main() {
 	}
 	defer log.Sync()
 
+	switch {
+	case args.DAST != nil && args.DAST.Path != "":
+		nullifyClient := getNullifyClient(&args)
+		err = dast.RunDASTScan(ctx, args.DAST, nullifyClient, logLevel)
+		if err != nil {
+			logger.Error(
+				"failed to run dast scan",
+				logger.Err(err),
+			)
+			os.Exit(1)
+		}
+	default:
+		p.WriteHelp(os.Stdout)
+	}
+}
+
+func getNullifyClient(args *args) *client.NullifyClient {
 	nullifyHost, err := lib.SanitizeNullifyHost(args.Host)
 	if err != nil {
 		logger.Error(
@@ -63,19 +80,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	nullifyClient := client.NewNullifyClient(nullifyHost, nullifyToken)
-
-	switch {
-	case args.DAST != nil && args.DAST.Path != "":
-		err = dast.RunDASTScan(ctx, args.DAST, nullifyClient, logLevel)
-		if err != nil {
-			logger.Error(
-				"failed to run dast scan",
-				logger.Err(err),
-			)
-			os.Exit(1)
-		}
-	default:
-		p.WriteHelp(os.Stdout)
-	}
+	return client.NewNullifyClient(nullifyHost, nullifyToken)
 }
