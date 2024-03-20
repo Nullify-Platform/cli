@@ -44,6 +44,7 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 			ctx,
 			nullifyClient,
 			dast.GitHubOwner,
+			dast.GitHubRepository,
 			&DASTExternalScanInput{
 				AppName:     dast.AppName,
 				TargetHost:  dast.TargetHost,
