@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -35,6 +35,7 @@ func RunLocalScan(
 	input *DASTExternalScanInput,
 	imageLabel string,
 	forcePullImage bool,
+	useHostNetwork bool,
 	logLevel string,
 ) error {
 	logger.Info(
@@ -54,7 +55,7 @@ func RunLocalScan(
 		return err
 	}
 
-	findings, err := runDASTInDocker(ctx, input, imageLabel, forcePullImage, logLevel)
+	findings, err := runDASTInDocker(ctx, input, imageLabel, forcePullImage, useHostNetwork, logLevel)
 	if err != nil {
 		return err
 	}
@@ -85,6 +86,7 @@ func runDASTInDocker(
 	input *DASTExternalScanInput,
 	imageLabel string,
 	forcePullImage bool,
+	useHostNetwork bool,
 	logLevel string,
 ) ([]models.DASTFinding, error) {
 	requestBody, err := json.Marshal(input)
@@ -127,29 +129,15 @@ func runDASTInDocker(
 
 	// pull image if it doesn't exist or forcePullImage is true
 	if !imageExists || forcePullImage {
-		logger.Info(
-			"pulling image from nullify platform ghcr",
-			logger.String("imageRef", imageRef),
-		)
-
-		pullOut, err := dockerclient.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+		err = pullImage(ctx, dockerclient, imageRef)
 		if err != nil {
-			logger.Error(
-				"unable to pull image from nullify platform ghrc",
-				logger.Err(err),
-			)
 			return nil, err
 		}
-		defer pullOut.Close()
+	}
 
-		_, err = io.Copy(os.Stdout, pullOut)
-		if err != nil {
-			logger.Error(
-				"unable to copy image pull output to stdout",
-				logger.Err(err),
-			)
-			return nil, err
-		}
+	var networkMode container.NetworkMode
+	if useHostNetwork {
+		networkMode = "host"
 	}
 
 	containerResp, err := dockerclient.ContainerCreate(
@@ -164,7 +152,7 @@ func runDASTInDocker(
 			},
 		},
 		&container.HostConfig{
-			NetworkMode: "host",
+			NetworkMode: networkMode,
 		},
 		nil, nil, "",
 	)
@@ -246,7 +234,7 @@ func runDASTInDocker(
 	defer containerLogs.Close()
 
 	stdout, stdoutWriter := io.Pipe()
-	_, stderrWriter := io.Pipe()
+	stderr, stderrWriter := io.Pipe()
 
 	go func() {
 		defer stdoutWriter.Close()
@@ -261,25 +249,13 @@ func runDASTInDocker(
 		}
 	}()
 
-	var lastLine string
 	scanner := bufio.NewScanner(stdout)
 	buf := make([]byte, maxBufferSize)
 	scanner.Buffer(buf, maxBufferSize)
 
+	var lastLine string
 	for scanner.Scan() {
-		if lastLine != "" {
-			var output map[string]any
-			err = json.Unmarshal([]byte(lastLine), &output)
-			if err != nil {
-				fmt.Println(lastLine)
-			} else {
-				logger.Info(
-					"local scan progress",
-					logger.Any("progress", output),
-				)
-			}
-		}
-
+		printDASTLocalLogLine(lastLine)
 		lastLine = scanner.Text()
 	}
 
@@ -308,10 +284,23 @@ func runDASTInDocker(
 	}
 
 	if containerInspect.State.ExitCode != 0 {
-		logger.Error(
-			"container exited with non-zero exit code",
-			logger.Int("exitCode", containerInspect.State.ExitCode),
-		)
+		printDASTLocalLogLine(lastLine)
+
+		stderrBytes, err := io.ReadAll(stderr)
+		if err != nil {
+			logger.Error(
+				"container exited with non-zero exit code",
+				logger.Int("exitCode", containerInspect.State.ExitCode),
+			)
+		} else {
+			stderrLines := strings.Split(string(stderrBytes), "\n")
+			logger.Error(
+				"container exited with non-zero exit code",
+				logger.Int("exitCode", containerInspect.State.ExitCode),
+				logger.Strings("stderrLines", stderrLines),
+			)
+		}
+
 		return nil, fmt.Errorf("container exited with non-zero exit code")
 	}
 
@@ -332,4 +321,80 @@ func runDASTInDocker(
 	}
 
 	return output.Findings, nil
+}
+
+func printDASTLocalLogLine(line string) {
+	if line != "" {
+		var output map[string]any
+		err := json.Unmarshal([]byte(line), &output)
+		if err != nil {
+			fmt.Println(line)
+		} else {
+			logger.Info(
+				"local scan progress",
+				logger.Any("progress", output),
+			)
+		}
+	}
+}
+
+type DockerPullOutput struct {
+	Status         string                    `json:"status"`
+	ID             string                    `json:"id"`
+	ProgressDetail *DockerPullProgressDetail `json:"progressDetail"`
+}
+
+type DockerPullProgressDetail struct {
+	Current int `json:"current"`
+	Total   int `json:"total"`
+}
+
+func pullImage(ctx context.Context, dockerclient *docker.Client, imageRef string) error {
+	logger.Info(
+		"pulling image from nullify platform ghcr",
+		logger.String("imageRef", imageRef),
+	)
+
+	pullOut, err := dockerclient.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	if err != nil {
+		logger.Error(
+			"unable to pull image from nullify platform ghrc",
+			logger.Err(err),
+		)
+		return err
+	}
+	defer pullOut.Close()
+
+	scanner := bufio.NewScanner(pullOut)
+	buf := make([]byte, maxBufferSize)
+	scanner.Buffer(buf, maxBufferSize)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		var output DockerPullOutput
+		err = json.Unmarshal([]byte(line), &output)
+		if err != nil {
+			logger.Error(
+				"unable to unmarshal docker pull output",
+				logger.Err(err),
+			)
+			continue
+		}
+
+		logger.Info(
+			"docker pull progress",
+			logger.Any("progress", output),
+		)
+	}
+
+	if err := scanner.Err(); err != nil {
+		logger.Error(
+			"error reading output from dast local container",
+			logger.Err(err),
+		)
+		return err
+	}
+
+	return nil
 }
