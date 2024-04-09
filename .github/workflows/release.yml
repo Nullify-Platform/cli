@@ -37,9 +37,11 @@ jobs:
     name: Build
     needs: [ get-version ]
     runs-on: ubuntu-latest
-    container: golang:1.22.1-alpine
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: Set Release Variables
         run: echo "VERSION=${{ needs.get-version.outputs.version }}" >> $GITHUB_ENV
       - name: Build CLI

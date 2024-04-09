@@ -10,25 +10,18 @@ run-name: CI Go by @${{ github.actor }} ${{ github.sha }}
 jobs:
   build-test:
     runs-on: ubuntu-latest
-    container: golang:1.22.1
     steps:
-      - name: setup
-        run: git config --global --add safe.directory $(pwd)
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: build
         run: make build
       - name: tidy
         run: |
           go mod tidy
           git diff --exit-code
+      - name: lint
+        run: make lint-go
       - name: test
         run: make unit
-  lint:
-    runs-on: ubuntu-latest
-    container: golangci/golangci-lint:v1.56.2
-    steps:
-      - name: setup
-        run: git config --global --add safe.directory $(pwd)
-      - uses: actions/checkout@v4
-      - name: lint
-        run: golangci-lint run ./...
