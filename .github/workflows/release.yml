@@ -45,9 +45,7 @@ jobs:
       - name: Set Release Variables
         run: echo "VERSION=${{ needs.get-version.outputs.version }}" >> $GITHUB_ENV
       - name: Build CLI
-        run: |
-          apk add --no-cache make
-          make package
+        run: make package
       - name: Upload Binaries
         uses: actions/upload-artifact@v4
         with:
