@@ -67,6 +67,8 @@ func RunLocalScan(
 	)
 
 	err = nullifyClient.DASTUpdateExternalScan(githubOwner, githubRepository, externalDASTScan.ScanID, &client.DASTUpdateExternalScanInput{
+		Progress: client.Int(100),
+		Status:   client.String(client.StatusCompleted),
 		Findings: findings,
 	})
 	if err != nil {

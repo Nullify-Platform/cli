@@ -27,3 +27,11 @@ func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 		HttpClient: httpClient,
 	}
 }
+
+func Int(value int) *int {
+	return &value
+}
+
+func String(value string) *string {
+	return &value
+}
