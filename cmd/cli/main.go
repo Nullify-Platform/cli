@@ -39,18 +39,18 @@ func main() {
 	if args.Debug {
 		logLevel = "debug"
 	}
-	log, err := logger.ConfigureDevelopmentLogger(logLevel)
+	ctx, err := logger.ConfigureDevelopmentLogger(ctx, logLevel)
 	if err != nil {
 		panic(err)
 	}
-	defer log.Sync()
+	defer logger.L(ctx).Sync()
 
 	switch {
 	case args.DAST != nil && args.DAST.Path != "":
-		nullifyClient := getNullifyClient(&args)
+		nullifyClient := getNullifyClient(ctx, &args)
 		err = dast.RunDASTScan(ctx, args.DAST, nullifyClient, logLevel)
 		if err != nil {
-			logger.Error(
+			logger.L(ctx).Error(
 				"failed to run dast scan",
 				logger.Err(err),
 			)
@@ -61,19 +61,19 @@ func main() {
 	}
 }
 
-func getNullifyClient(args *args) *client.NullifyClient {
+func getNullifyClient(ctx context.Context, args *args) *client.NullifyClient {
 	nullifyHost, err := lib.SanitizeNullifyHost(args.Host)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"invalid host, must be in the format api.<your-instance>.nullify.ai",
 			logger.String("host", args.Host),
 		)
 		os.Exit(1)
 	}
 
-	nullifyToken, err := lib.GetNullifyToken(nullifyHost, &args.AuthSources)
+	nullifyToken, err := lib.GetNullifyToken(ctx, nullifyHost, &args.AuthSources)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"failed to get token",
 			logger.Err(err),
 		)

@@ -26,20 +26,20 @@ type DAST struct {
 }
 
 func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyClient, logLevel string) error {
-	spec, err := lib.CreateOpenAPIFile(dast.Path)
+	spec, err := lib.CreateOpenAPIFile(ctx, dast.Path)
 	if err != nil {
-		logger.Error("failed to create openapi file", logger.Err(err))
+		logger.L(ctx).Error("failed to create openapi file", logger.Err(err))
 		return err
 	}
 
 	authHeaders, err := lib.ParseAuthHeaders(dast.AuthHeaders)
 	if err != nil {
-		logger.Error("failed to parse auth headers", logger.Err(err))
+		logger.L(ctx).Error("failed to parse auth headers", logger.Err(err))
 		return err
 	}
 
 	if dast.Local {
-		logger.Info("starting local scan")
+		logger.L(ctx).Info("starting local scan")
 		err = RunLocalScan(
 			ctx,
 			nullifyClient,
@@ -59,12 +59,12 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 			logLevel,
 		)
 		if err != nil {
-			logger.Error("failed to send request", logger.Err(err))
+			logger.L(ctx).Error("failed to send request", logger.Err(err))
 			return err
 		}
 	} else {
-		logger.Info("starting server side scan")
-		out, err := nullifyClient.DASTStartCloudScan(dast.GitHubOwner, &client.DASTStartCloudScanInput{
+		logger.L(ctx).Info("starting server side scan")
+		out, err := nullifyClient.DASTStartCloudScan(ctx, dast.GitHubOwner, &client.DASTStartCloudScanInput{
 			AppName:     dast.AppName,
 			Host:        dast.TargetHost,
 			TargetHost:  dast.TargetHost,
@@ -80,11 +80,11 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 			},
 		})
 		if err != nil {
-			logger.Error("failed to send request", logger.Err(err))
+			logger.L(ctx).Error("failed to send request", logger.Err(err))
 			return err
 		}
 
-		logger.Info("request sent successfully", logger.String("scanId", out.ScanID))
+		logger.L(ctx).Info("request sent successfully", logger.String("scanId", out.ScanID))
 	}
 
 	return nil
