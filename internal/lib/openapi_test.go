@@ -5,12 +5,16 @@ import (
 	"testing"
 
 	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/config"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateOpenAPIJSON(t *testing.T) {
-	spec, err := CreateOpenAPIFile("test/openapi.json")
+	ctx, err := config.GetTestLogger()
+	require.NoError(t, err)
+
+	spec, err := CreateOpenAPIFile(ctx, "test/openapi.json")
 	require.NoError(t, err)
 
 	require.Equal(t, "3.0.0", spec["openapi"])
@@ -32,7 +36,10 @@ func TestCreateOpenAPIJSON(t *testing.T) {
 }
 
 func TestCreateOpenAPIYAML(t *testing.T) {
-	spec, err := CreateOpenAPIFile("test/openapi.yml")
+	ctx, err := config.GetTestLogger()
+	require.NoError(t, err)
+
+	spec, err := CreateOpenAPIFile(ctx, "test/openapi.yml")
 	require.NoError(t, err)
 
 	require.Equal(t, "3.0.0", spec["openapi"])

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,7 +20,13 @@ type DASTUpdateExternalScanInput struct {
 	*models.RequestDashboardTarget
 }
 
-func (c *NullifyClient) DASTUpdateExternalScan(githubOwner string, githubRepository string, scanID string, input *DASTUpdateExternalScanInput) error {
+func (c *NullifyClient) DASTUpdateExternalScan(
+	ctx context.Context,
+	githubOwner string,
+	githubRepository string,
+	scanID string,
+	input *DASTUpdateExternalScanInput,
+) error {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return err
@@ -53,7 +60,7 @@ func (c *NullifyClient) DASTUpdateExternalScan(githubOwner string, githubReposit
 		return err
 	}
 
-	logger.Debug(
+	logger.L(ctx).Debug(
 		"nullify dast update external scan response",
 		logger.String("status", resp.Status),
 		logger.String("body", string(body)),

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,13 +29,17 @@ type DASTCreateExternalScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func (c *NullifyClient) DASTCreateExternalScan(githubOwner string, input *DASTCreateExternalScanInput) (*DASTCreateExternalScanOutput, error) {
+func (c *NullifyClient) DASTCreateExternalScan(
+	ctx context.Context,
+	githubOwner string,
+	input *DASTCreateExternalScanInput,
+) (*DASTCreateExternalScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Info(
+	logger.L(ctx).Info(
 		"creating external scan",
 		logger.String("appName", input.AppName),
 		logger.String("baseURL", c.BaseURL),
@@ -66,7 +71,7 @@ func (c *NullifyClient) DASTCreateExternalScan(githubOwner string, input *DASTCr
 		return nil, err
 	}
 
-	logger.Debug(
+	logger.L(ctx).Debug(
 		"nullify dast create external scan response",
 		logger.String("status", resp.Status),
 		logger.String("body", string(body)),
@@ -75,7 +80,7 @@ func (c *NullifyClient) DASTCreateExternalScan(githubOwner string, input *DASTCr
 	var output DASTCreateExternalScanOutput
 	err = json.Unmarshal(body, &output)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"error in unmarshalling response",
 			logger.Err(err),
 		)

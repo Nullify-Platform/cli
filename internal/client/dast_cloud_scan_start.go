@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,7 +29,11 @@ type DASTStartCloudScanOutput struct {
 	ScanID string `json:"scanId"`
 }
 
-func (c *NullifyClient) DASTStartCloudScan(githubOwner string, input *DASTStartCloudScanInput) (*DASTStartCloudScanOutput, error) {
+func (c *NullifyClient) DASTStartCloudScan(
+	ctx context.Context,
+	githubOwner string,
+	input *DASTStartCloudScanInput,
+) (*DASTStartCloudScanOutput, error) {
 	requestBody, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -60,7 +65,7 @@ func (c *NullifyClient) DASTStartCloudScan(githubOwner string, input *DASTStartC
 		return nil, err
 	}
 
-	logger.Debug(
+	logger.L(ctx).Debug(
 		"nullify dast start cloud scan response",
 		logger.String("status", resp.Status),
 		logger.String("body", string(body)),
@@ -69,7 +74,7 @@ func (c *NullifyClient) DASTStartCloudScan(githubOwner string, input *DASTStartC
 	var output DASTStartCloudScanOutput
 	err = json.Unmarshal(body, &output)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"error in unmarshalling response",
 			logger.Err(err),
 		)

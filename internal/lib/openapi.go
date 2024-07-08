@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"os"
@@ -11,11 +12,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func CreateOpenAPIFile(filePath string) (map[string]any, error) {
+func CreateOpenAPIFile(ctx context.Context, filePath string) (map[string]any, error) {
 	filePath = filepath.Clean(filePath)
 	data, err := os.Open(filePath)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"failed to open open api file",
 			logger.Err(err),
 			logger.String("path", filePath),
@@ -25,7 +26,7 @@ func CreateOpenAPIFile(filePath string) (map[string]any, error) {
 
 	fileData, err := io.ReadAll(data)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"failed to read file",
 			logger.Err(err),
 		)
@@ -37,14 +38,14 @@ func CreateOpenAPIFile(filePath string) (map[string]any, error) {
 	if err != nil {
 		err = yaml.Unmarshal(fileData, &openAPISpecAny)
 		if err != nil {
-			logger.Error("please provide a valid json or yaml openapi spec file")
+			logger.L(ctx).Error("please provide a valid json or yaml openapi spec file")
 			return nil, err
 		}
 	}
 
 	openAPISpec, ok := convert(openAPISpecAny).(map[string]interface{})
 	if !ok {
-		logger.Error("failed to parse openapi spec")
+		logger.L(ctx).Error("failed to parse openapi spec")
 		return nil, err
 	}
 

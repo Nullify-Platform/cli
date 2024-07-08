@@ -39,17 +39,17 @@ func RunLocalScan(
 	useHostNetwork bool,
 	logLevel string,
 ) error {
-	logger.Info(
+	logger.L(ctx).Info(
 		"starting local scan",
 		logger.String("appName", input.AppName),
 		logger.String("targetHost", input.TargetHost),
 	)
 
-	externalDASTScan, err := nullifyClient.DASTCreateExternalScan(githubOwner, &client.DASTCreateExternalScanInput{
+	externalDASTScan, err := nullifyClient.DASTCreateExternalScan(ctx, githubOwner, &client.DASTCreateExternalScanInput{
 		AppName: input.AppName,
 	})
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to create external scan",
 			logger.Err(err),
 		)
@@ -61,18 +61,18 @@ func RunLocalScan(
 		return err
 	}
 
-	logger.Info(
+	logger.L(ctx).Info(
 		"finished local scan",
 		logger.Int("findingsCount", len(findings)),
 	)
 
-	err = nullifyClient.DASTUpdateExternalScan(githubOwner, githubRepository, externalDASTScan.ScanID, &client.DASTUpdateExternalScanInput{
+	err = nullifyClient.DASTUpdateExternalScan(ctx, githubOwner, githubRepository, externalDASTScan.ScanID, &client.DASTUpdateExternalScanInput{
 		Progress: client.Int(100),
 		Status:   client.String(client.StatusCompleted),
 		Findings: findings,
 	})
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to update external scan",
 			logger.Err(err),
 		)
@@ -99,7 +99,7 @@ func runDASTInDocker(
 
 	dockerclient, err := docker.NewClientWithOpts(docker.FromEnv, docker.WithAPIVersionNegotiation())
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to create new docker client",
 			logger.Err(err),
 		)
@@ -114,17 +114,17 @@ func runDASTInDocker(
 	imageInspect, _, err := dockerclient.ImageInspectWithRaw(ctx, imageRef)
 	if err != nil {
 		imageExists = false
-		logger.Info(
+		logger.L(ctx).Info(
 			"unable to find image on local machine",
 			logger.String("imageRef", imageRef),
 		)
 	} else {
-		logger.Info(
+		logger.L(ctx).Info(
 			"image found on local machine",
 			logger.String("imageRef", imageRef),
 			logger.String("imageID", imageInspect.ID),
 		)
-		logger.Debug(
+		logger.L(ctx).Debug(
 			"image inspect",
 			logger.Any("imageInspect", imageInspect),
 		)
@@ -160,14 +160,14 @@ func runDASTInDocker(
 		nil, nil, "",
 	)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to create new docker container",
 			logger.Err(err),
 		)
 		return nil, err
 	}
 
-	logger.Debug(
+	logger.L(ctx).Debug(
 		"container create response",
 		logger.Any("containerResp", containerResp),
 	)
@@ -177,7 +177,7 @@ func runDASTInDocker(
 			Force: true,
 		})
 		if err != nil {
-			logger.Error(
+			logger.L(ctx).Error(
 				"unable to remove docker container",
 				logger.Err(err),
 			)
@@ -186,32 +186,32 @@ func runDASTInDocker(
 
 	err = dockerclient.ContainerStart(ctx, containerResp.ID, container.StartOptions{})
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to start docker container",
 			logger.Err(err),
 		)
 		return nil, err
 	}
 
-	logger.Debug("container started, attaching to container")
+	logger.L(ctx).Debug("container started, attaching to container")
 
 	waiter, err := dockerclient.ContainerAttach(ctx, containerResp.ID, container.AttachOptions{
 		Stdin:  true,
 		Stream: true,
 	})
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to attach to container",
 			logger.Err(err),
 		)
 		return nil, err
 	}
 
-	logger.Debug("attached to container, writing request body to container stdin")
+	logger.L(ctx).Debug("attached to container, writing request body to container stdin")
 
 	_, err = waiter.Conn.Write(requestBody)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to write request body to container",
 			logger.Err(err),
 		)
@@ -220,7 +220,7 @@ func runDASTInDocker(
 
 	waiter.Close()
 
-	logger.Debug("request body written to container stdin")
+	logger.L(ctx).Debug("request body written to container stdin")
 
 	containerLogs, err := dockerclient.ContainerAttach(ctx, containerResp.ID, container.AttachOptions{
 		Stdout: true,
@@ -228,7 +228,7 @@ func runDASTInDocker(
 		Stream: true,
 	})
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to create docker container logs",
 			logger.Err(err),
 		)
@@ -245,7 +245,7 @@ func runDASTInDocker(
 
 		_, err := stdcopy.StdCopy(stdoutWriter, stderrWriter, containerLogs.Reader)
 		if err != nil {
-			logger.Error(
+			logger.L(ctx).Error(
 				"unable to copy container logs to stdout/stderr",
 				logger.Err(err),
 			)
@@ -258,12 +258,12 @@ func runDASTInDocker(
 
 	var lastLine string
 	for scanner.Scan() {
-		printDASTLocalLogLine(lastLine)
+		printDASTLocalLogLine(ctx, lastLine)
 		lastLine = scanner.Text()
 	}
 
 	if err := scanner.Err(); err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"error reading output from dast local container",
 			logger.Err(err),
 			logger.String("lastLine", lastLine),
@@ -271,14 +271,14 @@ func runDASTInDocker(
 		return nil, err
 	}
 
-	logger.Debug(
+	logger.L(ctx).Debug(
 		"last line from dast local container",
 		logger.String("lastLine", lastLine),
 	)
 
 	containerInspect, err := dockerclient.ContainerInspect(ctx, containerResp.ID)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to inspect container",
 			logger.Err(err),
 		)
@@ -287,17 +287,17 @@ func runDASTInDocker(
 	}
 
 	if containerInspect.State.ExitCode != 0 {
-		printDASTLocalLogLine(lastLine)
+		printDASTLocalLogLine(ctx, lastLine)
 
 		stderrBytes, err := io.ReadAll(stderr)
 		if err != nil {
-			logger.Error(
+			logger.L(ctx).Error(
 				"container exited with non-zero exit code",
 				logger.Int("exitCode", containerInspect.State.ExitCode),
 			)
 		} else {
 			stderrLines := strings.Split(string(stderrBytes), "\n")
-			logger.Error(
+			logger.L(ctx).Error(
 				"container exited with non-zero exit code",
 				logger.Int("exitCode", containerInspect.State.ExitCode),
 				logger.Strings("stderrLines", stderrLines),
@@ -307,7 +307,7 @@ func runDASTInDocker(
 		return nil, fmt.Errorf("container exited with non-zero exit code")
 	}
 
-	logger.Debug(
+	logger.L(ctx).Debug(
 		"container inspect",
 		logger.Any("containerInspect", containerInspect),
 	)
@@ -316,7 +316,7 @@ func runDASTInDocker(
 	var output DASTExternalScanOutput
 	err = json.Unmarshal([]byte(lastLine), &output)
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to unmarshal findings from dast local container",
 			logger.Err(err),
 		)
@@ -326,14 +326,14 @@ func runDASTInDocker(
 	return output.Findings, nil
 }
 
-func printDASTLocalLogLine(line string) {
+func printDASTLocalLogLine(ctx context.Context, line string) {
 	if line != "" {
 		var output map[string]any
 		err := json.Unmarshal([]byte(line), &output)
 		if err != nil {
 			fmt.Println(line)
 		} else {
-			logger.Info(
+			logger.L(ctx).Info(
 				"local scan progress",
 				logger.Any("progress", output),
 			)
@@ -353,14 +353,14 @@ type DockerPullProgressDetail struct {
 }
 
 func pullImage(ctx context.Context, dockerclient *docker.Client, imageRef string) error {
-	logger.Info(
+	logger.L(ctx).Info(
 		"pulling image from nullify platform ghcr",
 		logger.String("imageRef", imageRef),
 	)
 
 	pullOut, err := dockerclient.ImagePull(ctx, imageRef, types.ImagePullOptions{})
 	if err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"unable to pull image from nullify platform ghrc",
 			logger.Err(err),
 		)
@@ -378,21 +378,21 @@ func pullImage(ctx context.Context, dockerclient *docker.Client, imageRef string
 		var output DockerPullOutput
 		err = json.Unmarshal([]byte(line), &output)
 		if err != nil {
-			logger.Error(
+			logger.L(ctx).Error(
 				"unable to unmarshal docker pull output",
 				logger.Err(err),
 			)
 			continue
 		}
 
-		logger.Info(
+		logger.L(ctx).Info(
 			"docker pull progress",
 			logger.Any("progress", output),
 		)
 	}
 
 	if err := scanner.Err(); err != nil {
-		logger.Error(
+		logger.L(ctx).Error(
 			"error reading output from dast local container",
 			logger.Err(err),
 		)
