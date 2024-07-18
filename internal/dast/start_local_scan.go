@@ -8,8 +8,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/nullify-platform/cli/internal/client"
@@ -358,7 +358,7 @@ func pullImage(ctx context.Context, dockerclient *docker.Client, imageRef string
 		logger.String("imageRef", imageRef),
 	)
 
-	pullOut, err := dockerclient.ImagePull(ctx, imageRef, types.ImagePullOptions{})
+	pullOut, err := dockerclient.ImagePull(ctx, imageRef, image.PullOptions{})
 	if err != nil {
 		logger.L(ctx).Error(
 			"unable to pull image from nullify platform ghrc",
