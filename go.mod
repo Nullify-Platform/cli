@@ -2,7 +2,7 @@ module github.com/nullify-platform/cli
 
 go 1.22.2
 
-toolchain go1.22.5
+toolchain go1.22.6
 
 require (
 	github.com/alexflint/go-arg v1.5.1
