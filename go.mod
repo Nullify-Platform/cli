@@ -2,12 +2,12 @@ module github.com/nullify-platform/cli
 
 go 1.22.2
 
-toolchain go1.22.6
+toolchain go1.23.0
 
 require (
 	github.com/alexflint/go-arg v1.5.1
-	github.com/docker/docker v27.1.1+incompatible
-	github.com/nullify-platform/logger v1.15.1
+	github.com/docker/docker v27.1.2+incompatible
+	github.com/nullify-platform/logger v1.15.2
 )
 
 require (
@@ -28,7 +28,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.56.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sns v1.31.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.34.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.52.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.52.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.22.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.3 // indirect
