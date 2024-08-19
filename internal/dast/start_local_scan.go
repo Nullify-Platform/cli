@@ -107,7 +107,7 @@ func runDASTInDocker(
 	}
 	defer dockerclient.Close()
 
-	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast-local:%s", imageLabel)
+	imageRef := fmt.Sprintf("ghcr.io/nullify-platform/dast:%s", imageLabel)
 
 	// check if image exists on local machine
 	imageExists := true
