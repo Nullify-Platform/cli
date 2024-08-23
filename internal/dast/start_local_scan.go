@@ -252,23 +252,31 @@ func runDASTInDocker(
 		}
 	}()
 
-	scanner := bufio.NewScanner(stdout)
-	buf := make([]byte, maxBufferSize)
-	scanner.Buffer(buf, maxBufferSize)
-
+	reader := bufio.NewReader(stdout)
 	var lastLine string
-	for scanner.Scan() {
-		printDASTLocalLogLine(ctx, lastLine)
-		lastLine = scanner.Text()
-	}
-
-	if err := scanner.Err(); err != nil {
-		logger.L(ctx).Error(
-			"error reading output from dast local container",
-			logger.Err(err),
-			logger.String("lastLine", lastLine),
-		)
-		return nil, err
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			logger.L(ctx).Error(
+				"error reading output from dast local container",
+				logger.Err(err),
+			)
+			return nil, err
+		}
+		if line != "" {
+			printDASTLocalLogLine(ctx, lastLine)
+			lastLine = strings.TrimSuffix(line, "\n")
+		}
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			logger.L(ctx).Error(
+				"error reading output from dast local container",
+				logger.Err(err),
+				logger.String("lastLine", lastLine),
+			)
+			break
+		}
 	}
 
 	logger.L(ctx).Debug(
