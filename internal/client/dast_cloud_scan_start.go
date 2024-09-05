@@ -39,7 +39,7 @@ func (c *NullifyClient) DASTStartCloudScan(
 		return nil, err
 	}
 
-	githubID, err := GetGitHubIDFromString(ctx, githubOwner)
+	githubID, err := GetGitHubID(ctx, githubOwner)
 	if err != nil {
 		return nil, err
 	}

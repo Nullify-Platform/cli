@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-github/v64/github"
 )
 
-func GetGitHubIDFromString(ctx context.Context, githubOwner string) (string, error) {
+func GetGitHubID(ctx context.Context, githubOwner string) (string, error) {
 	githubClient := github.NewClient(nil)
 	user, _, err := githubClient.Users.Get(ctx, githubOwner)
 	if err != nil {

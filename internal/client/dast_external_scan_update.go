@@ -32,7 +32,7 @@ func (c *NullifyClient) DASTUpdateExternalScan(
 		return err
 	}
 
-	githubID, err := GetGitHubIDFromString(ctx, githubOwner)
+	githubID, err := GetGitHubID(ctx, githubOwner)
 	if err != nil {
 		return err
 	}

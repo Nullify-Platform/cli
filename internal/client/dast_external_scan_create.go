@@ -45,7 +45,7 @@ func (c *NullifyClient) DASTCreateExternalScan(
 		logger.String("baseURL", c.BaseURL),
 	)
 
-	githubID, err := GetGitHubIDFromString(ctx, githubOwner)
+	githubID, err := GetGitHubID(ctx, githubOwner)
 	if err != nil {
 		return nil, err
 	}
