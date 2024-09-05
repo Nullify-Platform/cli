@@ -32,7 +32,15 @@ func (c *NullifyClient) DASTUpdateExternalScan(
 		return err
 	}
 
-	url := fmt.Sprintf("%s/dast/external/%s?githubOwner=%s", c.BaseURL, scanID, githubOwner)
+	githubID, err := GetGitHubIDFromString(ctx, githubOwner)
+	if err != nil {
+		return err
+	}
+	logger.L(ctx).Debug(
+		"github owner id",
+		logger.String("githubOwnerId", githubID),
+	)
+	url := fmt.Sprintf("%s/dast/external/%s?githubOwnerId=%s", c.BaseURL, scanID, githubID)
 
 	if githubRepository != "" {
 		url += fmt.Sprintf("&githubRepository=%s", githubRepository)

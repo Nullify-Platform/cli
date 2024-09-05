@@ -39,9 +39,18 @@ func (c *NullifyClient) DASTStartCloudScan(
 		return nil, err
 	}
 
+	githubID, err := GetGitHubIDFromString(ctx, githubOwner)
+	if err != nil {
+		return nil, err
+	}
+	logger.L(ctx).Debug(
+		"github owner id",
+		logger.String("githubOwnerId", githubID),
+	)
+
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/dast/scans??githubOwner=%s", c.BaseURL, githubOwner),
+		fmt.Sprintf("%s/dast/scans?githubOwnerId=%s", c.BaseURL, githubID),
 		strings.NewReader(string(requestBody)),
 	)
 	if err != nil {

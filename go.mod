@@ -7,6 +7,7 @@ toolchain go1.23.0
 require (
 	github.com/alexflint/go-arg v1.5.1
 	github.com/docker/docker v27.1.2+incompatible
+	github.com/google/go-github/v64 v64.0.0
 	github.com/nullify-platform/logger v1.15.3
 )
 
@@ -44,6 +45,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect

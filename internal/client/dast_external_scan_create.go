@@ -45,9 +45,18 @@ func (c *NullifyClient) DASTCreateExternalScan(
 		logger.String("baseURL", c.BaseURL),
 	)
 
+	githubID, err := GetGitHubIDFromString(ctx, githubOwner)
+	if err != nil {
+		return nil, err
+	}
+	logger.L(ctx).Debug(
+		"github owner id",
+		logger.String("githubOwnerId", githubID),
+	)
+
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/dast/external?githubOwner=%s", c.BaseURL, githubOwner),
+		fmt.Sprintf("%s/dast/external?githubOwnerId=%s", c.BaseURL, githubID),
 		strings.NewReader(string(requestBody)),
 	)
 	if err != nil {
