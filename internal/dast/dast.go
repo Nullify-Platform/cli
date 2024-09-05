@@ -32,7 +32,7 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 		return err
 	}
 
-	authHeaders, err := lib.ParseAuthHeaders(dast.AuthHeaders)
+	authHeaders, err := lib.ParseAuthHeaders(ctx, dast.AuthHeaders)
 	if err != nil {
 		logger.L(ctx).Error("failed to parse auth headers", logger.Err(err))
 		return err
