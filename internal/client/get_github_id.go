@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/google/go-github/v64/github"
+	"github.com/google/go-github/v65/github"
 )
 
 func GetGitHubID(ctx context.Context, githubOwner string) (string, error) {
