@@ -67,7 +67,7 @@ Options:
                          The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml
   --target-host TARGET-HOST
                          The base URL of the API to be scanned e.g. https://api.nullify.ai
-  --header HEADER        List of headers for the DAST agent to authenticate with your API
+  --header HEADER        List of headers for the DAST agent to authenticate with your API, separated by commas e.g. "Authorization: Bearer 1234,X-Custom-Header: abcxyz"
   --github-owner GITHUB-OWNER
                          The GitHub username or organisation
   --github-repo GITHUB-REPO
@@ -109,7 +109,7 @@ nullify dast \
   --target-host   "https://api.myapp1234.dev" \
   --github-owner  "my-username" \
   --github-repo   "my-repo" \
-  --header        "Authorization: Bearer 1234"
+  --header        "Authorization: Bearer 1234,X-Custom-Header: abcxyz"
 ```
 
 Locally Hosted Scan:
@@ -120,7 +120,7 @@ nullify dast \
   --target-host   "https://api.myapp1234.dev" \
   --github-owner  "my-username" \
   --github-repo   "my-repo" \
-  --header        "Authorization: Bearer 1234" \
+  --header        "Authorization: Bearer 1234,X-Custom-Header: abcxyz" \
   --local
 ```
 
@@ -132,7 +132,7 @@ nullify dast \
   --target-host   "https://api.myapp1234.dev" \
   --github-owner  "my-username" \
   --github-repo   "my-repo" \
-  --header        "Authorization: Bearer 1234" \
+  --header        "Authorization: Bearer 1234,X-Custom-Header: abcxyz" \
   --use-host-network \
   --local
 ```
@@ -160,7 +160,7 @@ The locally hosted scan can be run from within private networks to test private 
 | **`target-host`**  | The base URL of the API to be scanned, e.g. https://api.nullify.ai                                  | `true`   |         |
 | **`github-owner`** | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
 | **`github-repo`**  | The repository name to create the Nullify issue dashboard in, e.g. cli                              | `true`   |         |
-| **`header`**       | List of headers for the DAST agent to authenticate with your API                                    | `false`  |         |
+| **`header`**       | List of headers for the DAST agent to authenticate with your API, seperated by comma                | `false`  |         |
 | **`local`**        | Test the given app locally for bugs and vulnerabilities in private networks                         | `false`  |         |
 | **`version`**      | Version of the DAST local image that is used for scanning [default: ]                               | `false`  | latest  |
 
