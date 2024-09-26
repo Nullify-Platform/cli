@@ -160,7 +160,7 @@ The locally hosted scan can be run from within private networks to test private 
 | **`target-host`**  | The base URL of the API to be scanned, e.g. https://api.nullify.ai                                  | `true`   |         |
 | **`github-owner`** | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
 | **`github-repo`**  | The repository name to create the Nullify issue dashboard in, e.g. cli                              | `true`   |         |
-| **`header`**       | List of headers for the DAST agent to authenticate with your API, seperated by comma                | `false`  |         |
+| **`header`**       | List of headers for the DAST agent to authenticate with your API, string seperated by commas        | `false`  |         |
 | **`local`**        | Test the given app locally for bugs and vulnerabilities in private networks                         | `false`  |         |
 | **`version`**      | Version of the DAST local image that is used for scanning [default: ]                               | `false`  | latest  |
 
