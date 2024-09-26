@@ -11,9 +11,6 @@
   <a href="https://github.com/Nullify-Platform/Kuat-Shipyards/actions/workflows/release.yml">
     <img src="https://github.com/Nullify-Platform/Kuat-Shipyards/actions/workflows/release.yml/badge.svg" alt="Release Status" />
   </a>
-  <a href="https://join.slack.com/t/nullifycommunity/shared_invite/zt-1ve4xgket-PfkFjSDJK_kG8l~OA_GXUg">
-    <img src="https://img.shields.io/badge/Slack-10%2B%20members-black" alt="Slack invite" />
-  </a>
   <a href="https://docs.nullify.ai/features/api-scanning/cli/">
     <img src="https://img.shields.io/badge/docs-docs.nullify.ai-purple" alt="Documentation" />
   </a>
