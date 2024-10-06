@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/alexflint/go-arg v1.5.1
 	github.com/docker/docker v27.3.1+incompatible
-	github.com/google/go-github/v65 v65.0.0
+	github.com/google/go-github/v66 v66.0.0
 	github.com/nullify-platform/logger v1.15.9
 )
 
