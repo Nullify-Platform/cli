@@ -8,7 +8,7 @@ require (
 	github.com/alexflint/go-arg v1.5.1
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/google/go-github/v66 v66.0.0
-	github.com/nullify-platform/logger v1.15.12
+	github.com/nullify-platform/logger v1.15.13
 )
 
 require (
@@ -23,10 +23,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.21 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.21 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ecs v1.47.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.48.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.63.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.64.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sns v1.33.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.36.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.55.2 // indirect
