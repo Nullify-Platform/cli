@@ -8,7 +8,7 @@ require (
 	github.com/alexflint/go-arg v1.5.1
 	github.com/docker/docker v27.4.1+incompatible
 	github.com/google/go-github/v68 v68.0.0
-	github.com/nullify-platform/logger v1.16.6
+	github.com/nullify-platform/logger v1.17.0
 )
 
 require (
