@@ -6,9 +6,9 @@ toolchain go1.23.5
 
 require (
 	github.com/alexflint/go-arg v1.5.1
-	github.com/docker/docker v27.5.0+incompatible
+	github.com/docker/docker v27.5.1+incompatible
 	github.com/google/go-github/v68 v68.0.0
-	github.com/nullify-platform/logger v1.17.1
+	github.com/nullify-platform/logger v1.19.0
 )
 
 require (
