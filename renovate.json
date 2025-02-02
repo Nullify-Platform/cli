@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base"],
   "timezone": "Australia/Sydney",
-  "schedule": ["before 9am on monday"],
+  "schedule": ["* 8 1 * *"],
   "docker": {
     "pinDigests": true
   },
