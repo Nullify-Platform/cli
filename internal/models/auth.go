@@ -44,10 +44,10 @@ type AuthConfig struct {
 type UserAuth struct {
 	RoleName        string              `json:"roleName"`
 	RoleDescription string              `json:"roleDescription,omitempty"`
-	AuthConfig      AuthMultiUserConfig `json:"authConfig"`
+	AuthConfig      MultiUserAuthConfig `json:"authConfig"`
 }
 
-type AuthMultiUserConfig struct {
+type MultiUserAuthConfig struct {
 	Method        AuthMethod             `json:"method,omitempty"`
 	Username      string                 `json:"username,omitempty"`
 	Password      string                 `json:"password,omitempty"`
