@@ -14,11 +14,11 @@ import (
 )
 
 type args struct {
-	DAST    *dast.DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
-	Host    string     `arg:"--host" default:"api.nullify.ai" help:"The base URL of your Nullify API instance"`
-	Verbose bool       `arg:"-v" help:"Enable verbose logging"`
-	Debug   bool       `arg:"-d" help:"Enable debug logging"`
-
+	DAST       *dast.DAST `arg:"subcommand:dast" help:"Test the given app for bugs and vulnerabilities"`
+	Host       string     `arg:"--host" default:"api.nullify.ai" help:"The base URL of your Nullify API instance"`
+	Verbose    bool       `arg:"-v" help:"Enable verbose logging"`
+	Debug      bool       `arg:"-d" help:"Enable debug logging"`
+	AuthConfig string     `arg:"--auth-config" help:"The path to the auth config file"`
 	models.AuthSources
 }
 

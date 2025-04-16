@@ -56,7 +56,7 @@ Commands:
 ## Usage: DAST Scans
 
 ```
-Usage: nullify dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--header HEADER] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--local] [--image-label IMAGE-LABEL] [--force-pull] [--use-host-network]
+Usage: nullify dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--header HEADER] [--auth-config AUTH-CONFIG] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--local] [--image-label IMAGE-LABEL] [--force-pull] [--use-host-network]
 
 Options:
   --app-name APP-NAME    The unique name of the app to be scanned, you can set this to anything e.g. Core API
@@ -65,6 +65,8 @@ Options:
   --target-host TARGET-HOST
                          The base URL of the API to be scanned e.g. https://api.nullify.ai
   --header HEADER        List of headers for the DAST agent to authenticate with your API, separated by commas e.g. "Authorization: Bearer 1234,X-Custom-Header: abcxyz"
+  --auth-config AUTH-CONFIG
+                         The path to the auth config file
   --github-owner GITHUB-OWNER
                          The GitHub username or organisation
   --github-repo GITHUB-REPO
@@ -160,4 +162,5 @@ The locally hosted scan can be run from within private networks to test private 
 | **`header`**       | List of headers for the DAST agent to authenticate with your API, string seperated by commas        | `false`  |         |
 | **`local`**        | Test the given app locally for bugs and vulnerabilities in private networks                         | `false`  |         |
 | **`version`**      | Version of the DAST local image that is used for scanning [default: ]                               | `false`  | latest  |
+| **`auth-config`**  | The path to the auth config file                                                           | `false`  |         |
 

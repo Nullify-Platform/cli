@@ -23,6 +23,8 @@ type DAST struct {
 	ImageLabel     string `arg:"--image-label" default:"latest" help:"Version of the DAST local image that is used for scanning"`
 	ForcePullImage bool   `arg:"--force-pull" help:"Force a docker pull of the latest version of the DAST local image"`
 	UseHostNetwork bool   `arg:"--use-host-network" help:"Use the host network for the DAST local scan"`
+
+	AuthConfig string `arg:"--auth-config" help:"The path to the auth config file"`
 }
 
 func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyClient, logLevel string) error {
@@ -38,6 +40,21 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 		return err
 	}
 
+	// Create auth config
+	authConfig := models.AuthConfig{
+		Headers: authHeaders,
+	}
+
+	// Read auth config file
+	if dast.AuthConfig != "" {
+		fileAuthConfig, err := lib.ParseAuthConfig(ctx, dast.AuthConfig)
+		if err != nil {
+			logger.L(ctx).Error("failed to parse auth config", logger.Err(err))
+			return err
+		}
+		authConfig = *fileAuthConfig
+	}
+
 	if dast.Local {
 		logger.L(ctx).Info("starting local scan")
 		err = RunLocalScan(
@@ -49,9 +66,7 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 				AppName:     dast.AppName,
 				TargetHost:  dast.TargetHost,
 				OpenAPISpec: spec,
-				AuthConfig: models.AuthConfig{
-					Headers: authHeaders,
-				},
+				AuthConfig:  authConfig,
 			},
 			dast.ImageLabel,
 			dast.ForcePullImage,
@@ -69,9 +84,7 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 			Host:        dast.TargetHost,
 			TargetHost:  dast.TargetHost,
 			OpenAPISpec: spec,
-			AuthConfig: models.AuthConfig{
-				Headers: authHeaders,
-			},
+			AuthConfig:  authConfig,
 			RequestProvider: models.RequestProvider{
 				GitHubOwner: dast.GitHubOwner,
 			},
