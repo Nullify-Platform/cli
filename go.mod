@@ -1,13 +1,13 @@
 module github.com/nullify-platform/cli
 
-go 1.22.7
+go 1.23.0
 
 toolchain go1.24.2
 
 require (
 	github.com/alexflint/go-arg v1.5.1
-	github.com/docker/docker v27.5.1+incompatible
-	github.com/google/go-github/v68 v68.0.0
+	github.com/docker/docker v28.3.2+incompatible
+	github.com/google/go-github/v74 v74.0.0
 	github.com/nullify-platform/logger v1.26.1
 )
 
@@ -32,6 +32,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.6 // indirect
 	github.com/aws/smithy-go v1.22.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
+	github.com/containerd/errdefs v1.0.0 // indirect
+	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
@@ -46,6 +48,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
+	github.com/moby/sys/atomicwriter v0.1.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect

@@ -111,7 +111,7 @@ func runDASTInDocker(
 
 	// check if image exists on local machine
 	imageExists := true
-	imageInspect, _, err := dockerclient.ImageInspectWithRaw(ctx, imageRef)
+	imageInspect, err := dockerclient.ImageInspect(ctx, imageRef)
 	if err != nil {
 		imageExists = false
 		logger.L(ctx).Info(
