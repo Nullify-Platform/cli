@@ -11,8 +11,8 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: build
@@ -27,7 +27,7 @@ jobs:
           version=$(sh scripts/get_golangci_lint_version.sh)
           echo "::set-output name=golangci_lint_version::$version"
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v8
         with:
           version: ${{ steps.extract_version.outputs.golangci_lint_version }}
           args: ./cmd/... ./internal/...
