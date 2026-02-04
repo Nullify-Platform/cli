@@ -9,7 +9,7 @@ on:
 run-name: CI Go by @${{ github.actor }} ${{ github.sha }}
 jobs:
   build-test:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
@@ -25,7 +25,7 @@ jobs:
         id: extract_version
         run: |
           version=$(sh scripts/get_golangci_lint_version.sh)
-          echo "::set-output name=golangci_lint_version::$version"
+          echo "golangci_lint_version=$version" >> $GITHUB_OUTPUT
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
