@@ -80,12 +80,19 @@ func Login(ctx context.Context, host string) error {
 		}
 
 		// Only process the first valid callback (guard against duplicates)
+		processed := false
 		callbackOnce.Do(func() {
+			processed = true
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprint(w, successHTML)
 			sessionCh <- receivedID
 		})
+		if !processed {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, successHTML)
+		}
 	})
 
 	server := &http.Server{Handler: mux}
