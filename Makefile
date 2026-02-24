@@ -16,7 +16,7 @@ GOFLAGS := -ldflags "-X 'github.com/nullify-platform/logger/pkg/logger.Version=$
 all: build
 
 build:
-	$(GOENV) go build $(GOFLAGS) -o bin/cli ./cmd/cli/...
+	$(GOENV) go build $(GOFLAGS) -o bin/cli ./cmd/cli
 
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock coverage.*
