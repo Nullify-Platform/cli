@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
-	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
@@ -23,28 +23,32 @@ type githubToken struct {
 func GetNullifyToken(
 	ctx context.Context,
 	nullifyHost string,
-	authSources *models.AuthSources,
+	nullifyTokenFlag string,
+	githubTokenFlag string,
 ) (string, error) {
-	if authSources.NullifyToken != "" {
-		logger.L(ctx).Debug("using token from config")
-		return authSources.NullifyToken, nil
+	// 1. Command-line flag
+	if nullifyTokenFlag != "" {
+		logger.L(ctx).Debug("using token from flag")
+		return nullifyTokenFlag, nil
 	}
 
+	// 2. Environment variable
 	token := os.Getenv("NULLIFY_TOKEN")
 	if token != "" {
 		logger.L(ctx).Debug("using token from env")
 		return token, nil
 	}
 
+	// 3. GitHub Actions token exchange
 	if os.Getenv("GITHUB_ACTIONS") == "true" &&
-		authSources.GitHubToken != "" &&
+		githubTokenFlag != "" &&
 		os.Getenv("GITHUB_ACTION_REPOSITORY") != "" {
 		repo := os.Getenv("GITHUB_ACTION_REPOSITORY")
 
 		logger.L(ctx).Debug(
 			"exchanging github actions token for a nullify token",
 			logger.String("repository", repo),
-			logger.String("githubToken", authSources.GitHubToken),
+			logger.String("githubToken", githubTokenFlag),
 		)
 
 		parts := strings.Split(repo, "/")
@@ -55,9 +59,9 @@ func GetNullifyToken(
 
 		owner := parts[0]
 
-		url := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, authSources.GitHubToken, owner)
+		url := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, githubTokenFlag, owner)
 
-		// nosec The URL is hardcoded and cannot be manipulated by an attacker, thus it does not pose a risk of argument injection or modification.
+		// nosec The URL is hardcoded and cannot be manipulated by an attacker
 		res, err := http.Get(url)
 		if err != nil {
 			return "", err
@@ -76,10 +80,16 @@ func GetNullifyToken(
 		logger.L(ctx).Debug(
 			"exchanged github actions token for a nullify token",
 			logger.String("repository", repo),
-			logger.String("token", token.Token),
 		)
 
 		return token.Token, nil
+	}
+
+	// 4. Stored credentials from ~/.nullify/credentials.json
+	storedToken, err := auth.GetValidToken(ctx, nullifyHost)
+	if err == nil && storedToken != "" {
+		logger.L(ctx).Debug("using token from stored credentials")
+		return storedToken, nil
 	}
 
 	return "", ErrNoToken

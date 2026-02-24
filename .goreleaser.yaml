@@ -1,0 +1,48 @@
+version: 2
+
+project_name: nullify
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: ./cmd/cli
+    binary: nullify
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -X 'github.com/nullify-platform/logger/pkg/logger.Version={{ .Version }}'
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - format: tar.gz
+    name_template: "nullify_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE*
+      - README*
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: github-native
+
+release:
+  github:
+    owner: Nullify-Platform
+    name: cli
+  draft: false
+  prerelease: auto

@@ -1,4 +1,4 @@
-.PHONY: build clean deploy
+.PHONY: build clean
 
 # set the version as the latest commit sha if it's not already defined
 ifndef VERSION
@@ -16,19 +16,7 @@ GOFLAGS := -ldflags "-X 'github.com/nullify-platform/logger/pkg/logger.Version=$
 all: build
 
 build:
-	$(GOENV) go build $(GOFLAGS) -o bin/cli ./cmd/cli/...
-
-package:
-	# linux
-	$(GOENV) GOOS=linux   GOARCH=amd64 go build $(GOFLAGS) -o bin/nullify_linux_amd64_$(VERSION) ./cmd/cli/...
-	$(GOENV) GOOS=linux   GOARCH=arm64 go build $(GOFLAGS) -o bin/nullify_linux_arm64_$(VERSION) ./cmd/cli/...
-	$(GOENV) GOOS=linux   GOARCH=386   go build $(GOFLAGS) -o bin/nullify_linux_386_$(VERSION)   ./cmd/cli/...
-	# mac
-	$(GOENV) GOOS=darwin  GOARCH=amd64 go build $(GOFLAGS) -o bin/nullify_macos_amd64_$(VERSION) ./cmd/cli/...
-	$(GOENV) GOOS=darwin  GOARCH=arm64 go build $(GOFLAGS) -o bin/nullify_macos_arm64_$(VERSION) ./cmd/cli/...
-	# windows
-	$(GOENV) GOOS=windows GOARCH=amd64 go build $(GOFLAGS) -o bin/nullify_windows_amd64_$(VERSION).exe ./cmd/cli/...
-	$(GOENV) GOOS=windows GOARCH=386   go build $(GOFLAGS) -o bin/nullify_windows_386_$(VERSION).exe   ./cmd/cli/...
+	$(GOENV) go build $(GOFLAGS) -o bin/cli ./cmd/cli
 
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock coverage.*
@@ -45,6 +33,9 @@ lint-go:
 lint-docker:
 	docker build --quiet --target hadolint -t hadolint:latest .
 	docker run --rm -v $(shell pwd):/app -w /app hadolint hadolint Dockerfile demo_server/Dockerfile
+
+generate-api:
+	go run ./scripts/generate/main.go --spec ../public-docs/specs/merged-openapi.yml --output internal/api --cmd-output internal/commands
 
 unit:
 	go test -v -skip TestIntegration ./...

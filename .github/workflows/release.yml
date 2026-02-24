@@ -1,12 +1,6 @@
 name: Release
 on:
   workflow_dispatch:
-    inputs:
-      releaseType:
-        description: Create a draft release
-        required: true
-        type: boolean
-        default: false
   push:
     branches:
       - main
@@ -32,45 +26,28 @@ jobs:
       - run: |
           echo "**Version:** ${{ steps.get-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "**Short SHA:** $(git rev-parse --short HEAD)" >> $GITHUB_STEP_SUMMARY
-  build:
-    if: ${{ needs.get-version.outputs.version != 'undefined' || (github.event_name == 'workflow_dispatch' && needs.get-version.outputs.version != 'undefined') }}
-    name: Build
-    needs: [ get-version ]
+  goreleaser:
+    if: ${{ needs.get-version.outputs.version != 'undefined' }}
+    name: GoReleaser
+    needs: [get-version]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - name: Set Release Variables
-        run: echo "VERSION=${{ needs.get-version.outputs.version }}" >> $GITHUB_ENV
-      - name: Build CLI
-        run: make package
-      - name: Upload Binaries
-        uses: actions/upload-artifact@v6
-        with:
-          name: binaries
-          retention-days: 2
-          path: bin/*
-  release:
-    if: ${{ needs.get-version.outputs.version != 'undefined' || (github.event_name == 'workflow_dispatch' && needs.get-version.outputs.version != 'undefined') }}
-    name: Release
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    needs: [ get-version, build ]
-    steps:
-      - name: Download Binaries
-        uses: actions/download-artifact@v7
-        with:
-          path: ${{ github.workspace }}
-      - name: Generate Release
-        uses: softprops/action-gh-release@v2
+      - name: Create and push tag
         env:
           VERSION: ${{ needs.get-version.outputs.version }}
+        run: |
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          draft: false
-          generate_release_notes: true
-          append_body: true
-          tag_name: v${{ env.VERSION }}
-          token: ${{ github.token }}
-          files: |
-            ${{ github.workspace }}/binaries/*
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

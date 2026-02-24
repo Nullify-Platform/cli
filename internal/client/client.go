@@ -2,6 +2,7 @@ package client
 
 import (
 	"net/http"
+	"time"
 )
 
 type NullifyClient struct {
@@ -13,6 +14,7 @@ type NullifyClient struct {
 
 func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
 		Transport: &authTransport{
 			nullifyHost: nullifyHost,
 			token:       token,

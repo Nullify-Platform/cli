@@ -10,21 +10,21 @@ import (
 )
 
 type DAST struct {
-	AppName     string   `arg:"--app-name" help:"The unique name of the app to be scanned, you can set this to anything e.g. Core API"`
-	Path        string   `arg:"--spec-path" help:"The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml"`
-	TargetHost  string   `arg:"--target-host" help:"The base URL of the API to be scanned e.g. https://api.nullify.ai"`
-	AuthHeaders []string `arg:"--header" help:"List of headers for the DAST agent to authenticate with your API"`
+	AppName     string
+	Path        string
+	TargetHost  string
+	AuthHeaders []string
 
-	GitHubOwner      string `arg:"--github-owner" help:"The GitHub username or organisation"`
-	GitHubRepository string `arg:"--github-repo" help:"The repository name to create the Nullify issue dashboard in e.g. cli"`
+	GitHubOwner      string
+	GitHubRepository string
 
 	// local scan settings
-	Local          bool   `arg:"--local" help:"Test the given app locally for bugs and vulnerabilities in private networks"`
-	ImageLabel     string `arg:"--image-label" default:"latest" help:"Version of the DAST local image that is used for scanning"`
-	ForcePullImage bool   `arg:"--force-pull" help:"Force a docker pull of the latest version of the DAST local image"`
-	UseHostNetwork bool   `arg:"--use-host-network" help:"Use the host network for the DAST local scan"`
+	Local          bool
+	ImageLabel     string
+	ForcePullImage bool
+	UseHostNetwork bool
 
-	AuthConfig string `arg:"--auth-config" help:"The path to the auth config file"`
+	AuthConfig string
 }
 
 func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyClient, logLevel string) error {
