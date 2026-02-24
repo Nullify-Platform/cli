@@ -16,13 +16,13 @@ import (
 var authCmd = &cobra.Command{
 	Use:   "auth",
 	Short: "Manage authentication",
-	Long:  "Authenticate with the Nullify API using device flow, manage credentials and tokens.",
+	Long:  "Authenticate with the Nullify API, manage credentials and tokens.",
 }
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Log in to Nullify",
-	Long:  "Authenticate with your Nullify instance using device flow authentication.",
+	Long:  "Authenticate with your Nullify instance. Opens your browser to log in with your identity provider.",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger()
 		defer logger.L(ctx).Sync()
@@ -49,7 +49,7 @@ var loginCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = auth.DeviceFlowLogin(ctx, sanitizedHost)
+		err = auth.Login(ctx, sanitizedHost)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: login failed: %v\n", err)
 			os.Exit(1)
