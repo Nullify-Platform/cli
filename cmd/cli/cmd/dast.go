@@ -19,7 +19,7 @@ var dastCmd = &cobra.Command{
 		dastArgs := getDastArgs(cmd)
 
 		if dastArgs.Path == "" {
-			cmd.Help()
+			_ = cmd.Help()
 			return
 		}
 
@@ -69,16 +69,16 @@ func getDastArgs(cmd *cobra.Command) *dast.DAST {
 	dastAuthConfig, _ := cmd.Flags().GetString("dast-auth-config")
 
 	return &dast.DAST{
-		AppName:        appName,
-		Path:           specPath,
-		TargetHost:     targetHost,
-		AuthHeaders:    headers,
-		GitHubOwner:    githubOwner,
+		AppName:          appName,
+		Path:             specPath,
+		TargetHost:       targetHost,
+		AuthHeaders:      headers,
+		GitHubOwner:      githubOwner,
 		GitHubRepository: githubRepo,
-		Local:          local,
-		ImageLabel:     imageLabel,
-		ForcePullImage: forcePull,
-		UseHostNetwork: useHostNetwork,
-		AuthConfig:     dastAuthConfig,
+		Local:            local,
+		ImageLabel:       imageLabel,
+		ForcePullImage:   forcePull,
+		UseHostNetwork:   useHostNetwork,
+		AuthConfig:       dastAuthConfig,
 	}
 }

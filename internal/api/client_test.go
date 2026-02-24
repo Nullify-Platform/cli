@@ -13,7 +13,7 @@ func TestClientDo_Success(t *testing.T) {
 			t.Errorf("expected Authorization header, got %q", r.Header.Get("Authorization"))
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	}))
 	defer server.Close()
 
@@ -35,7 +35,7 @@ func TestClientDo_Success(t *testing.T) {
 func TestClientDo_4xxError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":"not found"}`))
+		_, _ = w.Write([]byte(`{"error":"not found"}`))
 	}))
 	defer server.Close()
 
@@ -54,7 +54,7 @@ func TestClientDo_4xxError(t *testing.T) {
 func TestClientDo_5xxError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"internal error"}`))
+		_, _ = w.Write([]byte(`{"error":"internal error"}`))
 	}))
 	defer server.Close()
 

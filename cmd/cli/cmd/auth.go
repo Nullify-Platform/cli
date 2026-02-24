@@ -46,7 +46,7 @@ var loginCmd = &cobra.Command{
 		// If still no host, prompt
 		if loginHost == "" {
 			fmt.Print("Enter your Nullify instance (e.g., api.acme.nullify.ai): ")
-			fmt.Scanln(&loginHost)
+			_, _ = fmt.Scanln(&loginHost)
 		}
 
 		sanitizedHost, err := lib.SanitizeNullifyHost(loginHost)
