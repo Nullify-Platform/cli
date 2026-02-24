@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
+	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/logger/pkg/logger"
 )
@@ -86,112 +86,11 @@ func GetNullifyToken(
 	}
 
 	// 4. Stored credentials from ~/.nullify/credentials.json
-	storedToken, err := getStoredToken(ctx, nullifyHost)
+	storedToken, err := auth.GetValidToken(ctx, nullifyHost)
 	if err == nil && storedToken != "" {
 		logger.L(ctx).Debug("using token from stored credentials")
 		return storedToken, nil
 	}
 
 	return "", ErrNoToken
-}
-
-type storedCredentials struct {
-	AccessToken     string            `json:"access_token"`
-	RefreshToken    string            `json:"refresh_token"`
-	ExpiresAt       int64             `json:"expires_at"`
-	QueryParameters map[string]string `json:"query_parameters"`
-}
-
-func getStoredToken(ctx context.Context, nullifyHost string) (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	credPath := homeDir + "/.nullify/credentials.json"
-	data, err := os.ReadFile(credPath)
-	if err != nil {
-		return "", err
-	}
-
-	var creds map[string]storedCredentials
-
-	err = json.Unmarshal(data, &creds)
-	if err != nil {
-		return "", err
-	}
-
-	hostCreds, ok := creds[nullifyHost]
-	if !ok {
-		return "", fmt.Errorf("no credentials for host %s", nullifyHost)
-	}
-
-	if hostCreds.AccessToken == "" {
-		return "", fmt.Errorf("no access token for host %s", nullifyHost)
-	}
-
-	// Check if token is expired
-	if hostCreds.ExpiresAt > 0 && time.Now().Unix() > hostCreds.ExpiresAt {
-		// Attempt refresh if we have a refresh token
-		if hostCreds.RefreshToken != "" {
-			logger.L(ctx).Debug("stored token expired, attempting refresh")
-			return refreshStoredToken(ctx, nullifyHost, hostCreds.RefreshToken, credPath)
-		}
-		return "", fmt.Errorf("token expired for host %s - run 'nullify auth login'", nullifyHost)
-	}
-
-	return hostCreds.AccessToken, nil
-}
-
-func refreshStoredToken(ctx context.Context, host, refreshTok, credPath string) (string, error) {
-	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", host, refreshTok)
-
-	httpClient := &http.Client{Timeout: 30 * time.Second}
-	resp, err := httpClient.Get(refreshURL)
-	if err != nil {
-		return "", fmt.Errorf("refresh request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("token refresh failed with status %d", resp.StatusCode)
-	}
-
-	var result struct {
-		AccessToken     string            `json:"accessToken"`
-		ExpiresIn       int               `json:"expiresIn"`
-		QueryParameters map[string]string `json:"queryParameters"`
-	}
-
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		return "", fmt.Errorf("failed to decode refresh response: %w", err)
-	}
-
-	// Update stored credentials
-	data, err := os.ReadFile(credPath)
-	if err != nil {
-		return result.AccessToken, nil // return token even if we can't save
-	}
-
-	var creds map[string]storedCredentials
-	if err := json.Unmarshal(data, &creds); err != nil {
-		return result.AccessToken, nil
-	}
-
-	creds[host] = storedCredentials{
-		AccessToken:     result.AccessToken,
-		RefreshToken:    refreshTok,
-		ExpiresAt:       time.Now().Add(time.Duration(result.ExpiresIn) * time.Second).Unix(),
-		QueryParameters: result.QueryParameters,
-	}
-
-	updatedData, err := json.MarshalIndent(creds, "", "  ")
-	if err != nil {
-		return result.AccessToken, nil
-	}
-
-	_ = os.WriteFile(credPath, updatedData, 0600)
-
-	return result.AccessToken, nil
 }

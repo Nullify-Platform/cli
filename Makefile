@@ -16,7 +16,7 @@ GOFLAGS := -ldflags "-X 'github.com/nullify-platform/logger/pkg/logger.Version=$
 all: build
 
 build:
-	$(GOENV) go build $(GOFLAGS) -o bin/cli ./cmd/cli/...
+	$(GOENV) go build $(GOFLAGS) -o bin/cli ./cmd/cli
 
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock coverage.*
@@ -33,6 +33,9 @@ lint-go:
 lint-docker:
 	docker build --quiet --target hadolint -t hadolint:latest .
 	docker run --rm -v $(shell pwd):/app -w /app hadolint hadolint Dockerfile demo_server/Dockerfile
+
+generate-api:
+	go run ./scripts/generate/main.go --spec ../public-docs/specs/merged-openapi.yml --output internal/api --cmd-output internal/commands
 
 unit:
 	go test -v -skip TestIntegration ./...
