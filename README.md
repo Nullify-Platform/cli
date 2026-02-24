@@ -31,24 +31,15 @@
 
 ## Installation
 
-### macOS (Homebrew)
-
-```sh
-brew install nullify-platform/tap/nullify
-```
-
-### Linux
+### macOS / Linux
 
 ```sh
 curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh
 ```
 
-### Windows (Scoop)
+### Windows
 
-```sh
-scoop bucket add nullify https://github.com/Nullify-Platform/scoop-bucket.git
-scoop install nullify
-```
+Download the latest `.zip` archive for your platform from the [GitHub Releases](https://github.com/Nullify-Platform/cli/releases) page and add the binary to your `PATH`.
 
 ### GitHub Actions
 

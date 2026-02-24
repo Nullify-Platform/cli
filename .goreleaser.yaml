@@ -40,30 +40,6 @@ checksum:
 changelog:
   use: github-native
 
-brews:
-  - repository:
-      owner: Nullify-Platform
-      name: homebrew-tap
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    name: nullify
-    homepage: "https://nullify.ai"
-    description: "Nullify CLI - dynamically test and fuzz your endpoints for security vulnerabilities"
-    license: "MIT"
-    install: |
-      bin.install "nullify"
-    test: |
-      system "#{bin}/nullify", "--version"
-
-scoops:
-  - repository:
-      owner: Nullify-Platform
-      name: scoop-bucket
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    name: nullify
-    homepage: "https://nullify.ai"
-    description: "Nullify CLI - dynamically test and fuzz your endpoints for security vulnerabilities"
-    license: "MIT"
-
 release:
   github:
     owner: Nullify-Platform
