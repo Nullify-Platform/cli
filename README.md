@@ -8,8 +8,8 @@
   <a href="https://github.com/Nullify-Platform/cli/releases">
     <img src="https://img.shields.io/github/v/release/Nullify-Platform/cli" alt="GitHub release" />
   </a>
-  <a href="https://github.com/Nullify-Platform/Kuat-Shipyards/actions/workflows/release.yml">
-    <img src="https://github.com/Nullify-Platform/Kuat-Shipyards/actions/workflows/release.yml/badge.svg" alt="Release Status" />
+  <a href="https://github.com/Nullify-Platform/cli/actions/workflows/release.yml">
+    <img src="https://github.com/Nullify-Platform/cli/actions/workflows/release.yml/badge.svg" alt="Release Status" />
   </a>
   <a href="https://docs.nullify.ai/features/api-scanning/cli/">
     <img src="https://img.shields.io/badge/docs-docs.nullify.ai-purple" alt="Documentation" />
@@ -29,9 +29,49 @@
 
 [Nullify](https://nullify.ai) CLI dynamically tests and fuzzes your endpoints for security vulnerabilities.
 
-## Getting Started
- * Download the [latest release](https://github.com/Nullify-Platform/cli/releases) or build from source
- * See our [quickstart guide](https://docs.nullify.ai/features/api-testing) for more info
+## Installation
+
+### macOS (Homebrew)
+
+```sh
+brew install nullify-platform/tap/nullify
+```
+
+### Linux
+
+```sh
+curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh
+```
+
+### Windows (Scoop)
+
+```sh
+scoop bucket add nullify https://github.com/Nullify-Platform/scoop-bucket.git
+scoop install nullify
+```
+
+### GitHub Actions
+
+Download the latest release in your workflow:
+
+```yaml
+- name: Install Nullify CLI
+  run: curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh
+```
+
+### Manual Download
+
+Download the latest binary for your platform from the [GitHub Releases](https://github.com/Nullify-Platform/cli/releases) page.
+
+### Verify Installation
+
+```sh
+nullify --version
+```
+
+### Getting Started
+
+See our [quickstart guide](https://docs.nullify.ai/features/api-testing) for more info.
 
 ## Usage
 

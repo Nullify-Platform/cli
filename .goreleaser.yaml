@@ -1,0 +1,72 @@
+version: 2
+
+project_name: nullify
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: ./cmd/cli
+    binary: nullify
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -X 'github.com/nullify-platform/logger/pkg/logger.Version={{ .Version }}'
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - format: tar.gz
+    name_template: "nullify_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE*
+      - README*
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: github-native
+
+brews:
+  - repository:
+      owner: Nullify-Platform
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    name: nullify
+    homepage: "https://nullify.ai"
+    description: "Nullify CLI - dynamically test and fuzz your endpoints for security vulnerabilities"
+    license: "MIT"
+    install: |
+      bin.install "nullify"
+    test: |
+      system "#{bin}/nullify", "--version"
+
+scoops:
+  - repository:
+      owner: Nullify-Platform
+      name: scoop-bucket
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    name: nullify
+    homepage: "https://nullify.ai"
+    description: "Nullify CLI - dynamically test and fuzz your endpoints for security vulnerabilities"
+    license: "MIT"
+
+release:
+  github:
+    owner: Nullify-Platform
+    name: cli
+  draft: false
+  prerelease: auto
