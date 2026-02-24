@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/nullify-platform/logger/pkg/logger"
@@ -31,11 +32,18 @@ type cliTokenResponse struct {
 }
 
 const successHTML = `<!DOCTYPE html>
-<html><head><title>Nullify CLI</title></head>
-<body style="font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5">
-<div style="text-align:center;padding:2rem;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);max-width:400px">
-<h1 style="color:#16a34a;font-size:1.5rem">Authenticated Successfully!</h1>
-<p style="color:#666">You can close this tab and return to your terminal.</p>
+<html><head><title>Nullify CLI</title>
+<style>
+body{font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5}
+.card{text-align:center;padding:2rem;background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.1);max-width:400px}
+.check{width:48px;height:48px;margin:0 auto 1rem}
+h1{color:#16a34a;font-size:1.5rem;margin:0 0 0.5rem}
+p{color:#666;margin:0}
+</style></head>
+<body><div class="card">
+<svg class="check" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+<h1>Authenticated Successfully!</h1>
+<p>You can close this tab and return to your terminal.</p>
 </div></body></html>`
 
 func Login(ctx context.Context, host string) error {
@@ -49,23 +57,35 @@ func Login(ctx context.Context, host string) error {
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
 
-	// 2. Set up callback handler
+	// 2. Create session on backend first so we know the expected session ID
+	sessionResp, err := createCLISession(ctx, host, port)
+	if err != nil {
+		listener.Close()
+		return fmt.Errorf("failed to create auth session: %w", err)
+	}
+
+	// 3. Set up callback handler that validates session ID
 	sessionCh := make(chan string, 1)
 	errCh := make(chan error, 1)
+	var callbackOnce sync.Once
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		sessionID := r.URL.Query().Get("session_id")
-		if sessionID == "" {
-			http.Error(w, "missing session_id", http.StatusBadRequest)
+		receivedID := r.URL.Query().Get("session_id")
+
+		// Verify the session ID matches what we requested (CSRF protection)
+		if receivedID != sessionResp.SessionID {
+			http.Error(w, "invalid session", http.StatusForbidden)
 			return
 		}
 
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, successHTML)
-
-		sessionCh <- sessionID
+		// Only process the first valid callback (guard against duplicates)
+		callbackOnce.Do(func() {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, successHTML)
+			sessionCh <- receivedID
+		})
 	})
 
 	server := &http.Server{Handler: mux}
@@ -76,12 +96,6 @@ func Login(ctx context.Context, host string) error {
 	}()
 	defer server.Close()
 
-	// 3. Create session on backend
-	sessionResp, err := createCLISession(ctx, host, port)
-	if err != nil {
-		return fmt.Errorf("failed to create auth session: %w", err)
-	}
-
 	// 4. Open browser
 	fmt.Printf("\nOpening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", sessionResp.AuthURL)
@@ -91,16 +105,18 @@ func Login(ctx context.Context, host string) error {
 		fmt.Println("(Could not open browser automatically. Please open the URL above manually.)")
 	}
 
-	fmt.Println("Waiting for authentication...")
+	fmt.Println("Waiting for authentication... (press Ctrl+C to cancel)")
 
-	// 5. Wait for callback (10 minute timeout)
+	// 5. Wait for callback with context cancellation support
 	var sessionID string
 	select {
 	case sessionID = <-sessionCh:
 	case err := <-errCh:
 		return fmt.Errorf("local server error: %w", err)
+	case <-ctx.Done():
+		return fmt.Errorf("authentication cancelled")
 	case <-time.After(10 * time.Minute):
-		return fmt.Errorf("authentication timed out")
+		return fmt.Errorf("authentication timed out — the session has expired")
 	}
 
 	// 6. Fetch tokens from backend
