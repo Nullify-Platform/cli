@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -268,9 +269,9 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.refreshToken")
 	defer span.End()
 
-	url := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", host, refreshTok)
+	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", host, url.QueryEscape(refreshTok))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
 	if err != nil {
 		return "", err
 	}

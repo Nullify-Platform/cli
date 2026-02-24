@@ -94,8 +94,8 @@ main() {
     elif command -v shasum > /dev/null 2>&1; then
       actual_checksum=$(shasum -a 256 "${tmp_dir}/${archive_name}" | awk '{print $1}')
     else
-      echo "Warning: no sha256sum or shasum found, skipping verification" >&2
-      actual_checksum="$expected_checksum"
+      echo "Error: no sha256sum or shasum found, cannot verify binary integrity" >&2
+      exit 1
     fi
 
     if [ "$actual_checksum" != "$expected_checksum" ]; then
@@ -147,8 +147,11 @@ main() {
   # Configure host if provided
   if [ -n "$NULLIFY_HOST" ]; then
     config_dir="${HOME}/.nullify"
-    mkdir -p "$config_dir"
-    printf '{"host":"%s"}\n' "$NULLIFY_HOST" > "${config_dir}/config.json"
+    mkdir -m 0700 -p "$config_dir"
+    # Sanitize host: strip characters that could break JSON
+    sanitized_host=$(printf '%s' "$NULLIFY_HOST" | tr -d '"\\')
+    printf '{"host":"%s"}\n' "$sanitized_host" > "${config_dir}/config.json"
+    chmod 0600 "${config_dir}/config.json"
     echo "Configured host: ${NULLIFY_HOST}"
   fi
 
