@@ -38,6 +38,24 @@ get_latest_version() {
 }
 
 main() {
+  # Parse arguments
+  NULLIFY_HOST=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --host)
+        NULLIFY_HOST="$2"
+        shift 2
+        ;;
+      --host=*)
+        NULLIFY_HOST="${1#*=}"
+        shift
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
   os=$(detect_os)
   arch=$(detect_arch)
   version=$(get_latest_version)
@@ -126,8 +144,22 @@ main() {
       ;;
   esac
 
+  # Configure host if provided
+  if [ -n "$NULLIFY_HOST" ]; then
+    config_dir="${HOME}/.nullify"
+    mkdir -p "$config_dir"
+    printf '{"host":"%s"}\n' "$NULLIFY_HOST" > "${config_dir}/config.json"
+    echo "Configured host: ${NULLIFY_HOST}"
+  fi
+
   echo ""
   echo "Run 'nullify --version' to verify the installation."
+
+  if [ -n "$NULLIFY_HOST" ]; then
+    echo "Run 'nullify auth login' to authenticate."
+  else
+    echo "Run 'nullify auth login --host api.<your-instance>.nullify.ai' to get started."
+  fi
 }
 
-main
+main "$@"
