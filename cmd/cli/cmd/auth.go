@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/auth"
@@ -26,6 +28,10 @@ var loginCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger()
 		defer logger.L(ctx).Sync()
+
+		// Wrap context with signal handling so Ctrl+C triggers graceful cancellation
+		ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+		defer stop()
 
 		loginHost := host
 
