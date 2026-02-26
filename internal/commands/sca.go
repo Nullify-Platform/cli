@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaContainersFindings(context.Background(), params)
+				result, err := client.ListScaContainersFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -70,7 +69,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaContainersFindingsDetailed(context.Background(), params)
+				result, err := client.ListScaContainersFindingsDetailed(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -111,7 +110,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateScaContainersFindingsFixIterate(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaContainersFindingsFixIterate(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -140,7 +139,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaContainersFindingsPreview(context.Background(), params)
+				result, err := client.ListScaContainersFindingsPreview(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -181,7 +180,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateScaContainersFindingsUpload(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaContainersFindingsUpload(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -214,7 +213,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetScaContainersFindingsFindingId(context.Background(), params)
+				result, err := client.GetScaContainersFindingsFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -247,7 +246,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.PatchScaContainersFindingsFindingId(context.Background(), params, os.Stdin)
+				result, err := client.PatchScaContainersFindingsFindingId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -280,7 +279,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaContainersFindingsFindingIdAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaContainersFindingsFindingIdAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -313,7 +312,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaContainersFindingsFindingIdAutofixCache(context.Background(), params)
+				result, err := client.CreateScaContainersFindingsFindingIdAutofixCache(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -346,7 +345,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaContainersFindingsFindingIdAutofixFix(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaContainersFindingsFindingIdAutofixFix(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -379,7 +378,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListScaContainersFindingsFindingIdEvents(context.Background(), params)
+				result, err := client.ListScaContainersFindingsFindingIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -412,7 +411,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaContainersFindingsFindingIdTicket(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaContainersFindingsFindingIdTicket(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -445,7 +444,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListScaContainersFindingsFindingIdTriage(context.Background(), params)
+				result, err := client.ListScaContainersFindingsFindingIdTriage(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -478,7 +477,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaContainersFindingsFindingIdUnallowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaContainersFindingsFindingIdUnallowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -511,7 +510,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListScaContainersFindingsFindingIdUsers(context.Background(), params)
+				result, err := client.ListScaContainersFindingsFindingIdUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -540,7 +539,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaDependenciesFindings(context.Background(), params)
+				result, err := client.ListScaDependenciesFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -581,7 +580,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateScaDependenciesFindingsAutofixCache(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsAutofixCache(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -610,7 +609,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaDependenciesFindingsDetailed(context.Background(), params)
+				result, err := client.ListScaDependenciesFindingsDetailed(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -651,7 +650,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateScaDependenciesFindingsFixIterate(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsFixIterate(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -680,7 +679,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaDependenciesFindingsPreview(context.Background(), params)
+				result, err := client.ListScaDependenciesFindingsPreview(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -721,7 +720,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateScaDependenciesFindingsUpload(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsUpload(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -754,7 +753,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingID", args[0])
 				}
-				result, err := client.CreateScaDependenciesFindingsFindingIDAutofixCacheCreatePr(context.Background(), params)
+				result, err := client.CreateScaDependenciesFindingsFindingIDAutofixCacheCreatePr(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -787,7 +786,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.PatchScaDependenciesFindingsFindingId(context.Background(), params, os.Stdin)
+				result, err := client.PatchScaDependenciesFindingsFindingId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -820,7 +819,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetScaDependenciesFindingsFindingId(context.Background(), params)
+				result, err := client.GetScaDependenciesFindingsFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -853,7 +852,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaDependenciesFindingsFindingIdAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsFindingIdAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -886,7 +885,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaDependenciesFindingsFindingIdAutofixCache(context.Background(), params)
+				result, err := client.CreateScaDependenciesFindingsFindingIdAutofixCache(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -919,7 +918,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListScaDependenciesFindingsFindingIdAutofixCacheDiff(context.Background(), params)
+				result, err := client.ListScaDependenciesFindingsFindingIdAutofixCacheDiff(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -952,7 +951,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaDependenciesFindingsFindingIdAutofixFix(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsFindingIdAutofixFix(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -985,7 +984,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListScaDependenciesFindingsFindingIdEvents(context.Background(), params)
+				result, err := client.ListScaDependenciesFindingsFindingIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1018,7 +1017,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaDependenciesFindingsFindingIdPentest(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsFindingIdPentest(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1051,7 +1050,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaDependenciesFindingsFindingIdTicket(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsFindingIdTicket(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1084,7 +1083,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListScaDependenciesFindingsFindingIdTriage(context.Background(), params)
+				result, err := client.ListScaDependenciesFindingsFindingIdTriage(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1117,7 +1116,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateScaDependenciesFindingsFindingIdUnallowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaDependenciesFindingsFindingIdUnallowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1150,7 +1149,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListScaDependenciesFindingsFindingIdUsers(context.Background(), params)
+				result, err := client.ListScaDependenciesFindingsFindingIdUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1179,7 +1178,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaEvents(context.Background(), params)
+				result, err := client.ListScaEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1214,7 +1213,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateScaFindingsRetriage(context.Background(), params, os.Stdin)
+				result, err := client.CreateScaFindingsRetriage(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1243,7 +1242,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListScaRepositories(context.Background(), params)
+				result, err := client.ListScaRepositories(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1278,7 +1277,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.GetScaRepositoriesRepositoryId(context.Background(), params)
+				result, err := client.GetScaRepositoriesRepositoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1311,7 +1310,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.ListScaRepositoriesRepositoryIdSbom(context.Background(), params)
+				result, err := client.ListScaRepositoriesRepositoryIdSbom(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

@@ -2,11 +2,7 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/models"
@@ -34,11 +30,6 @@ func (c *NullifyClient) DASTCreateExternalScan(
 	githubOwner string,
 	input *DASTCreateExternalScanInput,
 ) (*DASTCreateExternalScanOutput, error) {
-	requestBody, err := json.Marshal(input)
-	if err != nil {
-		return nil, err
-	}
-
 	logger.L(ctx).Info(
 		"creating external scan",
 		logger.String("appName", input.AppName),
@@ -54,45 +45,11 @@ func (c *NullifyClient) DASTCreateExternalScan(
 		logger.String("githubOwnerId", githubID),
 	)
 
-	req, err := http.NewRequest(
-		"POST",
-		fmt.Sprintf("%s/dast/external?githubOwnerId=%s", c.BaseURL, githubID),
-		strings.NewReader(string(requestBody)),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.HttpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, HandleError(resp)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.L(ctx).Debug(
-		"nullify dast create external scan response",
-		logger.String("status", resp.Status),
-		logger.String("body", string(body)),
-	)
+	url := fmt.Sprintf("%s/dast/external?githubOwnerId=%s", c.BaseURL, githubID)
 
 	var output DASTCreateExternalScanOutput
-	err = json.Unmarshal(body, &output)
+	err = c.doJSON(ctx, "POST", url, input, &output)
 	if err != nil {
-		logger.L(ctx).Error(
-			"error in unmarshalling response",
-			logger.Err(err),
-		)
 		return nil, err
 	}
 

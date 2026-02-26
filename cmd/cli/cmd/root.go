@@ -88,7 +88,7 @@ func init() {
 }
 
 func setupLogger() context.Context {
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	logLevel := "warn"
 	if verbose {

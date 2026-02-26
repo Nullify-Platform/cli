@@ -1,15 +1,5 @@
 package models
 
-const (
-	ScannerRestler string = "RESTler"
-	ScannerZap     string = "Zap"
-	ScannerNuclei  string = "Nuclei"
-)
-
-const (
-	AppTypeREST string = "REST"
-)
-
 type ZAPSummary struct {
 	ProgramName string `json:"@programName"`
 	Version     string `json:"@version"`

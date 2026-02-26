@@ -16,7 +16,7 @@ func HandleError(resp *http.Response) error {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf(
-				"unexpected content-type %d",
+				"unexpected status code %d (non-JSON response)",
 				resp.StatusCode,
 			)
 		}

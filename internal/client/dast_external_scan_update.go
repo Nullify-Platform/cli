@@ -2,11 +2,8 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
+	"net/url"
 
 	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/logger/pkg/logger"
@@ -27,11 +24,6 @@ func (c *NullifyClient) DASTUpdateExternalScan(
 	scanID string,
 	input *DASTUpdateExternalScanInput,
 ) error {
-	requestBody, err := json.Marshal(input)
-	if err != nil {
-		return err
-	}
-
 	githubID, err := GetGitHubID(ctx, githubOwner)
 	if err != nil {
 		return err
@@ -40,39 +32,11 @@ func (c *NullifyClient) DASTUpdateExternalScan(
 		"github owner id",
 		logger.String("githubOwnerId", githubID),
 	)
-	url := fmt.Sprintf("%s/dast/external/%s?githubOwnerId=%s", c.BaseURL, scanID, githubID)
+	reqURL := fmt.Sprintf("%s/dast/external/%s?githubOwnerId=%s", c.BaseURL, scanID, githubID)
 
 	if githubRepository != "" {
-		url += fmt.Sprintf("&githubRepository=%s", githubRepository)
+		reqURL += fmt.Sprintf("&githubRepository=%s", url.QueryEscape(githubRepository))
 	}
 
-	req, err := http.NewRequest("PATCH", url, strings.NewReader(string(requestBody)))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.HttpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return HandleError(resp)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	logger.L(ctx).Debug(
-		"nullify dast update external scan response",
-		logger.String("status", resp.Status),
-		logger.String("body", string(body)),
-	)
-
-	return nil
+	return c.doJSON(ctx, "PATCH", reqURL, input, nil)
 }

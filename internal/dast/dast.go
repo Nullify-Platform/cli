@@ -81,7 +81,6 @@ func RunDASTScan(ctx context.Context, dast *DAST, nullifyClient *client.NullifyC
 		logger.L(ctx).Info("starting server side scan")
 		out, err := nullifyClient.DASTStartCloudScan(ctx, dast.GitHubOwner, &client.DASTStartCloudScanInput{
 			AppName:     dast.AppName,
-			Host:        dast.TargetHost,
 			TargetHost:  dast.TargetHost,
 			OpenAPISpec: spec,
 			AuthConfig:  authConfig,

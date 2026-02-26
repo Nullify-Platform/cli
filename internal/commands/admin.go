@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminAdmissionAggregate(context.Background(), params)
+				result, err := client.ListAdminAdmissionAggregate(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -65,7 +64,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminAdmissionBudget(context.Background(), params)
+				result, err := client.ListAdminAdmissionBudget(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -98,7 +97,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminAdmissionCheck(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminAdmissionCheck(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -127,7 +126,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminAdmissionComplete(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminAdmissionComplete(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -160,7 +159,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("tenant_id", args[0])
 				}
-				result, err := client.ListAdminAdmissionConfigTenantId(context.Background(), params)
+				result, err := client.ListAdminAdmissionConfigTenantId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -189,7 +188,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminAdmissionLedger(context.Background(), params)
+				result, err := client.ListAdminAdmissionLedger(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -227,7 +226,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminAdmissionStart(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminAdmissionStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -256,7 +255,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminChecklist(context.Background(), params)
+				result, err := client.ListAdminChecklist(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -285,7 +284,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminFixEffort(context.Background(), params)
+				result, err := client.ListAdminFixEffort(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -314,7 +313,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.UpdateAdminFixEffort(context.Background(), params, os.Stdin)
+				result, err := client.UpdateAdminFixEffort(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -343,7 +342,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminGetFileContents(context.Background(), params)
+				result, err := client.ListAdminGetFileContents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -378,7 +377,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminGetFileOwners(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminGetFileOwners(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -407,7 +406,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminGetPullRequest(context.Background(), params)
+				result, err := client.ListAdminGetPullRequest(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -438,7 +437,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminGlobalConfig(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminGlobalConfig(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -467,7 +466,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminGlobalConfig(context.Background(), params)
+				result, err := client.ListAdminGlobalConfig(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -496,36 +495,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminInstallations(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-azure",
-			Short: "Install Azure DevOps Integration",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.CreateAdminIntegrationsAzure(context.Background(), params)
+				result, err := client.ListAdminInstallations(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -554,7 +524,36 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsAzure(context.Background(), params)
+				result, err := client.ListAdminIntegrationsAzure(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-azure",
+			Short: "Install Azure DevOps Integration",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.CreateAdminIntegrationsAzure(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -583,7 +582,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminIntegrationsAzureCredentials(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminIntegrationsAzureCredentials(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -612,7 +611,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsGithubAppSettings(context.Background(), params)
+				result, err := client.ListAdminIntegrationsGithubAppSettings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -641,7 +640,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsGithubUsers(context.Background(), params)
+				result, err := client.ListAdminIntegrationsGithubUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -670,7 +669,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminIntegrationsJira(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminIntegrationsJira(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -699,7 +698,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsJira(context.Background(), params)
+				result, err := client.ListAdminIntegrationsJira(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -728,7 +727,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsJiraUserboards(context.Background(), params)
+				result, err := client.ListAdminIntegrationsJiraUserboards(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -757,7 +756,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsJiraUsers(context.Background(), params)
+				result, err := client.ListAdminIntegrationsJiraUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -787,7 +786,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsSlack(context.Background(), params)
+				result, err := client.ListAdminIntegrationsSlack(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -816,7 +815,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminIntegrationsSlackKey(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminIntegrationsSlackKey(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -845,7 +844,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminIntegrationsSlackUsers(context.Background(), params)
+				result, err := client.ListAdminIntegrationsSlackUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -879,7 +878,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetAdminMetricsFindingFindingId(context.Background(), params)
+				result, err := client.GetAdminMetricsFindingFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -908,7 +907,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminMetricsFindings(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminMetricsFindings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -937,7 +936,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminMetricsFindingsDownload(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminMetricsFindingsDownload(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -966,7 +965,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminMetricsInteractions(context.Background(), params)
+				result, err := client.ListAdminMetricsInteractions(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -995,7 +994,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminMetricsOverTime(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminMetricsOverTime(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1025,7 +1024,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminMetricsOverview(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminMetricsOverview(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1054,7 +1053,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminMetricsRaw(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminMetricsRaw(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1083,7 +1082,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminOrganization(context.Background(), params)
+				result, err := client.ListAdminOrganization(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1112,7 +1111,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminPullrequestsMergedStatus(context.Background(), params)
+				result, err := client.ListAdminPullrequestsMergedStatus(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1141,7 +1140,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminPullrequestsOpenStatus(context.Background(), params)
+				result, err := client.ListAdminPullrequestsOpenStatus(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1170,7 +1169,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminRepositories(context.Background(), params)
+				result, err := client.ListAdminRepositories(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1201,7 +1200,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminRepositoriesInitialize(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminRepositoriesInitialize(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1230,7 +1229,36 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminRepositoriesUninitialize(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminRepositoriesUninitialize(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-service_accounts",
+			Short: "Get Service Accounts",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.ListAdminServiceAccounts(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1259,7 +1287,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminServiceAccounts(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminServiceAccounts(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1288,7 +1316,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.DeleteAdminServiceAccounts(context.Background(), params)
+				result, err := client.DeleteAdminServiceAccounts(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1310,15 +1338,15 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-service_accounts",
-			Short: "Get Service Accounts",
+			Use:   "list-sla",
+			Short: "Get SLAs",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminServiceAccounts(context.Background(), params)
+				result, err := client.ListAdminSla(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1347,36 +1375,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminSla(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-sla",
-			Short: "Get SLAs",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.ListAdminSla(context.Background(), params)
+				result, err := client.CreateAdminSla(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1405,7 +1404,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.UpdateAdminSlaBulk(context.Background(), params, os.Stdin)
+				result, err := client.UpdateAdminSlaBulk(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1438,7 +1437,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("slaId", args[0])
 				}
-				result, err := client.PatchAdminSlaSlaId(context.Background(), params, os.Stdin)
+				result, err := client.PatchAdminSlaSlaId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1467,7 +1466,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminTeams(context.Background(), params)
+				result, err := client.ListAdminTeams(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1496,7 +1495,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminTeams(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminTeams(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1525,7 +1524,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminTeamsAppzip(context.Background(), params)
+				result, err := client.ListAdminTeamsAppzip(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1554,7 +1553,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminTeamsCompass(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminTeamsCompass(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1583,7 +1582,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminTeamsFindings(context.Background(), params)
+				result, err := client.ListAdminTeamsFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1612,7 +1611,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminTeamsFindingsSync(context.Background(), params)
+				result, err := client.CreateAdminTeamsFindingsSync(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1645,7 +1644,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("providerID", args[0])
 				}
-				result, err := client.GetAdminTeamsProviderID(context.Background(), params)
+				result, err := client.GetAdminTeamsProviderID(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1678,7 +1677,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("teamID", args[0])
 				}
-				result, err := client.GetAdminTeamsProviderIDTeamID(context.Background(), params)
+				result, err := client.GetAdminTeamsProviderIDTeamID(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1711,36 +1710,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("teamID", args[0])
 				}
-				result, err := client.ListAdminTeamsTeamIDFindings(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-savedViews",
-			Short: "Post UI Saved View",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.CreateAdminUiSavedViews(context.Background(), params, os.Stdin)
+				result, err := client.ListAdminTeamsTeamIDFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1769,7 +1739,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminUiSavedViews(context.Background(), params)
+				result, err := client.ListAdminUiSavedViews(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1790,19 +1760,15 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "patch-savedViews",
-			Short: "Patch UI Saved View",
-			Args: cobra.MaximumNArgs(1),
+			Use:   "create-savedViews",
+			Short: "Post UI Saved View",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				if len(args) > 0 {
-					params.Set("savedViewId", args[0])
-				}
-				result, err := client.PatchAdminUiSavedViewsSavedViewId(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminUiSavedViews(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1835,7 +1801,40 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("savedViewId", args[0])
 				}
-				result, err := client.DeleteAdminUiSavedViewsSavedViewId(context.Background(), params)
+				result, err := client.DeleteAdminUiSavedViewsSavedViewId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "patch-savedViews",
+			Short: "Patch UI Saved View",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("savedViewId", args[0])
+				}
+				result, err := client.PatchAdminUiSavedViewsSavedViewId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1864,7 +1863,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminUserCurrent(context.Background(), params)
+				result, err := client.ListAdminUserCurrent(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1893,7 +1892,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminUserMapping(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminUserMapping(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1922,7 +1921,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminUserMapping(context.Background(), params)
+				result, err := client.ListAdminUserMapping(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1953,40 +1952,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminUserMappingSuggestions(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "update-mapping",
-			Short: "Edit User Mapping",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("userId", args[0])
-				}
-				result, err := client.UpdateAdminUserMappingUserId(context.Background(), params, os.Stdin)
+				result, err := client.ListAdminUserMappingSuggestions(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -2019,7 +1985,40 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("userId", args[0])
 				}
-				result, err := client.DeleteAdminUserMappingUserId(context.Background(), params)
+				result, err := client.DeleteAdminUserMappingUserId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "update-mapping",
+			Short: "Edit User Mapping",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("userId", args[0])
+				}
+				result, err := client.UpdateAdminUserMappingUserId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2048,7 +2047,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminUserMappings(context.Background(), params)
+				result, err := client.ListAdminUserMappings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -2077,7 +2076,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListAdminUsers(context.Background(), params)
+				result, err := client.ListAdminUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -2106,7 +2105,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminUsers(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminUsers(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2135,7 +2134,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminUsersBulkSearchMappings(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminUsersBulkSearchMappings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2164,7 +2163,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminUsersSync(context.Background(), params, os.Stdin)
+				result, err := client.CreateAdminUsersSync(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2197,7 +2196,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("providerID", args[0])
 				}
-				result, err := client.GetAdminUsersProviderID(context.Background(), params)
+				result, err := client.GetAdminUsersProviderID(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -2230,7 +2229,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("userID", args[0])
 				}
-				result, err := client.GetAdminUsersProviderIDUserID(context.Background(), params)
+				result, err := client.GetAdminUsersProviderIDUserID(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

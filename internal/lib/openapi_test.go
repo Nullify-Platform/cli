@@ -1,17 +1,18 @@
 package lib
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
 	"github.com/nullify-platform/cli/internal/client"
-	"github.com/nullify-platform/cli/internal/config"
+	"github.com/nullify-platform/logger/pkg/logger"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateOpenAPIJSON(t *testing.T) {
-	ctx, err := config.GetTestLogger()
+	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "debug")
 	require.NoError(t, err)
 
 	spec, err := CreateOpenAPIFile(ctx, "test/openapi.json")
@@ -21,7 +22,7 @@ func TestCreateOpenAPIJSON(t *testing.T) {
 
 	input := client.DASTStartCloudScanInput{
 		AppName:     "test",
-		Host:        "test.com",
+		TargetHost:  "test.com",
 		OpenAPISpec: spec,
 	}
 
@@ -36,7 +37,7 @@ func TestCreateOpenAPIJSON(t *testing.T) {
 }
 
 func TestCreateOpenAPIYAML(t *testing.T) {
-	ctx, err := config.GetTestLogger()
+	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "debug")
 	require.NoError(t, err)
 
 	spec, err := CreateOpenAPIFile(ctx, "test/openapi.yml")
@@ -46,7 +47,7 @@ func TestCreateOpenAPIYAML(t *testing.T) {
 
 	input := client.DASTStartCloudScanInput{
 		AppName:     "test",
-		Host:        "test.com",
+		TargetHost:  "test.com",
 		OpenAPISpec: spec,
 	}
 

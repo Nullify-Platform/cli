@@ -602,96 +602,6 @@ func (c *Client) CreateDastBughuntScansScanIdStop(ctx context.Context, params ur
 	return c.do(ctx, "POST", fullURL, nil)
 }
 
-// PatchDastBughuntSchedule - Patch Bug Hunt Schedule
-// PATCH /dast/bughunt/schedule
-func (c *Client) PatchDastBughuntSchedule(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/dast/bughunt/schedule"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
-}
-
-// ListDastBughuntSchedule - Get Bug Hunt Schedule
-// GET /dast/bughunt/schedule
-func (c *Client) ListDastBughuntSchedule(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/bughunt/schedule"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // CreateDastBughuntSchedule - Post Bug Hunt Schedule
 // POST /dast/bughunt/schedule
 func (c *Client) CreateDastBughuntSchedule(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
@@ -782,10 +692,10 @@ func (c *Client) DeleteDastBughuntSchedule(ctx context.Context, params url.Value
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// ListDastCredentials - Get All Credentials
-// GET /dast/credentials
-func (c *Client) ListDastCredentials(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/credentials"
+// ListDastBughuntSchedule - Get Bug Hunt Schedule
+// GET /dast/bughunt/schedule
+func (c *Client) ListDastBughuntSchedule(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/bughunt/schedule"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -825,6 +735,51 @@ func (c *Client) ListDastCredentials(ctx context.Context, params url.Values) ([]
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// PatchDastBughuntSchedule - Patch Bug Hunt Schedule
+// PATCH /dast/bughunt/schedule
+func (c *Client) PatchDastBughuntSchedule(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/dast/bughunt/schedule"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PATCH", fullURL, body)
 }
 
 // CreateDastCredentials - Create Credential
@@ -870,6 +825,97 @@ func (c *Client) CreateDastCredentials(ctx context.Context, params url.Values, b
 	}
 
 	return c.do(ctx, "POST", fullURL, body)
+}
+
+// ListDastCredentials - Get All Credentials
+// GET /dast/credentials
+func (c *Client) ListDastCredentials(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/credentials"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// DeleteDastCredentialsCredentialId - Delete Credential
+// DELETE /dast/credentials/{credentialId}
+func (c *Client) DeleteDastCredentialsCredentialId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/credentials/{credentialId}"
+	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // GetDastCredentialsCredentialId - Get Credential
@@ -962,52 +1008,6 @@ func (c *Client) UpdateDastCredentialsCredentialId(ctx context.Context, params u
 	}
 
 	return c.do(ctx, "PUT", fullURL, body)
-}
-
-// DeleteDastCredentialsCredentialId - Delete Credential
-// DELETE /dast/credentials/{credentialId}
-func (c *Client) DeleteDastCredentialsCredentialId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/credentials/{credentialId}"
-	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // CreateDastCredentialsCredentialIdValidate - Validate Credential
@@ -1194,51 +1194,6 @@ func (c *Client) ListDastIntegrationAwsSchedule(ctx context.Context, params url.
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// DeleteDastIntegrationAwsSchedule - Delete AWS Integration Schedule
-// DELETE /dast/integration/aws/schedule
-func (c *Client) DeleteDastIntegrationAwsSchedule(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/integration/aws/schedule"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
-}
-
 // CreateDastIntegrationAwsSchedule - Create/Update AWS Integration Schedule
 // POST /dast/integration/aws/schedule
 func (c *Client) CreateDastIntegrationAwsSchedule(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
@@ -1284,10 +1239,10 @@ func (c *Client) CreateDastIntegrationAwsSchedule(ctx context.Context, params ur
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// CreateDastIntegrationAwsSettings - Upsert AWS Integration Settings
-// POST /dast/integration/aws/settings
-func (c *Client) CreateDastIntegrationAwsSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/dast/integration/aws/settings"
+// DeleteDastIntegrationAwsSchedule - Delete AWS Integration Schedule
+// DELETE /dast/integration/aws/schedule
+func (c *Client) DeleteDastIntegrationAwsSchedule(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/integration/aws/schedule"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -1326,7 +1281,7 @@ func (c *Client) CreateDastIntegrationAwsSettings(ctx context.Context, params ur
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // ListDastIntegrationAwsSettings - Get AWS Integration Settings
@@ -1372,6 +1327,51 @@ func (c *Client) ListDastIntegrationAwsSettings(ctx context.Context, params url.
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateDastIntegrationAwsSettings - Upsert AWS Integration Settings
+// POST /dast/integration/aws/settings
+func (c *Client) CreateDastIntegrationAwsSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/dast/integration/aws/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // CreateDastIntegrationAwsValidateRole - Validate AWS Role Assumption
@@ -1470,6 +1470,51 @@ func (c *Client) ListDastInventoryCloudAccounts(ctx context.Context, params url.
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
+// CreateDastInventoryEndpoints - Create Asset Inventory Endpoints
+// POST /dast/inventory/endpoints
+func (c *Client) CreateDastInventoryEndpoints(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/dast/inventory/endpoints"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
 // ListDastInventoryEndpoints - Get Asset Inventory Endpoints
 // GET /dast/inventory/endpoints
 func (c *Client) ListDastInventoryEndpoints(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1521,51 +1566,6 @@ func (c *Client) ListDastInventoryEndpoints(ctx context.Context, params url.Valu
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateDastInventoryEndpoints - Create Asset Inventory Endpoints
-// POST /dast/inventory/endpoints
-func (c *Client) CreateDastInventoryEndpoints(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/dast/inventory/endpoints"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListDastInventoryEndpointsByHost - Get Asset Inventory Endpoints by Host
 // GET /dast/inventory/endpoints-by-host
 func (c *Client) ListDastInventoryEndpointsByHost(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1577,60 +1577,6 @@ func (c *Client) ListDastInventoryEndpointsByHost(ctx context.Context, params ur
 	}
 	if v := params.Get("hostId"); v != "" {
 		query.Set("hostId", v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// ListDastInventoryHosts - Get Asset Inventory Hosts
-// GET /dast/inventory/hosts
-func (c *Client) ListDastInventoryHosts(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/inventory/hosts"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("includeArtifacts"); v != "" {
-		query.Set("includeArtifacts", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
 	}
 	if v := params.Get("azureOrganizationId"); v != "" {
 		query.Set("azureOrganizationId", v)
@@ -1711,6 +1657,60 @@ func (c *Client) CreateDastInventoryHosts(ctx context.Context, params url.Values
 	}
 
 	return c.do(ctx, "POST", fullURL, body)
+}
+
+// ListDastInventoryHosts - Get Asset Inventory Hosts
+// GET /dast/inventory/hosts
+func (c *Client) ListDastInventoryHosts(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/inventory/hosts"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("includeArtifacts"); v != "" {
+		query.Set("includeArtifacts", v)
+	}
+	if v := params.Get("nextToken"); v != "" {
+		query.Set("nextToken", v)
+	}
+	if v := params.Get("limit"); v != "" {
+		query.Set("limit", v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // ListDastInventoryHostsWithEndpoints - Get Asset Inventory Hosts with Endpoints
@@ -1960,52 +1960,6 @@ func (c *Client) UpdateDastPentestApplicationsApplicationId(ctx context.Context,
 	return c.do(ctx, "PUT", fullURL, body)
 }
 
-// DeleteDastPentestApplicationsApplicationId - Delete Pentest App Config
-// DELETE /dast/pentest/applications/{applicationId}
-func (c *Client) DeleteDastPentestApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/pentest/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
-}
-
 // GetDastPentestApplicationsApplicationId - Get Pentest App Config
 // GET /dast/pentest/applications/{applicationId}
 func (c *Client) GetDastPentestApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -2050,6 +2004,52 @@ func (c *Client) GetDastPentestApplicationsApplicationId(ctx context.Context, pa
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// DeleteDastPentestApplicationsApplicationId - Delete Pentest App Config
+// DELETE /dast/pentest/applications/{applicationId}
+func (c *Client) DeleteDastPentestApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/pentest/applications/{applicationId}"
+	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // ListDastPentestFindings - Get Pentest Findings

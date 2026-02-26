@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastBughuntConfig(context.Background(), params)
+				result, err := client.ListDastBughuntConfig(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -58,7 +57,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.UpdateDastBughuntConfig(context.Background(), params, os.Stdin)
+				result, err := client.UpdateDastBughuntConfig(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -87,7 +86,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastBughuntFindings(context.Background(), params)
+				result, err := client.ListDastBughuntFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -120,7 +119,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetDastBughuntFindingsFindingId(context.Background(), params)
+				result, err := client.GetDastBughuntFindingsFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -153,7 +152,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.PatchDastBughuntFindingsFindingIdAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.PatchDastBughuntFindingsFindingIdAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -186,7 +185,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListDastBughuntFindingsFindingIdEvents(context.Background(), params)
+				result, err := client.ListDastBughuntFindingsFindingIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -219,7 +218,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListDastBughuntFindingsFindingIdTriage(context.Background(), params)
+				result, err := client.ListDastBughuntFindingsFindingIdTriage(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -248,7 +247,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastBughuntScans(context.Background(), params)
+				result, err := client.ListDastBughuntScans(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -277,7 +276,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastBughuntScans(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastBughuntScans(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -310,7 +309,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.GetDastBughuntScansScanId(context.Background(), params)
+				result, err := client.GetDastBughuntScansScanId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -343,7 +342,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastBughuntScansScanIdFindings(context.Background(), params)
+				result, err := client.ListDastBughuntScansScanIdFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -376,7 +375,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastBughuntScansScanIdLogs(context.Background(), params)
+				result, err := client.ListDastBughuntScansScanIdLogs(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -409,65 +408,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.CreateDastBughuntScansScanIdStop(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "patch-schedule",
-			Short: "Patch Bug Hunt Schedule",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.PatchDastBughuntSchedule(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-schedule",
-			Short: "Get Bug Hunt Schedule",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.ListDastBughuntSchedule(context.Background(), params)
+				result, err := client.CreateDastBughuntScansScanIdStop(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -496,7 +437,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastBughuntSchedule(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastBughuntSchedule(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -525,7 +466,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.DeleteDastBughuntSchedule(context.Background(), params)
+				result, err := client.DeleteDastBughuntSchedule(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -546,15 +487,44 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-credentials",
-			Short: "Get All Credentials",
+			Use:   "list-schedule",
+			Short: "Get Bug Hunt Schedule",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastCredentials(context.Background(), params)
+				result, err := client.ListDastBughuntSchedule(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "patch-schedule",
+			Short: "Patch Bug Hunt Schedule",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.PatchDastBughuntSchedule(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -583,7 +553,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastCredentials(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastCredentials(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -604,52 +574,15 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-credentials",
-			Short: "Get Credential",
-			Args: cobra.MaximumNArgs(1),
+			Use:   "list-credentials",
+			Short: "Get All Credentials",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				if len(args) > 0 {
-					params.Set("credentialId", args[0])
-				}
-				result, err := client.GetDastCredentialsCredentialId(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "update-credentials",
-			Short: "Update Credential",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("credentialId", args[0])
-				}
-				result, err := client.UpdateDastCredentialsCredentialId(context.Background(), params, os.Stdin)
+				result, err := client.ListDastCredentials(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -682,7 +615,73 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("credentialId", args[0])
 				}
-				result, err := client.DeleteDastCredentialsCredentialId(context.Background(), params)
+				result, err := client.DeleteDastCredentialsCredentialId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-credentials",
+			Short: "Get Credential",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("credentialId", args[0])
+				}
+				result, err := client.GetDastCredentialsCredentialId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "update-credentials",
+			Short: "Update Credential",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("credentialId", args[0])
+				}
+				result, err := client.UpdateDastCredentialsCredentialId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -715,7 +714,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("credentialId", args[0])
 				}
-				result, err := client.CreateDastCredentialsCredentialIdValidate(context.Background(), params)
+				result, err := client.CreateDastCredentialsCredentialIdValidate(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -744,7 +743,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastIntegrationAwsScanStart(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastIntegrationAwsScanStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -773,7 +772,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastIntegrationAwsScanStatus(context.Background(), params)
+				result, err := client.ListDastIntegrationAwsScanStatus(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -803,36 +802,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastIntegrationAwsSchedule(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "delete-schedule",
-			Short: "Delete AWS Integration Schedule",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.DeleteDastIntegrationAwsSchedule(context.Background(), params)
+				result, err := client.ListDastIntegrationAwsSchedule(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -861,7 +831,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastIntegrationAwsSchedule(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastIntegrationAwsSchedule(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -882,15 +852,15 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-settings",
-			Short: "Upsert AWS Integration Settings",
+			Use:   "delete-schedule",
+			Short: "Delete AWS Integration Schedule",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastIntegrationAwsSettings(context.Background(), params, os.Stdin)
+				result, err := client.DeleteDastIntegrationAwsSchedule(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -919,7 +889,36 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastIntegrationAwsSettings(context.Background(), params)
+				result, err := client.ListDastIntegrationAwsSettings(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-settings",
+			Short: "Upsert AWS Integration Settings",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.CreateDastIntegrationAwsSettings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -948,7 +947,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastIntegrationAwsValidateRole(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastIntegrationAwsValidateRole(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -977,38 +976,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastInventoryCloudAccounts(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("nextToken", "", "")
-		cmd.Flags().String("limit", "", "")
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-endpoints",
-			Short: "Get Asset Inventory Endpoints",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.ListDastInventoryEndpoints(context.Background(), params)
+				result, err := client.ListDastInventoryCloudAccounts(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1039,13 +1007,44 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastInventoryEndpoints(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastInventoryEndpoints(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
 				return output.Print(cmd, result)
 			},
 		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-endpoints",
+			Short: "Get Asset Inventory Endpoints",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.ListDastInventoryEndpoints(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("nextToken", "", "")
+		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
 		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
@@ -1068,7 +1067,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastInventoryEndpointsByHost(context.Background(), params)
+				result, err := client.ListDastInventoryEndpointsByHost(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1076,6 +1075,35 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			},
 		}
 		cmd.Flags().String("hostId", "", "")
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-hosts",
+			Short: "Create Asset Inventory Hosts",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.CreateDastInventoryHosts(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
 		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
 		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
@@ -1098,7 +1126,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastInventoryHosts(context.Background(), params)
+				result, err := client.ListDastInventoryHosts(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1122,35 +1150,6 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-hosts",
-			Short: "Create Asset Inventory Hosts",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.CreateDastInventoryHosts(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "list-hosts-with-endpoints",
 			Short: "Get Asset Inventory Hosts with Endpoints",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -1159,7 +1158,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastInventoryHostsWithEndpoints(context.Background(), params)
+				result, err := client.ListDastInventoryHostsWithEndpoints(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1190,7 +1189,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastInventoryTriage(context.Background(), params)
+				result, err := client.ListDastInventoryTriage(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1222,7 +1221,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastPentestApplications(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastPentestApplications(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1251,7 +1250,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastPentestApplications(context.Background(), params)
+				result, err := client.ListDastPentestApplications(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1286,40 +1285,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("applicationId", args[0])
 				}
-				result, err := client.UpdateDastPentestApplicationsApplicationId(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "delete-applications",
-			Short: "Delete Pentest App Config",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("applicationId", args[0])
-				}
-				result, err := client.DeleteDastPentestApplicationsApplicationId(context.Background(), params)
+				result, err := client.UpdateDastPentestApplicationsApplicationId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1352,7 +1318,40 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("applicationId", args[0])
 				}
-				result, err := client.GetDastPentestApplicationsApplicationId(context.Background(), params)
+				result, err := client.GetDastPentestApplicationsApplicationId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-applications",
+			Short: "Delete Pentest App Config",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("applicationId", args[0])
+				}
+				result, err := client.DeleteDastPentestApplicationsApplicationId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1381,7 +1380,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastPentestFindings(context.Background(), params)
+				result, err := client.ListDastPentestFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1424,7 +1423,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetDastPentestFindingsFindingId(context.Background(), params)
+				result, err := client.GetDastPentestFindingsFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1457,7 +1456,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateDastPentestFindingsFindingIdAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastPentestFindingsFindingIdAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1490,7 +1489,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListDastPentestFindingsFindingIdEvents(context.Background(), params)
+				result, err := client.ListDastPentestFindingsFindingIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1523,7 +1522,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListDastPentestFindingsFindingIdFull(context.Background(), params)
+				result, err := client.ListDastPentestFindingsFindingIdFull(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1556,7 +1555,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateDastPentestFindingsFindingIdTicket(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastPentestFindingsFindingIdTicket(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1589,7 +1588,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListDastPentestFindingsFindingIdTriage(context.Background(), params)
+				result, err := client.ListDastPentestFindingsFindingIdTriage(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1618,7 +1617,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastPentestScans(context.Background(), params)
+				result, err := client.ListDastPentestScans(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1649,7 +1648,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastPentestScansExternal(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastPentestScansExternal(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1682,7 +1681,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.PatchDastPentestScansExternalScanId(context.Background(), params, os.Stdin)
+				result, err := client.PatchDastPentestScansExternalScanId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1715,7 +1714,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.GetDastPentestScansScanId(context.Background(), params)
+				result, err := client.GetDastPentestScansScanId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1748,7 +1747,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastPentestScansScanIdFindings(context.Background(), params)
+				result, err := client.ListDastPentestScansScanIdFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1781,7 +1780,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastPentestScansScanIdHypotheses(context.Background(), params)
+				result, err := client.ListDastPentestScansScanIdHypotheses(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1814,7 +1813,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastPentestScansScanIdLogs(context.Background(), params)
+				result, err := client.ListDastPentestScansScanIdLogs(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1847,7 +1846,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastPentestScansScanIdReport(context.Background(), params)
+				result, err := client.ListDastPentestScansScanIdReport(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1880,7 +1879,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastPentestScansScanIdReportDownload(context.Background(), params)
+				result, err := client.ListDastPentestScansScanIdReportDownload(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1913,7 +1912,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastPentestScansScanIdReportExternalPdf(context.Background(), params)
+				result, err := client.ListDastPentestScansScanIdReportExternalPdf(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1946,7 +1945,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.ListDastPentestScansScanIdReportPdf(context.Background(), params)
+				result, err := client.ListDastPentestScansScanIdReportPdf(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1979,7 +1978,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.CreateDastPentestScansScanIdStop(context.Background(), params)
+				result, err := client.CreateDastPentestScansScanIdStop(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -2008,7 +2007,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateDastPentestStart(context.Background(), params, os.Stdin)
+				result, err := client.CreateDastPentestStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2037,7 +2036,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListDastScansStatusLast(context.Background(), params)
+				result, err := client.ListDastScansStatusLast(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
