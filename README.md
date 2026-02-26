@@ -1,8 +1,12 @@
-<a href="https://nullify.ai">
-  <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
-</a>
+<p align="center">
+  <a href="https://nullify.ai">
+    <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
+  </a>
+</p>
 
-# Nullify CLI
+<p align="center">
+  <strong>The CLI for Nullify — a fully autonomous AI workforce for product security.</strong>
+</p>
 
 <p align="center">
   <a href="https://github.com/Nullify-Platform/cli/releases">
@@ -17,8 +21,6 @@
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License" />
   </a>
-</p>
-<p align="center">
   <a href="https://securityscorecards.dev/viewer/?uri=github.com/Nullify-Platform/cli">
     <img src="https://api.securityscorecards.dev/projects/github.com/Nullify-Platform/cli/badge" alt="OpenSSF Scorecard" />
   </a>
@@ -27,7 +29,19 @@
   </a>
 </p>
 
-The Nullify CLI is the command-line interface for [Nullify](https://nullify.ai) — a fully autonomous AI workforce for product security. It provides access to SAST, SCA, Secrets Detection, Pentest, BugHunt, CSPM, and AI security agents.
+---
+
+Scan, triage, fix, and track security vulnerabilities across your entire stack — from code to cloud — directly from your terminal. The Nullify CLI connects to your [Nullify](https://nullify.ai) instance and gives you access to SAST, SCA, secrets detection, DAST/pentesting, bug hunting, CSPM, AI-powered autofix, and interactive AI security agents.
+
+## Features
+
+- **Unified findings** — Query vulnerabilities across all scanner types (SAST, SCA, secrets, DAST, CSPM) in a single command
+- **AI-powered remediation** — Generate fix patches and open PRs automatically
+- **Interactive AI chat** — Ask security questions, triage findings, and build remediation plans with Nullify's AI agents
+- **CI/CD quality gates** — Block deployments when critical findings are present
+- **DAST/Pentest scanning** — Run API security scans in the cloud or locally via Docker
+- **MCP server** — 50+ tools for AI coding assistants (Claude Code, Cursor, VS Code, and more)
+- **Multi-instance support** — Manage multiple Nullify instances and switch between them
 
 ## Installation
 
@@ -37,63 +51,55 @@ The Nullify CLI is the command-line interface for [Nullify](https://nullify.ai) 
 curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh
 ```
 
-### Windows
+Pre-configure your instance during install:
 
-Download the latest `.zip` archive for your platform from the [GitHub Releases](https://github.com/Nullify-Platform/cli/releases) page and add the binary to your `PATH`.
-
-### GitHub Actions
-
-```yaml
-- name: Install Nullify CLI
-  run: curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh
+```sh
+curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh -s -- --host api.acme.nullify.ai
 ```
 
-### Verify Installation
+### Go
+
+```sh
+go install github.com/nullify-platform/cli/cmd/cli@latest
+```
+
+### Windows
+
+Download the latest `.zip` for your architecture from [GitHub Releases](https://github.com/Nullify-Platform/cli/releases) and add the binary to your `PATH`.
+
+### Verify
 
 ```sh
 nullify --version
 ```
 
+The installer verifies SHA-256 checksums automatically. Binaries are available for Linux, macOS, and Windows on both amd64 and arm64.
+
 ## Quick Start
 
 ```sh
-# 1. Run the setup wizard
+# Set up your instance, authenticate, and configure MCP — all in one step
 nullify init
 
-# 2. Check your security posture
+# Check your security posture
 nullify status
 
-# 3. View findings
+# View findings across all scanner types
 nullify findings
 
-# 4. Chat with Nullify's AI agents
+# Chat with Nullify's AI security agents
 nullify chat
 ```
 
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `nullify init` | Interactive setup wizard (domain, auth, MCP config) |
-| `nullify auth login` | Authenticate with your Nullify instance |
-| `nullify auth status` | Show authentication status |
-| `nullify pentest` | Run pentest scans (local Docker + cloud) |
-| `nullify bughunt` | Cloud-based automated bug hunting |
-| `nullify findings` | List findings across all scanner types |
-| `nullify status` | Security posture overview |
-| `nullify chat` | Interactive AI chat with security agents |
-| `nullify ci gate` | CI quality gate (exit non-zero on findings) |
-| `nullify ci report` | Generate markdown report for PR comments |
-| `nullify mcp serve` | Start MCP server for AI tools |
-| `nullify completion` | Generate shell completion scripts |
-
 ## Authentication
 
-### Interactive Login
+### Interactive (SSO/IdP)
 
 ```sh
 nullify auth login --host api.acme.nullify.ai
 ```
+
+Opens your browser for single sign-on. Tokens are stored locally and refreshed automatically.
 
 ### Environment Variables
 
@@ -102,19 +108,77 @@ export NULLIFY_HOST=api.acme.nullify.ai
 export NULLIFY_TOKEN=your-token-here
 ```
 
-### GitHub Actions
+### Multiple Instances
 
-```yaml
-- name: Run Nullify Gate
-  run: nullify ci gate --severity-threshold high
-  env:
-    NULLIFY_HOST: api.acme.nullify.ai
-    NULLIFY_TOKEN: ${{ secrets.NULLIFY_TOKEN }}
+```sh
+# Log in to a second instance
+nullify auth login --host api.staging.nullify.ai
+
+# Switch the active instance
+nullify auth switch --host api.staging.nullify.ai
+
+# List configured instances
+nullify auth switch
 ```
 
-### Multi-Host
+## Commands
 
-The CLI supports multiple Nullify instances. Use `--host` to switch between them or `nullify auth switch` to change the default.
+### Core
+
+| Command | Description |
+|---------|-------------|
+| `nullify init` | Interactive setup wizard (instance, auth, MCP config) |
+| `nullify status` | Security posture overview with finding counts by scanner |
+| `nullify findings` | List findings across all scanner types with filters |
+| `nullify chat [message]` | Interactive AI chat or single-shot query |
+
+### Authentication
+
+| Command | Description |
+|---------|-------------|
+| `nullify auth login` | Authenticate via browser SSO |
+| `nullify auth logout` | Clear stored credentials for a host |
+| `nullify auth status` | Show auth state, host, and token expiry |
+| `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
+| `nullify auth switch` | Switch active instance or list configured instances |
+| `nullify auth config` | Print current CLI config as JSON |
+
+### Scanning
+
+| Command | Description |
+|---------|-------------|
+| `nullify pentest` | Run DAST pentest scans (cloud or local via Docker) |
+| `nullify bughunt` | Cloud-based automated bug hunting |
+
+### CI/CD
+
+| Command | Description |
+|---------|-------------|
+| `nullify ci gate` | Quality gate — exits non-zero when findings exceed threshold |
+| `nullify ci report` | Generate a markdown summary for PR comments |
+
+### Tooling
+
+| Command | Description |
+|---------|-------------|
+| `nullify mcp serve` | Start the MCP server for AI coding tools |
+| `nullify completion` | Generate shell completions (bash, zsh, fish, powershell) |
+
+## Findings
+
+```sh
+# All findings across every scanner
+nullify findings
+
+# Filter by severity and scanner type
+nullify findings --severity critical --type sast
+
+# Filter by repository and status
+nullify findings --repo my-repo --status open
+
+# Limit results
+nullify findings --limit 50
+```
 
 ## Pentest Scans
 
@@ -123,69 +187,50 @@ The CLI supports multiple Nullify instances. Use `--host` to switch between them
 ```sh
 nullify pentest \
   --app-name      "My REST API" \
-  --spec-path     "./openapi.json" \
-  --target-host   "https://api.myapp.dev" \
-  --github-owner  "my-org" \
-  --github-repo   "my-repo" \
+  --spec-path     ./openapi.json \
+  --target-host   https://api.myapp.dev \
+  --github-owner  my-org \
+  --github-repo   my-repo \
   --header        "Authorization: Bearer token123"
 ```
 
-### Local Docker Scan
+### Local Scan (Docker)
+
+For APIs that aren't publicly accessible. Requires Docker.
 
 ```sh
 nullify pentest \
   --app-name      "My REST API" \
-  --spec-path     "./openapi.json" \
-  --target-host   "http://localhost:8080" \
-  --github-owner  "my-org" \
-  --github-repo   "my-repo" \
+  --spec-path     ./openapi.json \
+  --target-host   http://localhost:8080 \
+  --github-owner  my-org \
+  --github-repo   my-repo \
   --local
 ```
 
-### Same-Machine Scan (Host Network)
-
-```sh
-nullify pentest \
-  --app-name      "My REST API" \
-  --spec-path     "./openapi.json" \
-  --target-host   "http://localhost:8080" \
-  --github-owner  "my-org" \
-  --github-repo   "my-repo" \
-  --local \
-  --use-host-network
-```
+Add `--use-host-network` if the target is running directly on the host machine.
 
 ## Interactive Chat
 
 ```sh
-# Interactive REPL
+# Start an interactive REPL session
 nullify chat
 
 # Single-shot query
 nullify chat "what are my critical findings?"
 
-# Resume a conversation
+# Resume a previous conversation
 nullify chat --chat-id abc123 "tell me more"
-```
 
-## Findings
-
-```sh
-# All findings
-nullify findings
-
-# Filter by severity and type
-nullify findings --severity critical --type sast
-
-# Filter by repository
-nullify findings --repo my-repo --status open
+# Provide additional context
+nullify chat --system-prompt "focus on PCI compliance"
 ```
 
 ## CI/CD Integration
 
 ### Quality Gate
 
-Block deployments when critical or high findings are present:
+Block PRs and deployments when findings exceed a severity threshold:
 
 ```yaml
 # .github/workflows/security.yml
@@ -208,9 +253,9 @@ jobs:
           NULLIFY_TOKEN: ${{ secrets.NULLIFY_TOKEN }}
 ```
 
-### PR Report
+### PR Security Summary
 
-Add a security summary as a PR comment:
+Add a security report to your pull request:
 
 ```yaml
       - name: Security Report
@@ -220,28 +265,24 @@ Add a security summary as a PR comment:
           NULLIFY_TOKEN: ${{ secrets.NULLIFY_TOKEN }}
 ```
 
-## MCP Integration
+## MCP Server
 
-The CLI includes an MCP (Model Context Protocol) server for use with AI coding tools.
+The CLI includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server with 50+ tools, giving AI coding assistants full access to your security data. Capabilities include:
 
-### Claude Code
+- **Query** — findings, repositories, SBOMs, cloud accounts, metrics, trends
+- **Triage** — mark findings as false positive, accepted risk, or reopen
+- **Remediate** — generate AI-powered fix diffs and open PRs, end-to-end
+- **Track** — campaigns, escalations, SLA policies, code reviews
 
-Add to your project's `.claude/mcp.json`:
+### Setup
 
-```json
-{
-  "mcpServers": {
-    "nullify": {
-      "command": "nullify",
-      "args": ["mcp", "serve"]
-    }
-  }
-}
-```
+Add the following to your MCP config file:
 
-### Cursor
-
-Add to your project's `.cursor/mcp.json`:
+| Tool | Config path |
+|------|-------------|
+| Claude Code | `.claude/mcp.json` |
+| Cursor | `.cursor/mcp.json` |
+| VS Code | `.vscode/mcp.json` |
 
 ```json
 {
@@ -254,30 +295,52 @@ Add to your project's `.cursor/mcp.json`:
 }
 ```
 
-### VS Code
-
-Add to your project's `.vscode/mcp.json`:
+Scope findings to a specific repository with `--repo`:
 
 ```json
 {
   "mcpServers": {
     "nullify": {
       "command": "nullify",
-      "args": ["mcp", "serve"]
+      "args": ["mcp", "serve", "--repo", "my-repo"]
     }
   }
 }
 ```
 
-The MCP server exposes tools for SAST, SCA, Secrets, Pentest, BugHunt, CSPM, Infrastructure, Code Reviews, and composite workflows like `remediate_finding` and `get_critical_path`.
+## Configuration
 
-## Global Options
+The CLI stores configuration at `~/.nullify/config.json`. Host resolution priority:
+
+1. `--host` flag
+2. Config file (`~/.nullify/config.json`)
+3. `NULLIFY_HOST` environment variable
+
+### Global Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--host` | Nullify API instance (e.g., `api.acme.nullify.ai`) | From config |
+| `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
 | `--verbose, -v` | Enable verbose logging | `false` |
 | `--debug, -d` | Enable debug logging | `false` |
-| `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
-| `--nullify-token` | Nullify API token | From config |
-| `--github-token` | GitHub Actions job token | |
+| `--nullify-token` | API token (overrides stored credentials) | |
+| `--github-token` | GitHub Actions job token (auto-exchanged for Nullify token) | |
+
+## Requirements
+
+- **macOS, Linux, or Windows** (amd64 or arm64)
+- **Docker** — required only for local pentest scans (`--local`)
+- A [Nullify](https://nullify.ai) instance — [request access](https://nullify.ai)
+
+## Documentation
+
+Full documentation is available at **[docs.nullify.ai](https://docs.nullify.ai)**.
+
+## Contributing
+
+Contributions are welcome. Please open an issue or submit a pull request.
+
+## License
+
+[MIT](LICENSE)
