@@ -1,6 +1,9 @@
 package chat
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 const (
 	ansiReset  = "\033[0m"
@@ -8,19 +11,35 @@ const (
 	ansiDim    = "\033[2m"
 	ansiItalic = "\033[3m"
 	ansiRed    = "\033[31m"
-	ansiGreen  = "\033[32m"
 	ansiYellow = "\033[33m"
 	ansiCyan   = "\033[36m"
 )
 
+// isTTY reports whether stdout is a terminal.
+func isTTY() bool {
+	fi, err := os.Stdout.Stat()
+	if err != nil {
+		return false
+	}
+	return fi.Mode()&os.ModeCharDevice != 0
+}
+
+// ansi returns the escape code if stdout is a terminal, empty string otherwise.
+func ansi(code string) string {
+	if isTTY() {
+		return code
+	}
+	return ""
+}
+
 // RenderToolCall renders a tool call message (dim text).
 func RenderToolCall(message string) string {
-	return fmt.Sprintf("%s%s[tool] %s%s", ansiDim, ansiCyan, message, ansiReset)
+	return fmt.Sprintf("%s%s[tool] %s%s", ansi(ansiDim), ansi(ansiCyan), message, ansi(ansiReset))
 }
 
 // RenderStatus renders a status message (italic text).
 func RenderStatus(message string) string {
-	return fmt.Sprintf("%s%s%s%s", ansiItalic, ansiYellow, message, ansiReset)
+	return fmt.Sprintf("%s%s%s%s", ansi(ansiItalic), ansi(ansiYellow), message, ansi(ansiReset))
 }
 
 // RenderResponse renders a response message (normal text).
@@ -30,7 +49,7 @@ func RenderResponse(message string) string {
 
 // RenderError renders an error message (red text).
 func RenderError(message string) string {
-	return fmt.Sprintf("%s%s%s%s", ansiBold, ansiRed, message, ansiReset)
+	return fmt.Sprintf("%s%s%s%s", ansi(ansiBold), ansi(ansiRed), message, ansi(ansiReset))
 }
 
 // RenderMessage renders a MessageResponse based on its type.

@@ -183,20 +183,27 @@ func writeMCPConfig(path string) error {
 	return os.WriteFile(path, append(data, '\n'), 0644)
 }
 
-// SummaryStep calls the security posture API and displays results.
-func SummaryStep(host, token string) Step {
+// SummaryStep reads host/token from config at execution time and displays next steps.
+func SummaryStep() Step {
 	return Step{
 		Name: "Security posture summary",
 		Check: func(ctx context.Context) bool {
 			return false
 		},
 		Execute: func(ctx context.Context) error {
-			if host == "" || token == "" {
+			cfg, err := auth.LoadConfig()
+			if err != nil || cfg.Host == "" {
+				fmt.Println("  Skipped - no host configured.")
+				return nil
+			}
+
+			_, err = auth.GetValidToken(ctx, cfg.Host)
+			if err != nil {
 				fmt.Println("  Skipped - authentication required to fetch security posture.")
 				return nil
 			}
 
-			fmt.Println("  Run 'nullify status' to view your security posture.")
+			fmt.Println("  Setup complete! Run 'nullify status' to view your security posture.")
 			return nil
 		},
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/wizard"
 	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
@@ -21,23 +20,14 @@ var initCmd = &cobra.Command{
 		fmt.Println("Welcome to Nullify CLI setup!")
 		fmt.Println("This wizard will help you get started.")
 
-		// Resolve existing state for the summary step
-		var host, token string
-		cfg, err := auth.LoadConfig()
-		if err == nil && cfg.Host != "" {
-			host = cfg.Host
-			tok, err := auth.GetValidToken(ctx, host)
-			if err == nil {
-				token = tok
-			}
-		}
-
 		steps := []wizard.Step{
 			wizard.DomainStep(),
 			wizard.AuthStep(),
 			wizard.RepoStep(),
 			wizard.MCPConfigStep(),
-			wizard.SummaryStep(host, token),
+			// SummaryStep reads host/token at execution time (not init time)
+			// so it picks up values set by earlier wizard steps.
+			wizard.SummaryStep(),
 		}
 
 		if err := wizard.Run(ctx, steps); err != nil {

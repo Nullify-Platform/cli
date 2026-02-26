@@ -3,7 +3,6 @@ package wizard
 import (
 	"context"
 	"fmt"
-
 )
 
 // Step represents a single step in the setup wizard.

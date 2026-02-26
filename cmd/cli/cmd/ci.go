@@ -3,10 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
@@ -61,7 +58,14 @@ Exit codes:
 
 		severities := severitiesAboveThreshold(severityThreshold)
 
-		endpoints := getCIEndpoints(findingType)
+		endpoints := allScannerEndpoints()
+		if findingType != "" {
+			if filtered := filterEndpointsByType(endpoints, findingType); filtered != nil {
+				endpoints = filtered
+			} else {
+				fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
+			}
+		}
 
 		totalFindings := 0
 		for _, ep := range endpoints {
@@ -70,9 +74,9 @@ Exit codes:
 				if repo != "" {
 					params = append(params, "repository", repo)
 				}
-				qs := buildCIQueryString(queryParams, params...)
+				qs := lib.BuildQueryString(queryParams, params...)
 
-				body, err := doCIGet(nullifyClient, ep.path+qs)
+				body, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 				if err != nil {
 					continue
 				}
@@ -124,7 +128,7 @@ var ciReportCmd = &cobra.Command{
 			repo = lib.DetectRepoFromGit()
 		}
 
-		endpoints := getCIEndpoints("")
+		endpoints := allScannerEndpoints()
 
 		fmt.Println("## Nullify Security Report")
 		fmt.Println()
@@ -137,9 +141,9 @@ var ciReportCmd = &cobra.Command{
 				if repo != "" {
 					params = append(params, "repository", repo)
 				}
-				qs := buildCIQueryString(queryParams, params...)
+				qs := lib.BuildQueryString(queryParams, params...)
 
-				body, err := doCIGet(nullifyClient, ep.path+qs)
+				body, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 				if err != nil {
 					continue
 				}
@@ -162,53 +166,10 @@ func init() {
 	ciCmd.AddCommand(ciReportCmd)
 
 	ciGateCmd.Flags().String("severity-threshold", "high", "Minimum severity to fail on (critical, high, medium, low)")
-	ciGateCmd.Flags().String("type", "", "Filter by finding type (sast, sca, secrets, pentest, bughunt, cspm)")
+	ciGateCmd.Flags().String("type", "", "Filter by finding type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm)")
 	ciGateCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
 
 	ciReportCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
-}
-
-type ciEndpoint struct {
-	name string
-	path string
-}
-
-func getCIEndpoints(findingType string) []ciEndpoint {
-	all := []ciEndpoint{
-		{"SAST", "/sast/findings"},
-		{"SCA Dependencies", "/sca/dependencies/findings"},
-		{"SCA Containers", "/sca/containers/findings"},
-		{"Secrets", "/secrets/findings"},
-		{"Pentest", "/dast/pentest/findings"},
-		{"BugHunt", "/dast/bughunt/findings"},
-		{"CSPM", "/cspm/findings"},
-	}
-
-	if findingType == "" {
-		return all
-	}
-
-	typeMap := map[string]string{
-		"sast":    "SAST",
-		"sca":     "SCA Dependencies",
-		"secrets": "Secrets",
-		"pentest": "Pentest",
-		"bughunt": "BugHunt",
-		"cspm":    "CSPM",
-	}
-
-	target, ok := typeMap[findingType]
-	if !ok {
-		return all
-	}
-
-	for _, ep := range all {
-		if ep.name == target {
-			return []ciEndpoint{ep}
-		}
-	}
-
-	return all
 }
 
 func severitiesAboveThreshold(threshold string) []string {
@@ -222,16 +183,16 @@ func severitiesAboveThreshold(threshold string) []string {
 }
 
 func countFindings(body string) int {
-	var result interface{}
+	var result any
 	if err := json.Unmarshal([]byte(body), &result); err != nil {
 		return 0
 	}
 
 	switch v := result.(type) {
-	case []interface{}:
+	case []any:
 		return len(v)
-	case map[string]interface{}:
-		if items, ok := v["items"].([]interface{}); ok {
+	case map[string]any:
+		if items, ok := v["items"].([]any); ok {
 			return len(items)
 		}
 		if total, ok := v["total"].(float64); ok {
@@ -240,44 +201,4 @@ func countFindings(body string) int {
 	}
 
 	return 0
-}
-
-func buildCIQueryString(base map[string]string, extra ...string) string {
-	parts := []string{}
-	for k, v := range base {
-		parts = append(parts, fmt.Sprintf("%s=%s", k, v))
-	}
-	for i := 0; i+1 < len(extra); i += 2 {
-		if extra[i+1] != "" {
-			parts = append(parts, fmt.Sprintf("%s=%s", extra[i], extra[i+1]))
-		}
-	}
-	if len(parts) == 0 {
-		return ""
-	}
-	return "?" + strings.Join(parts, "&")
-}
-
-func doCIGet(c *client.NullifyClient, path string) (string, error) {
-	req, err := http.NewRequest("GET", c.BaseURL+path, nil)
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := c.HttpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("API returned %d", resp.StatusCode)
-	}
-
-	return string(body), nil
 }

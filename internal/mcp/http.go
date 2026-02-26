@@ -18,15 +18,15 @@ func doGet(c *client.NullifyClient, path string) (*mcp.CallToolResult, error) {
 	return doRequest(c, "GET", path, nil)
 }
 
-func doPost(c *client.NullifyClient, path string, payload interface{}) (*mcp.CallToolResult, error) {
+func doPost(c *client.NullifyClient, path string, payload any) (*mcp.CallToolResult, error) {
 	return doRequest(c, "POST", path, payload)
 }
 
-func doPut(c *client.NullifyClient, path string, payload interface{}) (*mcp.CallToolResult, error) {
+func doPut(c *client.NullifyClient, path string, payload any) (*mcp.CallToolResult, error) {
 	return doRequest(c, "PUT", path, payload)
 }
 
-func doRequest(c *client.NullifyClient, method string, path string, payload interface{}) (*mcp.CallToolResult, error) {
+func doRequest(c *client.NullifyClient, method string, path string, payload any) (*mcp.CallToolResult, error) {
 	var bodyReader io.Reader
 	if payload != nil {
 		data, err := json.Marshal(payload)

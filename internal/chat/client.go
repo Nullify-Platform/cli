@@ -10,18 +10,18 @@ import (
 
 // Conn is the interface for a WebSocket connection, allowing testability.
 type Conn interface {
-	WriteJSON(v interface{}) error
-	ReadJSON(v interface{}) error
+	WriteJSON(v any) error
+	ReadJSON(v any) error
 	Close() error
 }
 
 // Client manages a chat session with the Nullify AI agents.
 type Client struct {
-	conn           Conn
-	chatID         string
-	queryParams    map[string]string
-	systemPrompt   string
-	mu             sync.Mutex
+	conn         Conn
+	chatID       string
+	queryParams  map[string]string
+	systemPrompt string
+	mu           sync.Mutex
 }
 
 // NewClient creates a new chat client with the given connection.

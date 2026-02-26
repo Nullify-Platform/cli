@@ -3,8 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 
 	"github.com/nullify-platform/cli/internal/auth"
@@ -40,15 +38,15 @@ var securityStatusCmd = &cobra.Command{
 		}
 
 		// Fetch metrics overview
-		qs := buildFindingsQueryString(queryParams)
-		overviewBody, err := doStatusGet(nullifyClient, "/admin/metrics/overview"+qs)
+		qs := lib.BuildQueryString(queryParams)
+		overviewBody, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, "/admin/metrics/overview"+qs)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error fetching metrics: %v\n", err)
 			os.Exit(1)
 		}
 
 		// Try to pretty-print
-		var overview interface{}
+		var overview any
 		if err := json.Unmarshal([]byte(overviewBody), &overview); err == nil {
 			pretty, _ := json.MarshalIndent(overview, "", "  ")
 			fmt.Println("Security Posture Overview")
@@ -59,18 +57,7 @@ var securityStatusCmd = &cobra.Command{
 		}
 
 		// Fetch individual scanner postures
-		scanners := []struct {
-			name string
-			path string
-		}{
-			{"SAST", "/sast/findings"},
-			{"SCA Dependencies", "/sca/dependencies/findings"},
-			{"SCA Containers", "/sca/containers/findings"},
-			{"Secrets", "/secrets/findings"},
-			{"Pentest", "/dast/pentest/findings"},
-			{"BugHunt", "/dast/bughunt/findings"},
-			{"CSPM", "/cspm/findings"},
-		}
+		scanners := allScannerEndpoints()
 
 		fmt.Println("\nFindings by Scanner")
 		fmt.Println("===================")
@@ -78,32 +65,14 @@ var securityStatusCmd = &cobra.Command{
 		fmt.Printf("%-20s %s\n", "-------", "------")
 
 		for _, scanner := range scanners {
-			body, err := doStatusGet(nullifyClient, scanner.path+qs+"&limit=1")
+			scannerQS := lib.BuildQueryString(queryParams, "limit", "1")
+			body, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, scanner.path+scannerQS)
 			if err != nil {
 				fmt.Printf("%-20s error: %v\n", scanner.name, err)
 				continue
 			}
 
-			// Try to extract count information
-			var result interface{}
-			if err := json.Unmarshal([]byte(body), &result); err == nil {
-				switch v := result.(type) {
-				case []interface{}:
-					fmt.Printf("%-20s %d findings returned\n", scanner.name, len(v))
-				case map[string]interface{}:
-					if items, ok := v["items"].([]interface{}); ok {
-						fmt.Printf("%-20s %d findings returned\n", scanner.name, len(items))
-					} else if total, ok := v["total"].(float64); ok {
-						fmt.Printf("%-20s %.0f total findings\n", scanner.name, total)
-					} else {
-						fmt.Printf("%-20s data available\n", scanner.name)
-					}
-				default:
-					fmt.Printf("%-20s data available\n", scanner.name)
-				}
-			} else {
-				fmt.Printf("%-20s data available\n", scanner.name)
-			}
+			fmt.Printf("%-20s %s\n", scanner.name, summarizeFindingsResponse(body))
 		}
 	},
 }
@@ -112,26 +81,24 @@ func init() {
 	rootCmd.AddCommand(securityStatusCmd)
 }
 
-func doStatusGet(c *client.NullifyClient, path string) (string, error) {
-	req, err := http.NewRequest("GET", c.BaseURL+path, nil)
-	if err != nil {
-		return "", err
+// summarizeFindingsResponse extracts a human-readable summary from a findings API response.
+func summarizeFindingsResponse(body string) string {
+	var result any
+	if err := json.Unmarshal([]byte(body), &result); err != nil {
+		return "data available"
 	}
 
-	resp, err := c.HttpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("API returned %d", resp.StatusCode)
+	switch v := result.(type) {
+	case []any:
+		return fmt.Sprintf("%d findings returned", len(v))
+	case map[string]any:
+		if items, ok := v["items"].([]any); ok {
+			return fmt.Sprintf("%d findings returned", len(items))
+		}
+		if total, ok := v["total"].(float64); ok {
+			return fmt.Sprintf("%.0f total findings", total)
+		}
 	}
 
-	return string(body), nil
+	return "data available"
 }

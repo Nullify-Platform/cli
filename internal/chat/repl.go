@@ -40,7 +40,7 @@ func RunREPL(ctx context.Context, client *Client) error {
 			continue
 		}
 
-		if err := sendAndStream(ctx, client, message, sigCh); err != nil {
+		if err := streamResponse(ctx, client, message, sigCh); err != nil {
 			fmt.Println(RenderError(err.Error()))
 		}
 
@@ -50,10 +50,12 @@ func RunREPL(ctx context.Context, client *Client) error {
 
 // RunSingleShot sends a single message and streams the response.
 func RunSingleShot(ctx context.Context, client *Client, message string) error {
-	return sendAndStream(ctx, client, message, nil)
+	return streamResponse(ctx, client, message, nil)
 }
 
-func sendAndStream(ctx context.Context, client *Client, message string, sigCh <-chan os.Signal) error {
+// streamResponse sends a message and reads responses until a terminal status.
+// sigCh may be nil (single-shot mode), in which case interrupts are not handled.
+func streamResponse(ctx context.Context, client *Client, message string, sigCh <-chan os.Signal) error {
 	if err := client.Send(message); err != nil {
 		return fmt.Errorf("failed to send message: %w", err)
 	}
@@ -61,27 +63,42 @@ func sendAndStream(ctx context.Context, client *Client, message string, sigCh <-
 	responses := client.ReadResponses()
 
 	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-sigCh:
-			fmt.Println("\n(interrupted)")
-			// Drain remaining responses
-			for range responses {
-			}
-			return nil
-		case resp, ok := <-responses:
-			if !ok {
+		if sigCh != nil {
+			// REPL mode: handle interrupt signal
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-sigCh:
+				fmt.Println("\n(interrupted)")
+				for range responses {
+				}
 				return nil
+			case resp, ok := <-responses:
+				if !ok {
+					return nil
+				}
+				if rendered := RenderMessage(resp); rendered != "" {
+					fmt.Println(rendered)
+				}
+				if resp.IsTerminal() {
+					return nil
+				}
 			}
-
-			rendered := RenderMessage(resp)
-			if rendered != "" {
-				fmt.Println(rendered)
-			}
-
-			if resp.IsTerminal() {
-				return nil
+		} else {
+			// Single-shot mode: no signal handling
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case resp, ok := <-responses:
+				if !ok {
+					return nil
+				}
+				if rendered := RenderMessage(resp); rendered != "" {
+					fmt.Println(rendered)
+				}
+				if resp.IsTerminal() {
+					return nil
+				}
 			}
 		}
 	}

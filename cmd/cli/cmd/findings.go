@@ -3,10 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
@@ -52,31 +49,12 @@ Auto-detects the current repository from git if --repo is not specified.`,
 			repo = lib.DetectRepoFromGit()
 		}
 
-		endpoints := []struct {
-			name string
-			path string
-		}{
-			{"sast", "/sast/findings"},
-			{"sca_dependencies", "/sca/dependencies/findings"},
-			{"sca_containers", "/sca/containers/findings"},
-			{"secrets", "/secrets/findings"},
-			{"pentest", "/dast/pentest/findings"},
-			{"bughunt", "/dast/bughunt/findings"},
-			{"cspm", "/cspm/findings"},
-		}
+		endpoints := allScannerEndpoints()
 
 		// Filter by type if specified
 		if findingType != "" {
-			filtered := []struct {
-				name string
-				path string
-			}{}
-			for _, ep := range endpoints {
-				if ep.name == findingType {
-					filtered = append(filtered, ep)
-				}
-			}
-			if len(filtered) == 0 {
+			filtered := filterEndpointsByType(endpoints, findingType)
+			if filtered == nil {
 				fmt.Fprintf(os.Stderr, "Error: unknown finding type %q. Valid types: sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm\n", findingType)
 				os.Exit(1)
 			}
@@ -103,10 +81,10 @@ Auto-detects the current repository from git if --repo is not specified.`,
 			}
 			params = append(params, "limit", fmt.Sprintf("%d", limit))
 
-			qs := buildFindingsQueryString(queryParams, params...)
+			qs := lib.BuildQueryString(queryParams, params...)
 			path := ep.path + qs
 
-			resp, err := doFindingsGet(nullifyClient, path)
+			resp, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, path)
 			if err != nil {
 				results = append(results, findingResult{Type: ep.name, Error: err.Error()})
 				continue
@@ -129,42 +107,33 @@ func init() {
 	findingsCmd.Flags().Int("limit", 20, "Maximum results per finding type")
 }
 
-func buildFindingsQueryString(base map[string]string, extra ...string) string {
-	parts := []string{}
-	for k, v := range base {
-		parts = append(parts, fmt.Sprintf("%s=%s", k, v))
-	}
-	for i := 0; i+1 < len(extra); i += 2 {
-		if extra[i+1] != "" {
-			parts = append(parts, fmt.Sprintf("%s=%s", extra[i], extra[i+1]))
-		}
-	}
-	if len(parts) == 0 {
-		return ""
-	}
-	return "?" + strings.Join(parts, "&")
+// scannerEndpoint represents a scanner type and its API path.
+type scannerEndpoint struct {
+	name string
+	path string
 }
 
-func doFindingsGet(c *client.NullifyClient, path string) (string, error) {
-	req, err := http.NewRequest("GET", c.BaseURL+path, nil)
-	if err != nil {
-		return "", err
+// allScannerEndpoints returns the canonical list of all scanner endpoints.
+func allScannerEndpoints() []scannerEndpoint {
+	return []scannerEndpoint{
+		{"sast", "/sast/findings"},
+		{"sca_dependencies", "/sca/dependencies/findings"},
+		{"sca_containers", "/sca/containers/findings"},
+		{"secrets", "/secrets/findings"},
+		{"pentest", "/dast/pentest/findings"},
+		{"bughunt", "/dast/bughunt/findings"},
+		{"cspm", "/cspm/findings"},
 	}
+}
 
-	resp, err := c.HttpClient.Do(req)
-	if err != nil {
-		return "", err
+// filterEndpointsByType returns only endpoints matching the given type name.
+// Returns nil if no match is found.
+func filterEndpointsByType(endpoints []scannerEndpoint, typeName string) []scannerEndpoint {
+	var filtered []scannerEndpoint
+	for _, ep := range endpoints {
+		if ep.name == typeName {
+			filtered = append(filtered, ep)
+		}
 	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("API returned %d: %s", resp.StatusCode, string(body))
-	}
-
-	return string(body), nil
+	return filtered
 }

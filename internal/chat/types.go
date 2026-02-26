@@ -2,9 +2,9 @@ package chat
 
 // Status constants matching the-holonet protocol.
 const (
-	StatusInProgress = "In Progress"
-	StatusFinished   = "Finished"
-	StatusErrored    = "Errored"
+	StatusInProgress  = "In Progress"
+	StatusFinished    = "Finished"
+	StatusErrored     = "Errored"
 	StatusSurrendered = "Surrendered"
 )
 

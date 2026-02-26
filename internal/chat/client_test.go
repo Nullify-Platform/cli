@@ -2,6 +2,7 @@ package chat
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,21 +10,20 @@ import (
 
 // mockConn is a test implementation of the Conn interface.
 type mockConn struct {
-	written  []interface{}
-	toRead   []MessageResponse
-	readIdx  int
-	closed   bool
+	written []any
+	toRead  []MessageResponse
+	readIdx int
+	closed  bool
 }
 
-func (m *mockConn) WriteJSON(v interface{}) error {
+func (m *mockConn) WriteJSON(v any) error {
 	m.written = append(m.written, v)
 	return nil
 }
 
-func (m *mockConn) ReadJSON(v interface{}) error {
+func (m *mockConn) ReadJSON(v any) error {
 	if m.readIdx >= len(m.toRead) {
-		// Block forever if no more messages (simulates connection waiting)
-		select {}
+		return errors.New("connection closed")
 	}
 	resp := m.toRead[m.readIdx]
 	m.readIdx++
@@ -73,6 +73,23 @@ func TestClientReadResponses(t *testing.T) {
 	require.Equal(t, "thinking...", received[0].Message)
 	require.Equal(t, "hello back", received[1].Message)
 	require.Equal(t, "done", received[2].Message)
+}
+
+func TestClientReadResponsesConnectionError(t *testing.T) {
+	// When there are no messages to read, ReadJSON returns an error,
+	// and ReadResponses should emit an error response and close the channel.
+	conn := &mockConn{toRead: nil}
+	c := NewClient(conn, nil)
+	responses := c.ReadResponses()
+
+	var received []MessageResponse
+	for resp := range responses {
+		received = append(received, resp)
+	}
+
+	require.Len(t, received, 1)
+	require.Equal(t, StatusErrored, received[0].Status)
+	require.Contains(t, received[0].Message, "connection")
 }
 
 func TestClientWithOptions(t *testing.T) {
