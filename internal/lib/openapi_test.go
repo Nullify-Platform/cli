@@ -1,18 +1,17 @@
 package lib
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
 	"github.com/nullify-platform/cli/internal/client"
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/testutil"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateOpenAPIJSON(t *testing.T) {
-	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "debug")
+	ctx, err := testutil.GetTestLogger()
 	require.NoError(t, err)
 
 	spec, err := CreateOpenAPIFile(ctx, "test/openapi.json")
@@ -37,7 +36,7 @@ func TestCreateOpenAPIJSON(t *testing.T) {
 }
 
 func TestCreateOpenAPIYAML(t *testing.T) {
-	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "debug")
+	ctx, err := testutil.GetTestLogger()
 	require.NoError(t, err)
 
 	spec, err := CreateOpenAPIFile(ctx, "test/openapi.yml")

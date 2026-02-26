@@ -49,4 +49,12 @@ func registerAdminTools(s *server.MCPServer, c *client.NullifyClient, queryParam
 		),
 		makeGetHandler(c, "/admin/sla", queryParams),
 	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_organization",
+			mcp.WithDescription("Get organization details including name, plan, and configuration."),
+		),
+		makeGetHandler(c, "/admin/organization", queryParams),
+	)
 }

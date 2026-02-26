@@ -1,6 +1,9 @@
 package mcp
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/nullify-platform/cli/internal/client"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -52,5 +55,29 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
 		),
 		makeGetHandler(c, "/classifier/dependencies", queryParams),
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_sbom",
+			mcp.WithDescription("Get the Software Bill of Materials (SBOM) for a specific repository project."),
+			mcp.WithString("repo_id", mcp.Required(), mcp.Description("The repository ID")),
+			mcp.WithString("project_id", mcp.Required(), mcp.Description("The project ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			repoID := getStringArg(args, "repo_id")
+			projectID := getStringArg(args, "project_id")
+			qs := buildQueryString(queryParams)
+			return doGet(c, fmt.Sprintf("/classifier/sboms/repository/%s/project/%s%s", repoID, projectID, qs))
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_dependency_exposure",
+			mcp.WithDescription("Get dependency exposure analysis showing which dependencies are exposed to the internet or internal networks."),
+		),
+		makeGetHandler(c, "/classifier/deps/exposure", queryParams),
 	)
 }

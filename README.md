@@ -11,7 +11,7 @@
   <a href="https://github.com/Nullify-Platform/cli/actions/workflows/release.yml">
     <img src="https://github.com/Nullify-Platform/cli/actions/workflows/release.yml/badge.svg" alt="Release Status" />
   </a>
-  <a href="https://docs.nullify.ai/features/api-scanning/cli/">
+  <a href="https://docs.nullify.ai">
     <img src="https://img.shields.io/badge/docs-docs.nullify.ai-purple" alt="Documentation" />
   </a>
   <a href="https://opensource.org/licenses/MIT">
@@ -27,7 +27,7 @@
   </a>
 </p>
 
-[Nullify](https://nullify.ai) CLI dynamically tests and fuzzes your endpoints for security vulnerabilities.
+The Nullify CLI is the command-line interface for [Nullify](https://nullify.ai) — a fully autonomous AI workforce for product security. It provides access to SAST, SCA, Secrets Detection, Pentest, BugHunt, CSPM, and AI security agents.
 
 ## Installation
 
@@ -43,16 +43,10 @@ Download the latest `.zip` archive for your platform from the [GitHub Releases](
 
 ### GitHub Actions
 
-Download the latest release in your workflow:
-
 ```yaml
 - name: Install Nullify CLI
   run: curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh
 ```
-
-### Manual Download
-
-Download the latest binary for your platform from the [GitHub Releases](https://github.com/Nullify-Platform/cli/releases) page.
 
 ### Verify Installation
 
@@ -60,138 +54,230 @@ Download the latest binary for your platform from the [GitHub Releases](https://
 nullify --version
 ```
 
-### Getting Started
+## Quick Start
 
-See our [quickstart guide](https://docs.nullify.ai/features/api-testing) for more info.
-
-## Usage
-
-```
-Usage: nullify [--host HOST] [--verbose] [--debug] [--nullify-token NULLIFY-TOKEN] [--github-token GITHUB-TOKEN] <command> [<args>]
-
-Options:
-  --host HOST            The base URL of your Nullify API instance [default: api.nullify.ai]
-  --verbose, -v          Enable verbose logging
-  --debug, -d            Enable debug logging
-  --nullify-token NULLIFY-TOKEN
-                         Nullify API token
-  --github-token GITHUB-TOKEN
-                         GitHub actions job token to exchange for a Nullify API token
-  --help, -h             display this help and exit
-  --version              display version and exit
-
-Commands:
-  dast                   Test the given app for bugs and vulnerabilities
-```
-
-## Usage: DAST Scans
-
-```
-Usage: nullify dast [--app-name APP-NAME] [--spec-path SPEC-PATH] [--target-host TARGET-HOST] [--header HEADER] [--auth-config AUTH-CONFIG] [--github-owner GITHUB-OWNER] [--github-repo GITHUB-REPO] [--local] [--image-label IMAGE-LABEL] [--force-pull] [--use-host-network]
-
-Options:
-  --app-name APP-NAME    The unique name of the app to be scanned, you can set this to anything e.g. Core API
-  --spec-path SPEC-PATH
-                         The file path to the OpenAPI file (both yaml and json are supported) e.g. ./openapi.yaml
-  --target-host TARGET-HOST
-                         The base URL of the API to be scanned e.g. https://api.nullify.ai
-  --header HEADER        List of headers for the DAST agent to authenticate with your API, separated by commas e.g. "Authorization: Bearer 1234,X-Custom-Header: abcxyz"
-  --auth-config AUTH-CONFIG
-                         The path to the auth config file
-  --github-owner GITHUB-OWNER
-                         The GitHub username or organisation
-  --github-repo GITHUB-REPO
-                         The repository name to create the Nullify issue dashboard in e.g. cli
-  --local                Test the given app locally for bugs and vulnerabilities in private networks
-  --image-label IMAGE-LABEL
-                         Version of the DAST local image that is used for scanning [default: latest]
-  --force-pull           Force a docker pull of the latest version of the DAST local image
-  --use-host-network     Use the host network for the DAST local scan
-
-Global options:
-  --host HOST            The base URL of your Nullify API instance [default: api.nullify.ai]
-  --verbose, -v          Enable verbose logging
-  --debug, -d            Enable debug logging
-  --nullify-token NULLIFY-TOKEN
-                         Nullify API token
-  --github-token GITHUB-TOKEN
-                         GitHub actions job token to exchange for a Nullify API token
-  --help, -h             display this help and exit
-  --version              display version and exit
-```
-
-## Usage: Authentication
-
-The Nullify CLI need to authenticate with the Nullify API.
-
-This can be done in the following ways:
-
-- Using the `--nullify-token` option
-- Using the `NULLIFY_TOKEN` environment variable
-
-### Example DAST Scan
-
-Cloud Hosted Scan:
 ```sh
-nullify dast \
+# 1. Run the setup wizard
+nullify init
+
+# 2. Check your security posture
+nullify status
+
+# 3. View findings
+nullify findings
+
+# 4. Chat with Nullify's AI agents
+nullify chat
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `nullify init` | Interactive setup wizard (domain, auth, MCP config) |
+| `nullify auth login` | Authenticate with your Nullify instance |
+| `nullify auth status` | Show authentication status |
+| `nullify pentest` | Run pentest scans (local Docker + cloud) |
+| `nullify bughunt` | Cloud-based automated bug hunting |
+| `nullify findings` | List findings across all scanner types |
+| `nullify status` | Security posture overview |
+| `nullify chat` | Interactive AI chat with security agents |
+| `nullify ci gate` | CI quality gate (exit non-zero on findings) |
+| `nullify ci report` | Generate markdown report for PR comments |
+| `nullify mcp serve` | Start MCP server for AI tools |
+| `nullify completion` | Generate shell completion scripts |
+
+## Authentication
+
+### Interactive Login
+
+```sh
+nullify auth login --host api.acme.nullify.ai
+```
+
+### Environment Variables
+
+```sh
+export NULLIFY_HOST=api.acme.nullify.ai
+export NULLIFY_TOKEN=your-token-here
+```
+
+### GitHub Actions
+
+```yaml
+- name: Run Nullify Gate
+  run: nullify ci gate --severity-threshold high
+  env:
+    NULLIFY_HOST: api.acme.nullify.ai
+    NULLIFY_TOKEN: ${{ secrets.NULLIFY_TOKEN }}
+```
+
+### Multi-Host
+
+The CLI supports multiple Nullify instances. Use `--host` to switch between them or `nullify auth switch` to change the default.
+
+## Pentest Scans
+
+### Cloud Scan
+
+```sh
+nullify pentest \
   --app-name      "My REST API" \
   --spec-path     "./openapi.json" \
-  --target-host   "https://api.myapp1234.dev" \
-  --github-owner  "my-username" \
+  --target-host   "https://api.myapp.dev" \
+  --github-owner  "my-org" \
   --github-repo   "my-repo" \
-  --header        "Authorization: Bearer 1234,X-Custom-Header: abcxyz"
+  --header        "Authorization: Bearer token123"
 ```
 
-Locally Hosted Scan:
+### Local Docker Scan
+
 ```sh
-nullify dast \
+nullify pentest \
   --app-name      "My REST API" \
   --spec-path     "./openapi.json" \
-  --target-host   "https://api.myapp1234.dev" \
-  --github-owner  "my-username" \
+  --target-host   "http://localhost:8080" \
+  --github-owner  "my-org" \
   --github-repo   "my-repo" \
-  --header        "Authorization: Bearer 1234,X-Custom-Header: abcxyz" \
   --local
 ```
 
-Same Machine Scan:
+### Same-Machine Scan (Host Network)
+
 ```sh
-nullify dast \
+nullify pentest \
   --app-name      "My REST API" \
   --spec-path     "./openapi.json" \
-  --target-host   "https://api.myapp1234.dev" \
-  --github-owner  "my-username" \
+  --target-host   "http://localhost:8080" \
+  --github-owner  "my-org" \
   --github-repo   "my-repo" \
-  --header        "Authorization: Bearer 1234,X-Custom-Header: abcxyz" \
-  --use-host-network \
-  --local
+  --local \
+  --use-host-network
 ```
 
-The locally hosted scan can be run from within private networks to test private APIs.
+## Interactive Chat
+
+```sh
+# Interactive REPL
+nullify chat
+
+# Single-shot query
+nullify chat "what are my critical findings?"
+
+# Resume a conversation
+nullify chat --chat-id abc123 "tell me more"
+```
+
+## Findings
+
+```sh
+# All findings
+nullify findings
+
+# Filter by severity and type
+nullify findings --severity critical --type sast
+
+# Filter by repository
+nullify findings --repo my-repo --status open
+```
+
+## CI/CD Integration
+
+### Quality Gate
+
+Block deployments when critical or high findings are present:
+
+```yaml
+# .github/workflows/security.yml
+name: Security Gate
+on: [pull_request]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nullify CLI
+        run: curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh
+
+      - name: Security Gate
+        run: nullify ci gate --severity-threshold high
+        env:
+          NULLIFY_HOST: ${{ vars.NULLIFY_HOST }}
+          NULLIFY_TOKEN: ${{ secrets.NULLIFY_TOKEN }}
+```
+
+### PR Report
+
+Add a security summary as a PR comment:
+
+```yaml
+      - name: Security Report
+        run: nullify ci report >> $GITHUB_STEP_SUMMARY
+        env:
+          NULLIFY_HOST: ${{ vars.NULLIFY_HOST }}
+          NULLIFY_TOKEN: ${{ secrets.NULLIFY_TOKEN }}
+```
+
+## MCP Integration
+
+The CLI includes an MCP (Model Context Protocol) server for use with AI coding tools.
+
+### Claude Code
+
+Add to your project's `.claude/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "nullify": {
+      "command": "nullify",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to your project's `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "nullify": {
+      "command": "nullify",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+### VS Code
+
+Add to your project's `.vscode/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "nullify": {
+      "command": "nullify",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+The MCP server exposes tools for SAST, SCA, Secrets, Pentest, BugHunt, CSPM, Infrastructure, Code Reviews, and composite workflows like `remediate_finding` and `get_critical_path`.
 
 ## Global Options
 
-| Name                | Description                                                            | Required | Default                |
-|---------------------|------------------------------------------------------------------------|----------|------------------------|
-| **`host`**          | The base URL of your Nullify API instance, e.g. https://api.nullify.ai | `false`  | https://api.nullify.ai |
-| **`verbose`**       | Enable verbose logging                                                 | `false`  |                        |
-| **`debug`**         | Enable debug logging                                                   | `false`  |                        |
-| **`nullify-token`** | Nullify API token                                                      | `false`  |                        |
-| **`github-token`**  | GitHub actions job token to exchange for a Nullify API token           | `false`  |                        |
-| **`help`**          | Display help and exit                                                  | `false`  |                        |
-| **`version`**       | Display version and exit                                               | `false`  |                        |
-
-## DAST Options
-
-| Name               | Description                                                                                         | Required | Default |
-|--------------------|-----------------------------------------------------------------------------------------------------|----------|---------|
-| **`app-name`**     | The unique name of the app to be scanned, e.g. Core API                                             | `true`   |         |
-| **`spec-path`**    | The file path to the OpenAPI file (both yaml and json are supported), e.g. ./openapi.yaml           | `true`   |         |
-| **`target-host`**  | The base URL of the API to be scanned, e.g. https://api.nullify.ai                                  | `true`   |         |
-| **`github-owner`** | The GitHub username or organisation to create the Nullify issue dashboard in, e.g. nullify-platform | `true`   |         |
-| **`github-repo`**  | The repository name to create the Nullify issue dashboard in, e.g. cli                              | `true`   |         |
-| **`header`**       | List of headers for the DAST agent to authenticate with your API, string seperated by commas        | `false`  |         |
-| **`local`**        | Test the given app locally for bugs and vulnerabilities in private networks                         | `false`  |         |
-| **`version`**      | Version of the DAST local image that is used for scanning [default: ]                               | `false`  | latest  |
-| **`auth-config`**  | The path to the auth config file                                                           | `false`  |         |
-
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--host` | Nullify API instance (e.g., `api.acme.nullify.ai`) | From config |
+| `--verbose, -v` | Enable verbose logging | `false` |
+| `--debug, -d` | Enable debug logging | `false` |
+| `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
+| `--nullify-token` | Nullify API token | From config |
+| `--github-token` | GitHub Actions job token | |

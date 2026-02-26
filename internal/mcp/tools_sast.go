@@ -88,4 +88,46 @@ func registerSASTTools(s *server.MCPServer, c *client.NullifyClient, queryParams
 			return doGet(c, fmt.Sprintf("/sast/findings/%s/autofix/cache/diff%s", id, qs))
 		},
 	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"create_sast_autofix_pr",
+			mcp.WithDescription("Create a pull request from a previously generated SAST autofix."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doPost(c, fmt.Sprintf("/sast/findings/%s/autofix/cache/create_pr%s", id, qs), nil)
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"create_sast_ticket",
+			mcp.WithDescription("Create a Jira ticket for a SAST finding."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doPost(c, fmt.Sprintf("/sast/findings/%s/ticket%s", id, qs), nil)
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_sast_finding_events",
+			mcp.WithDescription("Get the event history for a SAST finding."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doGet(c, fmt.Sprintf("/sast/findings/%s/events%s", id, qs))
+		},
+	)
 }

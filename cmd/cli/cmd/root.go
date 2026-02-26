@@ -73,12 +73,14 @@ func init() {
 	}
 
 	commands.RegisterAdminCommands(rootCmd, getAPIClient)
-	commands.RegisterChatCommands(rootCmd, getAPIClient)
+	// Skip RegisterChatCommands - the handwritten chat command handles interactive chat;
+	// generated chat API subcommands are bridged via RegisterChatSubcommands.
+	commands.RegisterChatSubcommands(chatCmd, getAPIClient)
 	commands.RegisterClassifierCommands(rootCmd, getAPIClient)
 	commands.RegisterCspmCommands(rootCmd, getAPIClient)
-	// Skip RegisterDastCommands - the handwritten dast command handles local scanning;
-	// generated dast API subcommands are added to it directly below.
-	commands.RegisterDastSubcommands(dastCmd, getAPIClient)
+	// Register pentest and bughunt subcommands from generated DAST commands
+	commands.RegisterPentestSubcommands(pentestCmd, getAPIClient)
+	commands.RegisterBughuntSubcommands(bughuntCmd, getAPIClient)
 	commands.RegisterInfrastructureCommands(rootCmd, getAPIClient)
 	commands.RegisterManagerCommands(rootCmd, getAPIClient)
 	commands.RegisterOrchestratorCommands(rootCmd, getAPIClient)

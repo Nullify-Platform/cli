@@ -11,6 +11,12 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
+// HTTPClient defines the interface for making HTTP requests.
+// This allows NullifyClient to be tested with mock HTTP clients.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type NullifyClient struct {
 	Host       string
 	BaseURL    string
