@@ -144,52 +144,6 @@ func (c *Client) CreateClassifierApplicationsRebuild(ctx context.Context, params
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// DeleteClassifierApplicationsApplicationId - Delete Application
-// DELETE /classifier/applications/{applicationId}
-func (c *Client) DeleteClassifierApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
-}
-
 // PatchClassifierApplicationsApplicationId - Update Application
 // PATCH /classifier/applications/{applicationId}
 func (c *Client) PatchClassifierApplicationsApplicationId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
@@ -280,6 +234,52 @@ func (c *Client) GetClassifierApplicationsApplicationId(ctx context.Context, par
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// DeleteClassifierApplicationsApplicationId - Delete Application
+// DELETE /classifier/applications/{applicationId}
+func (c *Client) DeleteClassifierApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/classifier/applications/{applicationId}"
+	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // ListClassifierAssetInventoryResources - Get Asset Inventory Resources
@@ -570,51 +570,6 @@ func (c *Client) ListClassifierCloudIntegrationAzureScanStatus(ctx context.Conte
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// DeleteClassifierCloudIntegrationAzureSettings - Delete Cloud Azure Settings
-// DELETE /classifier/cloud-integration/azure/settings
-func (c *Client) DeleteClassifierCloudIntegrationAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/cloud-integration/azure/settings"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
-}
-
 // CreateClassifierCloudIntegrationAzureSettings - Upsert Cloud Azure Settings
 // POST /classifier/cloud-integration/azure/settings
 func (c *Client) CreateClassifierCloudIntegrationAzureSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
@@ -705,10 +660,10 @@ func (c *Client) ListClassifierCloudIntegrationAzureSettings(ctx context.Context
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDeps - List Tenant Wide Dependencies (Historical)
-// GET /classifier/deps
-func (c *Client) ListClassifierDeps(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps"
+// DeleteClassifierCloudIntegrationAzureSettings - Delete Cloud Azure Settings
+// DELETE /classifier/cloud-integration/azure/settings
+func (c *Client) DeleteClassifierCloudIntegrationAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/classifier/cloud-integration/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -741,19 +696,13 @@ func (c *Client) ListClassifierDeps(ctx context.Context, params url.Values) ([]b
 	if v := params.Get("bitbucketRepositoryId"); v != "" {
 		query.Set("bitbucketRepositoryId", v)
 	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
-	}
-	if v := params.Get("cursor"); v != "" {
-		query.Set("cursor", v)
-	}
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // DeleteClassifierDeps - Delete dependency data
@@ -820,6 +769,57 @@ func (c *Client) DeleteClassifierDeps(ctx context.Context, params url.Values) ([
 	}
 
 	return c.do(ctx, "DELETE", fullURL, nil)
+}
+
+// ListClassifierDeps - List Tenant Wide Dependencies (Historical)
+// GET /classifier/deps
+func (c *Client) ListClassifierDeps(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/classifier/deps"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+	if v := params.Get("pageSize"); v != "" {
+		query.Set("pageSize", v)
+	}
+	if v := params.Get("cursor"); v != "" {
+		query.Set("cursor", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // ListClassifierDepsActive - List Tenant Wide Active Dependencies
@@ -1295,98 +1295,6 @@ func (c *Client) CreateClassifierMemories(ctx context.Context, params url.Values
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// PatchClassifierMemoriesMemoryId - Update Memory
-// PATCH /classifier/memories/{memoryId}
-func (c *Client) PatchClassifierMemoriesMemoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/memories/{memoryId}"
-	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
-}
-
-// DeleteClassifierMemoriesMemoryId - Delete Memory
-// DELETE /classifier/memories/{memoryId}
-func (c *Client) DeleteClassifierMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/memories/{memoryId}"
-	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
-}
-
 // GetClassifierMemoriesMemoryId - Get Memory
 // GET /classifier/memories/{memoryId}
 func (c *Client) GetClassifierMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1436,6 +1344,98 @@ func (c *Client) GetClassifierMemoriesMemoryId(ctx context.Context, params url.V
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
+// DeleteClassifierMemoriesMemoryId - Delete Memory
+// DELETE /classifier/memories/{memoryId}
+func (c *Client) DeleteClassifierMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/classifier/memories/{memoryId}"
+	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "DELETE", fullURL, nil)
+}
+
+// PatchClassifierMemoriesMemoryId - Update Memory
+// PATCH /classifier/memories/{memoryId}
+func (c *Client) PatchClassifierMemoriesMemoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/classifier/memories/{memoryId}"
+	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PATCH", fullURL, body)
+}
+
 // ListClassifierMemoriesMemoryIdVersions - Get Memory Versions
 // GET /classifier/memories/{memoryId}/versions
 func (c *Client) ListClassifierMemoriesMemoryIdVersions(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1475,51 +1475,6 @@ func (c *Client) ListClassifierMemoriesMemoryIdVersions(ctx context.Context, par
 	}
 	if v := params.Get("limit"); v != "" {
 		query.Set("limit", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// ListClassifierOrganization - Get Organization Context
-// GET /classifier/organization
-func (c *Client) ListClassifierOrganization(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/organization"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
 	}
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1620,6 +1575,51 @@ func (c *Client) UpdateClassifierOrganization(ctx context.Context, params url.Va
 	return c.do(ctx, "PUT", fullURL, body)
 }
 
+// ListClassifierOrganization - Get Organization Context
+// GET /classifier/organization
+func (c *Client) ListClassifierOrganization(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/classifier/organization"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
 // ListClassifierRepositories - Get Contexts of Repositories
 // GET /classifier/repositories
 func (c *Client) ListClassifierRepositories(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1677,9 +1677,9 @@ func (c *Client) ListClassifierRepositories(ctx context.Context, params url.Valu
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// GetClassifierRepositoriesRepositoryId - Get Repository
-// GET /classifier/repositories/{repositoryId}
-func (c *Client) GetClassifierRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+// DeleteClassifierRepositoriesRepositoryId - Delete Repository
+// DELETE /classifier/repositories/{repositoryId}
+func (c *Client) DeleteClassifierRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/classifier/repositories/{repositoryId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
@@ -1720,7 +1720,7 @@ func (c *Client) GetClassifierRepositoriesRepositoryId(ctx context.Context, para
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // PatchClassifierRepositoriesRepositoryId - Update Repository
@@ -1769,9 +1769,9 @@ func (c *Client) PatchClassifierRepositoriesRepositoryId(ctx context.Context, pa
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// DeleteClassifierRepositoriesRepositoryId - Delete Repository
-// DELETE /classifier/repositories/{repositoryId}
-func (c *Client) DeleteClassifierRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+// GetClassifierRepositoriesRepositoryId - Get Repository
+// GET /classifier/repositories/{repositoryId}
+func (c *Client) GetClassifierRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/classifier/repositories/{repositoryId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
@@ -1812,7 +1812,7 @@ func (c *Client) DeleteClassifierRepositoriesRepositoryId(ctx context.Context, p
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // ListClassifierRepositoriesRepositoryIdProjects - List Projects
@@ -2258,52 +2258,6 @@ func (c *Client) CreateClassifierVaultFile(ctx context.Context, params url.Value
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// GetClassifierVaultFileFileId - Get Vault File
-// GET /classifier/vault/file/{fileId}
-func (c *Client) GetClassifierVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/vault/file/{fileId}"
-	path = strings.Replace(path, "{fileId}", params.Get("fileId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // DeleteClassifierVaultFileFileId - Delete Vault File
 // DELETE /classifier/vault/file/{fileId}
 func (c *Client) DeleteClassifierVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -2348,6 +2302,52 @@ func (c *Client) DeleteClassifierVaultFileFileId(ctx context.Context, params url
 	}
 
 	return c.do(ctx, "DELETE", fullURL, nil)
+}
+
+// GetClassifierVaultFileFileId - Get Vault File
+// GET /classifier/vault/file/{fileId}
+func (c *Client) GetClassifierVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/classifier/vault/file/{fileId}"
+	path = strings.Replace(path, "{fileId}", params.Get("fileId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // PatchClassifierVaultFileFileName - Patch Vault File

@@ -76,7 +76,10 @@ func SaveHostCredentials(host string, hostCreds HostCredentials) error {
 func DeleteHostCredentials(host string) error {
 	creds, err := LoadCredentials()
 	if err != nil {
-		return nil
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
 	}
 
 	delete(creds, host)

@@ -1,22 +1,9 @@
 package models
 
-type AuthMethod string
-
-const (
-	AuthMethodNone    AuthMethod = "none"
-	AuthMethodBasic   AuthMethod = "basic"
-	AuthMethodBearer  AuthMethod = "bearer"
-	AuthMethodSession AuthMethod = "session"
-	AuthMethodOAuth   AuthMethod = "oauth"
-	AuthMethodSAML    AuthMethod = "saml"
-	AuthMethodJWT     AuthMethod = "jwt"
-	AuthMethodCustom  AuthMethod = "custom"
-)
-
 // AuthConfig represents the authentication configuration for Nullify DAST
 type AuthConfig struct {
 	// Single user authentication fields
-	Method          AuthMethod             `json:"method,omitempty"`
+	Method          string                 `json:"method,omitempty"`
 	Username        string                 `json:"username,omitempty"`
 	UserDescription string                 `json:"userDescription,omitempty"`
 	Headers         map[string]string      `json:"headers,omitempty"`
@@ -45,7 +32,7 @@ type UserAuth struct {
 }
 
 type MultiUserAuthConfig struct {
-	Method        AuthMethod             `json:"method,omitempty"`
+	Method        string                 `json:"method,omitempty"`
 	Username      string                 `json:"username,omitempty"`
 	Password      string                 `json:"password,omitempty"`
 	Token         string                 `json:"token,omitempty"`

@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 
 	"github.com/nullify-platform/cli/internal/api"
@@ -28,7 +27,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListCspmFindings(context.Background(), params)
+				result, err := client.ListCspmFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -71,7 +70,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetCspmFindingsFindingId(context.Background(), params)
+				result, err := client.GetCspmFindingsFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -100,7 +99,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListCspmScans(context.Background(), params)
+				result, err := client.ListCspmScans(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -139,7 +138,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("scanId", args[0])
 				}
-				result, err := client.GetCspmScansScanId(context.Background(), params)
+				result, err := client.GetCspmScansScanId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

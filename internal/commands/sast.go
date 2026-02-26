@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSastEvents(context.Background(), params)
+				result, err := client.ListSastEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -64,7 +63,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSastFindings(context.Background(), params)
+				result, err := client.ListSastFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -109,7 +108,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSastFindingsAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -138,7 +137,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSastFindingsAutofixCache(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsAutofixCache(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -167,7 +166,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSastFindingsDetailed(context.Background(), params)
+				result, err := client.ListSastFindingsDetailed(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -211,7 +210,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSastFindingsFix(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFix(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -240,7 +239,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSastFindingsFixIterate(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFixIterate(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -269,7 +268,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSastFindingsPreview(context.Background(), params)
+				result, err := client.ListSastFindingsPreview(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -314,7 +313,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSastFindingsRetriage(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsRetriage(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -343,7 +342,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSastFindingsUpload(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsUpload(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -376,7 +375,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetSastFindingsFindingId(context.Background(), params)
+				result, err := client.GetSastFindingsFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -409,7 +408,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.PatchSastFindingsFindingId(context.Background(), params, os.Stdin)
+				result, err := client.PatchSastFindingsFindingId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -442,7 +441,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSastFindingsFindingIdAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFindingIdAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -475,7 +474,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSastFindingsFindingIdAutofixCache(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFindingIdAutofixCache(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -508,7 +507,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSastFindingsFindingIdAutofixCacheCreatePr(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFindingIdAutofixCacheCreatePr(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -541,7 +540,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListSastFindingsFindingIdAutofixCacheDiff(context.Background(), params)
+				result, err := client.ListSastFindingsFindingIdAutofixCacheDiff(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -574,7 +573,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSastFindingsFindingIdAutofixFix(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFindingIdAutofixFix(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -607,7 +606,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListSastFindingsFindingIdEvents(context.Background(), params)
+				result, err := client.ListSastFindingsFindingIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -640,7 +639,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSastFindingsFindingIdPentest(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFindingIdPentest(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -673,7 +672,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSastFindingsFindingIdTicket(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFindingIdTicket(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -706,7 +705,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListSastFindingsFindingIdTriage(context.Background(), params)
+				result, err := client.ListSastFindingsFindingIdTriage(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -739,7 +738,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSastFindingsFindingIdUnallowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateSastFindingsFindingIdUnallowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -772,7 +771,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListSastFindingsFindingIdUsers(context.Background(), params)
+				result, err := client.ListSastFindingsFindingIdUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -801,7 +800,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSastRepositories(context.Background(), params)
+				result, err := client.ListSastRepositories(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -836,7 +835,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.GetSastRepositoriesRepositoryId(context.Background(), params)
+				result, err := client.GetSastRepositoriesRepositoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

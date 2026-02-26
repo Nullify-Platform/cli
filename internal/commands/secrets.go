@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSecretsAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateSecretsAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -58,7 +57,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSecretsEvents(context.Background(), params)
+				result, err := client.ListSecretsEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -95,7 +94,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSecretsFindings(context.Background(), params)
+				result, err := client.ListSecretsFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -134,7 +133,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSecretsFindingsAllowlistBatch(context.Background(), params, os.Stdin)
+				result, err := client.CreateSecretsFindingsAllowlistBatch(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -163,7 +162,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSecretsFindingsDetailed(context.Background(), params)
+				result, err := client.ListSecretsFindingsDetailed(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -202,7 +201,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListSecretsFindingsPreview(context.Background(), params)
+				result, err := client.ListSecretsFindingsPreview(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -241,7 +240,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSecretsFindingsRetriage(context.Background(), params, os.Stdin)
+				result, err := client.CreateSecretsFindingsRetriage(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -270,40 +269,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateSecretsFindingsUpload(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "get-findings",
-			Short: "Get Finding",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.GetSecretsFindingsFindingId(context.Background(), params)
+				result, err := client.CreateSecretsFindingsUpload(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -336,7 +302,40 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.PatchSecretsFindingsFindingId(context.Background(), params, os.Stdin)
+				result, err := client.PatchSecretsFindingsFindingId(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-findings",
+			Short: "Get Finding",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.GetSecretsFindingsFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -369,7 +368,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSecretsFindingsFindingIdAllowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateSecretsFindingsFindingIdAllowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -402,7 +401,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListSecretsFindingsFindingIdEvents(context.Background(), params)
+				result, err := client.ListSecretsFindingsFindingIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -435,7 +434,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSecretsFindingsFindingIdTicket(context.Background(), params, os.Stdin)
+				result, err := client.CreateSecretsFindingsFindingIdTicket(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -468,7 +467,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListSecretsFindingsFindingIdTriage(context.Background(), params)
+				result, err := client.ListSecretsFindingsFindingIdTriage(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -501,7 +500,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateSecretsFindingsFindingIdUnallowlist(context.Background(), params, os.Stdin)
+				result, err := client.CreateSecretsFindingsFindingIdUnallowlist(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -534,7 +533,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListSecretsFindingsFindingIdUsers(context.Background(), params)
+				result, err := client.ListSecretsFindingsFindingIdUsers(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

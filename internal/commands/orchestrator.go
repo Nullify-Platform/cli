@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListOrchestratorCodereviews(context.Background(), params)
+				result, err := client.ListOrchestratorCodereviews(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -62,7 +61,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				if len(args) > 0 {
 					params.Set("id", args[0])
 				}
-				result, err := client.GetOrchestratorCodereviewsId(context.Background(), params)
+				result, err := client.GetOrchestratorCodereviewsId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -91,7 +90,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateOrchestratorFindingsRetriage(context.Background(), params, os.Stdin)
+				result, err := client.CreateOrchestratorFindingsRetriage(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -120,7 +119,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateOrchestratorOnboardingComplete(context.Background(), params, os.Stdin)
+				result, err := client.CreateOrchestratorOnboardingComplete(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -149,7 +148,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateOrchestratorOnboardingStart(context.Background(), params, os.Stdin)
+				result, err := client.CreateOrchestratorOnboardingStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -178,7 +177,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListOrchestratorOnboardingStatus(context.Background(), params)
+				result, err := client.ListOrchestratorOnboardingStatus(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierApplications(context.Background(), params)
+				result, err := client.ListClassifierApplications(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -58,7 +57,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierApplications(context.Background(), params, os.Stdin)
+				result, err := client.CreateClassifierApplications(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -87,40 +86,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierApplicationsRebuild(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "delete-applications",
-			Short: "Delete Application",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("applicationId", args[0])
-				}
-				result, err := client.DeleteClassifierApplicationsApplicationId(context.Background(), params)
+				result, err := client.CreateClassifierApplicationsRebuild(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -153,7 +119,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("applicationId", args[0])
 				}
-				result, err := client.PatchClassifierApplicationsApplicationId(context.Background(), params, os.Stdin)
+				result, err := client.PatchClassifierApplicationsApplicationId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -186,7 +152,40 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("applicationId", args[0])
 				}
-				result, err := client.GetClassifierApplicationsApplicationId(context.Background(), params)
+				result, err := client.GetClassifierApplicationsApplicationId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-applications",
+			Short: "Delete Application",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("applicationId", args[0])
+				}
+				result, err := client.DeleteClassifierApplicationsApplicationId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -215,7 +214,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierAssetInventoryResources(context.Background(), params)
+				result, err := client.ListClassifierAssetInventoryResources(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -249,7 +248,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAwsScanStart(context.Background(), params, os.Stdin)
+				result, err := client.CreateClassifierCloudIntegrationAwsScanStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -278,7 +277,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierCloudIntegrationAwsSettings(context.Background(), params)
+				result, err := client.ListClassifierCloudIntegrationAwsSettings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -307,7 +306,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAwsSettings(context.Background(), params, os.Stdin)
+				result, err := client.CreateClassifierCloudIntegrationAwsSettings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -336,7 +335,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAzureScanStart(context.Background(), params, os.Stdin)
+				result, err := client.CreateClassifierCloudIntegrationAzureScanStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -365,7 +364,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierCloudIntegrationAzureScanStatus(context.Background(), params)
+				result, err := client.ListClassifierCloudIntegrationAzureScanStatus(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -387,35 +386,6 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 
 	{
 		cmd := &cobra.Command{
-			Use:   "delete-settings",
-			Short: "Delete Cloud Azure Settings",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.DeleteClassifierCloudIntegrationAzureSettings(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "create-settings",
 			Short: "Upsert Cloud Azure Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -424,7 +394,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAzureSettings(context.Background(), params, os.Stdin)
+				result, err := client.CreateClassifierCloudIntegrationAzureSettings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -453,7 +423,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierCloudIntegrationAzureSettings(context.Background(), params)
+				result, err := client.ListClassifierCloudIntegrationAzureSettings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -474,15 +444,15 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-deps",
-			Short: "List Tenant Wide Dependencies (Historical)",
+			Use:   "delete-settings",
+			Short: "Delete Cloud Azure Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierDeps(context.Background(), params)
+				result, err := client.DeleteClassifierCloudIntegrationAzureSettings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -498,8 +468,6 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 		cmd.Flags().String("githubRepositoryId", "", "")
 		cmd.Flags().String("githubTeamId", "", "")
 		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		cmd.Flags().String("pageSize", "", "")
-		cmd.Flags().String("cursor", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -513,7 +481,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.DeleteClassifierDeps(context.Background(), params)
+				result, err := client.DeleteClassifierDeps(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -541,6 +509,37 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 
 	{
 		cmd := &cobra.Command{
+			Use:   "list-deps",
+			Short: "List Tenant Wide Dependencies (Historical)",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.ListClassifierDeps(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		cmd.Flags().String("pageSize", "", "")
+		cmd.Flags().String("cursor", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-active",
 			Short: "List Tenant Wide Active Dependencies",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -549,7 +548,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierDepsActive(context.Background(), params)
+				result, err := client.ListClassifierDepsActive(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -580,7 +579,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierDepsExposure(context.Background(), params)
+				result, err := client.ListClassifierDepsExposure(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -616,7 +615,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdActive(context.Background(), params)
+				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdActive(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -649,7 +648,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("commit", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdAtCommit(context.Background(), params)
+				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdAtCommit(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -682,7 +681,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdDiff(context.Background(), params)
+				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdDiff(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -717,7 +716,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdExposure(context.Background(), params)
+				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdExposure(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -753,7 +752,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdHistory(context.Background(), params)
+				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdHistory(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -784,7 +783,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierMemories(context.Background(), params)
+				result, err := client.ListClassifierMemories(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -820,73 +819,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierMemories(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "patch-memories",
-			Short: "Update Memory",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("memoryId", args[0])
-				}
-				result, err := client.PatchClassifierMemoriesMemoryId(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "delete-memories",
-			Short: "Delete Memory",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("memoryId", args[0])
-				}
-				result, err := client.DeleteClassifierMemoriesMemoryId(context.Background(), params)
+				result, err := client.CreateClassifierMemories(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -919,7 +852,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("memoryId", args[0])
 				}
-				result, err := client.GetClassifierMemoriesMemoryId(context.Background(), params)
+				result, err := client.GetClassifierMemoriesMemoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -941,6 +874,72 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 
 	{
 		cmd := &cobra.Command{
+			Use:   "delete-memories",
+			Short: "Delete Memory",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("memoryId", args[0])
+				}
+				result, err := client.DeleteClassifierMemoriesMemoryId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "patch-memories",
+			Short: "Update Memory",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("memoryId", args[0])
+				}
+				result, err := client.PatchClassifierMemoriesMemoryId(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "get-versions",
 			Short: "Get Memory Versions",
 			Args: cobra.MaximumNArgs(1),
@@ -953,7 +952,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("memoryId", args[0])
 				}
-				result, err := client.ListClassifierMemoriesMemoryIdVersions(context.Background(), params)
+				result, err := client.ListClassifierMemoriesMemoryIdVersions(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -975,35 +974,6 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-organization",
-			Short: "Get Organization Context",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.ListClassifierOrganization(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "patch-organization",
 			Short: "Update Classification of the Organization",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -1012,7 +982,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.PatchClassifierOrganization(context.Background(), params, os.Stdin)
+				result, err := client.PatchClassifierOrganization(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1041,7 +1011,36 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.UpdateClassifierOrganization(context.Background(), params, os.Stdin)
+				result, err := client.UpdateClassifierOrganization(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-organization",
+			Short: "Get Organization Context",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.ListClassifierOrganization(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1070,7 +1069,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierRepositories(context.Background(), params)
+				result, err := client.ListClassifierRepositories(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1095,8 +1094,8 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-repositories",
-			Short: "Get Repository",
+			Use:   "delete-repositories",
+			Short: "Delete Repository",
 			Args: cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1107,7 +1106,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.GetClassifierRepositoriesRepositoryId(context.Background(), params)
+				result, err := client.DeleteClassifierRepositoriesRepositoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1140,7 +1139,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.PatchClassifierRepositoriesRepositoryId(context.Background(), params, os.Stdin)
+				result, err := client.PatchClassifierRepositoriesRepositoryId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1161,8 +1160,8 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 
 	{
 		cmd := &cobra.Command{
-			Use:   "delete-repositories",
-			Short: "Delete Repository",
+			Use:   "get-repositories",
+			Short: "Get Repository",
 			Args: cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1173,7 +1172,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.DeleteClassifierRepositoriesRepositoryId(context.Background(), params)
+				result, err := client.GetClassifierRepositoriesRepositoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1206,7 +1205,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.ListClassifierRepositoriesRepositoryIdProjects(context.Background(), params)
+				result, err := client.ListClassifierRepositoriesRepositoryIdProjects(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1242,7 +1241,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.PatchClassifierRepositoriesRepositoryIdProjectsProjectId(context.Background(), params, os.Stdin)
+				result, err := client.PatchClassifierRepositoriesRepositoryIdProjectsProjectId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1275,7 +1274,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.GetClassifierRepositoriesRepositoryIdProjectsProjectId(context.Background(), params)
+				result, err := client.GetClassifierRepositoriesRepositoryIdProjectsProjectId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1308,7 +1307,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchema(context.Background(), params)
+				result, err := client.ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchema(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1341,7 +1340,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(context.Background(), params)
+				result, err := client.ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1370,7 +1369,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierSbomingestorReplay(context.Background(), params, os.Stdin)
+				result, err := client.CreateClassifierSbomingestorReplay(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1403,7 +1402,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.GetClassifierSbomsRepositoryRepositoryIdProjectProjectId(context.Background(), params)
+				result, err := client.GetClassifierSbomsRepositoryRepositoryIdProjectProjectId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1438,7 +1437,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierSbomsTree(context.Background(), params)
+				result, err := client.ListClassifierSbomsTree(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1467,40 +1466,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierVaultFile(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "get-file",
-			Short: "Get Vault File",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("fileId", args[0])
-				}
-				result, err := client.GetClassifierVaultFileFileId(context.Background(), params)
+				result, err := client.CreateClassifierVaultFile(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1533,7 +1499,40 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("fileId", args[0])
 				}
-				result, err := client.DeleteClassifierVaultFileFileId(context.Background(), params)
+				result, err := client.DeleteClassifierVaultFileFileId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-file",
+			Short: "Get Vault File",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("fileId", args[0])
+				}
+				result, err := client.GetClassifierVaultFileFileId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1566,7 +1565,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("fileName", args[0])
 				}
-				result, err := client.PatchClassifierVaultFileFileName(context.Background(), params, os.Stdin)
+				result, err := client.PatchClassifierVaultFileFileName(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1595,7 +1594,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierVaultFiles(context.Background(), params)
+				result, err := client.ListClassifierVaultFiles(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1624,7 +1623,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierVaultFilesList(context.Background(), params)
+				result, err := client.ListClassifierVaultFilesList(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1653,7 +1652,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierVaultOnboard(context.Background(), params, os.Stdin)
+				result, err := client.CreateClassifierVaultOnboard(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}

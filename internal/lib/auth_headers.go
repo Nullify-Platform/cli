@@ -14,11 +14,10 @@ func ParseAuthHeaders(ctx context.Context, authHeaders []string) (map[string]str
 	for _, header := range authHeaders {
 		headers := strings.Split(header, ",")
 		for _, h := range headers {
-			headerParts := strings.Split(h, ": ")
+			headerParts := strings.SplitN(h, ": ", 2)
 			if len(headerParts) != 2 {
 				logger.L(ctx).Error("please provide headers in the format of 'key: value'")
-				err := fmt.Errorf("please provide headers in the format of 'key: value'")
-				return nil, err
+				return nil, fmt.Errorf("please provide headers in the format of 'key: value'")
 			}
 
 			headerName := strings.TrimSpace(headerParts[0])

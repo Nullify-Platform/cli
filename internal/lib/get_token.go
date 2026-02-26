@@ -66,6 +66,7 @@ func GetNullifyToken(
 		if err != nil {
 			return "", err
 		}
+		defer res.Body.Close()
 
 		if res.StatusCode != http.StatusOK {
 			return "", client.HandleError(res)

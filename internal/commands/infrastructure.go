@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 
 	"github.com/nullify-platform/cli/internal/api"
@@ -28,7 +27,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListGraphAccounts(context.Background(), params)
+				result, err := client.ListGraphAccounts(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -57,7 +56,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListGraphAll(context.Background(), params)
+				result, err := client.ListGraphAll(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -86,7 +85,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListGraphDataLatest(context.Background(), params)
+				result, err := client.ListGraphDataLatest(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -115,7 +114,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListGraphNodes(context.Background(), params)
+				result, err := client.ListGraphNodes(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -146,7 +145,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListGraphNodesSearch(context.Background(), params)
+				result, err := client.ListGraphNodesSearch(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

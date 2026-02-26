@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -29,7 +28,7 @@ func RegisterChatCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateChatComments(context.Background(), params, os.Stdin)
+				result, err := client.CreateChatComments(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -62,7 +61,7 @@ func RegisterChatCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetChatCommentsFindingFindingId(context.Background(), params)
+				result, err := client.GetChatCommentsFindingFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -96,7 +95,7 @@ func RegisterChatCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("nodeId", args[0])
 				}
-				result, err := client.GetChatCommentsFindingFindingIdNodeNodeId(context.Background(), params)
+				result, err := client.GetChatCommentsFindingFindingIdNodeNodeId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -130,7 +129,7 @@ func RegisterChatCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("commentId", args[0])
 				}
-				result, err := client.DeleteChatCommentsCommentId(context.Background(), params)
+				result, err := client.DeleteChatCommentsCommentId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -159,7 +158,7 @@ func RegisterChatCommands(parent *cobra.Command, getClient func() *api.Client) {
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListChatMessages(context.Background(), params)
+				result, err := client.ListChatMessages(cmd.Context(), params)
 				if err != nil {
 					return err
 				}

@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"os"
 
@@ -21,35 +20,6 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-campaigns",
-			Short: "Post Campaign",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.CreateManagerCampaigns(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "list-campaigns",
 			Short: "List Campaigns",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -58,7 +28,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerCampaigns(context.Background(), params)
+				result, err := client.ListManagerCampaigns(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -81,6 +51,35 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-campaigns",
+			Short: "Post Campaign",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.CreateManagerCampaigns(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-default",
 			Short: "Get Default Campaign",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -89,7 +88,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerCampaignsDefault(context.Background(), params)
+				result, err := client.ListManagerCampaignsDefault(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -118,7 +117,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateManagerCampaignsDefaultGenerate(context.Background(), params)
+				result, err := client.CreateManagerCampaignsDefaultGenerate(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -149,7 +148,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerCampaignsFindings(context.Background(), params)
+				result, err := client.ListManagerCampaignsFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -178,7 +177,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerCampaignsMetricsRefresh(context.Background(), params)
+				result, err := client.ListManagerCampaignsMetricsRefresh(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -207,7 +206,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerCampaignsPreviews(context.Background(), params)
+				result, err := client.ListManagerCampaignsPreviews(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -238,7 +237,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerCampaignsSummaries(context.Background(), params)
+				result, err := client.ListManagerCampaignsSummaries(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -247,6 +246,39 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		}
 		cmd.Flags().String("page", "", "")
 		cmd.Flags().String("pageSize", "", "")
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-campaigns",
+			Short: "Delete Campaign",
+			Args: cobra.MaximumNArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				if len(args) > 0 {
+					params.Set("campaignId", args[0])
+				}
+				result, err := client.DeleteManagerCampaignsCampaignId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
 		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
 		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
@@ -273,7 +305,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("campaignId", args[0])
 				}
-				result, err := client.GetManagerCampaignsCampaignId(context.Background(), params)
+				result, err := client.GetManagerCampaignsCampaignId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -306,40 +338,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("campaignId", args[0])
 				}
-				result, err := client.PatchManagerCampaignsCampaignId(context.Background(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "delete-campaigns",
-			Short: "Delete Campaign",
-			Args: cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				if len(args) > 0 {
-					params.Set("campaignId", args[0])
-				}
-				result, err := client.DeleteManagerCampaignsCampaignId(context.Background(), params)
+				result, err := client.PatchManagerCampaignsCampaignId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -372,7 +371,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("campaignId", args[0])
 				}
-				result, err := client.ListManagerCampaignsCampaignIdEvents(context.Background(), params)
+				result, err := client.ListManagerCampaignsCampaignIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -407,7 +406,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("campaignId", args[0])
 				}
-				result, err := client.ListManagerCampaignsCampaignIdFindings(context.Background(), params)
+				result, err := client.ListManagerCampaignsCampaignIdFindings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -440,36 +439,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("campaignId", args[0])
 				}
-				result, err := client.ListManagerCampaignsCampaignIdPreview(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-config",
-			Short: "Post a Manager Config object to S3",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.CreateManagerConfig(context.Background(), params, os.Stdin)
+				result, err := client.ListManagerCampaignsCampaignIdPreview(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -498,7 +468,36 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerConfig(context.Background(), params)
+				result, err := client.ListManagerConfig(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-config",
+			Short: "Post a Manager Config object to S3",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.CreateManagerConfig(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -527,7 +526,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerCredits(context.Background(), params)
+				result, err := client.ListManagerCredits(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -556,7 +555,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateManagerCredits(context.Background(), params, os.Stdin)
+				result, err := client.CreateManagerCredits(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -585,7 +584,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerEscalations(context.Background(), params)
+				result, err := client.ListManagerEscalations(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -620,7 +619,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("escalationId", args[0])
 				}
-				result, err := client.PatchManagerEscalationsEscalationId(context.Background(), params, os.Stdin)
+				result, err := client.PatchManagerEscalationsEscalationId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -649,7 +648,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerEvents(context.Background(), params)
+				result, err := client.ListManagerEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -680,7 +679,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateManagerEventsDeduplicate(context.Background(), params, os.Stdin)
+				result, err := client.CreateManagerEventsDeduplicate(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -713,7 +712,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("eventId", args[0])
 				}
-				result, err := client.DeleteManagerEventsEventId(context.Background(), params)
+				result, err := client.DeleteManagerEventsEventId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -746,7 +745,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.ListManagerFindingsFindingIdEvents(context.Background(), params)
+				result, err := client.ListManagerFindingsFindingIdEvents(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -775,36 +774,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerGroundrules(context.Background(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
-		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
-		cmd.Flags().String("installationId", "", "The Nullify installation ID")
-		cmd.Flags().String("azureRepositoryId", "", "")
-		cmd.Flags().String("githubRepositoryId", "", "")
-		cmd.Flags().String("githubTeamId", "", "")
-		cmd.Flags().String("bitbucketRepositoryId", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-groundrules",
-			Short: "Post a GroundRules object to S3",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					params.Set(f.Name, f.Value.String())
-				})
-				result, err := client.CreateManagerGroundrules(context.Background(), params, os.Stdin)
+				result, err := client.ListManagerGroundrules(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -833,7 +803,36 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.PatchManagerGroundrules(context.Background(), params, os.Stdin)
+				result, err := client.PatchManagerGroundrules(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-groundrules",
+			Short: "Post a GroundRules object to S3",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.CreateManagerGroundrules(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -862,7 +861,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerMetrics(context.Background(), params)
+				result, err := client.ListManagerMetrics(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -891,7 +890,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerPlans(context.Background(), params)
+				result, err := client.ListManagerPlans(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -922,7 +921,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateManagerSchedules(context.Background(), params, os.Stdin)
+				result, err := client.CreateManagerSchedules(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -951,7 +950,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerSchedules(context.Background(), params)
+				result, err := client.ListManagerSchedules(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -980,7 +979,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerState(context.Background(), params)
+				result, err := client.ListManagerState(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1009,7 +1008,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerStateLatest(context.Background(), params)
+				result, err := client.ListManagerStateLatest(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1038,7 +1037,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerStates(context.Background(), params)
+				result, err := client.ListManagerStates(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1069,7 +1068,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListManagerTrigger(context.Background(), params)
+				result, err := client.ListManagerTrigger(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
