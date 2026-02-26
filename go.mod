@@ -7,6 +7,7 @@ toolchain go1.25.5
 require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/google/go-github/v80 v80.0.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/mark3labs/mcp-go v0.44.0
 	github.com/nullify-platform/logger v1.27.12
 	github.com/spf13/cobra v1.10.2
@@ -48,7 +49,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
