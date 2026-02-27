@@ -161,7 +161,7 @@ main() {
   if [ -n "$NULLIFY_HOST" ]; then
     echo "Run 'nullify auth login' to authenticate."
   else
-    echo "Run 'nullify auth login --host api.<your-instance>.nullify.ai' to get started."
+    echo "Run 'nullify auth login --host <your-instance>.nullify.ai' to get started."
   fi
 }
 

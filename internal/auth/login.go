@@ -197,7 +197,7 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.createCLISession")
 	defer span.End()
 
-	url := fmt.Sprintf("https://%s/auth/cli/session", host)
+	url := fmt.Sprintf("https://%s/auth/cli/session", apiHost(host))
 
 	bodyData, err := json.Marshal(map[string]int{"port": port})
 	if err != nil {
@@ -233,7 +233,7 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliToke
 	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.fetchCLIToken")
 	defer span.End()
 
-	url := fmt.Sprintf("https://%s/auth/cli/token", host)
+	url := fmt.Sprintf("https://%s/auth/cli/token", apiHost(host))
 
 	bodyData, err := json.Marshal(map[string]string{"session_id": sessionID})
 	if err != nil {
@@ -269,7 +269,7 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.refreshToken")
 	defer span.End()
 
-	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", host, url.QueryEscape(refreshTok))
+	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", apiHost(host), url.QueryEscape(refreshTok))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
 	if err != nil {
@@ -310,6 +310,14 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	}
 
 	return result.AccessToken, nil
+}
+
+// apiHost returns the API hostname, prepending "api." if not already present.
+func apiHost(host string) string {
+	if strings.HasPrefix(host, "api.") {
+		return host
+	}
+	return "api." + host
 }
 
 func openBrowser(url string) error {
