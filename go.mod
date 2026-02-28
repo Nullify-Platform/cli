@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/google/go-github/v80 v80.0.0
+	github.com/google/go-github/v84 v84.0.0
 	github.com/mark3labs/mcp-go v0.44.1
 	github.com/nullify-platform/logger v1.31.0
 	github.com/spf13/cobra v1.10.2
@@ -45,7 +45,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
