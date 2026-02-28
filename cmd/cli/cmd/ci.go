@@ -68,16 +68,21 @@ Exit codes:
 		}
 
 		totalFindings := 0
+		apiErrors := 0
+		totalRequests := 0
 		for _, ep := range endpoints {
 			for _, sev := range severities {
+				totalRequests++
 				params := []string{"severity", sev, "status", "open", "limit", "1"}
 				if repo != "" {
 					params = append(params, "repository", repo)
 				}
 				qs := lib.BuildQueryString(queryParams, params...)
 
-				body, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
+				body, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 				if err != nil {
+					fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+					apiErrors++
 					continue
 				}
 
@@ -87,6 +92,11 @@ Exit codes:
 					fmt.Printf("FAIL: %s has %d %s findings\n", ep.name, count, sev)
 				}
 			}
+		}
+
+		if apiErrors > 0 && apiErrors == totalRequests {
+			fmt.Fprintf(os.Stderr, "Error: all API requests failed, cannot determine gate status\n")
+			os.Exit(1)
 		}
 
 		if totalFindings > 0 {
@@ -143,8 +153,9 @@ var ciReportCmd = &cobra.Command{
 				}
 				qs := lib.BuildQueryString(queryParams, params...)
 
-				body, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
+				body, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 				if err != nil {
+					fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
 					continue
 				}
 

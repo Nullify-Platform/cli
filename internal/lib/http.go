@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,8 +35,8 @@ type Doer interface {
 
 // DoGet performs a GET request and returns the response body as a string.
 // Returns an error if the request fails or the status code is not 2xx.
-func DoGet(httpClient Doer, baseURL, path string) (string, error) {
-	req, err := http.NewRequest("GET", baseURL+path, nil)
+func DoGet(ctx context.Context, httpClient Doer, baseURL, path string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+path, nil)
 	if err != nil {
 		return "", err
 	}

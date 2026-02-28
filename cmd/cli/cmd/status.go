@@ -39,7 +39,7 @@ var securityStatusCmd = &cobra.Command{
 
 		// Fetch metrics overview
 		qs := lib.BuildQueryString(queryParams)
-		overviewBody, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, "/admin/metrics/overview"+qs)
+		overviewBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, "/admin/metrics/overview"+qs)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error fetching metrics: %v\n", err)
 			os.Exit(1)
@@ -66,7 +66,7 @@ var securityStatusCmd = &cobra.Command{
 
 		for _, scanner := range scanners {
 			scannerQS := lib.BuildQueryString(queryParams, "limit", "1")
-			body, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, scanner.path+scannerQS)
+			body, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, scanner.path+scannerQS)
 			if err != nil {
 				fmt.Printf("%-20s error: %v\n", scanner.name, err)
 				continue

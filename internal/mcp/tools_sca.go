@@ -69,7 +69,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 				body["reason"] = r
 			}
 			qs := buildQueryString(queryParams)
-			return doPut(c, fmt.Sprintf("/sca/dependencies/findings/%s/triage%s", id, qs), body)
+			return doPut(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/triage%s", id, qs), body)
 		},
 	)
 
@@ -83,7 +83,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doPost(c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/cache/create_pr%s", id, qs), nil)
+			return doPost(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/cache/create_pr%s", id, qs), nil)
 		},
 	)
 
@@ -97,7 +97,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doPost(c, fmt.Sprintf("/sca/dependencies/findings/%s/ticket%s", id, qs), nil)
+			return doPost(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/ticket%s", id, qs), nil)
 		},
 	)
 
@@ -111,7 +111,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doPost(c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/fix%s", id, qs), nil)
+			return doPost(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/fix%s", id, qs), nil)
 		},
 	)
 
@@ -125,7 +125,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doGet(c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/cache/diff%s", id, qs))
+			return doGet(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/cache/diff%s", id, qs))
 		},
 	)
 
@@ -139,7 +139,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doGet(c, fmt.Sprintf("/sca/dependencies/findings/%s/events%s", id, qs))
+			return doGet(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/events%s", id, qs))
 		},
 	)
 
@@ -159,7 +159,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 				body["reason"] = r
 			}
 			qs := buildQueryString(queryParams)
-			return doPut(c, fmt.Sprintf("/sca/containers/findings/%s/triage%s", id, qs), body)
+			return doPut(ctx, c, fmt.Sprintf("/sca/containers/findings/%s/triage%s", id, qs), body)
 		},
 	)
 }

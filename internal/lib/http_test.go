@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -75,7 +76,7 @@ func TestDoGet(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		body, err := DoGet(srv.Client(), srv.URL, "/test/path")
+		body, err := DoGet(context.Background(), srv.Client(), srv.URL, "/test/path")
 		require.NoError(t, err)
 		require.Equal(t, `{"ok":true}`, body)
 	})
@@ -87,7 +88,7 @@ func TestDoGet(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		_, err := DoGet(srv.Client(), srv.URL, "/fail")
+		_, err := DoGet(context.Background(), srv.Client(), srv.URL, "/fail")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "403")
 	})

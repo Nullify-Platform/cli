@@ -14,19 +14,19 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func doGet(c *client.NullifyClient, path string) (*mcp.CallToolResult, error) {
-	return doRequest(c, "GET", path, nil)
+func doGet(ctx context.Context, c *client.NullifyClient, path string) (*mcp.CallToolResult, error) {
+	return doRequest(ctx, c, "GET", path, nil)
 }
 
-func doPost(c *client.NullifyClient, path string, payload any) (*mcp.CallToolResult, error) {
-	return doRequest(c, "POST", path, payload)
+func doPost(ctx context.Context, c *client.NullifyClient, path string, payload any) (*mcp.CallToolResult, error) {
+	return doRequest(ctx, c, "POST", path, payload)
 }
 
-func doPut(c *client.NullifyClient, path string, payload any) (*mcp.CallToolResult, error) {
-	return doRequest(c, "PUT", path, payload)
+func doPut(ctx context.Context, c *client.NullifyClient, path string, payload any) (*mcp.CallToolResult, error) {
+	return doRequest(ctx, c, "PUT", path, payload)
 }
 
-func doRequest(c *client.NullifyClient, method string, path string, payload any) (*mcp.CallToolResult, error) {
+func doRequest(ctx context.Context, c *client.NullifyClient, method string, path string, payload any) (*mcp.CallToolResult, error) {
 	var bodyReader io.Reader
 	if payload != nil {
 		data, err := json.Marshal(payload)
@@ -36,7 +36,7 @@ func doRequest(c *client.NullifyClient, method string, path string, payload any)
 		bodyReader = bytes.NewReader(data)
 	}
 
-	req, err := http.NewRequest(method, c.BaseURL+path, bodyReader)
+	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, bodyReader)
 	if err != nil {
 		return toolError(err), nil
 	}
@@ -75,7 +75,7 @@ func makeGetHandler(c *client.NullifyClient, basePath string, queryParams map[st
 			}
 		}
 		qs := buildQueryString(queryParams, extra...)
-		return doGet(c, basePath+qs)
+		return doGet(ctx, c, basePath+qs)
 	}
 }
 
@@ -85,6 +85,6 @@ func makeGetByIDHandler(c *client.NullifyClient, basePath string, queryParams ma
 		args := request.GetArguments()
 		id := getStringArg(args, "id")
 		qs := buildQueryString(queryParams)
-		return doGet(c, fmt.Sprintf("%s/%s%s", basePath, id, qs))
+		return doGet(ctx, c, fmt.Sprintf("%s/%s%s", basePath, id, qs))
 	}
 }

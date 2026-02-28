@@ -19,7 +19,7 @@ func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
 			qs := buildQueryString(queryParams)
-			result, err := doGet(c, "/admin/metrics/overview"+qs)
+			result, err := doGet(ctx, c, "/admin/metrics/overview"+qs)
 			if err != nil {
 				return nil, err
 			}
@@ -50,7 +50,7 @@ func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
 			qs := buildQueryString(queryParams)
-			result, err := doGet(c, "/classifier/repositories"+qs)
+			result, err := doGet(ctx, c, "/classifier/repositories"+qs)
 			if err != nil {
 				return nil, err
 			}

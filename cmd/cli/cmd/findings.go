@@ -84,7 +84,7 @@ Auto-detects the current repository from git if --repo is not specified.`,
 			qs := lib.BuildQueryString(queryParams, params...)
 			path := ep.path + qs
 
-			resp, err := lib.DoGet(nullifyClient.HttpClient, nullifyClient.BaseURL, path)
+			resp, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, path)
 			if err != nil {
 				results = append(results, findingResult{Type: ep.name, Error: err.Error()})
 				continue

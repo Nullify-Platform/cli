@@ -16,11 +16,9 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 	s.AddTool(
 		mcp.NewTool(
 			"get_security_posture_summary",
-			mcp.WithDescription("Get a high-level security posture summary across all finding types (SAST, SCA dependencies, SCA containers, secrets, pentest). Returns counts by severity for each finding type. This is typically the first tool an AI agent should call to understand the overall security state."),
+			mcp.WithDescription("Get a high-level security posture summary across all finding types (SAST, SCA dependencies, SCA containers, secrets, pentest, bughunt, CSPM). Returns counts by severity for each finding type. This is typically the first tool an AI agent should call to understand the overall security state."),
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			qs := buildQueryString(queryParams)
-
 			type findingCount struct {
 				Type  string          `json:"type"`
 				Error string          `json:"error,omitempty"`
@@ -35,12 +33,15 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 				{"sca_dependencies", "/sca/dependencies/findings"},
 				{"sca_containers", "/sca/containers/findings"},
 				{"secrets", "/secrets/findings"},
-				{"dast_pentest", "/dast/pentest/findings"},
+				{"pentest", "/dast/pentest/findings"},
+				{"bughunt", "/dast/bughunt/findings"},
+				{"cspm", "/cspm/findings"},
 			}
 
 			var results []findingCount
+			epQS := buildQueryString(queryParams, "limit", "1")
 			for _, ep := range endpoints {
-				result, err := doGet(c, ep.path+qs+"&limit=1")
+				result, err := doGet(ctx, c, ep.path+epQS)
 				if err != nil {
 					results = append(results, findingCount{Type: ep.name, Error: err.Error()})
 					continue
@@ -89,9 +90,9 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 			}
 
 			var parts []string
+			qs := buildQueryString(queryParams, extra...)
 			for _, ep := range endpoints {
-				qs := buildQueryString(queryParams, extra...)
-				result, err := doGet(c, ep.path+qs)
+				result, err := doGet(ctx, c, ep.path+qs)
 				if err != nil {
 					parts = append(parts, fmt.Sprintf("--- %s ---\nError: %v", ep.name, err))
 					continue
@@ -131,19 +132,19 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 			}
 
 			// Step 1: Generate autofix
-			_, err := doPost(c, fmt.Sprintf("%s/%s/autofix/fix%s", basePath, findingID, qs), nil)
+			_, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/fix%s", basePath, findingID, qs), nil)
 			if err != nil {
 				return toolError(fmt.Errorf("generate autofix failed: %w", err)), nil
 			}
 
 			// Step 2: Get diff
-			diffResult, err := doGet(c, fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, findingID, qs))
+			diffResult, err := doGet(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, findingID, qs))
 			if err != nil {
 				return toolError(fmt.Errorf("get diff failed: %w", err)), nil
 			}
 
 			// Step 3: Create PR
-			prResult, err := doPost(c, fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, findingID, qs), nil)
+			prResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, findingID, qs), nil)
 			if err != nil {
 				return toolError(fmt.Errorf("create PR failed: %w", err)), nil
 			}
@@ -191,7 +192,7 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 				for _, sev := range []string{"critical", "high"} {
 					extra := []string{"severity", sev, "limit", fmt.Sprintf("%d", limit)}
 					qs := buildQueryString(queryParams, extra...)
-					result, err := doGet(c, ep.path+qs)
+					result, err := doGet(ctx, c, ep.path+qs)
 					if err != nil {
 						continue
 					}
@@ -226,14 +227,14 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 
 			// Get overview
 			overviewQS := buildQueryString(queryParams)
-			overviewResult, err := doGet(c, "/admin/metrics/overview"+overviewQS)
+			overviewResult, err := doGet(ctx, c, "/admin/metrics/overview"+overviewQS)
 			if err != nil {
 				return toolError(err), nil
 			}
 
 			// Get over-time data
 			timeQS := buildQueryString(queryParams, "period", period)
-			timeResult, err := doGet(c, "/admin/metrics/over-time"+timeQS)
+			timeResult, err := doGet(ctx, c, "/admin/metrics/over-time"+timeQS)
 			if err != nil {
 				return toolError(err), nil
 			}

@@ -69,7 +69,7 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			repoID := getStringArg(args, "repo_id")
 			projectID := getStringArg(args, "project_id")
 			qs := buildQueryString(queryParams)
-			return doGet(c, fmt.Sprintf("/classifier/sboms/repository/%s/project/%s%s", repoID, projectID, qs))
+			return doGet(ctx, c, fmt.Sprintf("/classifier/sboms/repository/%s/project/%s%s", repoID, projectID, qs))
 		},
 	)
 

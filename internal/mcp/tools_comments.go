@@ -21,7 +21,7 @@ func registerCommentTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			args := request.GetArguments()
 			findingID := getStringArg(args, "finding_id")
 			qs := buildQueryString(queryParams)
-			return doGet(c, fmt.Sprintf("/chat/comments/finding/%s%s", findingID, qs))
+			return doGet(ctx, c, fmt.Sprintf("/chat/comments/finding/%s%s", findingID, qs))
 		},
 	)
 
@@ -39,7 +39,7 @@ func registerCommentTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 				"message":   getStringArg(args, "message"),
 			}
 			qs := buildQueryString(queryParams)
-			return doPost(c, fmt.Sprintf("/chat/comments%s", qs), body)
+			return doPost(ctx, c, fmt.Sprintf("/chat/comments%s", qs), body)
 		},
 	)
 }

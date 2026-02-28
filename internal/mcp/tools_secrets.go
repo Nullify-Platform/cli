@@ -42,7 +42,7 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doPost(c, fmt.Sprintf("/secrets/findings/%s/ticket%s", id, qs), nil)
+			return doPost(ctx, c, fmt.Sprintf("/secrets/findings/%s/ticket%s", id, qs), nil)
 		},
 	)
 
@@ -56,7 +56,7 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doGet(c, fmt.Sprintf("/secrets/findings/%s/events%s", id, qs))
+			return doGet(ctx, c, fmt.Sprintf("/secrets/findings/%s/events%s", id, qs))
 		},
 	)
 
@@ -76,7 +76,7 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 				body["reason"] = r
 			}
 			qs := buildQueryString(queryParams)
-			return doPut(c, fmt.Sprintf("/secrets/findings/%s/triage%s", id, qs), body)
+			return doPut(ctx, c, fmt.Sprintf("/secrets/findings/%s/triage%s", id, qs), body)
 		},
 	)
 }
