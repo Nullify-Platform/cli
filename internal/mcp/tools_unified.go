@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/client"
@@ -35,6 +36,7 @@ func allFindingTypeNames() []string {
 	for name := range findingTypes {
 		names = append(names, name)
 	}
+	sort.Strings(names)
 	return names
 }
 
@@ -45,6 +47,7 @@ func filterTypesByCapability(capFn func(findingTypeConfig) bool) []string {
 			names = append(names, name)
 		}
 	}
+	sort.Strings(names)
 	return names
 }
 

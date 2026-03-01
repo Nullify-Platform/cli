@@ -164,30 +164,54 @@ var ciReportCmd = &cobra.Command{
 		}
 
 		endpoints := allScannerEndpoints()
+		severities := []string{"critical", "high", "medium", "low"}
+
+		type reportRow struct {
+			scanner  string
+			severity string
+			count    int
+		}
+
+		rows := make([]reportRow, len(endpoints)*len(severities))
+		g, gctx := errgroup.WithContext(ctx)
+
+		for i, ep := range endpoints {
+			for j, sev := range severities {
+				i, j, ep, sev := i, j, ep, sev
+				g.Go(func() error {
+					// limit=1 is used to check existence, not count exact totals
+					params := []string{"severity", sev, "status", "open", "limit", "1"}
+					if repo != "" {
+						params = append(params, "repository", repo)
+					}
+					qs := lib.BuildQueryString(queryParams, params...)
+
+					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+						return nil
+					}
+
+					rows[i*len(severities)+j] = reportRow{
+						scanner:  ep.name,
+						severity: sev,
+						count:    countFindings(body),
+					}
+					return nil
+				})
+			}
+		}
+
+		_ = g.Wait()
 
 		fmt.Println("## Nullify Security Report")
 		fmt.Println()
 		fmt.Println("| Scanner | Severity | Count |")
 		fmt.Println("|---------|----------|-------|")
 
-		for _, ep := range endpoints {
-			for _, sev := range []string{"critical", "high", "medium", "low"} {
-				params := []string{"severity", sev, "status", "open", "limit", "1"}
-				if repo != "" {
-					params = append(params, "repository", repo)
-				}
-				qs := lib.BuildQueryString(queryParams, params...)
-
-				body, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
-					continue
-				}
-
-				count := countFindings(body)
-				if count > 0 {
-					fmt.Printf("| %s | %s | %d |\n", ep.name, sev, count)
-				}
+		for _, row := range rows {
+			if row.count > 0 {
+				fmt.Printf("| %s | %s | %d |\n", row.scanner, row.severity, row.count)
 			}
 		}
 
@@ -218,6 +242,8 @@ func severitiesAboveThreshold(threshold string) []string {
 	return []string{"critical", "high"}
 }
 
+// countFindings extracts a count from API response JSON. When used with limit=1,
+// it returns 0 or 1 to indicate whether findings exist at a given severity.
 func countFindings(body string) int {
 	var result any
 	if err := json.Unmarshal([]byte(body), &result); err != nil {

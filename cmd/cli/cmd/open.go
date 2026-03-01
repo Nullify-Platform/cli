@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/logger/pkg/logger"
@@ -17,7 +18,9 @@ var openCmd = &cobra.Command{
 		defer logger.L(ctx).Sync()
 
 		openHost := resolveHost(ctx)
-		url := "https://" + openHost
+		// Strip "api." prefix to get the dashboard URL
+		dashboardHost := strings.TrimPrefix(openHost, "api.")
+		url := "https://" + dashboardHost
 
 		if !quiet {
 			fmt.Fprintf(os.Stderr, "Opening %s...\n", url)

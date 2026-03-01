@@ -82,10 +82,11 @@ func (t *refreshingAuthTransport) getToken() string {
 func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	token := t.getToken()
 
-	req.URL.Scheme = "https"
-	req.URL.Host = t.nullifyHost
-	req.Host = t.nullifyHost
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("User-Agent", "Nullify-CLI/mcp")
-	return t.transport.RoundTrip(req)
+	r := req.Clone(req.Context())
+	r.URL.Scheme = "https"
+	r.URL.Host = t.nullifyHost
+	r.Host = t.nullifyHost
+	r.Header.Set("Authorization", "Bearer "+token)
+	r.Header.Set("User-Agent", "Nullify-CLI/mcp")
+	return t.transport.RoundTrip(r)
 }

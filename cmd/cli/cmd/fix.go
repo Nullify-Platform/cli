@@ -71,7 +71,7 @@ Supports SAST and SCA dependency findings.`,
 		if !quiet {
 			fmt.Fprintf(os.Stderr, "Generating fix for %s finding %s...\n", findingType, findingID)
 		}
-		_, err = lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
+		_, err = lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
 			fmt.Sprintf("%s/%s/autofix/fix%s", basePath, findingID, qs))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error generating fix: %v\n", err)
@@ -97,7 +97,7 @@ Supports SAST and SCA dependency findings.`,
 			if !quiet {
 				fmt.Fprintf(os.Stderr, "Creating PR...\n")
 			}
-			prBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
+			prBody, err := lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
 				fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, findingID, qs))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error creating PR: %v\n", err)
