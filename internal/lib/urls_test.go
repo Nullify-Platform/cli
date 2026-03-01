@@ -84,6 +84,18 @@ func TestSanitizeNullifyHost(t *testing.T) {
 			wantErr:      false,
 		},
 		{
+			name:         "bare host without api prefix",
+			inputHost:    "acme.nullify.ai",
+			expectedHost: "acme.nullify.ai",
+			wantErr:      false,
+		},
+		{
+			name:         "bare host with scheme",
+			inputHost:    "https://acme.nullify.ai",
+			expectedHost: "acme.nullify.ai",
+			wantErr:      false,
+		},
+		{
 			name:         "input host with invalid scheme delimiter",
 			inputHost:    "random:/|api.example.nullify.ai",
 			expectedHost: "",

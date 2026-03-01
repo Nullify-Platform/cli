@@ -405,6 +405,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 // Client is a typed HTTP client for the Nullify API.
@@ -417,8 +418,12 @@ type Client struct {
 
 // NewClient creates a new Nullify API client.
 func NewClient(host string, token string, defaultParams map[string]string) *Client {
+	apiHost := host
+	if !strings.HasPrefix(host, "api.") {
+		apiHost = "api." + host
+	}
 	return &Client{
-		BaseURL:       "https://" + host,
+		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
 		HTTPClient:    &http.Client{},
