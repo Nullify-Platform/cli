@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
@@ -79,7 +78,6 @@ Auto-detects the current repository from git if --repo is not specified.`,
 		}
 
 		results := make([]findingResult, len(endpoints))
-		var mu sync.Mutex
 		g, gctx := errgroup.WithContext(ctx)
 
 		for i, ep := range endpoints {
@@ -101,8 +99,6 @@ Auto-detects the current repository from git if --repo is not specified.`,
 				path := ep.path + qs
 
 				resp, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, path)
-				mu.Lock()
-				defer mu.Unlock()
 				if err != nil {
 					results[i] = findingResult{Type: ep.name, Error: err.Error()}
 				} else {

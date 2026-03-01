@@ -68,7 +68,7 @@ func init() {
 		token, err := lib.GetNullifyToken(ctx, nullifyHost, nullifyToken, githubToken)
 		if err != nil {
 			logger.L(ctx).Error("failed to get token", logger.Err(err))
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		// Load default query parameters from stored credentials
@@ -159,7 +159,7 @@ func resolveHost(ctx context.Context) string {
 	}
 
 	logger.L(ctx).Error("no host configured. Run 'nullify init' to set up, or 'nullify auth login --host <your-instance>.nullify.ai' to configure.")
-	os.Exit(1)
+	os.Exit(ExitAuthError)
 	return ""
 }
 
@@ -172,7 +172,7 @@ func getNullifyClient(ctx context.Context) *client.NullifyClient {
 			"failed to get token. Run 'nullify auth login' to authenticate.",
 			logger.Err(err),
 		)
-		os.Exit(1)
+		os.Exit(ExitAuthError)
 	}
 
 	return client.NewNullifyClient(nullifyHost, token)

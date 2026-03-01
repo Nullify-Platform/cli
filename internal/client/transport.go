@@ -13,10 +13,11 @@ type authTransport struct {
 }
 
 func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.URL.Scheme = "https"
-	req.URL.Host = t.nullifyHost
-	req.Host = t.nullifyHost
-	req.Header.Set("Authorization", "Bearer "+t.token)
-	req.Header.Set("User-Agent", "Nullify-CLI/"+logger.Version)
-	return t.transport.RoundTrip(req)
+	r := req.Clone(req.Context())
+	r.URL.Scheme = "https"
+	r.URL.Host = t.nullifyHost
+	r.Host = t.nullifyHost
+	r.Header.Set("Authorization", "Bearer "+t.token)
+	r.Header.Set("User-Agent", "Nullify-CLI/"+logger.Version)
+	return t.transport.RoundTrip(r)
 }

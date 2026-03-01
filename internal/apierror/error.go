@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type errorBody struct {
@@ -48,7 +49,7 @@ func HandleError(resp *http.Response) error {
 		}
 	}
 
-	if resp.Header.Get("Content-Type") == "application/json" {
+	if strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
 		var errBody errorBody
 		if json.Unmarshal(body, &errBody) == nil && errBody.Error != "" {
 			return &APIError{

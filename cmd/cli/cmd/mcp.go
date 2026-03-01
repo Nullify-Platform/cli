@@ -30,8 +30,8 @@ var mcpServeCmd = &cobra.Command{
 
 		mcpHost := resolveHost(ctx)
 
-		token, err := auth.GetValidToken(ctx, mcpHost)
-		if err != nil {
+		// Validate that we have a working token before starting the server
+		if _, err := auth.GetValidToken(ctx, mcpHost); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
 			os.Exit(1)
 		}
@@ -81,7 +81,6 @@ var mcpServeCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Error: failed to create client: %v\n", clientErr)
 			os.Exit(1)
 		}
-		_ = token // initial token is used by the refreshing client internally
 
 		err = mcp.ServeWithClient(ctx, nullifyClient, queryParams, toolSet)
 		if err != nil {

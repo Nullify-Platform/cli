@@ -1,6 +1,8 @@
 package client
 
 import (
+	"bytes"
+	"io"
 	"math"
 	"math/rand"
 	"net/http"
@@ -26,10 +28,26 @@ func newRetryTransport(transport http.RoundTripper) http.RoundTripper {
 }
 
 func (t *retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Buffer the request body so we can replay it on retries.
+	var bodyBytes []byte
+	if req.Body != nil {
+		var err error
+		bodyBytes, err = io.ReadAll(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		req.Body.Close()
+		req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+	}
+
 	var resp *http.Response
 	var err error
 
 	for attempt := 0; attempt <= t.maxRetries; attempt++ {
+		if attempt > 0 && bodyBytes != nil {
+			req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+		}
+
 		resp, err = t.transport.RoundTrip(req)
 		if err != nil {
 			return nil, err
@@ -39,7 +57,7 @@ func (t *retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return resp, nil
 		}
 
-		// Drain and close the body before retrying
+		// Drain and close the response body before retrying
 		resp.Body.Close()
 
 		delay := t.backoffDelay(attempt)
