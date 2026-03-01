@@ -45,13 +45,13 @@ var loginCmd = &cobra.Command{
 
 		// If still no host, prompt
 		if loginHost == "" {
-			fmt.Print("Enter your Nullify instance (e.g., api.acme.nullify.ai): ")
+			fmt.Print("Enter your Nullify instance (e.g., acme.nullify.ai): ")
 			_, _ = fmt.Scanln(&loginHost)
 		}
 
 		sanitizedHost, err := lib.SanitizeNullifyHost(loginHost)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: invalid host %q - must be in the format api.<your-instance>.nullify.ai\n", loginHost)
+			fmt.Fprintf(os.Stderr, "Error: invalid host %q - must be in the format <your-instance>.nullify.ai\n", loginHost)
 			os.Exit(1)
 		}
 
@@ -90,12 +90,12 @@ var statusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := auth.LoadConfig()
 		if err != nil {
-			fmt.Println("Not configured. Run 'nullify auth login --host api.<your-instance>.nullify.ai' to get started.")
+			fmt.Println("Not configured. Run 'nullify auth login --host <your-instance>.nullify.ai' to get started.")
 			return
 		}
 
 		if cfg.Host == "" {
-			fmt.Println("No host configured. Run 'nullify auth login --host api.<your-instance>.nullify.ai'")
+			fmt.Println("No host configured. Run 'nullify auth login --host <your-instance>.nullify.ai'")
 			return
 		}
 
@@ -160,7 +160,7 @@ var switchCmd = &cobra.Command{
 			// List available hosts
 			creds, err := auth.LoadCredentials()
 			if err != nil || len(creds) == 0 {
-				fmt.Println("No configured hosts. Run 'nullify auth login --host api.<your-instance>.nullify.ai'")
+				fmt.Println("No configured hosts. Run 'nullify auth login --host <your-instance>.nullify.ai'")
 				return
 			}
 

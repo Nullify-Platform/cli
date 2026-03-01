@@ -50,8 +50,8 @@ func SanitizeNullifyHost(nullifyHost string) (string, error) {
 		return "", err
 	}
 
-	if !strings.HasPrefix(nullifyURL.Host, "api.") || !strings.HasSuffix(nullifyURL.Host, ".nullify.ai") {
-		return "", errors.New("invalid host, must be in the format api.<your-instance>.nullify.ai")
+	if !strings.HasSuffix(nullifyURL.Host, ".nullify.ai") {
+		return "", errors.New("invalid host, must be in the format <your-instance>.nullify.ai")
 	}
 
 	return nullifyURL.Host, nil
