@@ -108,7 +108,7 @@ func Login(ctx context.Context, host string) error {
 	fmt.Printf("\nOpening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", sessionResp.AuthURL)
 
-	if err := openBrowser(sessionResp.AuthURL); err != nil {
+	if err := OpenBrowser(sessionResp.AuthURL); err != nil {
 		logger.L(ctx).Debug("could not open browser automatically", logger.Err(err))
 		fmt.Println("(Could not open browser automatically. Please open the URL above manually.)")
 	}
@@ -269,6 +269,7 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.refreshToken")
 	defer span.End()
 
+	// TODO(security): Migrate to POST with JSON body to avoid sending refresh token in query string.
 	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", apiHost(host), url.QueryEscape(refreshTok))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
@@ -320,7 +321,8 @@ func apiHost(host string) string {
 	return "api." + host
 }
 
-func openBrowser(url string) error {
+// OpenBrowser opens the given URL in the user's default browser.
+func OpenBrowser(url string) error {
 	var cmd *exec.Cmd
 
 	switch runtime.GOOS {

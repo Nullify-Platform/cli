@@ -80,6 +80,22 @@ var serviceMapping = map[string]string{
 	"/ticket/":         "ticket",
 }
 
+// serviceDescriptions maps service names to human-readable descriptions.
+var serviceDescriptions = map[string]string{
+	"sast":           "Static Application Security Testing (SAST)",
+	"sca":            "Software Composition Analysis (SCA)",
+	"secrets":        "Secrets Detection",
+	"dast":           "Dynamic Application Security Testing (DAST)",
+	"admin":          "Administration and Metrics",
+	"manager":        "Finding Lifecycle Management",
+	"classifier":     "Repository and Code Classification",
+	"cspm":           "Cloud Security Posture Management (CSPM)",
+	"infrastructure": "Infrastructure Graph",
+	"chat":           "AI Chat",
+	"orchestrator":   "Orchestration and Automation",
+	"ticket":         "Ticket Integration",
+}
+
 // Paths to exclude from CLI generation
 var excludePrefixes = []string{
 	"/internal/",
@@ -309,6 +325,18 @@ func toPascalCase(s string) string {
 	return result
 }
 
+func toKebabCase(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if unicode.IsUpper(r) && i > 0 {
+			result.WriteRune('-')
+		}
+		result.WriteRune(unicode.ToLower(r))
+	}
+	// Also replace underscores with hyphens
+	return strings.ReplaceAll(result.String(), "_", "-")
+}
+
 func extractSchemaName(ref string) string {
 	if ref == "" {
 		return ""
@@ -405,7 +433,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"time"
 )
+
+// Version is set at build time via ldflags.
+var Version = "dev"
 
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
@@ -421,7 +454,7 @@ func NewClient(host string, token string, defaultParams map[string]string) *Clie
 		BaseURL:       "https://" + host,
 		Token:         token,
 		DefaultParams: defaultParams,
-		HTTPClient:    &http.Client{},
+		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
@@ -432,6 +465,7 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 
 	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("User-Agent", "Nullify-CLI/"+Version)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -442,7 +476,7 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return nil, err
 	}
@@ -482,8 +516,12 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 	sb.WriteString("\n\t\"github.com/nullify-platform/cli/internal/api\"\n\t\"github.com/nullify-platform/cli/internal/output\"\n\t\"github.com/spf13/cobra\"\n\t\"github.com/spf13/pflag\"\n)\n\n")
 
 	svcPascal := toPascalCase(service)
+	svcDesc := serviceDescriptions[service]
+	if svcDesc == "" {
+		svcDesc = svcPascal + " commands"
+	}
 	sb.WriteString(fmt.Sprintf("func Register%sCommands(parent *cobra.Command, getClient func() *api.Client) {\n", svcPascal))
-	sb.WriteString(fmt.Sprintf("\tserviceCmd := &cobra.Command{\n\t\tUse:   %q,\n\t\tShort: %q,\n\t}\n\tparent.AddCommand(serviceCmd)\n\n", service, svcPascal+" commands"))
+	sb.WriteString(fmt.Sprintf("\tserviceCmd := &cobra.Command{\n\t\tUse:   %q,\n\t\tShort: %q,\n\t}\n\tparent.AddCommand(serviceCmd)\n\n", service, svcDesc))
 
 	for _, ep := range endpoints {
 		cobraUse := generateCobraUse(ep)
@@ -511,7 +549,30 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 		sb.WriteString("\t\t\tRunE: func(cmd *cobra.Command, args []string) error {\n")
 		sb.WriteString("\t\t\t\tclient := getClient()\n")
 		sb.WriteString("\t\t\t\tparams := url.Values{}\n")
-		sb.WriteString("\t\t\t\tcmd.Flags().Visit(func(f *pflag.Flag) {\n\t\t\t\t\tparams.Set(f.Name, f.Value.String())\n\t\t\t\t})\n")
+
+		// Build a flag name → API param name mapping for kebab-case translation
+		hasKebabFlags := false
+		for _, p := range queryParams {
+			kebab := toKebabCase(p.Name)
+			if kebab != p.Name {
+				hasKebabFlags = true
+				break
+			}
+		}
+
+		if hasKebabFlags {
+			sb.WriteString("\t\t\t\tflagMap := map[string]string{\n")
+			for _, p := range queryParams {
+				kebab := toKebabCase(p.Name)
+				if kebab != p.Name {
+					sb.WriteString(fmt.Sprintf("\t\t\t\t\t%q: %q,\n", kebab, p.Name))
+				}
+			}
+			sb.WriteString("\t\t\t\t}\n")
+			sb.WriteString("\t\t\t\tcmd.Flags().Visit(func(f *pflag.Flag) {\n\t\t\t\t\tif apiName, ok := flagMap[f.Name]; ok {\n\t\t\t\t\t\tparams.Set(apiName, f.Value.String())\n\t\t\t\t\t} else {\n\t\t\t\t\t\tparams.Set(f.Name, f.Value.String())\n\t\t\t\t\t}\n\t\t\t\t})\n")
+		} else {
+			sb.WriteString("\t\t\t\tcmd.Flags().Visit(func(f *pflag.Flag) {\n\t\t\t\t\tparams.Set(f.Name, f.Value.String())\n\t\t\t\t})\n")
+		}
 
 		if pathParamName != "" {
 			sb.WriteString(fmt.Sprintf("\t\t\t\tif len(args) > 0 {\n\t\t\t\t\tparams.Set(%q, args[0])\n\t\t\t\t}\n", pathParamName))
@@ -529,7 +590,8 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 
 		for _, p := range queryParams {
 			desc := strings.ReplaceAll(p.Description, `"`, `\"`)
-			fmt.Fprintf(&sb, "\t\tcmd.Flags().String(%q, \"\", %q)\n", p.Name, desc)
+			flagName := toKebabCase(p.Name)
+			fmt.Fprintf(&sb, "\t\tcmd.Flags().String(%q, \"\", %q)\n", flagName, desc)
 		}
 
 		sb.WriteString("\t\tserviceCmd.AddCommand(cmd)\n\t}\n\n")

@@ -7,6 +7,18 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+func promptResult(description, text string) *mcplib.GetPromptResult {
+	return &mcplib.GetPromptResult{
+		Description: description,
+		Messages: []mcplib.PromptMessage{
+			{
+				Role:    mcplib.RoleUser,
+				Content: mcplib.NewTextContent(text),
+			},
+		},
+	}
+}
+
 func registerPrompts(s *server.MCPServer) {
 	s.AddPrompt(
 		mcplib.Prompt{
@@ -115,6 +127,96 @@ func registerPrompts(s *server.MCPServer) {
 					},
 				},
 			}, nil
+		},
+	)
+
+	s.AddPrompt(
+		mcplib.Prompt{
+			Name:        "security-posture-overview",
+			Description: "Get a comprehensive overview of the organization's security posture with trends.",
+		},
+		func(ctx context.Context, request mcplib.GetPromptRequest) (*mcplib.GetPromptResult, error) {
+			return promptResult(
+				"Security posture overview",
+				"First, call the get_security_posture_summary tool to get current finding counts across all scanner types. "+
+					"Then call get_security_trends with period 30d to see how the posture has changed. "+
+					"Summarize the overall security state, highlight areas of concern, and note any improving or worsening trends.",
+			), nil
+		},
+	)
+
+	s.AddPrompt(
+		mcplib.Prompt{
+			Name:        "investigate-repo",
+			Description: "Deep-dive investigation of a specific repository's security findings.",
+			Arguments: []mcplib.PromptArgument{
+				{Name: "repository", Description: "The repository to investigate", Required: true},
+			},
+		},
+		func(ctx context.Context, request mcplib.GetPromptRequest) (*mcplib.GetPromptResult, error) {
+			repo := request.Params.Arguments["repository"]
+			return promptResult(
+				"Repository investigation",
+				"Investigate the security posture of the "+repo+" repository. "+
+					"Call nullify_search_findings for each finding type (sast, sca_dependency, sca_container, secrets, pentest, bughunt, cspm) with repository="+repo+". "+
+					"Summarize the findings by type and severity, identify the most critical issues, and recommend a prioritized remediation plan.",
+			), nil
+		},
+	)
+
+	s.AddPrompt(
+		mcplib.Prompt{
+			Name:        "remediation-plan",
+			Description: "Create a prioritized remediation plan for a repository.",
+			Arguments: []mcplib.PromptArgument{
+				{Name: "repository", Description: "The repository to plan remediation for", Required: true},
+			},
+		},
+		func(ctx context.Context, request mcplib.GetPromptRequest) (*mcplib.GetPromptResult, error) {
+			repo := request.Params.Arguments["repository"]
+			return promptResult(
+				"Remediation plan",
+				"Create a prioritized remediation plan for the "+repo+" repository. "+
+					"First, search for all critical and high severity findings using nullify_search_findings with repository="+repo+". "+
+					"For each finding, assess the effort to fix and business impact. "+
+					"Produce a prioritized list of actions with estimated effort and expected risk reduction.",
+			), nil
+		},
+	)
+
+	s.AddPrompt(
+		mcplib.Prompt{
+			Name:        "compare-repos",
+			Description: "Compare the security posture of two repositories.",
+			Arguments: []mcplib.PromptArgument{
+				{Name: "repo1", Description: "First repository", Required: true},
+				{Name: "repo2", Description: "Second repository", Required: true},
+			},
+		},
+		func(ctx context.Context, request mcplib.GetPromptRequest) (*mcplib.GetPromptResult, error) {
+			repo1 := request.Params.Arguments["repo1"]
+			repo2 := request.Params.Arguments["repo2"]
+			return promptResult(
+				"Repository comparison",
+				"Compare the security posture of "+repo1+" and "+repo2+". "+
+					"For each repository, call nullify_search_findings to get findings across all types. "+
+					"Compare the total counts by severity and type. Highlight which repository has more risk and where each needs improvement.",
+			), nil
+		},
+	)
+
+	s.AddPrompt(
+		mcplib.Prompt{
+			Name:        "fix-critical-findings",
+			Description: "Find and fix all critical severity findings.",
+		},
+		func(ctx context.Context, request mcplib.GetPromptRequest) (*mcplib.GetPromptResult, error) {
+			return promptResult(
+				"Fix critical findings",
+				"Search for all critical severity findings using nullify_search_findings with severity=critical. "+
+					"For each finding that supports autofix (sast and sca_dependency types), call nullify_fix_finding to generate a fix and create a PR. "+
+					"Report the results: which findings were fixed, which PRs were created, and which findings need manual attention.",
+			), nil
 		},
 	)
 }

@@ -7,7 +7,11 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
+
+// Version is set at build time via ldflags.
+var Version = "dev"
 
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
@@ -27,7 +31,7 @@ func NewClient(host string, token string, defaultParams map[string]string) *Clie
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
-		HTTPClient:    &http.Client{},
+		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
@@ -38,6 +42,7 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 
 	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("User-Agent", "Nullify-CLI/"+Version)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -48,7 +53,7 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return nil, err
 	}

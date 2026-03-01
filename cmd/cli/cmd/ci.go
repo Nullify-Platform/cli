@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
+	"sync/atomic"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 var ciCmd = &cobra.Command{
@@ -27,6 +30,14 @@ Use this in CI/CD pipelines to block deployments with critical/high findings.
 Exit codes:
   0 - No findings above threshold
   1 - Findings above threshold found (or error)`,
+	Example: `  # Block on critical or high findings
+  nullify ci gate
+
+  # Block only on critical findings
+  nullify ci gate --severity-threshold critical
+
+  # Check a specific repo
+  nullify ci gate --repo my-org/my-repo`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger()
 		defer logger.L(ctx).Sync()
@@ -67,32 +78,44 @@ Exit codes:
 			}
 		}
 
-		totalFindings := 0
-		apiErrors := 0
-		totalRequests := 0
+		var totalFindings int64
+		var apiErrors int64
+		totalRequests := int64(len(endpoints) * len(severities))
+		var mu sync.Mutex
+		g, gctx := errgroup.WithContext(ctx)
+
 		for _, ep := range endpoints {
 			for _, sev := range severities {
-				totalRequests++
-				params := []string{"severity", sev, "status", "open", "limit", "1"}
-				if repo != "" {
-					params = append(params, "repository", repo)
-				}
-				qs := lib.BuildQueryString(queryParams, params...)
+				ep, sev := ep, sev
+				g.Go(func() error {
+					params := []string{"severity", sev, "status", "open", "limit", "1"}
+					if repo != "" {
+						params = append(params, "repository", repo)
+					}
+					qs := lib.BuildQueryString(queryParams, params...)
 
-				body, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
-					apiErrors++
-					continue
-				}
+					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
+					if err != nil {
+						mu.Lock()
+						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+						mu.Unlock()
+						atomic.AddInt64(&apiErrors, 1)
+						return nil
+					}
 
-				count := countFindings(body)
-				if count > 0 {
-					totalFindings += count
-					fmt.Printf("FAIL: %s has %d %s findings\n", ep.name, count, sev)
-				}
+					count := countFindings(body)
+					if count > 0 {
+						atomic.AddInt64(&totalFindings, int64(count))
+						mu.Lock()
+						fmt.Printf("FAIL: %s has %d %s findings\n", ep.name, count, sev)
+						mu.Unlock()
+					}
+					return nil
+				})
 			}
 		}
+
+		_ = g.Wait()
 
 		if apiErrors > 0 && apiErrors == totalRequests {
 			fmt.Fprintf(os.Stderr, "Error: all API requests failed, cannot determine gate status\n")
@@ -111,7 +134,9 @@ Exit codes:
 var ciReportCmd = &cobra.Command{
 	Use:   "report",
 	Short: "Generate a markdown summary for PR comments",
-	Long:  "Output a markdown summary of security findings suitable for PR comments. Shows counts by type and severity.",
+	Long: "Output a markdown summary of security findings suitable for PR comments. Shows counts by type and severity.",
+	Example: `  nullify ci report
+  nullify ci report --repo my-org/my-repo`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger()
 		defer logger.L(ctx).Sync()

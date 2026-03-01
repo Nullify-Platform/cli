@@ -48,7 +48,6 @@ func GetNullifyToken(
 		logger.L(ctx).Debug(
 			"exchanging github actions token for a nullify token",
 			logger.String("repository", repo),
-			logger.String("githubToken", githubTokenFlag),
 		)
 
 		parts := strings.Split(repo, "/")
@@ -59,6 +58,7 @@ func GetNullifyToken(
 
 		owner := parts[0]
 
+		// TODO(security): Migrate to POST with JSON body to avoid sending GitHub token in query string.
 		url := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, githubTokenFlag, owner)
 
 		// nosec The URL is hardcoded and cannot be manipulated by an attacker

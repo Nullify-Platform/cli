@@ -132,9 +132,12 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 			}
 
 			// Step 1: Generate autofix
-			_, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/fix%s", basePath, findingID, qs), nil)
+			fixResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/fix%s", basePath, findingID, qs), nil)
 			if err != nil {
 				return toolError(fmt.Errorf("generate autofix failed: %w", err)), nil
+			}
+			if fixResult.IsError {
+				return fixResult, nil
 			}
 
 			// Step 2: Get diff

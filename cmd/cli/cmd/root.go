@@ -17,11 +17,15 @@ var (
 	host       string
 	verbose    bool
 	debug      bool
+	quiet      bool
+	noColor    bool
 	outputFmt  string
 	authConfig string
 
 	nullifyToken string
 	githubToken  string
+
+	getAPIClient func() *api.Client
 )
 
 var rootCmd = &cobra.Command{
@@ -49,9 +53,16 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&authConfig, "auth-config", "", "The path to the auth config file")
 	rootCmd.PersistentFlags().StringVar(&nullifyToken, "nullify-token", "", "Nullify API token")
 	rootCmd.PersistentFlags().StringVar(&githubToken, "github-token", "", "GitHub actions job token to exchange for a Nullify API token")
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Suppress informational output")
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 
-	// Register generated API commands
-	getAPIClient := func() *api.Client {
+	// Respect NO_COLOR env var (https://no-color.org/)
+	if os.Getenv("NO_COLOR") != "" {
+		noColor = true
+	}
+
+	// Package-level getAPIClient for use by other command files
+	getAPIClient = func() *api.Client {
 		ctx := setupLogger()
 		nullifyHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, nullifyHost, nullifyToken, githubToken)
@@ -72,21 +83,22 @@ func init() {
 		return api.NewClient(nullifyHost, token, defaultParams)
 	}
 
-	commands.RegisterAdminCommands(rootCmd, getAPIClient)
+	// Register generated API commands under 'api' parent for cleaner top-level help
+	commands.RegisterAdminCommands(apiCmd, getAPIClient)
 	// Skip RegisterChatCommands - the handwritten chat command handles interactive chat;
 	// generated chat API subcommands are bridged via RegisterChatSubcommands.
 	commands.RegisterChatSubcommands(chatCmd, getAPIClient)
-	commands.RegisterClassifierCommands(rootCmd, getAPIClient)
-	commands.RegisterCspmCommands(rootCmd, getAPIClient)
+	commands.RegisterClassifierCommands(apiCmd, getAPIClient)
+	commands.RegisterCspmCommands(apiCmd, getAPIClient)
 	// Register pentest and bughunt subcommands from generated DAST commands
 	commands.RegisterPentestSubcommands(pentestCmd, getAPIClient)
 	commands.RegisterBughuntSubcommands(bughuntCmd, getAPIClient)
-	commands.RegisterInfrastructureCommands(rootCmd, getAPIClient)
-	commands.RegisterManagerCommands(rootCmd, getAPIClient)
-	commands.RegisterOrchestratorCommands(rootCmd, getAPIClient)
-	commands.RegisterSastCommands(rootCmd, getAPIClient)
-	commands.RegisterScaCommands(rootCmd, getAPIClient)
-	commands.RegisterSecretsCommands(rootCmd, getAPIClient)
+	commands.RegisterInfrastructureCommands(apiCmd, getAPIClient)
+	commands.RegisterManagerCommands(apiCmd, getAPIClient)
+	commands.RegisterOrchestratorCommands(apiCmd, getAPIClient)
+	commands.RegisterSastCommands(apiCmd, getAPIClient)
+	commands.RegisterScaCommands(apiCmd, getAPIClient)
+	commands.RegisterSecretsCommands(apiCmd, getAPIClient)
 }
 
 func setupLogger() context.Context {
@@ -132,13 +144,7 @@ func resolveHost(ctx context.Context) string {
 		return sanitized
 	}
 
-	// 2. Read from config file
-	cfg, err := auth.LoadConfig()
-	if err == nil && cfg.Host != "" {
-		return cfg.Host
-	}
-
-	// 3. Env var
+	// 2. Env var (takes precedence over config file)
 	if envHost := os.Getenv("NULLIFY_HOST"); envHost != "" {
 		sanitized, err := lib.SanitizeNullifyHost(envHost)
 		if err == nil {
@@ -146,7 +152,13 @@ func resolveHost(ctx context.Context) string {
 		}
 	}
 
-	logger.L(ctx).Error("no host configured. Run 'nullify auth login --host api.<your-instance>.nullify.ai' to configure.")
+	// 3. Read from config file
+	cfg, err := auth.LoadConfig()
+	if err == nil && cfg.Host != "" {
+		return cfg.Host
+	}
+
+	logger.L(ctx).Error("no host configured. Run 'nullify init' to set up, or 'nullify auth login --host <your-instance>.nullify.ai' to configure.")
 	os.Exit(1)
 	return ""
 }
