@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/google/go-github/v84 v84.0.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/mark3labs/mcp-go v0.44.1
 	github.com/nullify-platform/logger v1.31.0
 	github.com/spf13/cobra v1.10.2

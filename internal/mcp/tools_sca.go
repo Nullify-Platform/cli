@@ -69,7 +69,77 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 				body["reason"] = r
 			}
 			qs := buildQueryString(queryParams)
-			return doPut(c, fmt.Sprintf("/sca/dependencies/findings/%s/triage%s", id, qs), body)
+			return doPut(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/triage%s", id, qs), body)
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"create_sca_autofix_pr",
+			mcp.WithDescription("Create a pull request from a previously generated SCA dependency autofix."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doPost(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/cache/create_pr%s", id, qs), nil)
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"create_sca_ticket",
+			mcp.WithDescription("Create a Jira ticket for an SCA dependency finding."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doPost(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/ticket%s", id, qs), nil)
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"generate_sca_autofix",
+			mcp.WithDescription("Generate an AI-powered autofix for an SCA dependency finding."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doPost(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/fix%s", id, qs), nil)
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_sca_autofix_diff",
+			mcp.WithDescription("Get the diff for a previously generated SCA dependency autofix."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doGet(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/autofix/cache/diff%s", id, qs))
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_sca_finding_events",
+			mcp.WithDescription("Get the event history for an SCA dependency finding."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doGet(ctx, c, fmt.Sprintf("/sca/dependencies/findings/%s/events%s", id, qs))
 		},
 	)
 
@@ -89,7 +159,7 @@ func registerSCATools(s *server.MCPServer, c *client.NullifyClient, queryParams 
 				body["reason"] = r
 			}
 			qs := buildQueryString(queryParams)
-			return doPut(c, fmt.Sprintf("/sca/containers/findings/%s/triage%s", id, qs), body)
+			return doPut(ctx, c, fmt.Sprintf("/sca/containers/findings/%s/triage%s", id, qs), body)
 		},
 	)
 }

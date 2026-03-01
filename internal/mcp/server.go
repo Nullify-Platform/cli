@@ -19,9 +19,13 @@ func Serve(ctx context.Context, host string, token string, queryParams map[strin
 		"Nullify",
 		logger.Version,
 		server.WithToolCapabilities(true),
+		server.WithResourceCapabilities(true, false),
+		server.WithPromptCapabilities(true),
 	)
 
 	registerTools(s, nullifyClient, queryParams)
+	registerResources(s, nullifyClient, queryParams)
+	registerPrompts(s)
 
 	logger.L(ctx).Debug("starting MCP server over stdio")
 
@@ -33,11 +37,15 @@ func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map
 	registerSASTTools(s, c, queryParams)
 	registerSCATools(s, c, queryParams)
 	registerSecretsTools(s, c, queryParams)
-	registerDASTTools(s, c, queryParams)
+	registerPentestTools(s, c, queryParams)
+	registerBughuntTools(s, c, queryParams)
 	registerCSPMTools(s, c, queryParams)
 	registerAdminTools(s, c, queryParams)
 	registerClassifierTools(s, c, queryParams)
 	registerManagerTools(s, c, queryParams)
+	registerInfrastructureTools(s, c, queryParams)
+	registerCodeReviewTools(s, c, queryParams)
+	registerCommentTools(s, c, queryParams)
 	registerCompositeTools(s, c, queryParams)
 }
 

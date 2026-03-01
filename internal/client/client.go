@@ -11,13 +11,20 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 )
 
+// HTTPClient defines the interface for making HTTP requests.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// NullifyClient wraps an HTTP client configured for the Nullify API.
 type NullifyClient struct {
 	Host       string
 	BaseURL    string
 	Token      string
-	HttpClient *http.Client
+	HttpClient HTTPClient
 }
 
+// NewNullifyClient creates a client for the given host with bearer token auth.
 func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,

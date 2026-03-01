@@ -34,6 +34,34 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 
 	s.AddTool(
 		mcp.NewTool(
+			"create_secrets_ticket",
+			mcp.WithDescription("Create a Jira ticket for a secrets finding."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doPost(ctx, c, fmt.Sprintf("/secrets/findings/%s/ticket%s", id, qs), nil)
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_secrets_finding_events",
+			mcp.WithDescription("Get the event history for a secrets finding."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			id := getStringArg(args, "id")
+			qs := buildQueryString(queryParams)
+			return doGet(ctx, c, fmt.Sprintf("/secrets/findings/%s/events%s", id, qs))
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool(
 			"triage_secrets_finding",
 			mcp.WithDescription("Update the triage status of a secrets finding. Use this to mark findings as false positive, accepted risk, or to re-open them."),
 			mcp.WithString("id", mcp.Required(), mcp.Description("The finding ID")),
@@ -48,7 +76,7 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 				body["reason"] = r
 			}
 			qs := buildQueryString(queryParams)
-			return doPut(c, fmt.Sprintf("/secrets/findings/%s/triage%s", id, qs), body)
+			return doPut(ctx, c, fmt.Sprintf("/secrets/findings/%s/triage%s", id, qs), body)
 		},
 	)
 }
