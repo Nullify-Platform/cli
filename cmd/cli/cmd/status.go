@@ -16,7 +16,7 @@ import (
 var securityStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show security posture overview",
-	Long: "Display a summary of your security posture across all scanner types. Quick morning check-in command.",
+	Long:  "Display a summary of your security posture across all scanner types. Quick morning check-in command.",
 	Example: `  nullify status
   nullify status -o table`,
 	Run: func(cmd *cobra.Command, args []string) {
