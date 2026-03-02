@@ -20,7 +20,7 @@ func TestSummarizeFindingsResponse(t *testing.T) {
 		{
 			name:     "object with items",
 			body:     `{"items":[{"id":1}]}`,
-			expected: "1 findings returned",
+			expected: "1 finding returned",
 		},
 		{
 			name:     "object with total",

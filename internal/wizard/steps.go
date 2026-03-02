@@ -100,12 +100,19 @@ func MCPConfigStep() Step {
 		Execute: func(ctx context.Context) error {
 			configured := false
 
+			projectRoot, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("failed to get working directory: %w", err)
+			}
+
 			// Check for Cursor
-			if _, err := os.Stat(".cursor"); err == nil {
-				if err := writeMCPConfig(".cursor/mcp.json"); err != nil {
+			cursorDir := filepath.Join(projectRoot, ".cursor")
+			if _, err := os.Stat(cursorDir); err == nil {
+				cursorConfig := filepath.Join(cursorDir, "mcp.json")
+				if err := writeMCPConfig(cursorConfig); err != nil {
 					logger.L(ctx).Warn("failed to write Cursor MCP config", logger.Err(err))
 				} else {
-					fmt.Println("  Configured MCP for Cursor (.cursor/mcp.json)")
+					fmt.Printf("  Configured MCP for Cursor (%s)\n", cursorConfig)
 					configured = true
 				}
 			}
@@ -124,11 +131,13 @@ func MCPConfigStep() Step {
 			}
 
 			// Check for VS Code
-			if _, err := os.Stat(".vscode"); err == nil {
-				if err := writeMCPConfig(".vscode/mcp.json"); err != nil {
+			vscodeDir := filepath.Join(projectRoot, ".vscode")
+			if _, err := os.Stat(vscodeDir); err == nil {
+				vscodeConfig := filepath.Join(vscodeDir, "mcp.json")
+				if err := writeMCPConfig(vscodeConfig); err != nil {
 					logger.L(ctx).Warn("failed to write VS Code MCP config", logger.Err(err))
 				} else {
-					fmt.Println("  Configured MCP for VS Code (.vscode/mcp.json)")
+					fmt.Printf("  Configured MCP for VS Code (%s)\n", vscodeConfig)
 					configured = true
 				}
 			}

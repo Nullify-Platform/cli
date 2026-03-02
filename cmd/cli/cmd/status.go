@@ -10,12 +10,15 @@ import (
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 var securityStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show security posture overview",
 	Long:  "Display a summary of your security posture across all scanner types. Quick morning check-in command.",
+	Example: `  nullify status
+  nullify status -o table`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger()
 		defer logger.L(ctx).Sync()
@@ -24,7 +27,7 @@ var securityStatusCmd = &cobra.Command{
 		token, err := lib.GetNullifyToken(ctx, statusHost, nullifyToken, githubToken)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		nullifyClient := client.NewNullifyClient(statusHost, token)
@@ -42,7 +45,7 @@ var securityStatusCmd = &cobra.Command{
 		overviewBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, "/admin/metrics/overview"+qs)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error fetching metrics: %v\n", err)
-			os.Exit(1)
+			os.Exit(ExitNetworkError)
 		}
 
 		// Try to pretty-print
@@ -64,15 +67,31 @@ var securityStatusCmd = &cobra.Command{
 		fmt.Printf("%-20s %s\n", "Scanner", "Status")
 		fmt.Printf("%-20s %s\n", "-------", "------")
 
-		for _, scanner := range scanners {
-			scannerQS := lib.BuildQueryString(queryParams, "limit", "1")
-			body, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, scanner.path+scannerQS)
-			if err != nil {
-				fmt.Printf("%-20s error: %v\n", scanner.name, err)
-				continue
-			}
+		type scannerResult struct {
+			name    string
+			summary string
+		}
+		results := make([]scannerResult, len(scanners))
+		g, gctx := errgroup.WithContext(ctx)
 
-			fmt.Printf("%-20s %s\n", scanner.name, summarizeFindingsResponse(body))
+		for i, scanner := range scanners {
+			i, scanner := i, scanner
+			g.Go(func() error {
+				scannerQS := lib.BuildQueryString(queryParams, "limit", "1")
+				body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, scanner.path+scannerQS)
+				if err != nil {
+					results[i] = scannerResult{name: scanner.name, summary: fmt.Sprintf("error: %v", err)}
+				} else {
+					results[i] = scannerResult{name: scanner.name, summary: summarizeFindingsResponse(body)}
+				}
+				return nil
+			})
+		}
+
+		_ = g.Wait()
+
+		for _, r := range results {
+			fmt.Printf("%-20s %s\n", r.name, r.summary)
 		}
 	},
 }
@@ -90,12 +109,21 @@ func summarizeFindingsResponse(body string) string {
 
 	switch v := result.(type) {
 	case []any:
+		if len(v) == 1 {
+			return "1 finding returned"
+		}
 		return fmt.Sprintf("%d findings returned", len(v))
 	case map[string]any:
 		if items, ok := v["items"].([]any); ok {
+			if len(items) == 1 {
+				return "1 finding returned"
+			}
 			return fmt.Sprintf("%d findings returned", len(items))
 		}
 		if total, ok := v["total"].(float64); ok {
+			if total == 1 {
+				return "1 total finding"
+			}
 			return fmt.Sprintf("%.0f total findings", total)
 		}
 	}

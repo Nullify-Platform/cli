@@ -13,6 +13,9 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -X 'github.com/nullify-platform/logger/pkg/logger.Version={{ .Version }}'
+      - -X 'github.com/nullify-platform/cli/internal/api.Version={{ .Version }}'
+      - -X 'github.com/nullify-platform/cli/cmd/cli/cmd.buildCommit={{ .Commit }}'
+      - -X 'github.com/nullify-platform/cli/cmd/cli/cmd.buildDate={{ .Date }}'
     goos:
       - linux
       - darwin
@@ -39,6 +42,16 @@ checksum:
 
 changelog:
   use: github-native
+
+brews:
+  - name: nullify
+    repository:
+      owner: Nullify-Platform
+      name: homebrew-tap
+    homepage: "https://github.com/Nullify-Platform/cli"
+    description: "Nullify CLI - autonomous AI workforce for product security"
+    install: |
+      bin.install "nullify"
 
 release:
   github:

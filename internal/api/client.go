@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// Version is set at build time via ldflags.
+var Version = "dev"
+
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
 	BaseURL       string
@@ -17,18 +20,30 @@ type Client struct {
 	HTTPClient    *http.Client
 }
 
+// ClientOption configures a Client.
+type ClientOption func(*Client)
+
+// WithHTTPClient sets a custom HTTP client on the API client.
+func WithHTTPClient(hc *http.Client) ClientOption {
+	return func(c *Client) { c.HTTPClient = hc }
+}
+
 // NewClient creates a new Nullify API client.
-func NewClient(host string, token string, defaultParams map[string]string) *Client {
+func NewClient(host string, token string, defaultParams map[string]string, opts ...ClientOption) *Client {
 	apiHost := host
 	if !strings.HasPrefix(host, "api.") {
 		apiHost = "api." + host
 	}
-	return &Client{
+	c := &Client{
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
 		HTTPClient:    &http.Client{},
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]byte, error) {
@@ -38,6 +53,7 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 
 	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("User-Agent", "Nullify-CLI/"+Version)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -48,7 +64,7 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return nil, err
 	}

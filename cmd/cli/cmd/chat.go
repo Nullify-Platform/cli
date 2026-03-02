@@ -32,7 +32,7 @@ Examples:
 		token, err := auth.GetValidToken(ctx, chatHost)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		creds, err := auth.LoadCredentials()

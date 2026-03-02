@@ -8,8 +8,10 @@ import (
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/output"
 	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 var findingsCmd = &cobra.Command{
@@ -18,6 +20,14 @@ var findingsCmd = &cobra.Command{
 	Long: `Query and display security findings from all Nullify scanners.
 Supports SAST, SCA (dependencies and containers), Secrets, Pentest, BugHunt, and CSPM.
 Auto-detects the current repository from git if --repo is not specified.`,
+	Example: `  # List all findings
+  nullify findings
+
+  # Filter by severity and type
+  nullify findings --severity critical --type sast
+
+  # Output as table
+  nullify findings -o table --repo my-org/my-repo`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger()
 		defer logger.L(ctx).Sync()
@@ -26,7 +36,7 @@ Auto-detects the current repository from git if --repo is not specified.`,
 		token, err := lib.GetNullifyToken(ctx, findingsHost, nullifyToken, githubToken)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		nullifyClient := client.NewNullifyClient(findingsHost, token)
@@ -67,33 +77,43 @@ Auto-detects the current repository from git if --repo is not specified.`,
 			Data  json.RawMessage `json:"data,omitempty"`
 		}
 
-		var results []findingResult
-		for _, ep := range endpoints {
-			params := make([]string, 0)
-			if severity != "" {
-				params = append(params, "severity", severity)
-			}
-			if status != "" {
-				params = append(params, "status", status)
-			}
-			if repo != "" {
-				params = append(params, "repository", repo)
-			}
-			params = append(params, "limit", fmt.Sprintf("%d", limit))
+		results := make([]findingResult, len(endpoints))
+		g, gctx := errgroup.WithContext(ctx)
 
-			qs := lib.BuildQueryString(queryParams, params...)
-			path := ep.path + qs
+		for i, ep := range endpoints {
+			i, ep := i, ep
+			g.Go(func() error {
+				params := make([]string, 0)
+				if severity != "" {
+					params = append(params, "severity", severity)
+				}
+				if status != "" {
+					params = append(params, "status", status)
+				}
+				if repo != "" {
+					params = append(params, "repository", repo)
+				}
+				params = append(params, "limit", fmt.Sprintf("%d", limit))
 
-			resp, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, path)
-			if err != nil {
-				results = append(results, findingResult{Type: ep.name, Error: err.Error()})
-				continue
-			}
-			results = append(results, findingResult{Type: ep.name, Data: json.RawMessage(resp)})
+				qs := lib.BuildQueryString(queryParams, params...)
+				path := ep.path + qs
+
+				resp, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, path)
+				if err != nil {
+					results[i] = findingResult{Type: ep.name, Error: err.Error()}
+				} else {
+					results[i] = findingResult{Type: ep.name, Data: json.RawMessage(resp)}
+				}
+				return nil
+			})
 		}
 
-		output, _ := json.MarshalIndent(results, "", "  ")
-		fmt.Println(string(output))
+		_ = g.Wait()
+
+		out, _ := json.MarshalIndent(results, "", "  ")
+		if err := output.Print(cmd, out); err != nil {
+			fmt.Fprintln(os.Stderr, string(out))
+		}
 	},
 }
 

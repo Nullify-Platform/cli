@@ -50,7 +50,7 @@ func doRequest(ctx context.Context, c *client.NullifyClient, method string, path
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return toolError(err), nil
 	}

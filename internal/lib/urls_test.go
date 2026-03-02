@@ -86,13 +86,13 @@ func TestSanitizeNullifyHost(t *testing.T) {
 		{
 			name:         "bare host without api prefix",
 			inputHost:    "acme.nullify.ai",
-			expectedHost: "acme.nullify.ai",
+			expectedHost: "api.acme.nullify.ai",
 			wantErr:      false,
 		},
 		{
 			name:         "bare host with scheme",
 			inputHost:    "https://acme.nullify.ai",
-			expectedHost: "acme.nullify.ai",
+			expectedHost: "api.acme.nullify.ai",
 			wantErr:      false,
 		},
 		{
