@@ -434,7 +434,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 )
 
 // Version is set at build time via ldflags.
@@ -466,7 +465,7 @@ func NewClient(host string, token string, defaultParams map[string]string, opts 
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
-		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
+		HTTPClient:    &http.Client{},
 	}
 	for _, opt := range opts {
 		opt(c)

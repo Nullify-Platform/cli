@@ -47,7 +47,7 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&host, "host", "", "The base URL of your Nullify API instance (e.g., api.acme.nullify.ai)")
+	rootCmd.PersistentFlags().StringVar(&host, "host", "", "The base URL of your Nullify API instance (e.g., acme.nullify.ai)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug logging")
 	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (json, table, yaml)")
@@ -140,7 +140,7 @@ func resolveHost(ctx context.Context) string {
 		sanitized, err := lib.SanitizeNullifyHost(host)
 		if err != nil {
 			logger.L(ctx).Error(
-				"invalid host, must be in the format api.<your-instance>.nullify.ai",
+				"invalid host, must be in the format <your-instance>.nullify.ai",
 				logger.String("host", host),
 			)
 			os.Exit(1)
