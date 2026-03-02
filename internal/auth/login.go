@@ -119,7 +119,7 @@ func Login(ctx context.Context, host string) error {
 	defer ticker.Stop()
 
 	var sessionID string
-	waitLoop:
+waitLoop:
 	for {
 		select {
 		case sessionID = <-sessionCh:

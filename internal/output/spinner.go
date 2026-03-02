@@ -9,9 +9,9 @@ import (
 
 // Spinner displays a simple progress spinner on stderr.
 type Spinner struct {
-	msg    string
-	done   chan struct{}
-	once   sync.Once
+	msg  string
+	done chan struct{}
+	once sync.Once
 }
 
 // NewSpinner starts a spinner with the given message. Call Stop() when done.
