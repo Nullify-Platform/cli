@@ -3,9 +3,9 @@ package mcp
 import (
 	"context"
 	"fmt"
-	"net/url"
 
 	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/logger/pkg/logger"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -87,21 +87,7 @@ func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map
 }
 
 func buildQueryString(queryParams map[string]string, extra ...string) string {
-	params := url.Values{}
-	for k, v := range queryParams {
-		params.Set(k, v)
-	}
-	for i := 0; i+1 < len(extra); i += 2 {
-		if extra[i+1] != "" {
-			params.Set(extra[i], extra[i+1])
-		}
-	}
-
-	if len(params) == 0 {
-		return ""
-	}
-
-	return "?" + params.Encode()
+	return lib.BuildQueryString(queryParams, extra...)
 }
 
 func getStringArg(args map[string]any, key string) string {

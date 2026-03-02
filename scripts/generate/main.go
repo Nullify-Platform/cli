@@ -448,18 +448,30 @@ type Client struct {
 	HTTPClient    *http.Client
 }
 
+// ClientOption configures a Client.
+type ClientOption func(*Client)
+
+// WithHTTPClient sets a custom HTTP client on the API client.
+func WithHTTPClient(hc *http.Client) ClientOption {
+	return func(c *Client) { c.HTTPClient = hc }
+}
+
 // NewClient creates a new Nullify API client.
-func NewClient(host string, token string, defaultParams map[string]string) *Client {
+func NewClient(host string, token string, defaultParams map[string]string, opts ...ClientOption) *Client {
 	apiHost := host
 	if !strings.HasPrefix(host, "api.") {
 		apiHost = "api." + host
 	}
-	return &Client{
+	c := &Client{
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
 		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]byte, error) {

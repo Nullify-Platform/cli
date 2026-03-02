@@ -142,7 +142,7 @@ var tokenCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Print(token)
+		fmt.Println(token)
 	},
 }
 
@@ -206,7 +206,7 @@ var configShowCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := auth.LoadConfig()
 		if err != nil {
-			fmt.Println("{}")
+			fmt.Fprintf(os.Stderr, "No config found. Run 'nullify init' to set up.\n")
 			return
 		}
 

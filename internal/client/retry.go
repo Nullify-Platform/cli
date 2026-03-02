@@ -18,7 +18,8 @@ type retryTransport struct {
 	maxDelay     time.Duration
 }
 
-func newRetryTransport(transport http.RoundTripper) http.RoundTripper {
+// NewRetryTransport wraps the given transport with retry logic for 429 and 5xx errors.
+func NewRetryTransport(transport http.RoundTripper) http.RoundTripper {
 	return &retryTransport{
 		transport:    transport,
 		maxRetries:   3,
@@ -61,7 +62,11 @@ func (t *retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		resp.Body.Close()
 
 		delay := t.backoffDelay(attempt)
-		time.Sleep(delay)
+		select {
+		case <-time.After(delay):
+		case <-req.Context().Done():
+			return nil, req.Context().Err()
+		}
 	}
 
 	return resp, err

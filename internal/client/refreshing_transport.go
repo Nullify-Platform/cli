@@ -41,13 +41,13 @@ func NewRefreshingNullifyClient(nullifyHost string, tokenProvider TokenProvider)
 
 	httpClient := &http.Client{
 		Timeout:   30 * time.Second,
-		Transport: newRetryTransport(t),
+		Transport: NewRetryTransport(t),
 	}
 
 	return &NullifyClient{
 		Host:       nullifyHost,
 		BaseURL:    "https://" + nullifyHost,
-		Token:      token,
+		Token:      "", // Token is managed by the refreshing transport; do not use this field directly.
 		HttpClient: httpClient,
 	}, nil
 }

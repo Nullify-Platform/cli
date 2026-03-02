@@ -29,7 +29,9 @@ Use this in CI/CD pipelines to block deployments with critical/high findings.
 
 Exit codes:
   0 - No findings above threshold
-  1 - Findings above threshold found (or error)`,
+  1 - Findings above threshold found
+  2 - Authentication error
+  3 - Network/API error`,
 	Example: `  # Block on critical or high findings
   nullify ci gate
 
@@ -46,7 +48,7 @@ Exit codes:
 		token, err := lib.GetNullifyToken(ctx, ciHost, nullifyToken, githubToken)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		nullifyClient := client.NewNullifyClient(ciHost, token)
@@ -62,6 +64,19 @@ Exit codes:
 		severityThreshold, _ := cmd.Flags().GetString("severity-threshold")
 		findingType, _ := cmd.Flags().GetString("type")
 		repo, _ := cmd.Flags().GetString("repo")
+
+		validSeverities := []string{"critical", "high", "medium", "low"}
+		validThreshold := false
+		for _, s := range validSeverities {
+			if s == severityThreshold {
+				validThreshold = true
+				break
+			}
+		}
+		if !validThreshold {
+			fmt.Fprintf(os.Stderr, "Error: invalid --severity-threshold %q. Valid values: critical, high, medium, low\n", severityThreshold)
+			os.Exit(1)
+		}
 
 		if repo == "" {
 			repo = lib.DetectRepoFromGit()
@@ -119,12 +134,12 @@ Exit codes:
 
 		if apiErrors > 0 && apiErrors == totalRequests {
 			fmt.Fprintf(os.Stderr, "Error: all API requests failed, cannot determine gate status\n")
-			os.Exit(1)
+			os.Exit(ExitNetworkError)
 		}
 
 		if totalFindings > 0 {
 			fmt.Printf("\nGate failed: %d findings at or above %s severity\n", totalFindings, severityThreshold)
-			os.Exit(1)
+			os.Exit(ExitFindings)
 		}
 
 		fmt.Println("Gate passed: no findings above threshold")
@@ -145,7 +160,7 @@ var ciReportCmd = &cobra.Command{
 		token, err := lib.GetNullifyToken(ctx, ciHost, nullifyToken, githubToken)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		nullifyClient := client.NewNullifyClient(ciHost, token)
@@ -179,8 +194,7 @@ var ciReportCmd = &cobra.Command{
 			for j, sev := range severities {
 				i, j, ep, sev := i, j, ep, sev
 				g.Go(func() error {
-					// limit=1 is used to check existence, not count exact totals
-					params := []string{"severity", sev, "status", "open", "limit", "1"}
+					params := []string{"severity", sev, "status", "open", "limit", "1000"}
 					if repo != "" {
 						params = append(params, "repository", repo)
 					}

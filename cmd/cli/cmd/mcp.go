@@ -33,7 +33,7 @@ var mcpServeCmd = &cobra.Command{
 		// Validate that we have a working token before starting the server
 		if _, err := auth.GetValidToken(ctx, mcpHost); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		creds, err := auth.LoadCredentials()

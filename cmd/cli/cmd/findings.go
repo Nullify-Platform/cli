@@ -36,7 +36,7 @@ Auto-detects the current repository from git if --repo is not specified.`,
 		token, err := lib.GetNullifyToken(ctx, findingsHost, nullifyToken, githubToken)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		nullifyClient := client.NewNullifyClient(findingsHost, token)
@@ -111,7 +111,9 @@ Auto-detects the current repository from git if --repo is not specified.`,
 		_ = g.Wait()
 
 		out, _ := json.MarshalIndent(results, "", "  ")
-		_ = output.Print(cmd, out)
+		if err := output.Print(cmd, out); err != nil {
+			fmt.Fprintln(os.Stderr, string(out))
+		}
 	},
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/client"
@@ -62,7 +63,7 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 	s.AddTool(
 		mcp.NewTool(
 			"get_findings_for_repo",
-			mcp.WithDescription("Get all security findings for a specific repository across all finding types (SAST, SCA, secrets). Returns a merged list of findings from all scanners. This is the most common tool for investigating a specific repository's security posture."),
+			mcp.WithDescription("Get all security findings for a specific repository across all finding types (SAST, SCA dependencies, SCA containers, secrets, pentest, bughunt, CSPM). Returns a merged list of findings from all scanners. This is the most common tool for investigating a specific repository's security posture."),
 			mcp.WithString("repository", mcp.Required(), mcp.Description("Repository name to get findings for")),
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
 			mcp.WithNumber("limit", mcp.Description("Max results per finding type (default 20)")),
@@ -87,6 +88,9 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 				{"sca_dependencies", "/sca/dependencies/findings"},
 				{"sca_containers", "/sca/containers/findings"},
 				{"secrets", "/secrets/findings"},
+				{"pentest", "/dast/pentest/findings"},
+				{"bughunt", "/dast/bughunt/findings"},
+				{"cspm", "/cspm/findings"},
 			}
 
 			var parts []string
@@ -132,7 +136,7 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 			}
 
 			// Step 1: Generate autofix
-			fixResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/fix%s", basePath, findingID, qs), nil)
+			fixResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/fix%s", basePath, url.PathEscape(findingID), qs), nil)
 			if err != nil {
 				return toolError(fmt.Errorf("generate autofix failed: %w", err)), nil
 			}
@@ -141,13 +145,13 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 			}
 
 			// Step 2: Get diff
-			diffResult, err := doGet(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, findingID, qs))
+			diffResult, err := doGet(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, url.PathEscape(findingID), qs))
 			if err != nil {
 				return toolError(fmt.Errorf("get diff failed: %w", err)), nil
 			}
 
 			// Step 3: Create PR
-			prResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, findingID, qs), nil)
+			prResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, url.PathEscape(findingID), qs), nil)
 			if err != nil {
 				return toolError(fmt.Errorf("create PR failed: %w", err)), nil
 			}
@@ -186,8 +190,11 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 			}{
 				{"sast", "/sast/findings"},
 				{"sca_dependencies", "/sca/dependencies/findings"},
+				{"sca_containers", "/sca/containers/findings"},
 				{"secrets", "/secrets/findings"},
 				{"pentest", "/dast/pentest/findings"},
+				{"bughunt", "/dast/bughunt/findings"},
+				{"cspm", "/cspm/findings"},
 			}
 
 			var parts []string
