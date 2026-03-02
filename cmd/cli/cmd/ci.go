@@ -149,7 +149,7 @@ Exit codes:
 var ciReportCmd = &cobra.Command{
 	Use:   "report",
 	Short: "Generate a markdown summary for PR comments",
-	Long: "Output a markdown summary of security findings suitable for PR comments. Shows counts by type and severity.",
+	Long:  "Output a markdown summary of security findings suitable for PR comments. Shows counts by type and severity.",
 	Example: `  nullify ci report
   nullify ci report --repo my-org/my-repo`,
 	Run: func(cmd *cobra.Command, args []string) {

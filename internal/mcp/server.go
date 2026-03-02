@@ -17,7 +17,6 @@ func Serve(ctx context.Context, host string, token string, queryParams map[strin
 }
 
 func ServeWithClient(ctx context.Context, nullifyClient *client.NullifyClient, queryParams map[string]string, toolSet ToolSet) error {
-
 	s := server.NewMCPServer(
 		"Nullify",
 		logger.Version,

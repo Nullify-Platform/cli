@@ -16,12 +16,12 @@ import (
 )
 
 var (
-	host       string
-	verbose    bool
-	debug      bool
-	quiet      bool
-	noColor    bool
-	outputFmt  string
+	host      string
+	verbose   bool
+	debug     bool
+	quiet     bool
+	noColor   bool
+	outputFmt string
 
 	nullifyToken string
 	githubToken  string
