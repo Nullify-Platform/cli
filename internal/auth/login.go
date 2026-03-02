@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -116,15 +115,24 @@ func Login(ctx context.Context, host string) error {
 	fmt.Println("Waiting for authentication... (press Ctrl+C to cancel)")
 
 	// 5. Wait for callback with context cancellation support
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
 	var sessionID string
-	select {
-	case sessionID = <-sessionCh:
-	case err := <-errCh:
-		return fmt.Errorf("local server error: %w", err)
-	case <-ctx.Done():
-		return fmt.Errorf("authentication cancelled")
-	case <-time.After(10 * time.Minute):
-		return fmt.Errorf("authentication timed out — the session has expired")
+	waitLoop:
+	for {
+		select {
+		case sessionID = <-sessionCh:
+			break waitLoop
+		case err := <-errCh:
+			return fmt.Errorf("local server error: %w", err)
+		case <-ctx.Done():
+			return fmt.Errorf("authentication cancelled")
+		case <-time.After(10 * time.Minute):
+			return fmt.Errorf("authentication timed out — the session has expired")
+		case <-ticker.C:
+			fmt.Println("Still waiting for authentication...")
+		}
 	}
 
 	// 6. Fetch tokens from backend
@@ -269,13 +277,13 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.refreshToken")
 	defer span.End()
 
-	// TODO(security): Migrate to POST with JSON body to avoid sending refresh token in query string.
-	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", apiHost(host), url.QueryEscape(refreshTok))
+	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token", apiHost(host))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
 	if err != nil {
 		return "", err
 	}
+	req.AddCookie(&http.Cookie{Name: "refresh_token", Value: refreshTok})
 
 	resp, err := httpClient.Do(req)
 	if err != nil {

@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 
 	"github.com/nullify-platform/cli/internal/auth"
@@ -38,7 +39,7 @@ Supports SAST and SCA dependency findings.`,
 		token, err := lib.GetNullifyToken(ctx, fixHost, nullifyToken, githubToken)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			os.Exit(1)
+			os.Exit(ExitAuthError)
 		}
 
 		nullifyClient := client.NewNullifyClient(fixHost, token)
@@ -72,7 +73,7 @@ Supports SAST and SCA dependency findings.`,
 			fmt.Fprintf(os.Stderr, "Generating fix for %s finding %s...\n", findingType, findingID)
 		}
 		_, err = lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-			fmt.Sprintf("%s/%s/autofix/fix%s", basePath, findingID, qs))
+			fmt.Sprintf("%s/%s/autofix/fix%s", basePath, url.PathEscape(findingID), qs))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error generating fix: %v\n", err)
 			os.Exit(1)
@@ -80,7 +81,7 @@ Supports SAST and SCA dependency findings.`,
 
 		// Step 2: Get diff
 		diffBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-			fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, findingID, qs))
+			fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, url.PathEscape(findingID), qs))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error getting diff: %v\n", err)
 			os.Exit(1)
@@ -98,7 +99,7 @@ Supports SAST and SCA dependency findings.`,
 				fmt.Fprintf(os.Stderr, "Creating PR...\n")
 			}
 			prBody, err := lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-				fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, findingID, qs))
+				fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, url.PathEscape(findingID), qs))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error creating PR: %v\n", err)
 				os.Exit(1)
@@ -107,7 +108,9 @@ Supports SAST and SCA dependency findings.`,
 		}
 
 		out, _ := json.MarshalIndent(result, "", "  ")
-		_ = output.Print(cmd, out)
+		if err := output.Print(cmd, out); err != nil {
+			fmt.Fprintln(os.Stderr, string(out))
+		}
 	},
 }
 

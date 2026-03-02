@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 
@@ -152,7 +153,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			}
 
 			qs := buildQueryString(queryParams)
-			return doGet(ctx, c, fmt.Sprintf("%s/%s%s", cfg.basePath, id, qs))
+			return doGet(ctx, c, fmt.Sprintf("%s/%s%s", cfg.basePath, url.PathEscape(id), qs))
 		},
 	)
 
@@ -184,7 +185,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			}
 
 			qs := buildQueryString(queryParams)
-			return doPut(ctx, c, fmt.Sprintf("%s/%s%s", cfg.basePath, id, qs), payload)
+			return doPut(ctx, c, fmt.Sprintf("%s/%s%s", cfg.basePath, url.PathEscape(id), qs), payload)
 		},
 	)
 
@@ -207,7 +208,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			}
 
 			qs := buildQueryString(queryParams)
-			return doPost(ctx, c, fmt.Sprintf("%s/%s/ticket%s", cfg.basePath, id, qs), nil)
+			return doPost(ctx, c, fmt.Sprintf("%s/%s/ticket%s", cfg.basePath, url.PathEscape(id), qs), nil)
 		},
 	)
 
@@ -230,7 +231,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			}
 
 			qs := buildQueryString(queryParams)
-			return doGet(ctx, c, fmt.Sprintf("%s/%s/events%s", cfg.basePath, id, qs))
+			return doGet(ctx, c, fmt.Sprintf("%s/%s/events%s", cfg.basePath, url.PathEscape(id), qs))
 		},
 	)
 
@@ -263,7 +264,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			qs := buildQueryString(queryParams)
 
 			// Step 1: Generate autofix
-			fixResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/fix%s", cfg.basePath, id, qs), nil)
+			fixResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/fix%s", cfg.basePath, url.PathEscape(id), qs), nil)
 			if err != nil {
 				return toolError(fmt.Errorf("generate autofix failed: %w", err)), nil
 			}
@@ -272,7 +273,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			}
 
 			// Step 2: Get diff
-			diffResult, err := doGet(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/diff%s", cfg.basePath, id, qs))
+			diffResult, err := doGet(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/diff%s", cfg.basePath, url.PathEscape(id), qs))
 			if err != nil {
 				return toolError(fmt.Errorf("get diff failed: %w", err)), nil
 			}
@@ -287,7 +288,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 
 			// Step 3: Optionally create PR
 			if createPR {
-				prResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", cfg.basePath, id, qs), nil)
+				prResult, err := doPost(ctx, c, fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", cfg.basePath, url.PathEscape(id), qs), nil)
 				if err != nil {
 					return toolError(fmt.Errorf("create PR failed: %w", err)), nil
 				}

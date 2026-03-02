@@ -40,15 +40,7 @@ func registerPrompts(s *server.MCPServer) {
 			}
 			prompt += " and recommend a prioritized remediation plan. Focus on critical and high severity findings first. For each finding, explain the risk, suggest a fix, and estimate the effort."
 
-			return &mcplib.GetPromptResult{
-				Description: "Security review prompt",
-				Messages: []mcplib.PromptMessage{
-					{
-						Role:    mcplib.RoleUser,
-						Content: mcplib.NewTextContent(prompt),
-					},
-				},
-			}, nil
+			return promptResult("Security review prompt", prompt), nil
 		},
 	)
 
@@ -78,15 +70,7 @@ func registerPrompts(s *server.MCPServer) {
 			prompt += "Consider the code context, the vulnerability type, and whether there are mitigating controls. "
 			prompt += "Provide your recommendation with a clear rationale."
 
-			return &mcplib.GetPromptResult{
-				Description: "Finding triage prompt",
-				Messages: []mcplib.PromptMessage{
-					{
-						Role:    mcplib.RoleUser,
-						Content: mcplib.NewTextContent(prompt),
-					},
-				},
-			}, nil
+			return promptResult("Finding triage prompt", prompt), nil
 		},
 	)
 
@@ -118,15 +102,7 @@ func registerPrompts(s *server.MCPServer) {
 			prompt += "3. How to fix it (step-by-step). "
 			prompt += "4. How to prevent similar issues in the future."
 
-			return &mcplib.GetPromptResult{
-				Description: "Vulnerability explanation prompt",
-				Messages: []mcplib.PromptMessage{
-					{
-						Role:    mcplib.RoleUser,
-						Content: mcplib.NewTextContent(prompt),
-					},
-				},
-			}, nil
+			return promptResult("Vulnerability explanation prompt", prompt), nil
 		},
 	)
 

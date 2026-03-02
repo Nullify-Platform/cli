@@ -2,7 +2,6 @@ package lib
 
 import (
 	"errors"
-	"net/url"
 	"strings"
 )
 
@@ -22,6 +21,11 @@ func ParseCustomerDomain(input string) (string, error) {
 		input = strings.Split(input, "://")[1]
 	}
 
+	// Strip path and query parameters
+	if idx := strings.IndexAny(input, "/?"); idx != -1 {
+		input = input[:idx]
+	}
+
 	// Already a full API host
 	if strings.HasPrefix(input, "api.") && strings.HasSuffix(input, ".nullify.ai") {
 		return input, nil
@@ -34,6 +38,10 @@ func ParseCustomerDomain(input string) (string, error) {
 
 	// Just the customer name (no dots or only internal dots)
 	if !strings.Contains(input, ".") {
+		// Reject names with invalid hostname characters
+		if strings.ContainsAny(input, ":@!#$%^&*()+=[]{}|\\<>,") {
+			return "", errors.New("invalid domain format: contains invalid characters")
+		}
 		return "api." + input + ".nullify.ai", nil
 	}
 
@@ -41,18 +49,5 @@ func ParseCustomerDomain(input string) (string, error) {
 }
 
 func SanitizeNullifyHost(nullifyHost string) (string, error) {
-	if strings.Contains(nullifyHost, "://") {
-		nullifyHost = strings.Split(nullifyHost, "://")[1]
-	}
-
-	nullifyURL, err := url.Parse("https://" + nullifyHost)
-	if err != nil {
-		return "", err
-	}
-
-	if !strings.HasPrefix(nullifyURL.Host, "api.") || !strings.HasSuffix(nullifyURL.Host, ".nullify.ai") {
-		return "", errors.New("invalid host, must be in the format api.<your-instance>.nullify.ai")
-	}
-
-	return nullifyURL.Host, nil
+	return ParseCustomerDomain(nullifyHost)
 }

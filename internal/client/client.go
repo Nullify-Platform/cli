@@ -28,7 +28,7 @@ type NullifyClient struct {
 func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
-		Transport: newRetryTransport(&authTransport{
+		Transport: NewRetryTransport(&authTransport{
 			nullifyHost: nullifyHost,
 			token:       token,
 			transport:   http.DefaultTransport,

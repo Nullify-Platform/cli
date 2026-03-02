@@ -26,7 +26,9 @@ var reposCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		_ = output.Print(cmd, result)
+		if err := output.Print(cmd, result); err != nil {
+			fmt.Fprintln(os.Stderr, string(result))
+		}
 	},
 }
 

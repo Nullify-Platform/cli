@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -42,8 +43,8 @@ func GetNullifyToken(
 	// 3. GitHub Actions token exchange
 	if os.Getenv("GITHUB_ACTIONS") == "true" &&
 		githubTokenFlag != "" &&
-		os.Getenv("GITHUB_ACTION_REPOSITORY") != "" {
-		repo := os.Getenv("GITHUB_ACTION_REPOSITORY")
+		os.Getenv("GITHUB_REPOSITORY") != "" {
+		repo := os.Getenv("GITHUB_REPOSITORY")
 
 		logger.L(ctx).Debug(
 			"exchanging github actions token for a nullify token",
@@ -58,11 +59,15 @@ func GetNullifyToken(
 
 		owner := parts[0]
 
-		// TODO(security): Migrate to POST with JSON body to avoid sending GitHub token in query string.
-		url := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, githubTokenFlag, owner)
+		// TODO(security): Migrate to POST with JSON body on the backend (security-droid) to avoid sending GitHub token in query string.
+		tokenURL := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, url.QueryEscape(githubTokenFlag), url.QueryEscape(owner))
 
-		// nosec The URL is hardcoded and cannot be manipulated by an attacker
-		res, err := http.Get(url)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
+		if err != nil {
+			return "", err
+		}
+
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return "", err
 		}

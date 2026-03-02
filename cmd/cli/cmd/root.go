@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"context"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/auth"
@@ -20,7 +22,6 @@ var (
 	quiet      bool
 	noColor    bool
 	outputFmt  string
-	authConfig string
 
 	nullifyToken string
 	githubToken  string
@@ -50,7 +51,6 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug logging")
 	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (json, table, yaml)")
-	rootCmd.PersistentFlags().StringVar(&authConfig, "auth-config", "", "The path to the auth config file")
 	rootCmd.PersistentFlags().StringVar(&nullifyToken, "nullify-token", "", "Nullify API token")
 	rootCmd.PersistentFlags().StringVar(&githubToken, "github-token", "", "GitHub actions job token to exchange for a Nullify API token")
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Suppress informational output")
@@ -80,7 +80,11 @@ func init() {
 			}
 		}
 
-		return api.NewClient(nullifyHost, token, defaultParams)
+		retryHTTPClient := &http.Client{
+			Timeout:   30 * time.Second,
+			Transport: client.NewRetryTransport(http.DefaultTransport),
+		}
+		return api.NewClient(nullifyHost, token, defaultParams, api.WithHTTPClient(retryHTTPClient))
 	}
 
 	// Register generated API commands under 'api' parent for cleaner top-level help
@@ -150,6 +154,7 @@ func resolveHost(ctx context.Context) string {
 		if err == nil {
 			return sanitized
 		}
+		logger.L(ctx).Warn("NULLIFY_HOST env var is invalid, falling through to config", logger.String("host", envHost), logger.Err(err))
 	}
 
 	// 3. Read from config file
