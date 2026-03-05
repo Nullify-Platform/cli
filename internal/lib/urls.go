@@ -48,6 +48,14 @@ func ParseCustomerDomain(input string) (string, error) {
 	return "", errors.New("invalid domain format: expected 'customer', 'customer.nullify.ai', or 'api.customer.nullify.ai'")
 }
 
+// SanitizeNullifyHost cleans a host string (strips scheme, path, query) and
+// validates it belongs to the nullify.ai domain. Unlike ParseCustomerDomain,
+// it preserves the bare form (e.g. "acme.nullify.ai") without adding "api.".
 func SanitizeNullifyHost(nullifyHost string) (string, error) {
-	return ParseCustomerDomain(nullifyHost)
+	apiHost, err := ParseCustomerDomain(nullifyHost)
+	if err != nil {
+		return "", err
+	}
+	// Return the bare host form — callers add "api." when needed.
+	return strings.TrimPrefix(apiHost, "api."), nil
 }

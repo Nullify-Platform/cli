@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type HostCredentials struct {
@@ -62,13 +63,20 @@ func SaveCredentials(creds Credentials) error {
 	return os.WriteFile(path, data, 0600)
 }
 
+// credentialKey normalizes a host to its bare form (without "api." prefix)
+// so that credentials are stored and looked up consistently regardless of
+// whether the caller passes "acme.nullify.ai" or "api.acme.nullify.ai".
+func credentialKey(host string) string {
+	return strings.TrimPrefix(host, "api.")
+}
+
 func SaveHostCredentials(host string, hostCreds HostCredentials) error {
 	creds, err := LoadCredentials()
 	if err != nil {
 		creds = make(Credentials)
 	}
 
-	creds[host] = hostCreds
+	creds[credentialKey(host)] = hostCreds
 
 	return SaveCredentials(creds)
 }
@@ -82,7 +90,7 @@ func DeleteHostCredentials(host string) error {
 		return err
 	}
 
-	delete(creds, host)
+	delete(creds, credentialKey(host))
 
 	return SaveCredentials(creds)
 }

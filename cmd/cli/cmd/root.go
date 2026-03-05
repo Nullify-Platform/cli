@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
@@ -76,6 +77,8 @@ func init() {
 		creds, err := auth.LoadCredentials()
 		if err == nil {
 			if hostCreds, ok := creds[nullifyHost]; ok {
+				defaultParams = hostCreds.QueryParameters
+			} else if hostCreds, ok := creds[strings.TrimPrefix(nullifyHost, "api.")]; ok {
 				defaultParams = hostCreds.QueryParameters
 			}
 		}
@@ -160,7 +163,11 @@ func resolveHost(ctx context.Context) string {
 	// 3. Read from config file
 	cfg, err := auth.LoadConfig()
 	if err == nil && cfg.Host != "" {
-		return cfg.Host
+		sanitized, err := lib.SanitizeNullifyHost(cfg.Host)
+		if err == nil {
+			return sanitized
+		}
+		logger.L(ctx).Warn("config file host is invalid, ignoring", logger.String("host", cfg.Host), logger.Err(err))
 	}
 
 	logger.L(ctx).Error("no host configured. Run 'nullify init' to set up, or 'nullify auth login --host <your-instance>.nullify.ai' to configure.")

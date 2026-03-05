@@ -118,6 +118,8 @@ func Login(ctx context.Context, host string) error {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
+	timeout := time.After(10 * time.Minute)
+
 	var sessionID string
 waitLoop:
 	for {
@@ -128,7 +130,7 @@ waitLoop:
 			return fmt.Errorf("local server error: %w", err)
 		case <-ctx.Done():
 			return fmt.Errorf("authentication cancelled")
-		case <-time.After(10 * time.Minute):
+		case <-timeout:
 			return fmt.Errorf("authentication timed out — the session has expired")
 		case <-ticker.C:
 			fmt.Println("Still waiting for authentication...")
@@ -180,7 +182,12 @@ func GetValidToken(ctx context.Context, host string) (string, error) {
 		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
 	}
 
-	hostCreds, ok := creds[host]
+	key := credentialKey(host)
+	hostCreds, ok := creds[key]
+	if !ok {
+		// Fallback: try the original host in case credentials were saved with api. prefix
+		hostCreds, ok = creds[host]
+	}
 	if !ok {
 		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
 	}
