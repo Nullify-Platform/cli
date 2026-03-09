@@ -28,7 +28,7 @@ var whoamiCmd = &cobra.Command{
 		if err != nil {
 			info["authenticated"] = false
 			info["error"] = "no credentials found"
-		} else if hostCreds, ok := creds[whoamiHost]; !ok {
+		} else if hostCreds, ok := creds[auth.CredentialKey(whoamiHost)]; !ok {
 			info["authenticated"] = false
 			info["error"] = fmt.Sprintf("no credentials for host %s", whoamiHost)
 		} else {

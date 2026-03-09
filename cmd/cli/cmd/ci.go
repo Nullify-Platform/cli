@@ -56,7 +56,7 @@ Exit codes:
 		creds, err := auth.LoadCredentials()
 		queryParams := map[string]string{}
 		if err == nil {
-			if hostCreds, ok := creds[ciHost]; ok && hostCreds.QueryParameters != nil {
+			if hostCreds, ok := creds[auth.CredentialKey(ciHost)]; ok && hostCreds.QueryParameters != nil {
 				queryParams = hostCreds.QueryParameters
 			}
 		}
@@ -168,7 +168,7 @@ var ciReportCmd = &cobra.Command{
 		creds, err := auth.LoadCredentials()
 		queryParams := map[string]string{}
 		if err == nil {
-			if hostCreds, ok := creds[ciHost]; ok && hostCreds.QueryParameters != nil {
+			if hostCreds, ok := creds[auth.CredentialKey(ciHost)]; ok && hostCreds.QueryParameters != nil {
 				queryParams = hostCreds.QueryParameters
 			}
 		}

@@ -35,7 +35,7 @@ var securityStatusCmd = &cobra.Command{
 		creds, err := auth.LoadCredentials()
 		queryParams := map[string]string{}
 		if err == nil {
-			if hostCreds, ok := creds[statusHost]; ok && hostCreds.QueryParameters != nil {
+			if hostCreds, ok := creds[auth.CredentialKey(statusHost)]; ok && hostCreds.QueryParameters != nil {
 				queryParams = hostCreds.QueryParameters
 			}
 		}

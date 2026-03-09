@@ -41,7 +41,7 @@ Examples:
 			os.Exit(1)
 		}
 
-		hostCreds := creds[chatHost]
+		hostCreds := creds[auth.CredentialKey(chatHost)]
 		queryParams := hostCreds.QueryParameters
 		if queryParams == nil {
 			queryParams = make(map[string]string)

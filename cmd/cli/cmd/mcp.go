@@ -42,7 +42,7 @@ var mcpServeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		hostCreds := creds[mcpHost]
+		hostCreds := creds[auth.CredentialKey(mcpHost)]
 
 		queryParams := hostCreds.QueryParameters
 		if queryParams == nil {

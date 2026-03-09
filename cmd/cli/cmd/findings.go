@@ -44,7 +44,7 @@ Auto-detects the current repository from git if --repo is not specified.`,
 		creds, err := auth.LoadCredentials()
 		queryParams := map[string]string{}
 		if err == nil {
-			if hostCreds, ok := creds[findingsHost]; ok && hostCreds.QueryParameters != nil {
+			if hostCreds, ok := creds[auth.CredentialKey(findingsHost)]; ok && hostCreds.QueryParameters != nil {
 				queryParams = hostCreds.QueryParameters
 			}
 		}

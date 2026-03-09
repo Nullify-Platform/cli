@@ -47,7 +47,7 @@ Supports SAST and SCA dependency findings.`,
 		creds, err := auth.LoadCredentials()
 		queryParams := map[string]string{}
 		if err == nil {
-			if hostCreds, ok := creds[fixHost]; ok && hostCreds.QueryParameters != nil {
+			if hostCreds, ok := creds[auth.CredentialKey(fixHost)]; ok && hostCreds.QueryParameters != nil {
 				queryParams = hostCreds.QueryParameters
 			}
 		}
