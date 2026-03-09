@@ -63,7 +63,7 @@ func init() {
 
 	// Package-level getAPIClient for use by other command files
 	getAPIClient = func() *api.Client {
-		ctx := setupLogger()
+		ctx := setupLogger(context.Background())
 		nullifyHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, nullifyHost, nullifyToken, githubToken)
 		if err != nil {
@@ -105,9 +105,7 @@ func init() {
 	commands.RegisterSecretsCommands(apiCmd, getAPIClient)
 }
 
-func setupLogger() context.Context {
-	ctx := context.Background()
-
+func setupLogger(ctx context.Context) context.Context {
 	logLevel := "warn"
 	if verbose {
 		logLevel = "info"

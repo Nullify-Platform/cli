@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"runtime"
@@ -16,7 +15,7 @@ var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Check for CLI updates",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
+		ctx := cmd.Context()
 		ghClient := github.NewClient(nil)
 
 		release, _, err := ghClient.Repositories.GetLatestRelease(ctx, "Nullify-Platform", "cli")

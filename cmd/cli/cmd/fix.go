@@ -30,7 +30,7 @@ Supports SAST and SCA dependency findings.`,
   nullify fix def456 --type sca`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		findingID := args[0]

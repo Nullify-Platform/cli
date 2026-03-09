@@ -15,7 +15,7 @@ var reposCmd = &cobra.Command{
 	Short:   "List monitored repositories",
 	Example: "  nullify repos\n  nullify repos -o table",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		apiClient := getAPIClient()

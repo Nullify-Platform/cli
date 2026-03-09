@@ -26,7 +26,7 @@ var loginCmd = &cobra.Command{
 	Short: "Log in to Nullify",
 	Long:  "Authenticate with your Nullify instance. Opens your browser to log in with your identity provider.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		// Wrap context with signal handling so Ctrl+C triggers graceful cancellation
@@ -68,7 +68,7 @@ var logoutCmd = &cobra.Command{
 	Short: "Log out of Nullify",
 	Long:  "Clear stored credentials for the current or specified host.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		logoutHost := resolveHostForAuth(ctx)
@@ -131,7 +131,7 @@ var tokenCmd = &cobra.Command{
 	Short: "Print access token to stdout",
 	Long:  "Print the current access token. Useful for piping to other tools.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		hostForToken := resolveHostForAuth(ctx)

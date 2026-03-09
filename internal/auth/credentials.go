@@ -42,6 +42,24 @@ func LoadCredentials() (Credentials, error) {
 		return nil, err
 	}
 
+	// Migrate old "api." prefixed keys to bare form so credentials stored
+	// under the old host format are still found after SanitizeNullifyHost
+	// started normalizing to the bare form.
+	migrated := false
+	for k, v := range creds {
+		bare := strings.TrimPrefix(k, "api.")
+		if bare != k {
+			if _, exists := creds[bare]; !exists {
+				creds[bare] = v
+			}
+			delete(creds, k)
+			migrated = true
+		}
+	}
+	if migrated {
+		_ = SaveCredentials(creds)
+	}
+
 	return creds, nil
 }
 

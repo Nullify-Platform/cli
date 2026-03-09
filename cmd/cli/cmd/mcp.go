@@ -25,7 +25,7 @@ var mcpServeCmd = &cobra.Command{
 	Short: "Start the MCP server",
 	Long:  "Start the Nullify MCP server over stdio. Configure your AI tool to run 'nullify mcp serve'.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		mcpHost := resolveHost(ctx)
