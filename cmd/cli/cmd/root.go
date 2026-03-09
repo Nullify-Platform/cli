@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
@@ -76,9 +75,7 @@ func init() {
 		defaultParams := map[string]string{}
 		creds, err := auth.LoadCredentials()
 		if err == nil {
-			if hostCreds, ok := creds[nullifyHost]; ok {
-				defaultParams = hostCreds.QueryParameters
-			} else if hostCreds, ok := creds[strings.TrimPrefix(nullifyHost, "api.")]; ok {
+			if hostCreds, ok := creds[auth.CredentialKey(nullifyHost)]; ok {
 				defaultParams = hostCreds.QueryParameters
 			}
 		}

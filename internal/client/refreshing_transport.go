@@ -1,9 +1,12 @@
 package client
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/nullify-platform/logger/pkg/logger"
 )
 
 // TokenProvider is a function that returns a valid token.
@@ -52,7 +55,7 @@ func NewRefreshingNullifyClient(nullifyHost string, tokenProvider TokenProvider)
 	}, nil
 }
 
-func (t *refreshingAuthTransport) getToken() string {
+func (t *refreshingAuthTransport) getToken(ctx context.Context) string {
 	t.mu.RLock()
 	if time.Since(t.cachedAt) < t.cacheTTL {
 		token := t.cachedToken
@@ -70,7 +73,8 @@ func (t *refreshingAuthTransport) getToken() string {
 
 	newToken, err := t.tokenProvider()
 	if err != nil {
-		// Fall back to cached token
+		// Fall back to cached token; log so the user can diagnose 401s
+		logger.L(ctx).Warn("token refresh failed, using cached token", logger.Err(err))
 		return t.cachedToken
 	}
 
@@ -80,7 +84,7 @@ func (t *refreshingAuthTransport) getToken() string {
 }
 
 func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	token := t.getToken()
+	token := t.getToken(req.Context())
 
 	r := req.Clone(req.Context())
 	r.URL.Scheme = "https"

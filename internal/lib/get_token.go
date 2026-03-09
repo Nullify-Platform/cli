@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
@@ -67,7 +68,8 @@ func GetNullifyToken(
 			return "", err
 		}
 
-		res, err := http.DefaultClient.Do(req)
+		httpClient := &http.Client{Timeout: 30 * time.Second}
+		res, err := httpClient.Do(req)
 		if err != nil {
 			return "", err
 		}

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -60,23 +61,51 @@ func SaveCredentials(creds Credentials) error {
 		return err
 	}
 
-	return os.WriteFile(path, data, 0600)
+	return atomicWriteFile(path, data, 0600)
 }
 
-// credentialKey normalizes a host to its bare form (without "api." prefix)
+// atomicWriteFile writes data to a temp file then renames it into place,
+// preventing corruption on concurrent writes or crashes.
+func atomicWriteFile(path string, data []byte, perm os.FileMode) error {
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, ".credentials-*.tmp")
+	if err != nil {
+		return err
+	}
+	tmpPath := tmp.Name()
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		os.Remove(tmpPath)
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		os.Remove(tmpPath)
+		return err
+	}
+	if err := os.Chmod(tmpPath, perm); err != nil {
+		os.Remove(tmpPath)
+		return err
+	}
+	return os.Rename(tmpPath, path)
+}
+
+// CredentialKey normalizes a host to its bare form (without "api." prefix)
 // so that credentials are stored and looked up consistently regardless of
 // whether the caller passes "acme.nullify.ai" or "api.acme.nullify.ai".
-func credentialKey(host string) string {
+func CredentialKey(host string) string {
 	return strings.TrimPrefix(host, "api.")
 }
 
 func SaveHostCredentials(host string, hostCreds HostCredentials) error {
 	creds, err := LoadCredentials()
 	if err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("cannot update credentials: %w", err)
+		}
 		creds = make(Credentials)
 	}
 
-	creds[credentialKey(host)] = hostCreds
+	creds[CredentialKey(host)] = hostCreds
 
 	return SaveCredentials(creds)
 }
@@ -90,7 +119,7 @@ func DeleteHostCredentials(host string) error {
 		return err
 	}
 
-	delete(creds, credentialKey(host))
+	delete(creds, CredentialKey(host))
 
 	return SaveCredentials(creds)
 }

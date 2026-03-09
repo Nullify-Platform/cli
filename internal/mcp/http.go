@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/nullify-platform/cli/internal/client"
 
@@ -85,6 +86,6 @@ func makeGetByIDHandler(c *client.NullifyClient, basePath string, queryParams ma
 		args := request.GetArguments()
 		id := getStringArg(args, "id")
 		qs := buildQueryString(queryParams)
-		return doGet(ctx, c, fmt.Sprintf("%s/%s%s", basePath, id, qs))
+		return doGet(ctx, c, fmt.Sprintf("%s/%s%s", basePath, url.PathEscape(id), qs))
 	}
 }

@@ -70,5 +70,5 @@ func SaveConfig(cfg *Config) error {
 		return err
 	}
 
-	return os.WriteFile(path, data, 0600)
+	return atomicWriteFile(path, data, 0600)
 }

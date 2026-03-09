@@ -659,5 +659,13 @@ func generateCobraUse(ep Endpoint) string {
 		return action
 	}
 
-	return fmt.Sprintf("%s-%s", action, lastNonParam)
+	name := fmt.Sprintf("%s-%s", action, lastNonParam)
+
+	// When hasID is true and method is POST, append "-by-id" to avoid collisions
+	// with batch endpoints (e.g., POST /findings/allowlist vs POST /findings/{id}/allowlist)
+	if hasID && ep.Method == "POST" {
+		name += "-by-id"
+	}
+
+	return name
 }

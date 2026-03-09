@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os/exec"
@@ -182,12 +183,8 @@ func GetValidToken(ctx context.Context, host string) (string, error) {
 		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
 	}
 
-	key := credentialKey(host)
+	key := CredentialKey(host)
 	hostCreds, ok := creds[key]
-	if !ok {
-		// Fallback: try the original host in case credentials were saved with api. prefix
-		hostCreds, ok = creds[host]
-	}
 	if !ok {
 		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
 	}
@@ -232,7 +229,8 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("session request returned status %d", resp.StatusCode)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return nil, fmt.Errorf("session request returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var sessionResp cliSessionResponse
@@ -268,7 +266,8 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliToke
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("token request returned status %d", resp.StatusCode)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return nil, fmt.Errorf("token request returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var tokenResp cliTokenResponse
@@ -311,6 +310,10 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		return "", err
+	}
+
+	if result.AccessToken == "" {
+		return "", fmt.Errorf("refresh returned empty access token")
 	}
 
 	expiresAt := time.Now().Add(time.Duration(result.ExpiresIn) * time.Second).Unix()

@@ -107,7 +107,7 @@ var statusCmd = &cobra.Command{
 			return
 		}
 
-		hostCreds, ok := creds[cfg.Host]
+		hostCreds, ok := creds[auth.CredentialKey(cfg.Host)]
 		if !ok {
 			fmt.Println("Status: not authenticated")
 			return
@@ -168,7 +168,7 @@ var switchCmd = &cobra.Command{
 			fmt.Println("Configured hosts:")
 			for h := range creds {
 				marker := "  "
-				if cfg != nil && cfg.Host == h {
+				if cfg != nil && auth.CredentialKey(cfg.Host) == h {
 					marker = "* "
 				}
 				fmt.Printf("%s%s\n", marker, h)
@@ -237,7 +237,10 @@ func resolveHostForAuth(ctx context.Context) string {
 
 	cfg, err := auth.LoadConfig()
 	if err == nil && cfg.Host != "" {
-		return cfg.Host
+		sanitized, sErr := lib.SanitizeNullifyHost(cfg.Host)
+		if sErr == nil {
+			return sanitized
+		}
 	}
 
 	fmt.Fprintln(os.Stderr, "Error: no host configured. Use --host or run 'nullify auth login'")
