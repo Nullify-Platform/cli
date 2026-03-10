@@ -3,6 +3,7 @@ package lib
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -23,6 +24,7 @@ func CreateOpenAPIFile(ctx context.Context, filePath string) (map[string]any, er
 		)
 		return nil, err
 	}
+	defer data.Close()
 
 	fileData, err := io.ReadAll(data)
 	if err != nil {
@@ -46,7 +48,7 @@ func CreateOpenAPIFile(ctx context.Context, filePath string) (map[string]any, er
 	openAPISpec, ok := convert(openAPISpecAny).(map[string]interface{})
 	if !ok {
 		logger.L(ctx).Error("failed to parse openapi spec")
-		return nil, err
+		return nil, fmt.Errorf("failed to parse OpenAPI spec as JSON object")
 	}
 
 	return openAPISpec, nil

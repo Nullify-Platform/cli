@@ -2,8 +2,10 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type HostCredentials struct {
@@ -40,6 +42,24 @@ func LoadCredentials() (Credentials, error) {
 		return nil, err
 	}
 
+	// Migrate old "api." prefixed keys to bare form so credentials stored
+	// under the old host format are still found after SanitizeNullifyHost
+	// started normalizing to the bare form.
+	migrated := false
+	for k, v := range creds {
+		bare := strings.TrimPrefix(k, "api.")
+		if bare != k {
+			if _, exists := creds[bare]; !exists {
+				creds[bare] = v
+			}
+			delete(creds, k)
+			migrated = true
+		}
+	}
+	if migrated {
+		_ = SaveCredentials(creds)
+	}
+
 	return creds, nil
 }
 
@@ -59,16 +79,51 @@ func SaveCredentials(creds Credentials) error {
 		return err
 	}
 
-	return os.WriteFile(path, data, 0600)
+	return atomicWriteFile(path, data, 0600)
+}
+
+// atomicWriteFile writes data to a temp file then renames it into place,
+// preventing corruption on concurrent writes or crashes.
+func atomicWriteFile(path string, data []byte, perm os.FileMode) error {
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, ".credentials-*.tmp")
+	if err != nil {
+		return err
+	}
+	tmpPath := tmp.Name()
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		os.Remove(tmpPath)
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		os.Remove(tmpPath)
+		return err
+	}
+	if err := os.Chmod(tmpPath, perm); err != nil {
+		os.Remove(tmpPath)
+		return err
+	}
+	return os.Rename(tmpPath, path)
+}
+
+// CredentialKey normalizes a host to its bare form (without "api." prefix)
+// so that credentials are stored and looked up consistently regardless of
+// whether the caller passes "acme.nullify.ai" or "api.acme.nullify.ai".
+func CredentialKey(host string) string {
+	return strings.TrimPrefix(host, "api.")
 }
 
 func SaveHostCredentials(host string, hostCreds HostCredentials) error {
 	creds, err := LoadCredentials()
 	if err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("cannot update credentials: %w", err)
+		}
 		creds = make(Credentials)
 	}
 
-	creds[host] = hostCreds
+	creds[CredentialKey(host)] = hostCreds
 
 	return SaveCredentials(creds)
 }
@@ -82,7 +137,7 @@ func DeleteHostCredentials(host string) error {
 		return err
 	}
 
-	delete(creds, host)
+	delete(creds, CredentialKey(host))
 
 	return SaveCredentials(creds)
 }

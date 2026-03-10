@@ -68,19 +68,19 @@ func TestSanitizeNullifyHost(t *testing.T) {
 		{
 			name:         "valid input host",
 			inputHost:    "api.example.nullify.ai",
-			expectedHost: "api.example.nullify.ai",
+			expectedHost: "example.nullify.ai",
 			wantErr:      false,
 		},
 		{
 			name:         "input host with scheme, path and query params",
 			inputHost:    "https://api.example.nullify.ai/path?query=param",
-			expectedHost: "api.example.nullify.ai",
+			expectedHost: "example.nullify.ai",
 			wantErr:      false,
 		},
 		{
 			name:         "input host with invalid scheme",
 			inputHost:    "random://api.example.nullify.ai",
-			expectedHost: "api.example.nullify.ai",
+			expectedHost: "example.nullify.ai",
 			wantErr:      false,
 		},
 		{

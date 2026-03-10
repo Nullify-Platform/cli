@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/nullify-platform/cli/internal/client"
 
@@ -42,7 +43,7 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doPost(ctx, c, fmt.Sprintf("/secrets/findings/%s/ticket%s", id, qs), nil)
+			return doPost(ctx, c, fmt.Sprintf("/secrets/findings/%s/ticket%s", url.PathEscape(id), qs), nil)
 		},
 	)
 
@@ -56,7 +57,7 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			args := request.GetArguments()
 			id := getStringArg(args, "id")
 			qs := buildQueryString(queryParams)
-			return doGet(ctx, c, fmt.Sprintf("/secrets/findings/%s/events%s", id, qs))
+			return doGet(ctx, c, fmt.Sprintf("/secrets/findings/%s/events%s", url.PathEscape(id), qs))
 		},
 	)
 
@@ -76,7 +77,7 @@ func registerSecretsTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 				body["reason"] = r
 			}
 			qs := buildQueryString(queryParams)
-			return doPut(ctx, c, fmt.Sprintf("/secrets/findings/%s/triage%s", id, qs), body)
+			return doPut(ctx, c, fmt.Sprintf("/secrets/findings/%s/triage%s", url.PathEscape(id), qs), body)
 		},
 	)
 }

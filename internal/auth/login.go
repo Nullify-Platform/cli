@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
-	"net/url"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -108,7 +108,7 @@ func Login(ctx context.Context, host string) error {
 	fmt.Printf("\nOpening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", sessionResp.AuthURL)
 
-	if err := openBrowser(sessionResp.AuthURL); err != nil {
+	if err := OpenBrowser(sessionResp.AuthURL); err != nil {
 		logger.L(ctx).Debug("could not open browser automatically", logger.Err(err))
 		fmt.Println("(Could not open browser automatically. Please open the URL above manually.)")
 	}
@@ -116,15 +116,26 @@ func Login(ctx context.Context, host string) error {
 	fmt.Println("Waiting for authentication... (press Ctrl+C to cancel)")
 
 	// 5. Wait for callback with context cancellation support
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	timeout := time.After(10 * time.Minute)
+
 	var sessionID string
-	select {
-	case sessionID = <-sessionCh:
-	case err := <-errCh:
-		return fmt.Errorf("local server error: %w", err)
-	case <-ctx.Done():
-		return fmt.Errorf("authentication cancelled")
-	case <-time.After(10 * time.Minute):
-		return fmt.Errorf("authentication timed out — the session has expired")
+waitLoop:
+	for {
+		select {
+		case sessionID = <-sessionCh:
+			break waitLoop
+		case err := <-errCh:
+			return fmt.Errorf("local server error: %w", err)
+		case <-ctx.Done():
+			return fmt.Errorf("authentication cancelled")
+		case <-timeout:
+			return fmt.Errorf("authentication timed out — the session has expired")
+		case <-ticker.C:
+			fmt.Println("Still waiting for authentication...")
+		}
 	}
 
 	// 6. Fetch tokens from backend
@@ -172,7 +183,8 @@ func GetValidToken(ctx context.Context, host string) (string, error) {
 		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
 	}
 
-	hostCreds, ok := creds[host]
+	key := CredentialKey(host)
+	hostCreds, ok := creds[key]
 	if !ok {
 		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
 	}
@@ -217,7 +229,8 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("session request returned status %d", resp.StatusCode)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return nil, fmt.Errorf("session request returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var sessionResp cliSessionResponse
@@ -253,7 +266,8 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliToke
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("token request returned status %d", resp.StatusCode)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return nil, fmt.Errorf("token request returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var tokenResp cliTokenResponse
@@ -269,12 +283,13 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.refreshToken")
 	defer span.End()
 
-	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token?refresh_token=%s", apiHost(host), url.QueryEscape(refreshTok))
+	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token", apiHost(host))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
 	if err != nil {
 		return "", err
 	}
+	req.AddCookie(&http.Cookie{Name: "refresh_token", Value: refreshTok})
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -295,6 +310,10 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		return "", err
+	}
+
+	if result.AccessToken == "" {
+		return "", fmt.Errorf("refresh returned empty access token")
 	}
 
 	expiresAt := time.Now().Add(time.Duration(result.ExpiresIn) * time.Second).Unix()
@@ -320,7 +339,8 @@ func apiHost(host string) string {
 	return "api." + host
 }
 
-func openBrowser(url string) error {
+// OpenBrowser opens the given URL in the user's default browser.
+func OpenBrowser(url string) error {
 	var cmd *exec.Cmd
 
 	switch runtime.GOOS {

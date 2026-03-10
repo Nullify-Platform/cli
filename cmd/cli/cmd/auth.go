@@ -26,7 +26,7 @@ var loginCmd = &cobra.Command{
 	Short: "Log in to Nullify",
 	Long:  "Authenticate with your Nullify instance. Opens your browser to log in with your identity provider.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		// Wrap context with signal handling so Ctrl+C triggers graceful cancellation
@@ -68,7 +68,7 @@ var logoutCmd = &cobra.Command{
 	Short: "Log out of Nullify",
 	Long:  "Clear stored credentials for the current or specified host.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		logoutHost := resolveHostForAuth(ctx)
@@ -107,7 +107,7 @@ var statusCmd = &cobra.Command{
 			return
 		}
 
-		hostCreds, ok := creds[cfg.Host]
+		hostCreds, ok := creds[auth.CredentialKey(cfg.Host)]
 		if !ok {
 			fmt.Println("Status: not authenticated")
 			return
@@ -131,7 +131,7 @@ var tokenCmd = &cobra.Command{
 	Short: "Print access token to stdout",
 	Long:  "Print the current access token. Useful for piping to other tools.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := setupLogger()
+		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
 		hostForToken := resolveHostForAuth(ctx)
@@ -142,7 +142,7 @@ var tokenCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Print(token)
+		fmt.Println(token)
 	},
 }
 
@@ -168,7 +168,7 @@ var switchCmd = &cobra.Command{
 			fmt.Println("Configured hosts:")
 			for h := range creds {
 				marker := "  "
-				if cfg != nil && cfg.Host == h {
+				if cfg != nil && auth.CredentialKey(cfg.Host) == h {
 					marker = "* "
 				}
 				fmt.Printf("%s%s\n", marker, h)
@@ -206,7 +206,7 @@ var configShowCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := auth.LoadConfig()
 		if err != nil {
-			fmt.Println("{}")
+			fmt.Fprintf(os.Stderr, "No config found. Run 'nullify init' to set up.\n")
 			return
 		}
 
@@ -237,7 +237,10 @@ func resolveHostForAuth(ctx context.Context) string {
 
 	cfg, err := auth.LoadConfig()
 	if err == nil && cfg.Host != "" {
-		return cfg.Host
+		sanitized, sErr := lib.SanitizeNullifyHost(cfg.Host)
+		if sErr == nil {
+			return sanitized
+		}
 	}
 
 	fmt.Fprintln(os.Stderr, "Error: no host configured. Use --host or run 'nullify auth login'")

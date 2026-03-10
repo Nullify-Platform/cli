@@ -28,11 +28,11 @@ type NullifyClient struct {
 func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
-		Transport: &authTransport{
+		Transport: NewRetryTransport(&authTransport{
 			nullifyHost: nullifyHost,
 			token:       token,
 			transport:   http.DefaultTransport,
-		},
+		}),
 	}
 
 	return &NullifyClient{
@@ -65,7 +65,7 @@ func (c *NullifyClient) doJSON(ctx context.Context, method, url string, input an
 		return HandleError(resp)
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return err
 	}

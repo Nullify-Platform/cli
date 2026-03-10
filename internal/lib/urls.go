@@ -2,7 +2,6 @@ package lib
 
 import (
 	"errors"
-	"net/url"
 	"strings"
 )
 
@@ -22,6 +21,11 @@ func ParseCustomerDomain(input string) (string, error) {
 		input = strings.Split(input, "://")[1]
 	}
 
+	// Strip path and query parameters
+	if idx := strings.IndexAny(input, "/?"); idx != -1 {
+		input = input[:idx]
+	}
+
 	// Already a full API host
 	if strings.HasPrefix(input, "api.") && strings.HasSuffix(input, ".nullify.ai") {
 		return input, nil
@@ -34,25 +38,24 @@ func ParseCustomerDomain(input string) (string, error) {
 
 	// Just the customer name (no dots or only internal dots)
 	if !strings.Contains(input, ".") {
+		// Reject names with invalid hostname characters
+		if strings.ContainsAny(input, ":@!#$%^&*()+=[]{}|\\<>,") {
+			return "", errors.New("invalid domain format: contains invalid characters")
+		}
 		return "api." + input + ".nullify.ai", nil
 	}
 
 	return "", errors.New("invalid domain format: expected 'customer', 'customer.nullify.ai', or 'api.customer.nullify.ai'")
 }
 
+// SanitizeNullifyHost cleans a host string (strips scheme, path, query) and
+// validates it belongs to the nullify.ai domain. Unlike ParseCustomerDomain,
+// it preserves the bare form (e.g. "acme.nullify.ai") without adding "api.".
 func SanitizeNullifyHost(nullifyHost string) (string, error) {
-	if strings.Contains(nullifyHost, "://") {
-		nullifyHost = strings.Split(nullifyHost, "://")[1]
-	}
-
-	nullifyURL, err := url.Parse("https://" + nullifyHost)
+	apiHost, err := ParseCustomerDomain(nullifyHost)
 	if err != nil {
 		return "", err
 	}
-
-	if !strings.HasSuffix(nullifyURL.Host, ".nullify.ai") {
-		return "", errors.New("invalid host, must be in the format <your-instance>.nullify.ai")
-	}
-
-	return nullifyURL.Host, nil
+	// Return the bare host form — callers add "api." when needed.
+	return strings.TrimPrefix(apiHost, "api."), nil
 }
