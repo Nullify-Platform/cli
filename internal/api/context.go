@@ -9,10 +9,10 @@ import (
 	"strings"
 )
 
-// ListClassifierApplications - Get Applications
-// GET /classifier/applications
-func (c *Client) ListClassifierApplications(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/applications"
+// ListContextApplications - Get Applications
+// GET /context/applications
+func (c *Client) ListContextApplications(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/applications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -54,10 +54,10 @@ func (c *Client) ListClassifierApplications(ctx context.Context, params url.Valu
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierApplications - Create Application
-// POST /classifier/applications
-func (c *Client) CreateClassifierApplications(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/applications"
+// CreateContextApplications - Create Application
+// POST /context/applications
+func (c *Client) CreateContextApplications(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/applications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -99,10 +99,10 @@ func (c *Client) CreateClassifierApplications(ctx context.Context, params url.Va
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// CreateClassifierApplicationsRebuild - Rebuild Applications
-// POST /classifier/applications/rebuild
-func (c *Client) CreateClassifierApplicationsRebuild(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/applications/rebuild"
+// CreateContextApplicationsRebuild - Rebuild Applications
+// POST /context/applications/rebuild
+func (c *Client) CreateContextApplicationsRebuild(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/applications/rebuild"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -144,10 +144,10 @@ func (c *Client) CreateClassifierApplicationsRebuild(ctx context.Context, params
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// PatchClassifierApplicationsApplicationId - Update Application
-// PATCH /classifier/applications/{applicationId}
-func (c *Client) PatchClassifierApplicationsApplicationId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/applications/{applicationId}"
+// PatchContextApplicationsApplicationId - Update Application
+// PATCH /context/applications/{applicationId}
+func (c *Client) PatchContextApplicationsApplicationId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/applications/{applicationId}"
 	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
 
 	query := url.Values{}
@@ -190,10 +190,10 @@ func (c *Client) PatchClassifierApplicationsApplicationId(ctx context.Context, p
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// GetClassifierApplicationsApplicationId - Get Application
-// GET /classifier/applications/{applicationId}
-func (c *Client) GetClassifierApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/applications/{applicationId}"
+// GetContextApplicationsApplicationId - Get Application
+// GET /context/applications/{applicationId}
+func (c *Client) GetContextApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/applications/{applicationId}"
 	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
 
 	query := url.Values{}
@@ -236,10 +236,10 @@ func (c *Client) GetClassifierApplicationsApplicationId(ctx context.Context, par
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// DeleteClassifierApplicationsApplicationId - Delete Application
-// DELETE /classifier/applications/{applicationId}
-func (c *Client) DeleteClassifierApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/applications/{applicationId}"
+// DeleteContextApplicationsApplicationId - Delete Application
+// DELETE /context/applications/{applicationId}
+func (c *Client) DeleteContextApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/applications/{applicationId}"
 	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
 
 	query := url.Values{}
@@ -282,10 +282,10 @@ func (c *Client) DeleteClassifierApplicationsApplicationId(ctx context.Context, 
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// ListClassifierAssetInventoryResources - Get Asset Inventory Resources
-// GET /classifier/asset-inventory/resources
-func (c *Client) ListClassifierAssetInventoryResources(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/asset-inventory/resources"
+// ListContextAssetInventoryResources - Get Asset Inventory Resources
+// GET /context/asset-inventory/resources
+func (c *Client) ListContextAssetInventoryResources(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/asset-inventory/resources"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -342,10 +342,10 @@ func (c *Client) ListClassifierAssetInventoryResources(ctx context.Context, para
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierCloudIntegrationAwsScanStart - Start Cloud Integration AWS Scan
-// POST /classifier/cloud-integration/aws/scan/start
-func (c *Client) CreateClassifierCloudIntegrationAwsScanStart(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/cloud-integration/aws/scan/start"
+// CreateContextCloudIntegrationAwsScanStart - Start Cloud Integration AWS Scan
+// POST /context/cloud-integration/aws/scan/start
+func (c *Client) CreateContextCloudIntegrationAwsScanStart(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/cloud-integration/aws/scan/start"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -387,10 +387,10 @@ func (c *Client) CreateClassifierCloudIntegrationAwsScanStart(ctx context.Contex
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListClassifierCloudIntegrationAwsSettings - Get Cloud AWS Settings
-// GET /classifier/cloud-integration/aws/settings
-func (c *Client) ListClassifierCloudIntegrationAwsSettings(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/cloud-integration/aws/settings"
+// ListContextCloudIntegrationAwsSettings - Get Cloud AWS Settings
+// GET /context/cloud-integration/aws/settings
+func (c *Client) ListContextCloudIntegrationAwsSettings(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/cloud-integration/aws/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -432,10 +432,10 @@ func (c *Client) ListClassifierCloudIntegrationAwsSettings(ctx context.Context, 
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierCloudIntegrationAwsSettings - Upsert Cloud AWS Settings
-// POST /classifier/cloud-integration/aws/settings
-func (c *Client) CreateClassifierCloudIntegrationAwsSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/cloud-integration/aws/settings"
+// CreateContextCloudIntegrationAwsSettings - Upsert Cloud AWS Settings
+// POST /context/cloud-integration/aws/settings
+func (c *Client) CreateContextCloudIntegrationAwsSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/cloud-integration/aws/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -477,10 +477,10 @@ func (c *Client) CreateClassifierCloudIntegrationAwsSettings(ctx context.Context
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// CreateClassifierCloudIntegrationAzureScanStart - Start Cloud Integration Azure Scan
-// POST /classifier/cloud-integration/azure/scan/start
-func (c *Client) CreateClassifierCloudIntegrationAzureScanStart(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/cloud-integration/azure/scan/start"
+// CreateContextCloudIntegrationAzureScanStart - Start Cloud Integration Azure Scan
+// POST /context/cloud-integration/azure/scan/start
+func (c *Client) CreateContextCloudIntegrationAzureScanStart(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/cloud-integration/azure/scan/start"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -522,10 +522,10 @@ func (c *Client) CreateClassifierCloudIntegrationAzureScanStart(ctx context.Cont
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListClassifierCloudIntegrationAzureScanStatus - Get Azure Integration Scan Status
-// GET /classifier/cloud-integration/azure/scan/status
-func (c *Client) ListClassifierCloudIntegrationAzureScanStatus(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/cloud-integration/azure/scan/status"
+// ListContextCloudIntegrationAzureScanStatus - Get Azure Integration Scan Status
+// GET /context/cloud-integration/azure/scan/status
+func (c *Client) ListContextCloudIntegrationAzureScanStatus(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/cloud-integration/azure/scan/status"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -570,10 +570,10 @@ func (c *Client) ListClassifierCloudIntegrationAzureScanStatus(ctx context.Conte
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierCloudIntegrationAzureSettings - Upsert Cloud Azure Settings
-// POST /classifier/cloud-integration/azure/settings
-func (c *Client) CreateClassifierCloudIntegrationAzureSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/cloud-integration/azure/settings"
+// CreateContextCloudIntegrationAzureSettings - Upsert Cloud Azure Settings
+// POST /context/cloud-integration/azure/settings
+func (c *Client) CreateContextCloudIntegrationAzureSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/cloud-integration/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -615,10 +615,10 @@ func (c *Client) CreateClassifierCloudIntegrationAzureSettings(ctx context.Conte
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListClassifierCloudIntegrationAzureSettings - Get Cloud Azure Settings
-// GET /classifier/cloud-integration/azure/settings
-func (c *Client) ListClassifierCloudIntegrationAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/cloud-integration/azure/settings"
+// ListContextCloudIntegrationAzureSettings - Get Cloud Azure Settings
+// GET /context/cloud-integration/azure/settings
+func (c *Client) ListContextCloudIntegrationAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/cloud-integration/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -660,10 +660,10 @@ func (c *Client) ListClassifierCloudIntegrationAzureSettings(ctx context.Context
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// DeleteClassifierCloudIntegrationAzureSettings - Delete Cloud Azure Settings
-// DELETE /classifier/cloud-integration/azure/settings
-func (c *Client) DeleteClassifierCloudIntegrationAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/cloud-integration/azure/settings"
+// DeleteContextCloudIntegrationAzureSettings - Delete Cloud Azure Settings
+// DELETE /context/cloud-integration/azure/settings
+func (c *Client) DeleteContextCloudIntegrationAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/cloud-integration/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -705,10 +705,10 @@ func (c *Client) DeleteClassifierCloudIntegrationAzureSettings(ctx context.Conte
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// DeleteClassifierDeps - Delete dependency data
-// DELETE /classifier/deps
-func (c *Client) DeleteClassifierDeps(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps"
+// DeleteContextDeps - Delete dependency data
+// DELETE /context/deps
+func (c *Client) DeleteContextDeps(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -771,10 +771,10 @@ func (c *Client) DeleteClassifierDeps(ctx context.Context, params url.Values) ([
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// ListClassifierDeps - List Tenant Wide Dependencies (Historical)
-// GET /classifier/deps
-func (c *Client) ListClassifierDeps(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps"
+// ListContextDeps - List Tenant Wide Dependencies (Historical)
+// GET /context/deps
+func (c *Client) ListContextDeps(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -822,10 +822,10 @@ func (c *Client) ListClassifierDeps(ctx context.Context, params url.Values) ([]b
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDepsActive - List Tenant Wide Active Dependencies
-// GET /classifier/deps/active
-func (c *Client) ListClassifierDepsActive(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps/active"
+// ListContextDepsActive - List Tenant Wide Active Dependencies
+// GET /context/deps/active
+func (c *Client) ListContextDepsActive(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/active"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -873,10 +873,10 @@ func (c *Client) ListClassifierDepsActive(ctx context.Context, params url.Values
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDepsExposure - Global package exposure by version filter (semver or hash)
-// GET /classifier/deps/exposure
-func (c *Client) ListClassifierDepsExposure(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps/exposure"
+// ListContextDepsExposure - Global package exposure by version filter (semver or hash)
+// GET /context/deps/exposure
+func (c *Client) ListContextDepsExposure(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/exposure"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -927,10 +927,10 @@ func (c *Client) ListClassifierDepsExposure(ctx context.Context, params url.Valu
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDepsRepositoryRepositoryIdProjectProjectIdActive - List Active Dependencies
-// GET /classifier/deps/repository/{repositoryId}/project/{projectId}/active
-func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdActive(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps/repository/{repositoryId}/project/{projectId}/active"
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdActive - List Active Dependencies
+// GET /context/deps/repository/{repositoryId}/project/{projectId}/active
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdActive(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/repository/{repositoryId}/project/{projectId}/active"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -974,10 +974,10 @@ func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdActive(
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDepsRepositoryRepositoryIdProjectProjectIdAtCommit - Dependencies at commit
-// GET /classifier/deps/repository/{repositoryId}/project/{projectId}/at/{commit}
-func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdAtCommit(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps/repository/{repositoryId}/project/{projectId}/at/{commit}"
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit - Dependencies at commit
+// GET /context/deps/repository/{repositoryId}/project/{projectId}/at/{commit}
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/repository/{repositoryId}/project/{projectId}/at/{commit}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 	path = strings.Replace(path, "{commit}", params.Get("commit"), 1)
@@ -1022,10 +1022,10 @@ func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdAtCommi
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDepsRepositoryRepositoryIdProjectProjectIdDiff - Dependency diff between two commits
-// GET /classifier/deps/repository/{repositoryId}/project/{projectId}/diff
-func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdDiff(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps/repository/{repositoryId}/project/{projectId}/diff"
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff - Dependency diff between two commits
+// GET /context/deps/repository/{repositoryId}/project/{projectId}/diff
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/repository/{repositoryId}/project/{projectId}/diff"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -1075,10 +1075,10 @@ func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdDiff(ct
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDepsRepositoryRepositoryIdProjectProjectIdExposure - Project package exposure by version filter (semver or hash)
-// GET /classifier/deps/repository/{repositoryId}/project/{projectId}/exposure
-func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdExposure(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps/repository/{repositoryId}/project/{projectId}/exposure"
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure - Project package exposure by version filter (semver or hash)
+// GET /context/deps/repository/{repositoryId}/project/{projectId}/exposure
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/repository/{repositoryId}/project/{projectId}/exposure"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -1131,10 +1131,10 @@ func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdExposur
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierDepsRepositoryRepositoryIdProjectProjectIdHistory - Package exposure history (windows)
-// GET /classifier/deps/repository/{repositoryId}/project/{projectId}/history
-func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdHistory(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/deps/repository/{repositoryId}/project/{projectId}/history"
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory - Package exposure history (windows)
+// GET /context/deps/repository/{repositoryId}/project/{projectId}/history
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/repository/{repositoryId}/project/{projectId}/history"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -1184,10 +1184,10 @@ func (c *Client) ListClassifierDepsRepositoryRepositoryIdProjectProjectIdHistory
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierMemories - Get Memories
-// GET /classifier/memories
-func (c *Client) ListClassifierMemories(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/memories"
+// ListContextMemories - Get Memories
+// GET /context/memories
+func (c *Client) ListContextMemories(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/memories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -1250,10 +1250,10 @@ func (c *Client) ListClassifierMemories(ctx context.Context, params url.Values) 
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierMemories - Create Memory
-// POST /classifier/memories
-func (c *Client) CreateClassifierMemories(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/memories"
+// CreateContextMemories - Create Memory
+// POST /context/memories
+func (c *Client) CreateContextMemories(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/memories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -1295,10 +1295,10 @@ func (c *Client) CreateClassifierMemories(ctx context.Context, params url.Values
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// GetClassifierMemoriesMemoryId - Get Memory
-// GET /classifier/memories/{memoryId}
-func (c *Client) GetClassifierMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/memories/{memoryId}"
+// GetContextMemoriesMemoryId - Get Memory
+// GET /context/memories/{memoryId}
+func (c *Client) GetContextMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/memories/{memoryId}"
 	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
 
 	query := url.Values{}
@@ -1344,10 +1344,10 @@ func (c *Client) GetClassifierMemoriesMemoryId(ctx context.Context, params url.V
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// DeleteClassifierMemoriesMemoryId - Delete Memory
-// DELETE /classifier/memories/{memoryId}
-func (c *Client) DeleteClassifierMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/memories/{memoryId}"
+// DeleteContextMemoriesMemoryId - Delete Memory
+// DELETE /context/memories/{memoryId}
+func (c *Client) DeleteContextMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/memories/{memoryId}"
 	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
 
 	query := url.Values{}
@@ -1390,10 +1390,10 @@ func (c *Client) DeleteClassifierMemoriesMemoryId(ctx context.Context, params ur
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// PatchClassifierMemoriesMemoryId - Update Memory
-// PATCH /classifier/memories/{memoryId}
-func (c *Client) PatchClassifierMemoriesMemoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/memories/{memoryId}"
+// PatchContextMemoriesMemoryId - Update Memory
+// PATCH /context/memories/{memoryId}
+func (c *Client) PatchContextMemoriesMemoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/memories/{memoryId}"
 	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
 
 	query := url.Values{}
@@ -1436,10 +1436,10 @@ func (c *Client) PatchClassifierMemoriesMemoryId(ctx context.Context, params url
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// ListClassifierMemoriesMemoryIdVersions - Get Memory Versions
-// GET /classifier/memories/{memoryId}/versions
-func (c *Client) ListClassifierMemoriesMemoryIdVersions(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/memories/{memoryId}/versions"
+// ListContextMemoriesMemoryIdVersions - Get Memory Versions
+// GET /context/memories/{memoryId}/versions
+func (c *Client) ListContextMemoriesMemoryIdVersions(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/memories/{memoryId}/versions"
 	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
 
 	query := url.Values{}
@@ -1485,10 +1485,10 @@ func (c *Client) ListClassifierMemoriesMemoryIdVersions(ctx context.Context, par
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// PatchClassifierOrganization - Update Classification of the Organization
-// PATCH /classifier/organization
-func (c *Client) PatchClassifierOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/organization"
+// PatchContextOrganization - Update Classification of the Organization
+// PATCH /context/organization
+func (c *Client) PatchContextOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/organization"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -1530,10 +1530,10 @@ func (c *Client) PatchClassifierOrganization(ctx context.Context, params url.Val
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// UpdateClassifierOrganization - Upsert Classification of the Organization
-// PUT /classifier/organization
-func (c *Client) UpdateClassifierOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/organization"
+// UpdateContextOrganization - Upsert Classification of the Organization
+// PUT /context/organization
+func (c *Client) UpdateContextOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/organization"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -1575,10 +1575,10 @@ func (c *Client) UpdateClassifierOrganization(ctx context.Context, params url.Va
 	return c.do(ctx, "PUT", fullURL, body)
 }
 
-// ListClassifierOrganization - Get Organization Context
-// GET /classifier/organization
-func (c *Client) ListClassifierOrganization(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/organization"
+// ListContextOrganization - Get Organization Context
+// GET /context/organization
+func (c *Client) ListContextOrganization(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/organization"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -1620,10 +1620,10 @@ func (c *Client) ListClassifierOrganization(ctx context.Context, params url.Valu
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierRepositories - Get Contexts of Repositories
-// GET /classifier/repositories
-func (c *Client) ListClassifierRepositories(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/repositories"
+// ListContextRepositories - Get Contexts of Repositories
+// GET /context/repositories
+func (c *Client) ListContextRepositories(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repositories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -1677,10 +1677,10 @@ func (c *Client) ListClassifierRepositories(ctx context.Context, params url.Valu
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// DeleteClassifierRepositoriesRepositoryId - Delete Repository
-// DELETE /classifier/repositories/{repositoryId}
-func (c *Client) DeleteClassifierRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}"
+// DeleteContextRepositoriesRepositoryId - Delete Repository
+// DELETE /context/repositories/{repositoryId}
+func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
 	query := url.Values{}
@@ -1723,10 +1723,10 @@ func (c *Client) DeleteClassifierRepositoriesRepositoryId(ctx context.Context, p
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// PatchClassifierRepositoriesRepositoryId - Update Repository
-// PATCH /classifier/repositories/{repositoryId}
-func (c *Client) PatchClassifierRepositoriesRepositoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}"
+// PatchContextRepositoriesRepositoryId - Update Repository
+// PATCH /context/repositories/{repositoryId}
+func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
 	query := url.Values{}
@@ -1769,10 +1769,10 @@ func (c *Client) PatchClassifierRepositoriesRepositoryId(ctx context.Context, pa
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// GetClassifierRepositoriesRepositoryId - Get Repository
-// GET /classifier/repositories/{repositoryId}
-func (c *Client) GetClassifierRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}"
+// GetContextRepositoriesRepositoryId - Get Repository
+// GET /context/repositories/{repositoryId}
+func (c *Client) GetContextRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
 	query := url.Values{}
@@ -1815,10 +1815,10 @@ func (c *Client) GetClassifierRepositoriesRepositoryId(ctx context.Context, para
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierRepositoriesRepositoryIdProjects - List Projects
-// GET /classifier/repositories/{repositoryId}/projects
-func (c *Client) ListClassifierRepositoriesRepositoryIdProjects(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}/projects"
+// ListContextRepositoriesRepositoryIdProjects - List Projects
+// GET /context/repositories/{repositoryId}/projects
+func (c *Client) ListContextRepositoriesRepositoryIdProjects(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}/projects"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
 	query := url.Values{}
@@ -1870,10 +1870,10 @@ func (c *Client) ListClassifierRepositoriesRepositoryIdProjects(ctx context.Cont
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// PatchClassifierRepositoriesRepositoryIdProjectsProjectId - Update Project
-// PATCH /classifier/repositories/{repositoryId}/projects/{projectId}
-func (c *Client) PatchClassifierRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}/projects/{projectId}"
+// PatchContextRepositoriesRepositoryIdProjectsProjectId - Update Project
+// PATCH /context/repositories/{repositoryId}/projects/{projectId}
+func (c *Client) PatchContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -1917,10 +1917,10 @@ func (c *Client) PatchClassifierRepositoriesRepositoryIdProjectsProjectId(ctx co
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// GetClassifierRepositoriesRepositoryIdProjectsProjectId - Get Project
-// GET /classifier/repositories/{repositoryId}/projects/{projectId}
-func (c *Client) GetClassifierRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}/projects/{projectId}"
+// GetContextRepositoriesRepositoryIdProjectsProjectId - Get Project
+// GET /context/repositories/{repositoryId}/projects/{projectId}
+func (c *Client) GetContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -1964,10 +1964,10 @@ func (c *Client) GetClassifierRepositoriesRepositoryIdProjectsProjectId(ctx cont
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchema - Get Project Schema
-// GET /classifier/repositories/{repositoryId}/projects/{projectId}/schema
-func (c *Client) ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}/projects/{projectId}/schema"
+// ListContextRepositoriesRepositoryIdProjectsProjectIdSchema - Get Project Schema
+// GET /context/repositories/{repositoryId}/projects/{projectId}/schema
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -2011,10 +2011,10 @@ func (c *Client) ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchema(c
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata - Get Project Schema Metadata
-// GET /classifier/repositories/{repositoryId}/projects/{projectId}/schema/metadata
-func (c *Client) ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/repositories/{repositoryId}/projects/{projectId}/schema/metadata"
+// ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata - Get Project Schema Metadata
+// GET /context/repositories/{repositoryId}/projects/{projectId}/schema/metadata
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema/metadata"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -2058,10 +2058,10 @@ func (c *Client) ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchemaMe
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierSbomingestorReplay - Compute Dependencies Repository/Project SBOM Ingest Replay
-// POST /classifier/sbomingestor/replay
-func (c *Client) CreateClassifierSbomingestorReplay(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/sbomingestor/replay"
+// CreateContextSbomingestorReplay - Compute Dependencies Repository/Project SBOM Ingest Replay
+// POST /context/sbomingestor/replay
+func (c *Client) CreateContextSbomingestorReplay(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/sbomingestor/replay"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -2103,10 +2103,10 @@ func (c *Client) CreateClassifierSbomingestorReplay(ctx context.Context, params 
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// GetClassifierSbomsRepositoryRepositoryIdProjectProjectId - Get Repository/Project SBOMs
-// GET /classifier/sboms/repository/{repositoryId}/project/{projectId}
-func (c *Client) GetClassifierSbomsRepositoryRepositoryIdProjectProjectId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/sboms/repository/{repositoryId}/project/{projectId}"
+// GetContextSbomsRepositoryRepositoryIdProjectProjectId - Get Repository/Project SBOMs
+// GET /context/sboms/repository/{repositoryId}/project/{projectId}
+func (c *Client) GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/sboms/repository/{repositoryId}/project/{projectId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
 
@@ -2168,10 +2168,10 @@ func (c *Client) GetClassifierSbomsRepositoryRepositoryIdProjectProjectId(ctx co
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierSbomsTree - Get SBOM key tree for tenant
-// GET /classifier/sboms/tree
-func (c *Client) ListClassifierSbomsTree(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/sboms/tree"
+// ListContextSbomsTree - Get SBOM key tree for tenant
+// GET /context/sboms/tree
+func (c *Client) ListContextSbomsTree(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/sboms/tree"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -2213,10 +2213,10 @@ func (c *Client) ListClassifierSbomsTree(ctx context.Context, params url.Values)
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierVaultFile - Post Vault File
-// POST /classifier/vault/file
-func (c *Client) CreateClassifierVaultFile(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/vault/file"
+// CreateContextVaultFile - Post Vault File
+// POST /context/vault/file
+func (c *Client) CreateContextVaultFile(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/vault/file"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -2258,10 +2258,10 @@ func (c *Client) CreateClassifierVaultFile(ctx context.Context, params url.Value
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// DeleteClassifierVaultFileFileId - Delete Vault File
-// DELETE /classifier/vault/file/{fileId}
-func (c *Client) DeleteClassifierVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/vault/file/{fileId}"
+// DeleteContextVaultFileFileId - Delete Vault File
+// DELETE /context/vault/file/{fileId}
+func (c *Client) DeleteContextVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/vault/file/{fileId}"
 	path = strings.Replace(path, "{fileId}", params.Get("fileId"), 1)
 
 	query := url.Values{}
@@ -2304,10 +2304,10 @@ func (c *Client) DeleteClassifierVaultFileFileId(ctx context.Context, params url
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// GetClassifierVaultFileFileId - Get Vault File
-// GET /classifier/vault/file/{fileId}
-func (c *Client) GetClassifierVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/vault/file/{fileId}"
+// GetContextVaultFileFileId - Get Vault File
+// GET /context/vault/file/{fileId}
+func (c *Client) GetContextVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/vault/file/{fileId}"
 	path = strings.Replace(path, "{fileId}", params.Get("fileId"), 1)
 
 	query := url.Values{}
@@ -2350,10 +2350,10 @@ func (c *Client) GetClassifierVaultFileFileId(ctx context.Context, params url.Va
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// PatchClassifierVaultFileFileName - Patch Vault File
-// PATCH /classifier/vault/file/{fileName}
-func (c *Client) PatchClassifierVaultFileFileName(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/vault/file/{fileName}"
+// PatchContextVaultFileFileName - Patch Vault File
+// PATCH /context/vault/file/{fileName}
+func (c *Client) PatchContextVaultFileFileName(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/vault/file/{fileName}"
 	path = strings.Replace(path, "{fileName}", params.Get("fileName"), 1)
 
 	query := url.Values{}
@@ -2396,10 +2396,10 @@ func (c *Client) PatchClassifierVaultFileFileName(ctx context.Context, params ur
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// ListClassifierVaultFiles - Get Vault Files
-// GET /classifier/vault/files
-func (c *Client) ListClassifierVaultFiles(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/vault/files"
+// ListContextVaultFiles - Get Vault Files
+// GET /context/vault/files
+func (c *Client) ListContextVaultFiles(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/vault/files"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -2441,10 +2441,10 @@ func (c *Client) ListClassifierVaultFiles(ctx context.Context, params url.Values
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListClassifierVaultFilesList - Get Vault Files List
-// GET /classifier/vault/files/list
-func (c *Client) ListClassifierVaultFilesList(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/classifier/vault/files/list"
+// ListContextVaultFilesList - Get Vault Files List
+// GET /context/vault/files/list
+func (c *Client) ListContextVaultFilesList(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/vault/files/list"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -2486,10 +2486,10 @@ func (c *Client) ListClassifierVaultFilesList(ctx context.Context, params url.Va
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateClassifierVaultOnboard - Trigger Vault Onboarding
-// POST /classifier/vault/onboard
-func (c *Client) CreateClassifierVaultOnboard(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/classifier/vault/onboard"
+// CreateContextVaultOnboard - Trigger Vault Onboarding
+// POST /context/vault/onboard
+func (c *Client) CreateContextVaultOnboard(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/vault/onboard"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {

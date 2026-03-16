@@ -61,7 +61,7 @@ func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
 			qs := buildQueryString(queryParams)
-			result, err := doGet(ctx, c, "/classifier/repositories"+qs)
+			result, err := doGet(ctx, c, "/context/repositories"+qs)
 			if err != nil {
 				return nil, err
 			}

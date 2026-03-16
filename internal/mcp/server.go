@@ -48,9 +48,9 @@ func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map
 		registerCommentTools(s, c, queryParams)
 
 	case ToolSetAdmin:
-		// Admin + classifier + manager + infrastructure + composites
+		// Admin + context + manager + infrastructure + composites
 		registerAdminTools(s, c, queryParams)
-		registerClassifierTools(s, c, queryParams)
+		registerContextTools(s, c, queryParams)
 		registerManagerTools(s, c, queryParams)
 		registerInfrastructureTools(s, c, queryParams)
 		registerCompositeTools(s, c, queryParams)
@@ -64,7 +64,7 @@ func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map
 		registerBughuntTools(s, c, queryParams)
 		registerCSPMTools(s, c, queryParams)
 		registerAdminTools(s, c, queryParams)
-		registerClassifierTools(s, c, queryParams)
+		registerContextTools(s, c, queryParams)
 		registerManagerTools(s, c, queryParams)
 		registerInfrastructureTools(s, c, queryParams)
 		registerCodeReviewTools(s, c, queryParams)
@@ -73,10 +73,10 @@ func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map
 		registerUnifiedTools(s, c, queryParams)
 
 	default: // ToolSetDefault
-		// Unified + composites + classifier + infrastructure + manager + code reviews + comments
+		// Unified + composites + context + infrastructure + manager + code reviews + comments
 		registerUnifiedTools(s, c, queryParams)
 		registerCompositeTools(s, c, queryParams)
-		registerClassifierTools(s, c, queryParams)
+		registerContextTools(s, c, queryParams)
 		registerInfrastructureTools(s, c, queryParams)
 		registerManagerTools(s, c, queryParams)
 		registerCodeReviewTools(s, c, queryParams)

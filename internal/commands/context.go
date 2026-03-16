@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client) {
 	serviceCmd := &cobra.Command{
-		Use:   "classifier",
-		Short: "Classifier commands",
+		Use:   "context",
+		Short: "Repository and Code Classification",
 	}
 	parent.AddCommand(serviceCmd)
 
@@ -28,7 +28,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierApplications(cmd.Context(), params)
+				result, err := client.ListContextApplications(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -57,7 +57,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierApplications(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextApplications(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -86,7 +86,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierApplicationsRebuild(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextApplicationsRebuild(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -119,7 +119,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("applicationId", args[0])
 				}
-				result, err := client.PatchClassifierApplicationsApplicationId(cmd.Context(), params, os.Stdin)
+				result, err := client.PatchContextApplicationsApplicationId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -152,7 +152,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("applicationId", args[0])
 				}
-				result, err := client.GetClassifierApplicationsApplicationId(cmd.Context(), params)
+				result, err := client.GetContextApplicationsApplicationId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -185,7 +185,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("applicationId", args[0])
 				}
-				result, err := client.DeleteClassifierApplicationsApplicationId(cmd.Context(), params)
+				result, err := client.DeleteContextApplicationsApplicationId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -214,7 +214,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierAssetInventoryResources(cmd.Context(), params)
+				result, err := client.ListContextAssetInventoryResources(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -248,7 +248,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAwsScanStart(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextCloudIntegrationAwsScanStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -277,7 +277,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierCloudIntegrationAwsSettings(cmd.Context(), params)
+				result, err := client.ListContextCloudIntegrationAwsSettings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -306,7 +306,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAwsSettings(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextCloudIntegrationAwsSettings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -335,7 +335,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAzureScanStart(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextCloudIntegrationAzureScanStart(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -364,7 +364,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierCloudIntegrationAzureScanStatus(cmd.Context(), params)
+				result, err := client.ListContextCloudIntegrationAzureScanStatus(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -394,7 +394,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierCloudIntegrationAzureSettings(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextCloudIntegrationAzureSettings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -423,7 +423,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierCloudIntegrationAzureSettings(cmd.Context(), params)
+				result, err := client.ListContextCloudIntegrationAzureSettings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -452,7 +452,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.DeleteClassifierCloudIntegrationAzureSettings(cmd.Context(), params)
+				result, err := client.DeleteContextCloudIntegrationAzureSettings(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -481,7 +481,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.DeleteClassifierDeps(cmd.Context(), params)
+				result, err := client.DeleteContextDeps(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -517,7 +517,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierDeps(cmd.Context(), params)
+				result, err := client.ListContextDeps(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -548,7 +548,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierDepsActive(cmd.Context(), params)
+				result, err := client.ListContextDepsActive(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -579,7 +579,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierDepsExposure(cmd.Context(), params)
+				result, err := client.ListContextDepsExposure(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -615,7 +615,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdActive(cmd.Context(), params)
+				result, err := client.ListContextDepsRepositoryRepositoryIdProjectProjectIdActive(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -648,7 +648,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("commit", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdAtCommit(cmd.Context(), params)
+				result, err := client.ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -681,7 +681,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdDiff(cmd.Context(), params)
+				result, err := client.ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -716,7 +716,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdExposure(cmd.Context(), params)
+				result, err := client.ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -752,7 +752,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierDepsRepositoryRepositoryIdProjectProjectIdHistory(cmd.Context(), params)
+				result, err := client.ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -783,7 +783,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierMemories(cmd.Context(), params)
+				result, err := client.ListContextMemories(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -819,7 +819,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierMemories(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextMemories(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -852,7 +852,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("memoryId", args[0])
 				}
-				result, err := client.GetClassifierMemoriesMemoryId(cmd.Context(), params)
+				result, err := client.GetContextMemoriesMemoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -886,7 +886,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("memoryId", args[0])
 				}
-				result, err := client.DeleteClassifierMemoriesMemoryId(cmd.Context(), params)
+				result, err := client.DeleteContextMemoriesMemoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -919,7 +919,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("memoryId", args[0])
 				}
-				result, err := client.PatchClassifierMemoriesMemoryId(cmd.Context(), params, os.Stdin)
+				result, err := client.PatchContextMemoriesMemoryId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -952,7 +952,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("memoryId", args[0])
 				}
-				result, err := client.ListClassifierMemoriesMemoryIdVersions(cmd.Context(), params)
+				result, err := client.ListContextMemoriesMemoryIdVersions(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -982,7 +982,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.PatchClassifierOrganization(cmd.Context(), params, os.Stdin)
+				result, err := client.PatchContextOrganization(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1011,7 +1011,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.UpdateClassifierOrganization(cmd.Context(), params, os.Stdin)
+				result, err := client.UpdateContextOrganization(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1040,7 +1040,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierOrganization(cmd.Context(), params)
+				result, err := client.ListContextOrganization(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1069,7 +1069,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierRepositories(cmd.Context(), params)
+				result, err := client.ListContextRepositories(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1106,7 +1106,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.DeleteClassifierRepositoriesRepositoryId(cmd.Context(), params)
+				result, err := client.DeleteContextRepositoriesRepositoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1139,7 +1139,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.PatchClassifierRepositoriesRepositoryId(cmd.Context(), params, os.Stdin)
+				result, err := client.PatchContextRepositoriesRepositoryId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1172,7 +1172,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.GetClassifierRepositoriesRepositoryId(cmd.Context(), params)
+				result, err := client.GetContextRepositoriesRepositoryId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1205,7 +1205,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("repositoryId", args[0])
 				}
-				result, err := client.ListClassifierRepositoriesRepositoryIdProjects(cmd.Context(), params)
+				result, err := client.ListContextRepositoriesRepositoryIdProjects(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1241,7 +1241,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.PatchClassifierRepositoriesRepositoryIdProjectsProjectId(cmd.Context(), params, os.Stdin)
+				result, err := client.PatchContextRepositoriesRepositoryIdProjectsProjectId(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1274,7 +1274,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.GetClassifierRepositoriesRepositoryIdProjectsProjectId(cmd.Context(), params)
+				result, err := client.GetContextRepositoriesRepositoryIdProjectsProjectId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1307,7 +1307,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchema(cmd.Context(), params)
+				result, err := client.ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1340,7 +1340,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.ListClassifierRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(cmd.Context(), params)
+				result, err := client.ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1369,7 +1369,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierSbomingestorReplay(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextSbomingestorReplay(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1402,7 +1402,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("projectId", args[0])
 				}
-				result, err := client.GetClassifierSbomsRepositoryRepositoryIdProjectProjectId(cmd.Context(), params)
+				result, err := client.GetContextSbomsRepositoryRepositoryIdProjectProjectId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1437,7 +1437,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierSbomsTree(cmd.Context(), params)
+				result, err := client.ListContextSbomsTree(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1466,7 +1466,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierVaultFile(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextVaultFile(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1499,7 +1499,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("fileId", args[0])
 				}
-				result, err := client.DeleteClassifierVaultFileFileId(cmd.Context(), params)
+				result, err := client.DeleteContextVaultFileFileId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1532,7 +1532,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("fileId", args[0])
 				}
-				result, err := client.GetClassifierVaultFileFileId(cmd.Context(), params)
+				result, err := client.GetContextVaultFileFileId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1565,7 +1565,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				if len(args) > 0 {
 					params.Set("fileName", args[0])
 				}
-				result, err := client.PatchClassifierVaultFileFileName(cmd.Context(), params, os.Stdin)
+				result, err := client.PatchContextVaultFileFileName(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1594,7 +1594,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierVaultFiles(cmd.Context(), params)
+				result, err := client.ListContextVaultFiles(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1623,7 +1623,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.ListClassifierVaultFilesList(cmd.Context(), params)
+				result, err := client.ListContextVaultFilesList(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -1652,7 +1652,7 @@ func RegisterClassifierCommands(parent *cobra.Command, getClient func() *api.Cli
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateClassifierVaultOnboard(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateContextVaultOnboard(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
