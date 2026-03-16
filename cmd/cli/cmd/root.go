@@ -92,7 +92,7 @@ func init() {
 	// Skip RegisterChatCommands - the handwritten chat command handles interactive chat;
 	// generated chat API subcommands are bridged via RegisterChatSubcommands.
 	commands.RegisterChatSubcommands(chatCmd, getAPIClient)
-	commands.RegisterClassifierCommands(apiCmd, getAPIClient)
+	commands.RegisterContextCommands(apiCmd, getAPIClient)
 	commands.RegisterCspmCommands(apiCmd, getAPIClient)
 	// Register pentest and bughunt subcommands from generated DAST commands
 	commands.RegisterPentestSubcommands(pentestCmd, getAPIClient)

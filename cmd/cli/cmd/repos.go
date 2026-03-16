@@ -20,7 +20,7 @@ var reposCmd = &cobra.Command{
 
 		apiClient := getAPIClient()
 
-		result, err := apiClient.ListClassifierRepositories(ctx, url.Values{})
+		result, err := apiClient.ListContextRepositories(ctx, url.Values{})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)

@@ -10,14 +10,14 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string) {
+func registerContextTools(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string) {
 	s.AddTool(
 		mcp.NewTool(
 			"list_repositories",
 			mcp.WithDescription("List repositories monitored by Nullify. Shows all connected code repositories with their classification and scanning status."),
 			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
 		),
-		makeGetHandler(c, "/classifier/repositories", queryParams),
+		makeGetHandler(c, "/context/repositories", queryParams),
 	)
 
 	s.AddTool(
@@ -26,7 +26,7 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			mcp.WithDescription("Get detailed information about a specific monitored repository."),
 			mcp.WithString("id", mcp.Required(), mcp.Description("The repository ID")),
 		),
-		makeGetByIDHandler(c, "/classifier/repositories", queryParams),
+		makeGetByIDHandler(c, "/context/repositories", queryParams),
 	)
 
 	s.AddTool(
@@ -35,7 +35,7 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			mcp.WithDescription("List applications classified by Nullify. Applications are logical groupings of repositories and services that form a product or system."),
 			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
 		),
-		makeGetHandler(c, "/classifier/applications", queryParams),
+		makeGetHandler(c, "/context/applications", queryParams),
 	)
 
 	s.AddTool(
@@ -44,7 +44,7 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			mcp.WithDescription("Get detailed information about a specific application, including its associated repositories and dependencies."),
 			mcp.WithString("id", mcp.Required(), mcp.Description("The application ID")),
 		),
-		makeGetByIDHandler(c, "/classifier/applications", queryParams),
+		makeGetByIDHandler(c, "/context/applications", queryParams),
 	)
 
 	s.AddTool(
@@ -54,7 +54,7 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			mcp.WithString("repository", mcp.Description("Filter by repository name")),
 			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
 		),
-		makeGetHandler(c, "/classifier/dependencies", queryParams),
+		makeGetHandler(c, "/context/dependencies", queryParams),
 	)
 
 	s.AddTool(
@@ -69,7 +69,7 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			repoID := getStringArg(args, "repo_id")
 			projectID := getStringArg(args, "project_id")
 			qs := buildQueryString(queryParams)
-			return doGet(ctx, c, fmt.Sprintf("/classifier/sboms/repository/%s/project/%s%s", repoID, projectID, qs))
+			return doGet(ctx, c, fmt.Sprintf("/context/sboms/repository/%s/project/%s%s", repoID, projectID, qs))
 		},
 	)
 
@@ -78,6 +78,6 @@ func registerClassifierTools(s *server.MCPServer, c *client.NullifyClient, query
 			"get_dependency_exposure",
 			mcp.WithDescription("Get dependency exposure analysis showing which dependencies are exposed to the internet or internal networks."),
 		),
-		makeGetHandler(c, "/classifier/deps/exposure", queryParams),
+		makeGetHandler(c, "/context/deps/exposure", queryParams),
 	)
 }
