@@ -59,6 +59,32 @@ func DoPost(ctx context.Context, httpClient Doer, baseURL, path string) (string,
 	return string(body), nil
 }
 
+// DoPostJSON performs a POST request with a JSON body and returns the response body as a string.
+func DoPostJSON(ctx context.Context, httpClient Doer, baseURL, path string, body io.Reader) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", baseURL+path, body)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("API returned %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	return string(respBody), nil
+}
+
 // DoGet performs a GET request and returns the response body as a string.
 // Returns an error if the request fails or the status code is not 2xx.
 func DoGet(ctx context.Context, httpClient Doer, baseURL, path string) (string, error) {

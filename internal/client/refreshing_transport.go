@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -47,9 +48,14 @@ func NewRefreshingNullifyClient(nullifyHost string, tokenProvider TokenProvider)
 		Transport: NewRetryTransport(t),
 	}
 
+	apiHost := nullifyHost
+	if !strings.HasPrefix(nullifyHost, "api.") {
+		apiHost = "api." + nullifyHost
+	}
+
 	return &NullifyClient{
 		Host:       nullifyHost,
-		BaseURL:    "https://" + nullifyHost,
+		BaseURL:    "https://" + apiHost,
 		Token:      "", // Token is managed by the refreshing transport; do not use this field directly.
 		HttpClient: httpClient,
 	}, nil
@@ -87,9 +93,6 @@ func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, 
 	token := t.getToken(req.Context())
 
 	r := req.Clone(req.Context())
-	r.URL.Scheme = "https"
-	r.URL.Host = t.nullifyHost
-	r.Host = t.nullifyHost
 	r.Header.Set("Authorization", "Bearer "+token)
 	r.Header.Set("User-Agent", "Nullify-CLI/mcp")
 	return t.transport.RoundTrip(r)
