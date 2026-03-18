@@ -26,6 +26,11 @@ type NullifyClient struct {
 
 // NewNullifyClient creates a client for the given host with bearer token auth.
 func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
+	apiHost := nullifyHost
+	if !strings.HasPrefix(nullifyHost, "api.") {
+		apiHost = "api." + nullifyHost
+	}
+
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 		Transport: NewRetryTransport(&authTransport{
@@ -37,7 +42,7 @@ func NewNullifyClient(nullifyHost string, token string) *NullifyClient {
 
 	return &NullifyClient{
 		Host:       nullifyHost,
-		BaseURL:    "https://" + nullifyHost,
+		BaseURL:    "https://" + apiHost,
 		Token:      token,
 		HttpClient: httpClient,
 	}

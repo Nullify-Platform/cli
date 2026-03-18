@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
@@ -42,7 +43,8 @@ var securityStatusCmd = &cobra.Command{
 
 		// Fetch metrics overview
 		qs := lib.BuildQueryString(queryParams)
-		overviewBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, "/admin/metrics/overview"+qs)
+		overviewBody, err := lib.DoPostJSON(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, "/admin/metrics/overview"+qs, strings.NewReader(`{"query":{}}`))
+
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error fetching metrics: %v\n", err)
 			os.Exit(ExitNetworkError)
