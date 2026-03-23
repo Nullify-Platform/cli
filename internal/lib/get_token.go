@@ -99,6 +99,9 @@ func GetNullifyToken(
 		logger.L(ctx).Debug("using token from stored credentials")
 		return storedToken, nil
 	}
+	if err != nil {
+		return "", fmt.Errorf("stored credentials: %w", err)
+	}
 
 	return "", ErrNoToken
 }
