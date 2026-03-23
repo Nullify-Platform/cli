@@ -1,12 +1,13 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/chat"
+	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 )
@@ -27,31 +28,21 @@ Examples:
 		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
-		chatHost := resolveHost(ctx)
-
-		token, err := auth.GetValidToken(ctx, chatHost)
+		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
+			if errors.Is(err, lib.ErrNoToken) {
+				fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
+			} else {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			}
 			os.Exit(ExitAuthError)
 		}
 
-		creds, err := auth.LoadCredentials()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to load credentials: %v\n", err)
-			os.Exit(1)
-		}
-
-		hostCreds := creds[auth.CredentialKey(chatHost)]
-		queryParams := hostCreds.QueryParameters
-		if queryParams == nil {
-			queryParams = make(map[string]string)
-		}
-
 		// Connect via WebSocket
-		conn, err := chat.Dial(ctx, chatHost, token)
+		conn, err := chat.Dial(ctx, authCtx.Host, authCtx.Token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			os.Exit(ExitNetworkError)
 		}
 
 		// Build client options
@@ -67,7 +58,7 @@ Examples:
 			opts = append(opts, chat.WithSystemPrompt(systemPrompt))
 		}
 
-		client := chat.NewClient(conn, queryParams, opts...)
+		client := chat.NewClient(conn, authCtx.QueryParams, opts...)
 		defer client.Close()
 
 		if len(args) > 0 {

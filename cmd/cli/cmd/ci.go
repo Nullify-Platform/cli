@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -47,7 +48,11 @@ Exit codes:
 		ciHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, ciHost, nullifyToken, githubToken)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: not authenticated\n")
+			if errors.Is(err, lib.ErrNoToken) {
+				fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
+			} else {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			}
 			os.Exit(ExitAuthError)
 		}
 
@@ -159,7 +164,11 @@ var ciReportCmd = &cobra.Command{
 		ciHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, ciHost, nullifyToken, githubToken)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: not authenticated\n")
+			if errors.Is(err, lib.ErrNoToken) {
+				fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
+			} else {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			}
 			os.Exit(ExitAuthError)
 		}
 
@@ -189,6 +198,9 @@ var ciReportCmd = &cobra.Command{
 
 		rows := make([]reportRow, len(endpoints)*len(severities))
 		g, gctx := errgroup.WithContext(ctx)
+		var successCount int64
+		var apiErrors int64
+		var mu sync.Mutex
 
 		for i, ep := range endpoints {
 			for j, sev := range severities {
@@ -202,9 +214,13 @@ var ciReportCmd = &cobra.Command{
 
 					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 					if err != nil {
+						atomic.AddInt64(&apiErrors, 1)
+						mu.Lock()
 						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+						mu.Unlock()
 						return nil
 					}
+					atomic.AddInt64(&successCount, 1)
 
 					rows[i*len(severities)+j] = reportRow{
 						scanner:  ep.name,
@@ -217,6 +233,14 @@ var ciReportCmd = &cobra.Command{
 		}
 
 		_ = g.Wait()
+
+		if successCount == 0 {
+			fmt.Fprintln(os.Stderr, "Error: all API requests failed, cannot generate report")
+			os.Exit(ExitNetworkError)
+		}
+		if apiErrors > 0 {
+			fmt.Fprintf(os.Stderr, "Warning: %d API requests failed while generating the report\n", apiErrors)
+		}
 
 		fmt.Println("## Nullify Security Report")
 		fmt.Println()

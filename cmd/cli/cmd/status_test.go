@@ -3,6 +3,7 @@ package cmd
 import (
 	"testing"
 
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,4 +70,37 @@ func TestFilterEndpointsByType(t *testing.T) {
 
 	noMatch := filterEndpointsByType(endpoints, "nonexistent")
 	require.Nil(t, noMatch)
+}
+
+func TestStatusDefaultsToTable(t *testing.T) {
+	// The global --output flag defaults to "json", but status should
+	// display a table when the user hasn't explicitly passed -o.
+	root := &cobra.Command{Use: "test"}
+	root.PersistentFlags().StringP("output", "o", "json", "Output format")
+
+	var sawTable bool
+	child := &cobra.Command{
+		Use: "status",
+		Run: func(cmd *cobra.Command, args []string) {
+			format, _ := cmd.Flags().GetString("output")
+			outputExplicit := cmd.Flags().Lookup("output").Changed
+			sawTable = format == "table" || !outputExplicit
+		},
+	}
+	root.AddCommand(child)
+
+	// No flag -> defaults to table
+	root.SetArgs([]string{"status"})
+	require.NoError(t, root.Execute())
+	require.True(t, sawTable, "status should default to table when -o is not explicitly set")
+
+	// Explicit -o json -> JSON
+	root.SetArgs([]string{"status", "-o", "json"})
+	require.NoError(t, root.Execute())
+	require.False(t, sawTable, "status should respect explicit -o json")
+
+	// Explicit -o table -> table
+	root.SetArgs([]string{"status", "-o", "table"})
+	require.NoError(t, root.Execute())
+	require.True(t, sawTable, "status should show table when -o table is explicit")
 }

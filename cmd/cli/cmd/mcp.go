@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"strings"
 
-	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/mcp"
@@ -28,26 +28,17 @@ var mcpServeCmd = &cobra.Command{
 		ctx := setupLogger(cmd.Context())
 		defer logger.L(ctx).Sync()
 
-		mcpHost := resolveHost(ctx)
-
-		// Validate that we have a working token before starting the server
-		if _, err := auth.GetValidToken(ctx, mcpHost); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
+		authCtx, err := resolveCommandAuth(ctx)
+		if err != nil {
+			if errors.Is(err, lib.ErrNoToken) {
+				fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
+			} else {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			}
 			os.Exit(ExitAuthError)
 		}
 
-		creds, err := auth.LoadCredentials()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to load credentials: %v\n", err)
-			os.Exit(1)
-		}
-
-		hostCreds := creds[auth.CredentialKey(mcpHost)]
-
-		queryParams := hostCreds.QueryParameters
-		if queryParams == nil {
-			queryParams = make(map[string]string)
-		}
+		queryParams := authCtx.QueryParams
 
 		// Apply --repo flag or auto-detect from git
 		repoFlag, _ := cmd.Flags().GetString("repo")
@@ -74,9 +65,9 @@ var mcpServeCmd = &cobra.Command{
 
 		// Create a refreshing client for long-running MCP sessions
 		tokenProvider := func() (string, error) {
-			return auth.GetValidToken(ctx, mcpHost)
+			return lib.GetNullifyToken(ctx, authCtx.Host, nullifyToken, githubToken)
 		}
-		nullifyClient, clientErr := client.NewRefreshingNullifyClient(mcpHost, tokenProvider)
+		nullifyClient, clientErr := client.NewRefreshingNullifyClient(authCtx.Host, tokenProvider)
 		if clientErr != nil {
 			fmt.Fprintf(os.Stderr, "Error: failed to create client: %v\n", clientErr)
 			os.Exit(1)

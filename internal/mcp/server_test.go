@@ -1,8 +1,14 @@
 package mcp
 
 import (
+	"context"
+	"io"
 	"strings"
 	"testing"
+
+	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBuildQueryString(t *testing.T) {
@@ -89,4 +95,20 @@ func TestGetIntArg(t *testing.T) {
 	if got := getIntArg(args, "name", 10); got != 10 {
 		t.Errorf("getIntArg(name) = %d, want 10 (default for wrong type)", got)
 	}
+}
+
+func TestServeWithClientIOHandlesEOF(t *testing.T) {
+	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "error")
+	require.NoError(t, err)
+
+	err = serveWithClientIO(
+		ctx,
+		client.NewNullifyClient("acme.nullify.ai", "token"),
+		map[string]string{},
+		ToolSetDefault,
+		strings.NewReader(""),
+		io.Discard,
+	)
+
+	require.NoError(t, err)
 }

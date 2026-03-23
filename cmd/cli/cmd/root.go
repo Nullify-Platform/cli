@@ -39,6 +39,10 @@ var rootCmd = &cobra.Command{
 		if cmd.Name() == "login" || cmd.Name() == "completion" {
 			return
 		}
+
+		if noColor || os.Getenv("NO_COLOR") != "" {
+			_ = os.Setenv("NO_COLOR", "1")
+		}
 	},
 }
 

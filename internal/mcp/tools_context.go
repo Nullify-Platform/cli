@@ -51,10 +51,21 @@ func registerContextTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 		mcp.NewTool(
 			"list_dependencies",
 			mcp.WithDescription("List third-party dependencies across all monitored repositories. Useful for understanding your supply chain."),
-			mcp.WithString("repository", mcp.Description("Filter by repository name")),
-			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
+			mcp.WithNumber("pageSize", mcp.Description("Max results per page (default 20)")),
+			mcp.WithString("cursor", mcp.Description("Pagination cursor from previous response")),
 		),
-		makeGetHandler(c, "/context/dependencies", queryParams),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			extra := []string{}
+			if ps := getIntArg(args, "pageSize", 0); ps > 0 {
+				extra = append(extra, "pageSize", fmt.Sprintf("%d", ps))
+			}
+			if cur := getStringArg(args, "cursor"); cur != "" {
+				extra = append(extra, "cursor", cur)
+			}
+			qs := buildQueryString(queryParams, extra...)
+			return doGet(ctx, c, "/context/deps"+qs)
+		},
 	)
 
 	s.AddTool(
@@ -77,6 +88,8 @@ func registerContextTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 		mcp.NewTool(
 			"get_dependency_exposure",
 			mcp.WithDescription("Get dependency exposure analysis showing which dependencies are exposed to the internet or internal networks."),
+			mcp.WithString("ecosystem", mcp.Required(), mcp.Description("Package ecosystem (e.g. npm, pip, maven, go, nuget)")),
+			mcp.WithString("name", mcp.Required(), mcp.Description("Dependency name to check exposure for")),
 		),
 		makeGetHandler(c, "/context/deps/exposure", queryParams),
 	)

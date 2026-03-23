@@ -26,10 +26,14 @@ func isTTY() bool {
 
 // ansi returns the escape code if stdout is a terminal, empty string otherwise.
 func ansi(code string) string {
-	if isTTY() {
+	if colorsEnabled(isTTY()) {
 		return code
 	}
 	return ""
+}
+
+func colorsEnabled(stdoutIsTTY bool) bool {
+	return stdoutIsTTY && os.Getenv("NO_COLOR") == ""
 }
 
 // RenderToolCall renders a tool call message (dim text).
