@@ -110,6 +110,24 @@ Auto-detects the current repository from git if --repo is not specified.`,
 
 		_ = g.Wait()
 
+		successCount := 0
+		errorCount := 0
+		for _, result := range results {
+			if result.Error != "" {
+				errorCount++
+				continue
+			}
+			successCount++
+		}
+
+		if successCount == 0 {
+			fmt.Fprintln(os.Stderr, "Error: all scanner requests failed")
+			os.Exit(ExitNetworkError)
+		}
+		if errorCount > 0 {
+			fmt.Fprintf(os.Stderr, "Warning: %d/%d scanner requests failed\n", errorCount, len(results))
+		}
+
 		out, _ := json.MarshalIndent(results, "", "  ")
 		if err := output.Print(cmd, out); err != nil {
 			fmt.Fprintln(os.Stderr, string(out))

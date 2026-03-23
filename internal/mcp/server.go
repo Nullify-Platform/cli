@@ -3,6 +3,8 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
@@ -17,6 +19,10 @@ func Serve(ctx context.Context, host string, token string, queryParams map[strin
 }
 
 func ServeWithClient(ctx context.Context, nullifyClient *client.NullifyClient, queryParams map[string]string, toolSet ToolSet) error {
+	return serveWithClientIO(ctx, nullifyClient, queryParams, toolSet, os.Stdin, os.Stdout)
+}
+
+func serveWithClientIO(ctx context.Context, nullifyClient *client.NullifyClient, queryParams map[string]string, toolSet ToolSet, stdin io.Reader, stdout io.Writer) error {
 	s := server.NewMCPServer(
 		"Nullify",
 		logger.Version,
@@ -32,7 +38,7 @@ func ServeWithClient(ctx context.Context, nullifyClient *client.NullifyClient, q
 	logger.L(ctx).Debug("starting MCP server over stdio", logger.String("toolSet", string(toolSet)))
 
 	stdioServer := server.NewStdioServer(s)
-	return stdioServer.Listen(ctx, nil, nil)
+	return stdioServer.Listen(ctx, stdin, stdout)
 }
 
 func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string, toolSet ToolSet) {

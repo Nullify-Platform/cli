@@ -6,6 +6,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestColorsEnabledHonorsNoColor(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	require.False(t, colorsEnabled(true))
+
+	t.Setenv("NO_COLOR", "")
+	require.True(t, colorsEnabled(true))
+	require.False(t, colorsEnabled(false))
+}
+
 func TestRenderToolCall(t *testing.T) {
 	result := RenderToolCall("calling search_findings")
 	require.Contains(t, result, "[tool]")
