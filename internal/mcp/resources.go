@@ -30,7 +30,7 @@ func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
 			qs := buildQueryString(queryParams)
-			result, err := doGet(ctx, c, "/admin/metrics/overview"+qs)
+			result, err := doPost(ctx, c, "/admin/metrics/overview"+qs, metricsOverviewBody())
 			if err != nil {
 				return nil, err
 			}

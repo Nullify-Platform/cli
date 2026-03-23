@@ -49,8 +49,9 @@ func metricsOverTimeBody(period string) map[string]any {
 					},
 				},
 			},
-			"fromDate": from.Format(time.RFC3339),
-			"toDate":   now.Format(time.RFC3339),
+			"isArchived": false,
+			"fromDate":   from.Format(time.RFC3339),
+			"toDate":     now.Format(time.RFC3339),
 		},
 	}
 }
