@@ -1,11 +1,59 @@
 package mcp
 
 import (
+	"context"
+	"time"
+
 	"github.com/nullify-platform/cli/internal/client"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
+
+func metricsOverviewBody() map[string]any {
+	return map[string]any{
+		"query": map[string]any{
+			"sort": []any{
+				map[string]any{
+					"isFalsePositive": map[string]any{
+						"order":   "asc",
+						"missing": 0,
+					},
+				},
+			},
+			"isArchived": false,
+		},
+	}
+}
+
+func metricsOverTimeBody(period string) map[string]any {
+	now := time.Now().UTC()
+	var from time.Time
+	switch period {
+	case "7d":
+		from = now.AddDate(0, 0, -7)
+	case "90d":
+		from = now.AddDate(0, 0, -90)
+	case "365d":
+		from = now.AddDate(0, 0, -365)
+	default: // 30d
+		from = now.AddDate(0, 0, -30)
+	}
+	return map[string]any{
+		"query": map[string]any{
+			"sort": []any{
+				map[string]any{
+					"isFalsePositive": map[string]any{
+						"order":   "asc",
+						"missing": 0,
+					},
+				},
+			},
+			"fromDate": from.Format(time.RFC3339),
+			"toDate":   now.Format(time.RFC3339),
+		},
+	}
+}
 
 func registerAdminTools(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string) {
 	s.AddTool(
@@ -13,7 +61,10 @@ func registerAdminTools(s *server.MCPServer, c *client.NullifyClient, queryParam
 			"get_metrics_overview",
 			mcp.WithDescription("Get a high-level security posture overview with counts of findings by severity and type. Use this to understand the overall security state."),
 		),
-		makeGetHandler(c, "/admin/metrics/overview", queryParams),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			qs := buildQueryString(queryParams)
+			return doPost(ctx, c, "/admin/metrics/overview"+qs, metricsOverviewBody())
+		},
 	)
 
 	s.AddTool(
@@ -22,7 +73,15 @@ func registerAdminTools(s *server.MCPServer, c *client.NullifyClient, queryParam
 			mcp.WithDescription("Get security metrics trends over time. Shows how the number of findings has changed, useful for tracking security posture improvements."),
 			mcp.WithString("period", mcp.Description("Time period"), mcp.Enum("7d", "30d", "90d", "365d")),
 		),
-		makeGetHandler(c, "/admin/metrics/over-time", queryParams),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			period := getStringArg(args, "period")
+			if period == "" {
+				period = "30d"
+			}
+			qs := buildQueryString(queryParams)
+			return doPost(ctx, c, "/admin/metrics/over-time"+qs, metricsOverTimeBody(period))
+		},
 	)
 
 	s.AddTool(

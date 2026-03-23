@@ -54,7 +54,7 @@ func registerContextTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			mcp.WithString("repository", mcp.Description("Filter by repository name")),
 			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
 		),
-		makeGetHandler(c, "/context/dependencies", queryParams),
+		makeGetHandler(c, "/context/deps", queryParams),
 	)
 
 	s.AddTool(
@@ -77,6 +77,8 @@ func registerContextTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 		mcp.NewTool(
 			"get_dependency_exposure",
 			mcp.WithDescription("Get dependency exposure analysis showing which dependencies are exposed to the internet or internal networks."),
+			mcp.WithString("ecosystem", mcp.Required(), mcp.Description("Package ecosystem (e.g. npm, pip, maven, go, nuget)")),
+			mcp.WithString("name", mcp.Required(), mcp.Description("Dependency name to check exposure for")),
 		),
 		makeGetHandler(c, "/context/deps/exposure", queryParams),
 	)

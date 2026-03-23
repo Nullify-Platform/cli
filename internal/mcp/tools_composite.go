@@ -237,14 +237,14 @@ func registerCompositeTools(s *server.MCPServer, c *client.NullifyClient, queryP
 
 			// Get overview
 			overviewQS := buildQueryString(queryParams)
-			overviewResult, err := doGet(ctx, c, "/admin/metrics/overview"+overviewQS)
+			overviewResult, err := doPost(ctx, c, "/admin/metrics/overview"+overviewQS, metricsOverviewBody())
 			if err != nil {
 				return toolError(err), nil
 			}
 
 			// Get over-time data
-			timeQS := buildQueryString(queryParams, "period", period)
-			timeResult, err := doGet(ctx, c, "/admin/metrics/over-time"+timeQS)
+			timeQS := buildQueryString(queryParams)
+			timeResult, err := doPost(ctx, c, "/admin/metrics/over-time"+timeQS, metricsOverTimeBody(period))
 			if err != nil {
 				return toolError(err), nil
 			}
