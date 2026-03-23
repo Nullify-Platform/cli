@@ -151,11 +151,6 @@ func MCPConfigStep() Step {
 	}
 }
 
-// mcpConfig is the structure for MCP configuration files.
-type mcpConfig struct {
-	MCPServers map[string]mcpServerConfig `json:"mcpServers"`
-}
-
 type mcpServerConfig struct {
 	Command string   `json:"command"`
 	Args    []string `json:"args"`
@@ -163,20 +158,26 @@ type mcpServerConfig struct {
 
 func writeMCPConfig(path string) error {
 	// Read existing config if present
-	existing := mcpConfig{MCPServers: make(map[string]mcpServerConfig)}
+	existing := map[string]any{}
 	if data, err := os.ReadFile(path); err == nil {
 		_ = json.Unmarshal(data, &existing)
 	}
 
+	mcpServers, ok := existing["mcpServers"].(map[string]any)
+	if !ok || mcpServers == nil {
+		mcpServers = make(map[string]any)
+	}
+
 	// Only add nullify if not already configured
-	if _, ok := existing.MCPServers["nullify"]; ok {
+	if _, ok := mcpServers["nullify"]; ok {
 		return nil
 	}
 
-	existing.MCPServers["nullify"] = mcpServerConfig{
+	mcpServers["nullify"] = mcpServerConfig{
 		Command: "nullify",
 		Args:    []string{"mcp", "serve"},
 	}
+	existing["mcpServers"] = mcpServers
 
 	data, err := json.MarshalIndent(existing, "", "  ")
 	if err != nil {
