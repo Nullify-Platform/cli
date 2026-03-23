@@ -48,17 +48,15 @@ func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map
 		registerCompositeTools(s, c, queryParams)
 
 	case ToolSetFindings:
-		// Unified + composites + comments
+		// Unified + composites
 		registerUnifiedTools(s, c, queryParams)
 		registerCompositeTools(s, c, queryParams)
-		registerCommentTools(s, c, queryParams)
 
 	case ToolSetAdmin:
-		// Admin + context + manager + infrastructure + composites
+		// Admin + context + manager + composites
 		registerAdminTools(s, c, queryParams)
 		registerContextTools(s, c, queryParams)
 		registerManagerTools(s, c, queryParams)
-		registerInfrastructureTools(s, c, queryParams)
 		registerCompositeTools(s, c, queryParams)
 
 	case ToolSetAll:
@@ -72,21 +70,15 @@ func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map
 		registerAdminTools(s, c, queryParams)
 		registerContextTools(s, c, queryParams)
 		registerManagerTools(s, c, queryParams)
-		registerInfrastructureTools(s, c, queryParams)
-		registerCodeReviewTools(s, c, queryParams)
-		registerCommentTools(s, c, queryParams)
 		registerCompositeTools(s, c, queryParams)
 		registerUnifiedTools(s, c, queryParams)
 
 	default: // ToolSetDefault
-		// Unified + composites + context + infrastructure + manager + code reviews + comments
+		// Unified + composites + context + manager
 		registerUnifiedTools(s, c, queryParams)
 		registerCompositeTools(s, c, queryParams)
 		registerContextTools(s, c, queryParams)
-		registerInfrastructureTools(s, c, queryParams)
 		registerManagerTools(s, c, queryParams)
-		registerCodeReviewTools(s, c, queryParams)
-		registerCommentTools(s, c, queryParams)
 		registerAdminTools(s, c, queryParams)
 	}
 }

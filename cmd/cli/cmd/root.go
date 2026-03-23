@@ -93,17 +93,12 @@ func init() {
 
 	// Register generated API commands under 'api' parent for cleaner top-level help
 	commands.RegisterAdminCommands(apiCmd, getAPIClient)
-	// Skip RegisterChatCommands - the handwritten chat command handles interactive chat;
-	// generated chat API subcommands are bridged via RegisterChatSubcommands.
-	commands.RegisterChatSubcommands(chatCmd, getAPIClient)
 	commands.RegisterContextCommands(apiCmd, getAPIClient)
 	commands.RegisterCspmCommands(apiCmd, getAPIClient)
 	// Register pentest and bughunt subcommands from generated DAST commands
 	commands.RegisterPentestSubcommands(pentestCmd, getAPIClient)
 	commands.RegisterBughuntSubcommands(bughuntCmd, getAPIClient)
-	commands.RegisterInfrastructureCommands(apiCmd, getAPIClient)
 	commands.RegisterManagerCommands(apiCmd, getAPIClient)
-	commands.RegisterOrchestratorCommands(apiCmd, getAPIClient)
 	commands.RegisterSastCommands(apiCmd, getAPIClient)
 	commands.RegisterScaCommands(apiCmd, getAPIClient)
 	commands.RegisterSecretsCommands(apiCmd, getAPIClient)

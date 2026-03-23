@@ -74,9 +74,6 @@ var serviceMapping = map[string]string{
 	"/manager/":        "manager",
 	"/context/":        "context",
 	"/cspm/":           "cspm",
-	"/graph/":          "infrastructure",
-	"/chat/":           "chat",
-	"/orchestrator/":   "orchestrator",
 	"/ticket/":         "ticket",
 }
 
@@ -90,9 +87,6 @@ var serviceDescriptions = map[string]string{
 	"manager":        "Finding Lifecycle Management",
 	"context":        "Repository and Code Classification",
 	"cspm":           "Cloud Security Posture Management (CSPM)",
-	"infrastructure": "Infrastructure Graph",
-	"chat":           "AI Chat",
-	"orchestrator":   "Orchestration and Automation",
 	"ticket":         "Ticket Integration",
 }
 
