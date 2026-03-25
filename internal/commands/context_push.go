@@ -35,6 +35,7 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 
 	var (
 		contextType string
+		repository  string
 		name        string
 		environment string
 		branch      string
@@ -61,13 +62,16 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 				return fmt.Errorf("file %s is %d MB, exceeds maximum of %d MB", filePath, info.Size()>>20, maxUploadSize>>20)
 			}
 
-			// Auto-detect git context — check CI env vars first, then git
-			repo := os.Getenv("GITHUB_REPOSITORY")
+			// Resolve repository: flag > env var > git auto-detect
+			repo := repository
+			if repo == "" {
+				repo = os.Getenv("GITHUB_REPOSITORY")
+			}
 			if repo == "" {
 				repo = lib.DetectGitContext().Repository
 			}
 			if repo == "" {
-				return fmt.Errorf("could not detect repository — set GITHUB_REPOSITORY or ensure you're in a git repo")
+				return fmt.Errorf("could not detect repository — use --repository, set GITHUB_REPOSITORY, or run inside a git repo")
 			}
 
 			if branch == "" {
@@ -162,6 +166,7 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 	}
 
 	pushCmd.Flags().StringVar(&contextType, "type", "", "Context type (terraform, ci_logs, config, deploy, api_spec)")
+	pushCmd.Flags().StringVar(&repository, "repository", "", "Repository in org/repo format (auto-detected if omitted)")
 	pushCmd.Flags().StringVar(&name, "name", "", "Logical name for this context (e.g. networking, ecs-api). Auto-detected from file path if omitted.")
 	pushCmd.Flags().StringVar(&environment, "environment", "", "Deployment environment (development, staging, production, unknown)")
 	pushCmd.Flags().StringVar(&branch, "branch", "", "Git branch (auto-detected if omitted)")
