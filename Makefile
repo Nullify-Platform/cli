@@ -11,7 +11,7 @@ VERSION := $(shell git rev-list -1 HEAD)$(TAINT)
 endif
 
 GOENV := CGO_ENABLED=0
-GOFLAGS := -ldflags "-X 'github.com/nullify-platform/logger/pkg/logger.Version=$(VERSION)'"
+GOFLAGS := -ldflags "-X 'github.com/nullify-platform/cli/internal/logger.Version=$(VERSION)'"
 
 all: build
 

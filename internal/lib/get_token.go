@@ -13,7 +13,7 @@ import (
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 )
 
 var ErrNoToken = errors.New("no token detected")

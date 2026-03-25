@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 	"gopkg.in/yaml.v3"
 )
 

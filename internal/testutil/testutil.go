@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/nullify-platform/cli/internal/client"
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 )
 
 // MockNullifyClient creates a NullifyClient that talks to a test HTTP server.

@@ -12,7 +12,7 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -X 'github.com/nullify-platform/logger/pkg/logger.Version={{ .Version }}'
+      - -X 'github.com/nullify-platform/cli/internal/logger.Version={{ .Version }}'
       - -X 'github.com/nullify-platform/cli/internal/api.Version={{ .Version }}'
       - -X 'github.com/nullify-platform/cli/cmd/cli/cmd.buildCommit={{ .Commit }}'
       - -X 'github.com/nullify-platform/cli/cmd/cli/cmd.buildDate={{ .Date }}'

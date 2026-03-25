@@ -11,7 +11,7 @@ import (
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 )
 
 // DomainStep checks if a valid host is configured and prompts the user if not.

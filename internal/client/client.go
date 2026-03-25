@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 )
 
 // HTTPClient defines the interface for making HTTP requests.

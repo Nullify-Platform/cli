@@ -13,8 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nullify-platform/logger/pkg/logger"
-	"github.com/nullify-platform/logger/pkg/logger/tracer"
+	"github.com/nullify-platform/cli/internal/logger"
 )
 
 var httpClient = &http.Client{Timeout: 30 * time.Second}
@@ -48,9 +47,6 @@ p{color:#666;margin:0}
 </div></body></html>`
 
 func Login(ctx context.Context, host string) error {
-	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.Login")
-	defer span.End()
-
 	// 1. Start localhost server on random port
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -175,9 +171,6 @@ func Logout(host string) error {
 }
 
 func GetValidToken(ctx context.Context, host string) (string, error) {
-	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.GetValidToken")
-	defer span.End()
-
 	creds, err := LoadCredentials()
 	if err != nil {
 		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
@@ -206,9 +199,6 @@ func GetValidToken(ctx context.Context, host string) (string, error) {
 }
 
 func createCLISession(ctx context.Context, host string, port int) (*cliSessionResponse, error) {
-	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.createCLISession")
-	defer span.End()
-
 	url := fmt.Sprintf("https://%s/auth/cli/session", apiHost(host))
 
 	bodyData, err := json.Marshal(map[string]int{"port": port})
@@ -243,9 +233,6 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 }
 
 func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliTokenResponse, error) {
-	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.fetchCLIToken")
-	defer span.End()
-
 	url := fmt.Sprintf("https://%s/auth/cli/token", apiHost(host))
 
 	bodyData, err := json.Marshal(map[string]string{"session_id": sessionID})
@@ -280,9 +267,6 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliToke
 }
 
 func refreshToken(ctx context.Context, host string, refreshTok string) (string, error) {
-	ctx, span := tracer.FromContext(ctx).Start(ctx, "auth.refreshToken")
-	defer span.End()
-
 	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token", apiHost(host))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
