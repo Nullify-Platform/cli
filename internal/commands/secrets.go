@@ -292,7 +292,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-findings",
 			Short: "Update Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -325,7 +325,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-findings",
 			Short: "Get Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -358,7 +358,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-allowlist",
 			Short: "Allowlist Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -391,7 +391,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-events",
 			Short: "Get Finding Events",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -424,7 +424,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-ticket",
 			Short: "Create Ticket",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -457,7 +457,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-triage",
 			Short: "Get Triaged Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -490,7 +490,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-unallowlist",
 			Short: "Unallowlist Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -523,7 +523,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-users",
 			Short: "Get Finding Related Users",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}

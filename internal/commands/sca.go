@@ -203,7 +203,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-findings",
 			Short: "Get Container Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -236,7 +236,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "patch-findings",
 			Short: "Update Container Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -269,7 +269,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-allowlist",
 			Short: "Allowlist Container Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -302,7 +302,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-cache",
 			Short: "Post Cache AutoFix - SCA Containers",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -335,7 +335,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-fix",
 			Short: "Fix Container Findings",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -368,7 +368,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-events",
 			Short: "Get SCA Container Finding Events",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -401,7 +401,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-ticket",
 			Short: "Create Jira Ticket",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -434,7 +434,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-triage",
 			Short: "Get Triaged Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -467,7 +467,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-unallowlist",
 			Short: "Unallowlist Container Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -500,7 +500,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-users",
 			Short: "Get Finding Related Users",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -743,7 +743,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-create_pr",
 			Short: "Create Pull Request for Dependency Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -776,7 +776,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "patch-findings",
 			Short: "Update Dependencies Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -809,7 +809,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-findings",
 			Short: "Get Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -842,7 +842,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-allowlist",
 			Short: "Allowlist Dependency Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -875,7 +875,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-cache",
 			Short: "Post Cache AutoFix",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -908,7 +908,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-diff",
 			Short: "Get SCA Dependency Finding Fix",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -941,7 +941,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-fix",
 			Short: "Fix Dependency Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -974,7 +974,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-events",
 			Short: "Get SCA Dependency Finding Events",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1007,7 +1007,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-pentest",
 			Short: "Update SCA Dependency Finding With Pentest Result",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1040,7 +1040,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-ticket",
 			Short: "Create Jira Ticket",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1073,7 +1073,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-triage",
 			Short: "Get Triaged Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1106,7 +1106,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-unallowlist",
 			Short: "Unallowlist Dependency Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1139,7 +1139,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-users",
 			Short: "Get Finding Related Users",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1267,7 +1267,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-repositories",
 			Short: "Get Repository Stats",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1300,7 +1300,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-sbom",
 			Short: "Get Repository SBOM",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}

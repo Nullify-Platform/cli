@@ -11,7 +11,7 @@ import (
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -43,7 +43,7 @@ Exit codes:
   nullify ci gate --repo my-org/my-repo`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		ciHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, ciHost, nullifyToken, githubToken)
@@ -159,7 +159,7 @@ var ciReportCmd = &cobra.Command{
   nullify ci report --repo my-org/my-repo`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		ciHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, ciHost, nullifyToken, githubToken)

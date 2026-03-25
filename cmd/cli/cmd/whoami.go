@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/nullify-platform/cli/internal/auth"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
-	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var whoamiCmd = &cobra.Command{
 	Short: "Show current authentication status",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		whoamiHost := resolveHost(ctx)
 

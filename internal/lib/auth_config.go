@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/models"
-	"github.com/nullify-platform/logger/pkg/logger"
 )
 
 // ParseAuthConfig reads and parses an authentication configuration file

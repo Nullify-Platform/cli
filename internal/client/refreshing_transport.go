@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 )
 
 // TokenProvider is a function that returns a valid token.

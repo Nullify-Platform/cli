@@ -149,7 +149,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-config",
 			Short: "Usage Limits Get",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -868,7 +868,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-finding",
 			Short: "Get Finding",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1427,7 +1427,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "patch-sla",
 			Short: "Patch SLA",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1634,7 +1634,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-teams",
 			Short: "Get Teams by Provider",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1667,7 +1667,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-teams",
 			Short: "Get Team",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1700,7 +1700,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-findings",
 			Short: "Get Team Findings mapping",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1791,7 +1791,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "delete-savedViews",
 			Short: "Delete UI Saved View",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1824,7 +1824,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "patch-savedViews",
 			Short: "Patch UI Saved View",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1975,7 +1975,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "delete-mapping",
 			Short: "Delete User Mapping",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2008,7 +2008,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "update-mapping",
 			Short: "Edit User Mapping",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2186,7 +2186,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-users",
 			Short: "Get Users by Provider",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2219,7 +2219,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-users",
 			Short: "Get User",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}

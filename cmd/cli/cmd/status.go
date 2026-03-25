@@ -12,8 +12,8 @@ import (
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
-	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -26,7 +26,7 @@ var securityStatusCmd = &cobra.Command{
   nullify status -o table`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		statusHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, statusHost, nullifyToken, githubToken)

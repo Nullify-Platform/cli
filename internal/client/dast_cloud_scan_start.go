@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/models"
-	"github.com/nullify-platform/logger/pkg/logger"
 )
 
 type DASTStartCloudScanInput struct {

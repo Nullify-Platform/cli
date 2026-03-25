@@ -66,28 +66,28 @@ type Schema struct {
 
 // Service grouping based on path prefix
 var serviceMapping = map[string]string{
-	"/sast/":           "sast",
-	"/sca/":            "sca",
-	"/secrets/":        "secrets",
-	"/dast/":           "dast",
-	"/admin/":          "admin",
-	"/manager/":        "manager",
-	"/context/":        "context",
-	"/cspm/":           "cspm",
-	"/ticket/":         "ticket",
+	"/sast/":    "sast",
+	"/sca/":     "sca",
+	"/secrets/": "secrets",
+	"/dast/":    "dast",
+	"/admin/":   "admin",
+	"/manager/": "manager",
+	"/context/": "context",
+	"/cspm/":    "cspm",
+	"/ticket/":  "ticket",
 }
 
 // serviceDescriptions maps service names to human-readable descriptions.
 var serviceDescriptions = map[string]string{
-	"sast":           "Static Application Security Testing (SAST)",
-	"sca":            "Software Composition Analysis (SCA)",
-	"secrets":        "Secrets Detection",
-	"dast":           "Dynamic Application Security Testing (DAST)",
-	"admin":          "Administration and Metrics",
-	"manager":        "Finding Lifecycle Management",
-	"context":        "Repository and Code Classification",
-	"cspm":           "Cloud Security Posture Management (CSPM)",
-	"ticket":         "Ticket Integration",
+	"sast":    "Static Application Security Testing (SAST)",
+	"sca":     "Software Composition Analysis (SCA)",
+	"secrets": "Secrets Detection",
+	"dast":    "Dynamic Application Security Testing (DAST)",
+	"admin":   "Administration and Metrics",
+	"manager": "Finding Lifecycle Management",
+	"context": "Repository and Code Classification",
+	"cspm":    "Cloud Security Posture Management (CSPM)",
+	"ticket":  "Ticket Integration",
 }
 
 // Paths to exclude from CLI generation
@@ -98,18 +98,18 @@ var excludePrefixes = []string{
 }
 
 type Endpoint struct {
-	Path        string
-	Method      string
-	Summary     string
-	Description string
-	Service     string
-	Parameters  []Parameter
-	HasBody     bool
-	BodySchema  string
+	Path         string
+	Method       string
+	Summary      string
+	Description  string
+	Service      string
+	Parameters   []Parameter
+	HasBody      bool
+	BodySchema   string
 	OutputSchema string
-	FuncName    string
-	CobraCmd    string
-	CobraPath   string
+	FuncName     string
+	CobraCmd     string
+	CobraPath    string
 }
 
 func main() {
@@ -145,8 +145,14 @@ func main() {
 	endpoints := extractEndpoints(spec)
 	grouped := groupByService(endpoints)
 
-	os.MkdirAll(outputDir, 0755)
-	os.MkdirAll(cmdOutputDir, 0755)
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating output dir: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.MkdirAll(cmdOutputDir, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating cmd output dir: %v\n", err)
+		os.Exit(1)
+	}
 
 	generateClient(outputDir, grouped)
 	generateCommands(cmdOutputDir, grouped)
@@ -368,20 +374,20 @@ func generateClientFile(outputDir string, service string, endpoints []Endpoint) 
 	sb.WriteString(")\n")
 
 	for _, ep := range endpoints {
-		sb.WriteString(fmt.Sprintf("\n// %s - %s\n// %s %s\n", ep.FuncName, ep.Summary, ep.Method, ep.Path))
+		fmt.Fprintf(&sb, "\n// %s - %s\n// %s %s\n", ep.FuncName, ep.Summary, ep.Method, ep.Path)
 
 		if ep.HasBody {
-			sb.WriteString(fmt.Sprintf("func (c *Client) %s(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {\n", ep.FuncName))
+			fmt.Fprintf(&sb, "func (c *Client) %s(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {\n", ep.FuncName)
 		} else {
-			sb.WriteString(fmt.Sprintf("func (c *Client) %s(ctx context.Context, params url.Values) ([]byte, error) {\n", ep.FuncName))
+			fmt.Fprintf(&sb, "func (c *Client) %s(ctx context.Context, params url.Values) ([]byte, error) {\n", ep.FuncName)
 		}
 
-		sb.WriteString(fmt.Sprintf("\tpath := %q\n", ep.Path))
+		fmt.Fprintf(&sb, "\tpath := %q\n", ep.Path)
 
 		// Path parameter substitution
 		for _, p := range ep.Parameters {
 			if p.In == "path" {
-				sb.WriteString(fmt.Sprintf("\tpath = strings.Replace(path, \"{%s}\", params.Get(%q), 1)\n", p.Name, p.Name))
+				fmt.Fprintf(&sb, "\tpath = strings.Replace(path, \"{%s}\", params.Get(%q), 1)\n", p.Name, p.Name)
 			}
 		}
 
@@ -389,22 +395,25 @@ func generateClientFile(outputDir string, service string, endpoints []Endpoint) 
 
 		for _, p := range ep.Parameters {
 			if p.In == "query" {
-				sb.WriteString(fmt.Sprintf("\tif v := params.Get(%q); v != \"\" {\n\t\tquery.Set(%q, v)\n\t}\n", p.Name, p.Name))
+				fmt.Fprintf(&sb, "\tif v := params.Get(%q); v != \"\" {\n\t\tquery.Set(%q, v)\n\t}\n", p.Name, p.Name)
 			}
 		}
 
 		sb.WriteString("\n\tfullURL := fmt.Sprintf(\"%s%s\", c.BaseURL, path)\n\tif len(query) > 0 {\n\t\tfullURL += \"?\" + query.Encode()\n\t}\n\n")
 
 		if ep.HasBody {
-			sb.WriteString(fmt.Sprintf("\treturn c.do(ctx, %q, fullURL, body)\n", ep.Method))
+			fmt.Fprintf(&sb, "\treturn c.do(ctx, %q, fullURL, body)\n", ep.Method)
 		} else {
-			sb.WriteString(fmt.Sprintf("\treturn c.do(ctx, %q, fullURL, nil)\n", ep.Method))
+			fmt.Fprintf(&sb, "\treturn c.do(ctx, %q, fullURL, nil)\n", ep.Method)
 		}
 
 		sb.WriteString("}\n")
 	}
 
-	os.WriteFile(filePath, []byte(sb.String()), 0644)
+	if err := os.WriteFile(filePath, []byte(sb.String()), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
+		os.Exit(1)
+	}
 }
 
 func generateClient(outputDir string, grouped map[string][]Endpoint) {
@@ -498,7 +507,10 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	return respBody, nil
 }
 `
-	os.WriteFile(filePath, []byte(content), 0644)
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
+		os.Exit(1)
+	}
 }
 
 func generateCommands(outputDir string, grouped map[string][]Endpoint) {
@@ -530,8 +542,8 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 	if svcDesc == "" {
 		svcDesc = svcPascal + " commands"
 	}
-	sb.WriteString(fmt.Sprintf("func Register%sCommands(parent *cobra.Command, getClient func() *api.Client) {\n", svcPascal))
-	sb.WriteString(fmt.Sprintf("\tserviceCmd := &cobra.Command{\n\t\tUse:   %q,\n\t\tShort: %q,\n\t}\n\tparent.AddCommand(serviceCmd)\n\n", service, svcDesc))
+	fmt.Fprintf(&sb, "func Register%sCommands(parent *cobra.Command, getClient func() *api.Client) {\n", svcPascal)
+	fmt.Fprintf(&sb, "\tserviceCmd := &cobra.Command{\n\t\tUse:   %q,\n\t\tShort: %q,\n\t}\n\tparent.AddCommand(serviceCmd)\n\n", service, svcDesc)
 
 	for _, ep := range endpoints {
 		cobraUse := generateCobraUse(ep)
@@ -550,10 +562,10 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 		}
 
 		sb.WriteString("\t{\n")
-		sb.WriteString(fmt.Sprintf("\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", cobraUse, summary))
+		fmt.Fprintf(&sb, "\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", cobraUse, summary)
 
 		if pathParamName != "" {
-			sb.WriteString(fmt.Sprintf("\t\t\tArgs: cobra.MaximumNArgs(1),\n"))
+			sb.WriteString("\t\t\tArgs:  cobra.MaximumNArgs(1),\n")
 		}
 
 		sb.WriteString("\t\t\tRunE: func(cmd *cobra.Command, args []string) error {\n")
@@ -575,7 +587,7 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 			for _, p := range queryParams {
 				kebab := toKebabCase(p.Name)
 				if kebab != p.Name {
-					sb.WriteString(fmt.Sprintf("\t\t\t\t\t%q: %q,\n", kebab, p.Name))
+					fmt.Fprintf(&sb, "\t\t\t\t\t%q: %q,\n", kebab, p.Name)
 				}
 			}
 			sb.WriteString("\t\t\t\t}\n")
@@ -585,13 +597,13 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 		}
 
 		if pathParamName != "" {
-			sb.WriteString(fmt.Sprintf("\t\t\t\tif len(args) > 0 {\n\t\t\t\t\tparams.Set(%q, args[0])\n\t\t\t\t}\n", pathParamName))
+			fmt.Fprintf(&sb, "\t\t\t\tif len(args) > 0 {\n\t\t\t\t\tparams.Set(%q, args[0])\n\t\t\t\t}\n", pathParamName)
 		}
 
 		if ep.HasBody {
-			sb.WriteString(fmt.Sprintf("\t\t\t\tresult, err := client.%s(cmd.Context(), params, os.Stdin)\n", ep.FuncName))
+			fmt.Fprintf(&sb, "\t\t\t\tresult, err := client.%s(cmd.Context(), params, os.Stdin)\n", ep.FuncName)
 		} else {
-			sb.WriteString(fmt.Sprintf("\t\t\t\tresult, err := client.%s(cmd.Context(), params)\n", ep.FuncName))
+			fmt.Fprintf(&sb, "\t\t\t\tresult, err := client.%s(cmd.Context(), params)\n", ep.FuncName)
 		}
 
 		sb.WriteString("\t\t\t\tif err != nil {\n\t\t\t\t\treturn err\n\t\t\t\t}\n")
@@ -609,7 +621,10 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 
 	sb.WriteString("}\n")
 
-	os.WriteFile(filePath, []byte(sb.String()), 0644)
+	if err := os.WriteFile(filePath, []byte(sb.String()), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
+		os.Exit(1)
+	}
 }
 
 func generateCobraUse(ep Endpoint) string {

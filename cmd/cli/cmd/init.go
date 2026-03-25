@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/wizard"
-	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var initCmd = &cobra.Command{
 	Long:  "Interactive setup wizard that configures your Nullify domain, authentication, repository detection, and MCP integration.",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		fmt.Println("Welcome to Nullify CLI setup!")
 		fmt.Println("This wizard will help you get started.")

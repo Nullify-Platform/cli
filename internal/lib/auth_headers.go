@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/nullify-platform/logger/pkg/logger"
+	"github.com/nullify-platform/cli/internal/logger"
 )
 
 var multiHeaderPattern = regexp.MustCompile(`, [A-Z][a-zA-Z0-9-]+: `)

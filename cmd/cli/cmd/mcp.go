@@ -9,8 +9,8 @@ import (
 
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/mcp"
-	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ var mcpServeCmd = &cobra.Command{
 	Long:  "Start the Nullify MCP server over stdio. Configure your AI tool to run 'nullify mcp serve'.",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {

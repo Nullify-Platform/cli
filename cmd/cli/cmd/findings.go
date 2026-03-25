@@ -8,8 +8,8 @@ import (
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
-	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -30,7 +30,7 @@ Auto-detects the current repository from git if --repo is not specified.`,
   nullify findings -o table --repo my-org/my-repo`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		findingsHost := resolveHost(ctx)
 		token, err := lib.GetNullifyToken(ctx, findingsHost, nullifyToken, githubToken)

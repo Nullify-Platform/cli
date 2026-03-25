@@ -1,4 +1,4 @@
-.PHONY: build clean
+.PHONY: build clean lint lint-go lint-docker
 
 # set the version as the latest commit sha if it's not already defined
 ifndef VERSION
@@ -11,7 +11,7 @@ VERSION := $(shell git rev-list -1 HEAD)$(TAINT)
 endif
 
 GOENV := CGO_ENABLED=0
-GOFLAGS := -ldflags "-X 'github.com/nullify-platform/logger/pkg/logger.Version=$(VERSION)'"
+GOFLAGS := -ldflags "-X 'github.com/nullify-platform/cli/internal/logger.Version=$(VERSION)'"
 
 all: build
 
