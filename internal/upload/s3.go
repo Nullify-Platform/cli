@@ -65,6 +65,11 @@ func (u *S3Uploader) Upload(ctx context.Context, filePath string, metadata Conte
 		return fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
 
+	// Validate that the payload is valid JSON
+	if !json.Valid(payload) {
+		return fmt.Errorf("file %s is not valid JSON", filePath)
+	}
+
 	metadata.UploadedAt = time.Now().UTC().Format(time.RFC3339)
 
 	envelope := ContextEnvelope{
@@ -77,13 +82,13 @@ func (u *S3Uploader) Upload(ctx context.Context, filePath string, metadata Conte
 		return fmt.Errorf("failed to marshal envelope: %w", err)
 	}
 
-	// Upload latest.json
+	// Upload latest.json (current state — overwritten each time)
 	latestKey := u.keyPrefix + "latest.json"
 	if err := u.putObject(ctx, latestKey, envelopeJSON); err != nil {
 		return fmt.Errorf("failed to upload %s: %w", latestKey, err)
 	}
 
-	// Upload history/{timestamp}.json
+	// Upload history/{timestamp}.json (immutable historical copy)
 	historyKey := u.keyPrefix + "history/" + time.Now().UTC().Format("2006-01-02T15-04-05Z") + ".json"
 	if err := u.putObject(ctx, historyKey, envelopeJSON); err != nil {
 		return fmt.Errorf("failed to upload %s: %w", historyKey, err)

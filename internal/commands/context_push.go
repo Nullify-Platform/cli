@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/lib"
@@ -10,6 +11,8 @@ import (
 	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 )
+
+const maxUploadSize = 50 << 20 // 50 MB
 
 // RegisterContextPushCommand adds the 'push' subcommand to the existing 'context' command.
 // Must be called after RegisterContextCommands.
@@ -23,7 +26,6 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 		}
 	}
 	if contextCmd == nil {
-		// context command not found — create it (shouldn't happen normally)
 		contextCmd = &cobra.Command{
 			Use:   "context",
 			Short: "Context ingestion commands",
@@ -37,40 +39,52 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 		environment string
 		branch      string
 		prNumber    int
+		fromPR      int
 		dryRun      bool
 	)
 
 	pushCmd := &cobra.Command{
-		Use:   "push [files...]",
+		Use:   "push [file]",
 		Short: "Upload context data to Nullify",
-		Long:  "Upload context data (Terraform plans, CI logs, etc.) to Nullify for infrastructure-aware security analysis.",
-		Args:  cobra.MinimumNArgs(1),
+		Long:  "Upload a single context file (Terraform plan, CI log, etc.) to Nullify for infrastructure-aware security analysis.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			client := getClient()
+			filePath := args[0]
 
-			// Auto-detect git context
-			gitCtx := lib.DetectGitContext()
-			repo := gitCtx.Repository
+			// Validate file exists and is within size limit
+			info, err := os.Stat(filePath)
+			if err != nil {
+				return fmt.Errorf("file not found: %s", filePath)
+			}
+			if info.Size() > maxUploadSize {
+				return fmt.Errorf("file %s is %d MB, exceeds maximum of %d MB", filePath, info.Size()>>20, maxUploadSize>>20)
+			}
+
+			// Auto-detect git context — check CI env vars first, then git
+			repo := os.Getenv("GITHUB_REPOSITORY")
 			if repo == "" {
-				return fmt.Errorf("could not detect repository from git remote — ensure you're in a git repo or set GITHUB_REPOSITORY")
+				repo = lib.DetectGitContext().Repository
+			}
+			if repo == "" {
+				return fmt.Errorf("could not detect repository — set GITHUB_REPOSITORY or ensure you're in a git repo")
 			}
 
-			// Use env var overrides (for CI environments)
-			if envRepo := os.Getenv("GITHUB_REPOSITORY"); envRepo != "" {
-				repo = envRepo
+			if branch == "" {
+				branch = os.Getenv("GITHUB_REF_NAME")
 			}
 			if branch == "" {
-				branch = gitCtx.Branch
+				branch = lib.DetectGitContext().Branch
 			}
-			if branch == "" {
-				if envBranch := os.Getenv("GITHUB_REF_NAME"); envBranch != "" {
-					branch = envBranch
-				}
+
+			commitSHA := os.Getenv("GITHUB_SHA")
+			if commitSHA == "" {
+				commitSHA = lib.DetectGitContext().CommitSHA
 			}
-			commitSHA := gitCtx.CommitSHA
-			if envSHA := os.Getenv("GITHUB_SHA"); envSHA != "" {
-				commitSHA = envSHA
+
+			// Auto-detect name from file path if not provided
+			if name == "" {
+				name = deriveNameFromPath(filePath)
 			}
 
 			// Request scoped credentials
@@ -81,11 +95,12 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 				Environment: environment,
 				Name:        name,
 				PRNumber:    prNumber,
+				FromPR:      fromPR,
 				CommitSHA:   commitSHA,
 			}
 
 			if dryRun {
-				fmt.Printf("Dry run — would upload %d file(s) as:\n", len(args))
+				fmt.Printf("Dry run — would upload:\n")
 				fmt.Printf("  Type:        %s\n", contextType)
 				fmt.Printf("  Repository:  %s\n", repo)
 				fmt.Printf("  Branch:      %s\n", branch)
@@ -94,11 +109,14 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 				if prNumber > 0 {
 					fmt.Printf("  PR:          #%d\n", prNumber)
 				}
-				for _, f := range args {
-					fmt.Printf("  File:        %s\n", f)
+				if fromPR > 0 {
+					fmt.Printf("  From PR:     #%d\n", fromPR)
 				}
+				fmt.Printf("  File:        %s (%d bytes)\n", filePath, info.Size())
 				return nil
 			}
+
+			client := getClient()
 
 			logger.L(ctx).Info("requesting upload credentials",
 				logger.String("repository", repo),
@@ -128,30 +146,41 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 				Environment: environment,
 				Name:        name,
 				PRNumber:    prNumber,
+				FromPR:      fromPR,
 				CommitSHA:   commitSHA,
 				CLIVersion:  logger.Version,
 			}
 
-			for _, filePath := range args {
-				logger.L(ctx).Info("uploading", logger.String("file", filePath))
-				if err := uploader.Upload(ctx, filePath, metadata); err != nil {
-					return fmt.Errorf("failed to upload %s: %w", filePath, err)
-				}
-				fmt.Printf("Uploaded %s → s3://%s/%slatest.json\n", filePath, creds.Bucket, creds.KeyPrefix)
+			logger.L(ctx).Info("uploading", logger.String("file", filePath))
+			if err := uploader.Upload(ctx, filePath, metadata); err != nil {
+				return fmt.Errorf("failed to upload %s: %w", filePath, err)
 			}
+			fmt.Printf("Uploaded %s → s3://%s/%slatest.json\n", filePath, creds.Bucket, creds.KeyPrefix)
 
 			return nil
 		},
 	}
 
 	pushCmd.Flags().StringVar(&contextType, "type", "", "Context type (terraform, ci_logs, config, deploy, api_spec)")
-	pushCmd.Flags().StringVar(&name, "name", "", "Logical name for this context (e.g. networking, ecs-api)")
+	pushCmd.Flags().StringVar(&name, "name", "", "Logical name for this context (e.g. networking, ecs-api). Auto-detected from file path if omitted.")
 	pushCmd.Flags().StringVar(&environment, "environment", "", "Deployment environment (development, staging, production, unknown)")
 	pushCmd.Flags().StringVar(&branch, "branch", "", "Git branch (auto-detected if omitted)")
 	pushCmd.Flags().IntVar(&prNumber, "pr-number", 0, "Pull request number")
+	pushCmd.Flags().IntVar(&fromPR, "from-pr", 0, "PR number that originated this deployment (for merge-to-main uploads)")
 	pushCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Log what would be uploaded without uploading")
 	_ = pushCmd.MarkFlagRequired("type")
-	_ = pushCmd.MarkFlagRequired("name")
 
 	contextCmd.AddCommand(pushCmd)
+}
+
+// deriveNameFromPath extracts a logical name from the file path.
+// e.g. "infrastructure/networking/plan.json" → "infrastructure/networking"
+// e.g. "plan.json" → "root"
+func deriveNameFromPath(filePath string) string {
+	dir := filepath.Dir(filePath)
+	if dir == "." || dir == "/" || dir == "" {
+		return "root"
+	}
+	// Clean and normalize
+	return filepath.ToSlash(filepath.Clean(dir))
 }
