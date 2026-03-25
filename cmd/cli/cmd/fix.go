@@ -9,8 +9,8 @@ import (
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/output"
 	"github.com/nullify-platform/cli/internal/logger"
+	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ Supports SAST and SCA dependency findings.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		findingID := args[0]
 

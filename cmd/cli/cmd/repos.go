@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/nullify-platform/cli/internal/output"
 	"github.com/nullify-platform/cli/internal/logger"
+	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var reposCmd = &cobra.Command{
 	Example: "  nullify repos\n  nullify repos -o table",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		apiClient := getAPIClient()
 

@@ -15,7 +15,7 @@ var openCmd = &cobra.Command{
 	Short: "Open the Nullify dashboard in your browser",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
-		defer logger.L(ctx).Sync()
+		defer logger.Close(ctx)
 
 		openHost := resolveHost(ctx)
 		// Strip "api." prefix to get the dashboard URL

@@ -50,10 +50,16 @@ func L(ctx context.Context) *Logger {
 	return &Logger{zap.NewNop()}
 }
 
+// Close flushes the logger, ignoring the sync error that is expected
+// on stderr-based loggers (see https://github.com/uber-go/zap/issues/880).
+func Close(ctx context.Context) {
+	_ = L(ctx).Sync()
+}
+
 // Field constructors
 
-func String(key, val string) Field    { return zap.String(key, val) }
-func Int(key string, val int) Field   { return zap.Int(key, val) }
-func Err(err error) Field             { return zap.Error(err) }
-func Any(key string, val any) Field   { return zap.Any(key, val) }
+func String(key, val string) Field           { return zap.String(key, val) }
+func Int(key string, val int) Field          { return zap.Int(key, val) }
+func Err(err error) Field                    { return zap.Error(err) }
+func Any(key string, val any) Field          { return zap.Any(key, val) }
 func Strings(key string, val []string) Field { return zap.Strings(key, val) }

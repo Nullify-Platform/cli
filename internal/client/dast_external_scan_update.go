@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/nullify-platform/cli/internal/models"
 	"github.com/nullify-platform/cli/internal/logger"
+	"github.com/nullify-platform/cli/internal/models"
 )
 
 type DASTUpdateExternalScanInput struct {

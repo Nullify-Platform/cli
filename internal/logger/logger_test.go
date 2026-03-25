@@ -80,7 +80,7 @@ func TestLogsGoToStderr_NotStdout(t *testing.T) {
 
 	w.Close()
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r)
 	os.Stdout = origStdout
 
 	if buf.Len() > 0 {
