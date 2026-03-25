@@ -37,7 +37,6 @@ Scan, triage, fix, and track security vulnerabilities across your entire stack �
 
 - **Unified findings** — Query vulnerabilities across all scanner types (SAST, SCA, secrets, DAST, CSPM) in a single command
 - **AI-powered remediation** — Generate fix patches and open PRs automatically
-- **Interactive AI chat** — Ask security questions, triage findings, and build remediation plans with Nullify's AI agents
 - **CI/CD quality gates** — Block deployments when critical findings are present
 - **DAST/Pentest scanning** — Run API security scans in the cloud or locally via Docker
 - **MCP server** — 50+ tools for AI coding assistants (Claude Code, Cursor, VS Code, and more)
@@ -87,8 +86,6 @@ nullify status
 # View findings across all scanner types
 nullify findings
 
-# Chat with Nullify's AI security agents
-nullify chat
 ```
 
 ## Authentication
@@ -130,8 +127,6 @@ nullify auth switch
 | `nullify init` | Interactive setup wizard (instance, auth, MCP config) |
 | `nullify status` | Security posture overview with finding counts by scanner |
 | `nullify findings` | List findings across all scanner types with filters |
-| `nullify chat [message]` | Interactive AI chat or single-shot query |
-
 ### Authentication
 
 | Command | Description |
@@ -209,22 +204,6 @@ nullify pentest \
 ```
 
 Add `--use-host-network` if the target is running directly on the host machine.
-
-## Interactive Chat
-
-```sh
-# Start an interactive REPL session
-nullify chat
-
-# Single-shot query
-nullify chat "what are my critical findings?"
-
-# Resume a previous conversation
-nullify chat --chat-id abc123 "tell me more"
-
-# Provide additional context
-nullify chat --system-prompt "focus on PCI compliance"
-```
 
 ## CI/CD Integration
 
