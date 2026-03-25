@@ -262,7 +262,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "delete-campaigns",
 			Short: "Delete Campaign",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -295,7 +295,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-campaigns",
 			Short: "Get Campaign by ID",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -328,7 +328,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-campaigns",
 			Short: "Patch Campaign",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -361,7 +361,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-events",
 			Short: "Get Campaign Events",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -396,7 +396,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-findings",
 			Short: "Get (Triaged) Findings Associated with a campaign",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -429,7 +429,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-preview",
 			Short: "Get Campaign Preview Details",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -609,7 +609,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-escalations",
 			Short: "Patch Escalation",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -702,7 +702,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "delete-events",
 			Short: "Delete A Campaign Event",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -735,7 +735,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-events",
 			Short: "Get Events by Finding ID",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}

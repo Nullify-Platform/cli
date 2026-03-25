@@ -1,4 +1,4 @@
-.PHONY: build clean
+.PHONY: build clean lint lint-go lint-docker
 
 # set the version as the latest commit sha if it's not already defined
 ifndef VERSION

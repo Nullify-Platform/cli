@@ -109,7 +109,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-applications",
 			Short: "Update Application",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -142,7 +142,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-applications",
 			Short: "Get Application",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -175,7 +175,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "delete-applications",
 			Short: "Delete Application",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -605,7 +605,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-active",
 			Short: "List Active Dependencies",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -638,7 +638,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-at",
 			Short: "Dependencies at commit",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -671,7 +671,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-diff",
 			Short: "Dependency diff between two commits",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -706,7 +706,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-exposure",
 			Short: "Project package exposure by version filter (semver or hash)",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -742,7 +742,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-history",
 			Short: "Package exposure history (windows)",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -842,7 +842,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-memories",
 			Short: "Get Memory",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -876,7 +876,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "delete-memories",
 			Short: "Delete Memory",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -909,7 +909,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-memories",
 			Short: "Update Memory",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -942,7 +942,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-versions",
 			Short: "Get Memory Versions",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1096,7 +1096,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "delete-repositories",
 			Short: "Delete Repository",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1129,7 +1129,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-repositories",
 			Short: "Update Repository",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1162,7 +1162,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-repositories",
 			Short: "Get Repository",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1195,7 +1195,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-projects",
 			Short: "List Projects",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1231,7 +1231,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-projects",
 			Short: "Update Project",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1264,7 +1264,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-projects",
 			Short: "Get Project",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1297,7 +1297,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-schema",
 			Short: "Get Project Schema",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1330,7 +1330,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-metadata",
 			Short: "Get Project Schema Metadata",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1392,7 +1392,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-project",
 			Short: "Get Repository/Project SBOMs",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1489,7 +1489,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "delete-file",
 			Short: "Delete Vault File",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1522,7 +1522,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "get-file",
 			Short: "Get Vault File",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1555,7 +1555,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-file",
 			Short: "Patch Vault File",
-			Args: cobra.MaximumNArgs(1),
+			Args:  cobra.MaximumNArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
