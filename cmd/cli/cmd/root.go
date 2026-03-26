@@ -94,6 +94,7 @@ func init() {
 	// Register generated API commands under 'api' parent for cleaner top-level help
 	commands.RegisterAdminCommands(apiCmd, getAPIClient)
 	commands.RegisterContextCommands(apiCmd, getAPIClient)
+	commands.RegisterContextPushCommand(apiCmd, getAPIClient)
 	commands.RegisterCspmCommands(apiCmd, getAPIClient)
 	// Register pentest and bughunt subcommands from generated DAST commands
 	commands.RegisterPentestSubcommands(pentestCmd, getAPIClient)
