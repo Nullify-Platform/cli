@@ -103,6 +103,11 @@ func init() {
 	commands.RegisterSastCommands(apiCmd, getAPIClient)
 	commands.RegisterScaCommands(apiCmd, getAPIClient)
 	commands.RegisterSecretsCommands(apiCmd, getAPIClient)
+
+	// Hand-written workflow — not generated from OpenAPI. Routes through
+	// scpm's /scpm/dependencies/analyze. Wired at top level (not under
+	// apiCmd) so `nullify deps analyze` reads naturally in CI scripts.
+	commands.RegisterDepsAnalyzeCommand(rootCmd, getAPIClient)
 }
 
 func setupLogger(ctx context.Context) context.Context {
