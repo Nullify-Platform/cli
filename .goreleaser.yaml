@@ -43,16 +43,6 @@ checksum:
 changelog:
   use: github-native
 
-brews:
-  - name: nullify
-    repository:
-      owner: Nullify-Platform
-      name: homebrew-tap
-    homepage: "https://github.com/Nullify-Platform/cli"
-    description: "Nullify CLI - autonomous AI workforce for product security"
-    install: |
-      bin.install "nullify"
-
 release:
   github:
     owner: Nullify-Platform
