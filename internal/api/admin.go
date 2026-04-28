@@ -1360,9 +1360,9 @@ func (c *Client) ListAdminIntegrationsSlackUsers(ctx context.Context, params url
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// GetAdminMetricsFindingFindingId - Get Finding
+// GetAdminFindingFindingId - Get Finding
 // GET /admin/finding/{findingId}
-func (c *Client) GetAdminMetricsFindingFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetAdminFindingFindingId(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/admin/finding/{findingId}"
 	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
 
@@ -1406,9 +1406,9 @@ func (c *Client) GetAdminMetricsFindingFindingId(ctx context.Context, params url
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateAdminMetricsFindings - Query Findings
+// CreateAdminFindings - Query Findings
 // POST /admin/findings
-func (c *Client) CreateAdminMetricsFindings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminFindings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
 	path := "/admin/findings"
 
 	query := url.Values{}
@@ -1451,10 +1451,55 @@ func (c *Client) CreateAdminMetricsFindings(ctx context.Context, params url.Valu
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// CreateAdminMetricsFindingsDownload - Download Findings
-// POST /admin/metrics/findings/download
-func (c *Client) CreateAdminMetricsFindingsDownload(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/metrics/findings/download"
+// CreateAdminMetricsFindings - Query Findings Analysis
+// POST /admin/metrics/findings
+func (c *Client) CreateAdminMetricsFindings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/metrics/findings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
+// CreateAdminFindingsDownload - Download Findings
+// POST /admin/findings/download
+func (c *Client) CreateAdminFindingsDownload(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/findings/download"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
