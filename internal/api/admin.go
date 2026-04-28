@@ -1361,9 +1361,9 @@ func (c *Client) ListAdminIntegrationsSlackUsers(ctx context.Context, params url
 }
 
 // GetAdminMetricsFindingFindingId - Get Finding
-// GET /admin/metrics/finding/{findingId}
+// GET /admin/finding/{findingId}
 func (c *Client) GetAdminMetricsFindingFindingId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/admin/metrics/finding/{findingId}"
+	path := "/admin/finding/{findingId}"
 	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
 
 	query := url.Values{}
@@ -1407,9 +1407,9 @@ func (c *Client) GetAdminMetricsFindingFindingId(ctx context.Context, params url
 }
 
 // CreateAdminMetricsFindings - Query Findings
-// POST /admin/metrics/findings
+// POST /admin/findings
 func (c *Client) CreateAdminMetricsFindings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/metrics/findings"
+	path := "/admin/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
