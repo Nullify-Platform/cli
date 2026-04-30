@@ -878,7 +878,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.GetAdminMetricsFindingFindingId(cmd.Context(), params)
+				result, err := client.GetAdminFindingFindingId(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -901,6 +901,35 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "create-findings",
 			Short: "Query Findings",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					params.Set(f.Name, f.Value.String())
+				})
+				result, err := client.CreateAdminFindings(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azureOrganizationId", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucketWorkspaceId", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("githubOwnerId", "", "The Github owner ID")
+		cmd.Flags().String("gitlabGroupId", "", "The GitLab group ID")
+		cmd.Flags().String("installationId", "", "The Nullify installation ID")
+		cmd.Flags().String("azureRepositoryId", "", "")
+		cmd.Flags().String("githubRepositoryId", "", "")
+		cmd.Flags().String("githubTeamId", "", "")
+		cmd.Flags().String("bitbucketRepositoryId", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-metrics-findings",
+			Short: "Query Findings Analysis",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -936,7 +965,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				cmd.Flags().Visit(func(f *pflag.Flag) {
 					params.Set(f.Name, f.Value.String())
 				})
-				result, err := client.CreateAdminMetricsFindingsDownload(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateAdminFindingsDownload(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
