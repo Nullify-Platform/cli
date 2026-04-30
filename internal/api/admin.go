@@ -57,8 +57,8 @@ func (c *Client) ListAdminAdmissionAggregate(ctx context.Context, params url.Val
 	if v := params.Get("agent"); v != "" {
 		query.Set("agent", v)
 	}
-	if v := params.Get("branch_type"); v != "" {
-		query.Set("branch_type", v)
+	if v := params.Get("branchType"); v != "" {
+		query.Set("branchType", v)
 	}
 	if v := params.Get("from"); v != "" {
 		query.Set("from", v)
@@ -313,11 +313,11 @@ func (c *Client) ListAdminAdmissionLedger(ctx context.Context, params url.Values
 	if v := params.Get("agent"); v != "" {
 		query.Set("agent", v)
 	}
-	if v := params.Get("branch_type"); v != "" {
-		query.Set("branch_type", v)
+	if v := params.Get("branchType"); v != "" {
+		query.Set("branchType", v)
 	}
-	if v := params.Get("run_id"); v != "" {
-		query.Set("run_id", v)
+	if v := params.Get("runId"); v != "" {
+		query.Set("runId", v)
 	}
 	if v := params.Get("from"); v != "" {
 		query.Set("from", v)
