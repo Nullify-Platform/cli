@@ -71,7 +71,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, result)
 			},
 		}
-		cmd.Flags().String("tenantd", "", "")
+		cmd.Flags().String("tenant_id", "", "")
 		cmd.Flags().String("class", "", "")
 		cmd.Flags().String("branchType", "", "")
 		cmd.Flags().String("timeWindow", "", "")

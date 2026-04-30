@@ -84,8 +84,8 @@ func (c *Client) ListAdminAdmissionBudget(ctx context.Context, params url.Values
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("tenantd"); v != "" {
-		query.Set("tenantd", v)
+	if v := params.Get("tenant_id"); v != "" {
+		query.Set("tenant_id", v)
 	}
 	if v := params.Get("class"); v != "" {
 		query.Set("class", v)
