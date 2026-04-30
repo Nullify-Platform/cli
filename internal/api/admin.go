@@ -45,8 +45,8 @@ func (c *Client) ListAdminAdmissionAggregate(ctx context.Context, params url.Val
 	if v := params.Get("bitbucketRepositoryId"); v != "" {
 		query.Set("bitbucketRepositoryId", v)
 	}
-	if v := params.Get("tenant_id"); v != "" {
-		query.Set("tenant_id", v)
+	if v := params.Get("tenantId"); v != "" {
+		query.Set("tenantId", v)
 	}
 	if v := params.Get("window"); v != "" {
 		query.Set("window", v)
@@ -84,8 +84,8 @@ func (c *Client) ListAdminAdmissionBudget(ctx context.Context, params url.Values
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("tenant_id"); v != "" {
-		query.Set("tenant_id", v)
+	if v := params.Get("tenantId"); v != "" {
+		query.Set("tenantId", v)
 	}
 	if v := params.Get("class"); v != "" {
 		query.Set("class", v)
@@ -226,7 +226,7 @@ func (c *Client) CreateAdminAdmissionComplete(ctx context.Context, params url.Va
 // GET /admin/admission/config/{tenant_id}
 func (c *Client) ListAdminAdmissionConfigTenantId(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/admin/admission/config/{tenant_id}"
-	path = strings.Replace(path, "{tenant_id}", params.Get("tenant_id"), 1)
+	path = strings.Replace(path, "{tenant_id}", params.Get("tenantId"), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -304,8 +304,8 @@ func (c *Client) ListAdminAdmissionLedger(ctx context.Context, params url.Values
 	if v := params.Get("bitbucketRepositoryId"); v != "" {
 		query.Set("bitbucketRepositoryId", v)
 	}
-	if v := params.Get("tenant_id"); v != "" {
-		query.Set("tenant_id", v)
+	if v := params.Get("tenantId"); v != "" {
+		query.Set("tenantId", v)
 	}
 	if v := params.Get("class"); v != "" {
 		query.Set("class", v)
