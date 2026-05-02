@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v85/github"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/spf13/cobra"
 )
