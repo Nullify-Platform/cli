@@ -49,7 +49,7 @@ func LoadCredentials() (Credentials, error) {
 	for k, v := range creds {
 		bare := strings.TrimPrefix(k, "api.")
 		if bare != k {
-			if _, exists := creds[bare]; !exists {
+			if existing, exists := creds[bare]; !exists || v.ExpiresAt > existing.ExpiresAt {
 				creds[bare] = v
 			}
 			delete(creds, k)
