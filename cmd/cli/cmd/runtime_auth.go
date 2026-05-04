@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"os"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/lib"
@@ -28,6 +29,14 @@ func resolveCommandAuth(ctx context.Context) (*commandAuthContext, error) {
 			for key, value := range hostCreds.QueryParameters {
 				queryParams[key] = value
 			}
+		}
+	}
+
+	// NULLIFY_GITHUB_OWNER_ID env var provides the githubOwnerId query param
+	// when using NULLIFY_TOKEN directly (no stored credentials).
+	if ownerID := os.Getenv("NULLIFY_GITHUB_OWNER_ID"); ownerID != "" {
+		if _, set := queryParams["githubOwnerId"]; !set {
+			queryParams["githubOwnerId"] = ownerID
 		}
 	}
 
