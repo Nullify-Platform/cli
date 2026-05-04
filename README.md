@@ -259,7 +259,7 @@ Add the following to your MCP config file:
 
 | Tool | Config path |
 |------|-------------|
-| Claude Code | `.claude/mcp.json` |
+| Claude Code | `.mcp.json` (project root) or `~/.claude.json` (user) |
 | Cursor | `.cursor/mcp.json` |
 | VS Code | `.vscode/mcp.json` |
 

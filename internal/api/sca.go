@@ -216,7 +216,7 @@ func (c *Client) CreateScaContainersFindingsFixIterate(ctx context.Context, para
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListScaContainersFindingsPreview - Get SCA Container Findings
+// ListScaContainersFindingsPreview - Get SCA Container Findings Preview
 // GET /sca/containers/findings/preview
 func (c *Client) ListScaContainersFindingsPreview(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/sca/containers/findings/preview"
@@ -295,51 +295,6 @@ func (c *Client) ListScaContainersFindingsPreview(ctx context.Context, params ur
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// CreateScaContainersFindingsUpload - Get Presigned URL to Upload SCA Containers Findings
-// POST /sca/containers/findings/upload
-func (c *Client) CreateScaContainersFindingsUpload(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sca/containers/findings/upload"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
 }
 
 // GetScaContainersFindingsFindingId - Get Container Finding
@@ -478,52 +433,6 @@ func (c *Client) CreateScaContainersFindingsFindingIdAllowlist(ctx context.Conte
 	}
 
 	return c.do(ctx, "POST", fullURL, body)
-}
-
-// CreateScaContainersFindingsFindingIdAutofixCache - Post Cache AutoFix - SCA Containers
-// POST /sca/containers/findings/{findingId}/autofix/cache
-func (c *Client) CreateScaContainersFindingsFindingIdAutofixCache(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/sca/containers/findings/{findingId}/autofix/cache"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, nil)
 }
 
 // CreateScaContainersFindingsFindingIdAutofixFix - Fix Container Findings
@@ -883,51 +792,6 @@ func (c *Client) ListScaDependenciesFindings(ctx context.Context, params url.Val
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateScaDependenciesFindingsAutofixCache - Post Cache AutoFix
-// POST /sca/dependencies/findings/autofix/cache
-func (c *Client) CreateScaDependenciesFindingsAutofixCache(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sca/dependencies/findings/autofix/cache"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListScaDependenciesFindingsDetailed - Get SCA Dependency Findings Detailed [DEPRECATED - TO BE REMOVED BY 2025]
 // GET /sca/dependencies/findings/detailed
 func (c *Client) ListScaDependenciesFindingsDetailed(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1054,7 +918,7 @@ func (c *Client) CreateScaDependenciesFindingsFixIterate(ctx context.Context, pa
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListScaDependenciesFindingsPreview - Get SCA Dependency Findings
+// ListScaDependenciesFindingsPreview - Get SCA Dependency Findings Preview
 // GET /sca/dependencies/findings/preview
 func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/sca/dependencies/findings/preview"
@@ -1135,51 +999,6 @@ func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, params 
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateScaDependenciesFindingsUpload - Get Presigned URL to Upload SCA Dependencies Findings
-// POST /sca/dependencies/findings/upload
-func (c *Client) CreateScaDependenciesFindingsUpload(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sca/dependencies/findings/upload"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // CreateScaDependenciesFindingsFindingIDAutofixCacheCreatePr - Create Pull Request for Dependency Finding
 // POST /sca/dependencies/findings/{findingID}/autofix/cache/create_pr
 func (c *Client) CreateScaDependenciesFindingsFindingIDAutofixCacheCreatePr(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1224,52 +1043,6 @@ func (c *Client) CreateScaDependenciesFindingsFindingIDAutofixCacheCreatePr(ctx 
 	}
 
 	return c.do(ctx, "POST", fullURL, nil)
-}
-
-// PatchScaDependenciesFindingsFindingId - Update Dependencies Finding
-// PATCH /sca/dependencies/findings/{findingId}
-func (c *Client) PatchScaDependenciesFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sca/dependencies/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
 }
 
 // GetScaDependenciesFindingsFindingId - Get Finding
@@ -1318,6 +1091,52 @@ func (c *Client) GetScaDependenciesFindingsFindingId(ctx context.Context, params
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
+// PatchScaDependenciesFindingsFindingId - Update Dependencies Finding
+// PATCH /sca/dependencies/findings/{findingId}
+func (c *Client) PatchScaDependenciesFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/sca/dependencies/findings/{findingId}"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PATCH", fullURL, body)
+}
+
 // CreateScaDependenciesFindingsFindingIdAllowlist - Allowlist Dependency Finding
 // POST /sca/dependencies/findings/{findingId}/allowlist
 func (c *Client) CreateScaDependenciesFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
@@ -1362,52 +1181,6 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdAllowlist(ctx context.Con
 	}
 
 	return c.do(ctx, "POST", fullURL, body)
-}
-
-// CreateScaDependenciesFindingsFindingIdAutofixCache - Post Cache AutoFix
-// POST /sca/dependencies/findings/{findingId}/autofix/cache
-func (c *Client) CreateScaDependenciesFindingsFindingIdAutofixCache(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/sca/dependencies/findings/{findingId}/autofix/cache"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, nil)
 }
 
 // ListScaDependenciesFindingsFindingIdAutofixCacheDiff - Get SCA Dependency Finding Fix
@@ -1546,52 +1319,6 @@ func (c *Client) ListScaDependenciesFindingsFindingIdEvents(ctx context.Context,
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// CreateScaDependenciesFindingsFindingIdPentest - Update SCA Dependency Finding With Pentest Result
-// POST /sca/dependencies/findings/{findingId}/pentest
-func (c *Client) CreateScaDependenciesFindingsFindingIdPentest(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sca/dependencies/findings/{findingId}/pentest"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
 }
 
 // CreateScaDependenciesFindingsFindingIdTicket - Create Jira Ticket
@@ -1839,51 +1566,6 @@ func (c *Client) ListScaEvents(ctx context.Context, params url.Values) ([]byte, 
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// CreateScaFindingsRetriage - Post Retriage Dependencies Findings
-// POST /sca/findings/retriage
-func (c *Client) CreateScaFindingsRetriage(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sca/findings/retriage"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListScaRepositories - Get Repository Stats

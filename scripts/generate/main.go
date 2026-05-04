@@ -308,6 +308,19 @@ func isIDSegment(s string) bool {
 	return strings.HasSuffix(s, "Id") || strings.HasSuffix(s, "ID") || s == "id"
 }
 
+var pathParamRegex = regexp.MustCompile(`\{([^}]+)\}`)
+
+// extractPathParamNames returns the path parameter names from a path template
+// in the order they appear in the URL.
+func extractPathParamNames(path string) []string {
+	matches := pathParamRegex.FindAllStringSubmatch(path, -1)
+	names := make([]string, 0, len(matches))
+	for _, m := range matches {
+		names = append(names, m[1])
+	}
+	return names
+}
+
 var nonAlphaRegex = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
 func toPascalCase(s string) string {
@@ -549,23 +562,26 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 		cobraUse := generateCobraUse(ep)
 		summary := strings.ReplaceAll(ep.Summary, `"`, `\"`)
 
-		// Collect path and query params
-		var pathParamName string
+		// Collect path params in URL order (the OpenAPI parameters list is
+		// not guaranteed to be ordered, so we read names directly from the path)
+		// and query params separately.
+		pathParamNames := extractPathParamNames(ep.Path)
 		var queryParams []Parameter
 		for _, p := range ep.Parameters {
-			if p.In == "path" {
-				pathParamName = p.Name
-			}
 			if p.In == "query" {
 				queryParams = append(queryParams, p)
 			}
 		}
 
 		sb.WriteString("\t{\n")
-		fmt.Fprintf(&sb, "\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", cobraUse, summary)
+		useStr := cobraUse
+		for _, name := range pathParamNames {
+			useStr += " <" + name + ">"
+		}
+		fmt.Fprintf(&sb, "\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", useStr, summary)
 
-		if pathParamName != "" {
-			sb.WriteString("\t\t\tArgs:  cobra.MaximumNArgs(1),\n")
+		if len(pathParamNames) > 0 {
+			fmt.Fprintf(&sb, "\t\t\tArgs:  cobra.MaximumNArgs(%d),\n", len(pathParamNames))
 		}
 
 		sb.WriteString("\t\t\tRunE: func(cmd *cobra.Command, args []string) error {\n")
@@ -596,8 +612,8 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 			sb.WriteString("\t\t\t\tcmd.Flags().Visit(func(f *pflag.Flag) {\n\t\t\t\t\tparams.Set(f.Name, f.Value.String())\n\t\t\t\t})\n")
 		}
 
-		if pathParamName != "" {
-			fmt.Fprintf(&sb, "\t\t\t\tif len(args) > 0 {\n\t\t\t\t\tparams.Set(%q, args[0])\n\t\t\t\t}\n", pathParamName)
+		for i, name := range pathParamNames {
+			fmt.Fprintf(&sb, "\t\t\t\tif len(args) > %d {\n\t\t\t\t\tparams.Set(%q, args[%d])\n\t\t\t\t}\n", i, name, i)
 		}
 
 		if ep.HasBody {
