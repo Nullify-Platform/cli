@@ -95,6 +95,7 @@ func init() {
 	commands.RegisterAdminCommands(apiCmd, getAPIClient)
 	commands.RegisterContextCommands(apiCmd, getAPIClient)
 	commands.RegisterContextPushCommand(apiCmd, getAPIClient)
+	commands.ApplyContextCommandDefaults(apiCmd, getAPIClient)
 	commands.RegisterCspmCommands(apiCmd, getAPIClient)
 	// Register pentest and bughunt subcommands from generated DAST commands
 	commands.RegisterPentestSubcommands(pentestCmd, getAPIClient)

@@ -4,6 +4,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 )
@@ -127,6 +128,98 @@ func (c *Client) GetCspmFindingsFindingId(ctx context.Context, params url.Values
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// ListCspmFindingsFindingIdAutofixCacheDiff - Get CSPM Finding Autofix Diff
+// GET /cspm/findings/{findingId}/autofix/cache/diff
+func (c *Client) ListCspmFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/cspm/findings/{findingId}/autofix/cache/diff"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateCspmFindingsFindingIdTicket - Create Ticket for CSPM Finding
+// POST /cspm/findings/{findingId}/ticket
+func (c *Client) CreateCspmFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/cspm/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListCspmScans - Get CSPM Scans

@@ -276,6 +276,9 @@ func (c *Client) ListSastFindingsDetailed(ctx context.Context, params url.Values
 	if v := params.Get("severity"); v != "" {
 		query.Set("severity", v)
 	}
+	if v := params.Get("language"); v != "" {
+		query.Set("language", v)
+	}
 	if v := params.Get("fileOwnerName"); v != "" {
 		query.Set("fileOwnerName", v)
 	}
@@ -349,51 +352,6 @@ func (c *Client) ListSastFindingsDetailed(ctx context.Context, params url.Values
 // POST /sast/findings/fix
 func (c *Client) CreateSastFindingsFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
 	path := "/sast/findings/fix"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
-// CreateSastFindingsFixIterate - Post Finding Fix Iterate
-// POST /sast/findings/fixIterate
-func (c *Client) CreateSastFindingsFixIterate(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/fixIterate"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -526,96 +484,6 @@ func (c *Client) ListSastFindingsPreview(ctx context.Context, params url.Values)
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// CreateSastFindingsRetriage - Post Retriage Findings
-// POST /sast/findings/retriage
-func (c *Client) CreateSastFindingsRetriage(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/retriage"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
-// CreateSastFindingsUpload - Get Presigned URL to Upload SAST Findings
-// POST /sast/findings/upload
-func (c *Client) CreateSastFindingsUpload(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/upload"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
 }
 
 // GetSastFindingsFindingId - Get Finding
@@ -986,53 +854,7 @@ func (c *Client) ListSastFindingsFindingIdEvents(ctx context.Context, params url
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateSastFindingsFindingIdPentest - Update SAST Finding With Pentest Result
-// POST /sast/findings/{findingId}/pentest
-func (c *Client) CreateSastFindingsFindingIdPentest(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/{findingId}/pentest"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
-// CreateSastFindingsFindingIdTicket - Create Jira Ticket
+// CreateSastFindingsFindingIdTicket - Create Ticket
 // POST /sast/findings/{findingId}/ticket
 func (c *Client) CreateSastFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
 	path := "/sast/findings/{findingId}/ticket"
