@@ -26,18 +26,18 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"next-token": "nextToken",
-					"from-time": "fromTime",
-					"event-type": "eventType",
-					"file-owner-name": "fileOwnerName",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"next-token":              "nextToken",
+					"from-time":               "fromTime",
+					"event-type":              "eventType",
+					"file-owner-name":         "fileOwnerName",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -80,25 +80,25 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"next-token": "nextToken",
-					"priority-label": "priorityLabel",
-					"file-owner-name": "fileOwnerName",
-					"has-pull-request": "hasPullRequest",
-					"repository-ids": "repositoryIds",
-					"is-resolved": "isResolved",
-					"is-fixed": "isFixed",
-					"is-false-positive": "isFalsePositive",
-					"is-allowlisted": "isAllowlisted",
-					"is-archived": "isArchived",
-					"sort-by": "sortBy",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"next-token":              "nextToken",
+					"priority-label":          "priorityLabel",
+					"file-owner-name":         "fileOwnerName",
+					"has-pull-request":        "hasPullRequest",
+					"repository-ids":          "repositoryIds",
+					"is-resolved":             "isResolved",
+					"is-fixed":                "isFixed",
+					"is-false-positive":       "isFalsePositive",
+					"is-allowlisted":          "isAllowlisted",
+					"is-archived":             "isArchived",
+					"sort-by":                 "sortBy",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -151,14 +151,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -195,14 +195,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -239,24 +239,24 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"next-token": "nextToken",
-					"priority-label": "priorityLabel",
-					"file-owner-name": "fileOwnerName",
-					"has-pull-request": "hasPullRequest",
-					"is-resolved": "isResolved",
-					"is-fixed": "isFixed",
-					"is-false-positive": "isFalsePositive",
-					"is-allowlisted": "isAllowlisted",
-					"is-archived": "isArchived",
-					"sort-by": "sortBy",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"next-token":              "nextToken",
+					"priority-label":          "priorityLabel",
+					"file-owner-name":         "fileOwnerName",
+					"has-pull-request":        "hasPullRequest",
+					"is-resolved":             "isResolved",
+					"is-fixed":                "isFixed",
+					"is-false-positive":       "isFalsePositive",
+					"is-allowlisted":          "isAllowlisted",
+					"is-archived":             "isArchived",
+					"sort-by":                 "sortBy",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -309,14 +309,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -353,25 +353,25 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"next-token": "nextToken",
-					"priority-label": "priorityLabel",
-					"file-owner-name": "fileOwnerName",
-					"has-pull-request": "hasPullRequest",
-					"repository-ids": "repositoryIds",
-					"is-resolved": "isResolved",
-					"is-fixed": "isFixed",
-					"is-false-positive": "isFalsePositive",
-					"is-allowlisted": "isAllowlisted",
-					"is-archived": "isArchived",
-					"sort-by": "sortBy",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"next-token":              "nextToken",
+					"priority-label":          "priorityLabel",
+					"file-owner-name":         "fileOwnerName",
+					"has-pull-request":        "hasPullRequest",
+					"repository-ids":          "repositoryIds",
+					"is-resolved":             "isResolved",
+					"is-fixed":                "isFixed",
+					"is-false-positive":       "isFalsePositive",
+					"is-allowlisted":          "isAllowlisted",
+					"is-archived":             "isArchived",
+					"sort-by":                 "sortBy",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -425,14 +425,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -473,14 +473,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -521,14 +521,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -569,14 +569,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -617,14 +617,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -665,14 +665,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -713,14 +713,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -761,14 +761,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -809,14 +809,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -857,14 +857,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -905,14 +905,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -953,14 +953,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -1000,15 +1000,15 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"next-token": "nextToken",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"next-token":              "nextToken",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {
@@ -1048,14 +1048,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
+					"azure-organization-id":   "azureOrganizationId",
+					"bitbucket-workspace-id":  "bitbucketWorkspaceId",
+					"github-owner-id":         "githubOwnerId",
+					"gitlab-group-id":         "gitlabGroupId",
+					"installation-id":         "installationId",
+					"azure-repository-id":     "azureRepositoryId",
+					"github-repository-id":    "githubRepositoryId",
+					"github-team-id":          "githubTeamId",
 					"bitbucket-repository-id": "bitbucketRepositoryId",
 				}
 				cmd.Flags().Visit(func(f *pflag.Flag) {

@@ -911,52 +911,6 @@ func (c *Client) ListSecretsFindingsPreview(ctx context.Context, params url.Valu
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// PatchSecretsFindingsFindingId - Update Credential Finding
-// PATCH /secrets/findings/{findingId}
-func (c *Client) PatchSecretsFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/secrets/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
-}
-
 // GetSecretsFindingsFindingId - Get Credential Finding
 // GET /secrets/findings/{findingId}
 func (c *Client) GetSecretsFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1001,6 +955,52 @@ func (c *Client) GetSecretsFindingsFindingId(ctx context.Context, params url.Val
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// PatchSecretsFindingsFindingId - Update Credential Finding
+// PATCH /secrets/findings/{findingId}
+func (c *Client) PatchSecretsFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/secrets/findings/{findingId}"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PATCH", fullURL, body)
 }
 
 // CreateSecretsFindingsFindingIdAllowlist - Allowlist Credential Finding
@@ -1399,52 +1399,6 @@ func (c *Client) CreateSecretsSensitivedataFindingsAllowlistBatch(ctx context.Co
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// PatchSecretsSensitivedataFindingsFindingId - Update Sensitive Data Finding
-// PATCH /secrets/sensitivedata/findings/{findingId}
-func (c *Client) PatchSecretsSensitivedataFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/secrets/sensitivedata/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
-}
-
 // GetSecretsSensitivedataFindingsFindingId - Get Sensitive Data Finding
 // GET /secrets/sensitivedata/findings/{findingId}
 func (c *Client) GetSecretsSensitivedataFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1489,6 +1443,52 @@ func (c *Client) GetSecretsSensitivedataFindingsFindingId(ctx context.Context, p
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// PatchSecretsSensitivedataFindingsFindingId - Update Sensitive Data Finding
+// PATCH /secrets/sensitivedata/findings/{findingId}
+func (c *Client) PatchSecretsSensitivedataFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/secrets/sensitivedata/findings/{findingId}"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PATCH", fullURL, body)
 }
 
 // CreateSecretsSensitivedataFindingsFindingIdAllowlist - Allowlist Sensitive Data Finding

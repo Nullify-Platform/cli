@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"go/format"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -15,6 +16,21 @@ import (
 
 	"gopkg.in/yaml.v3"
 )
+
+// writeGoFile writes Go source to disk after running gofmt over it. If the
+// source doesn't parse (a generator bug), we still write the unformatted
+// bytes so the caller can inspect them, but flag the failure on stderr.
+func writeGoFile(filePath string, src []byte) {
+	formatted, err := format.Source(src)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: gofmt failed for %s: %v (writing unformatted output)\n", filePath, err)
+		formatted = src
+	}
+	if err := os.WriteFile(filePath, formatted, 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
+		os.Exit(1)
+	}
+}
 
 type OpenAPISpec struct {
 	Paths      map[string]map[string]Operation `yaml:"paths"`
@@ -423,10 +439,7 @@ func generateClientFile(outputDir string, service string, endpoints []Endpoint) 
 		sb.WriteString("}\n")
 	}
 
-	if err := os.WriteFile(filePath, []byte(sb.String()), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
-		os.Exit(1)
-	}
+	writeGoFile(filePath, []byte(sb.String()))
 }
 
 func generateClient(outputDir string, grouped map[string][]Endpoint) {
@@ -520,10 +533,7 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	return respBody, nil
 }
 `
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
-		os.Exit(1)
-	}
+	writeGoFile(filePath, []byte(content))
 }
 
 func generateCommands(outputDir string, grouped map[string][]Endpoint) {
@@ -637,10 +647,7 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 
 	sb.WriteString("}\n")
 
-	if err := os.WriteFile(filePath, []byte(sb.String()), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
-		os.Exit(1)
-	}
+	writeGoFile(filePath, []byte(sb.String()))
 }
 
 func generateCobraUse(ep Endpoint) string {

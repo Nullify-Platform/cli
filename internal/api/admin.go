@@ -186,51 +186,6 @@ func (c *Client) CreateAdminContextIngest(ctx context.Context, params url.Values
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// UpdateAdminFixEffort - Put Fix Effort Mapping
-// PUT /admin/fix-effort
-func (c *Client) UpdateAdminFixEffort(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/fix-effort"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PUT", fullURL, body)
-}
-
 // ListAdminFixEffort - Get Fix Effort Mapping
 // GET /admin/fix-effort
 func (c *Client) ListAdminFixEffort(ctx context.Context, params url.Values) ([]byte, error) {
@@ -274,6 +229,51 @@ func (c *Client) ListAdminFixEffort(ctx context.Context, params url.Values) ([]b
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// UpdateAdminFixEffort - Put Fix Effort Mapping
+// PUT /admin/fix-effort
+func (c *Client) UpdateAdminFixEffort(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/fix-effort"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PUT", fullURL, body)
 }
 
 // ListAdminGetFileContents - Get File Contents
@@ -480,51 +480,6 @@ func (c *Client) ListAdminInstallations(ctx context.Context, params url.Values) 
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListAdminIntegrationsAzure - Get Azure Configuration
-// GET /admin/integrations/azure
-func (c *Client) ListAdminIntegrationsAzure(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/admin/integrations/azure"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // CreateAdminIntegrationsAzure - Install Azure DevOps Integration
 // POST /admin/integrations/azure
 func (c *Client) CreateAdminIntegrationsAzure(ctx context.Context, params url.Values) ([]byte, error) {
@@ -570,10 +525,10 @@ func (c *Client) CreateAdminIntegrationsAzure(ctx context.Context, params url.Va
 	return c.do(ctx, "POST", fullURL, nil)
 }
 
-// CreateAdminIntegrationsAzureCredentials - Set Azure Credentials
-// POST /admin/integrations/azure/credentials
-func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/integrations/azure/credentials"
+// ListAdminIntegrationsAzure - Get Azure Configuration
+// GET /admin/integrations/azure
+func (c *Client) ListAdminIntegrationsAzure(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/admin/integrations/azure"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -612,13 +567,13 @@ func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, pa
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateAdminIntegrationsCloudAwsSettings - Upsert Cloud AWS Settings
-// POST /admin/integrations/cloud/aws/settings
-func (c *Client) CreateAdminIntegrationsCloudAwsSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/integrations/cloud/aws/settings"
+// CreateAdminIntegrationsAzureCredentials - Set Azure Credentials
+// POST /admin/integrations/azure/credentials
+func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/integrations/azure/credentials"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -705,6 +660,51 @@ func (c *Client) ListAdminIntegrationsCloudAwsSettings(ctx context.Context, para
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
+// CreateAdminIntegrationsCloudAwsSettings - Upsert Cloud AWS Settings
+// POST /admin/integrations/cloud/aws/settings
+func (c *Client) CreateAdminIntegrationsCloudAwsSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/integrations/cloud/aws/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
 // DeleteAdminIntegrationsCloudAwsSettings - Delete Cloud AWS Settings
 // DELETE /admin/integrations/cloud/aws/settings
 func (c *Client) DeleteAdminIntegrationsCloudAwsSettings(ctx context.Context, params url.Values) ([]byte, error) {
@@ -754,6 +754,51 @@ func (c *Client) DeleteAdminIntegrationsCloudAwsSettings(ctx context.Context, pa
 // POST /admin/integrations/cloud/aws/validate-role
 func (c *Client) CreateAdminIntegrationsCloudAwsValidateRole(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
 	path := "/admin/integrations/cloud/aws/validate-role"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
+// CreateAdminIntegrationsCloudAzureSettings - Upsert Cloud Azure Settings
+// POST /admin/integrations/cloud/azure/settings
+func (c *Client) CreateAdminIntegrationsCloudAzureSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/integrations/cloud/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -885,54 +930,9 @@ func (c *Client) ListAdminIntegrationsCloudAzureSettings(ctx context.Context, pa
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateAdminIntegrationsCloudAzureSettings - Upsert Cloud Azure Settings
-// POST /admin/integrations/cloud/azure/settings
-func (c *Client) CreateAdminIntegrationsCloudAzureSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/integrations/cloud/azure/settings"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
-// DeleteAdminIntegrationsCloudGcpSettings - Delete Cloud GCP Settings
-// DELETE /admin/integrations/cloud/gcp/settings
-func (c *Client) DeleteAdminIntegrationsCloudGcpSettings(ctx context.Context, params url.Values) ([]byte, error) {
+// CreateAdminIntegrationsCloudGcpSettings - Upsert Cloud GCP Settings
+// POST /admin/integrations/cloud/gcp/settings
+func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
 	path := "/admin/integrations/cloud/gcp/settings"
 
 	query := url.Values{}
@@ -972,7 +972,7 @@ func (c *Client) DeleteAdminIntegrationsCloudGcpSettings(ctx context.Context, pa
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListAdminIntegrationsCloudGcpSettings - Get Cloud GCP Settings
@@ -1020,9 +1020,9 @@ func (c *Client) ListAdminIntegrationsCloudGcpSettings(ctx context.Context, para
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateAdminIntegrationsCloudGcpSettings - Upsert Cloud GCP Settings
-// POST /admin/integrations/cloud/gcp/settings
-func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+// DeleteAdminIntegrationsCloudGcpSettings - Delete Cloud GCP Settings
+// DELETE /admin/integrations/cloud/gcp/settings
+func (c *Client) DeleteAdminIntegrationsCloudGcpSettings(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/admin/integrations/cloud/gcp/settings"
 
 	query := url.Values{}
@@ -1062,7 +1062,7 @@ func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, pa
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // CreateAdminIntegrationsCloudGcpValidate - Validate GCP Credentials
@@ -1200,51 +1200,6 @@ func (c *Client) ListAdminIntegrationsGithubAppSettings(ctx context.Context, par
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateAdminIntegrationsJira - Update Jira Configuration
-// POST /admin/integrations/jira
-func (c *Client) CreateAdminIntegrationsJira(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/integrations/jira"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListAdminIntegrationsJira - Get Jira Configuration
 // GET /admin/integrations/jira
 func (c *Client) ListAdminIntegrationsJira(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1288,6 +1243,51 @@ func (c *Client) ListAdminIntegrationsJira(ctx context.Context, params url.Value
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateAdminIntegrationsJira - Update Jira Configuration
+// POST /admin/integrations/jira
+func (c *Client) CreateAdminIntegrationsJira(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/integrations/jira"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListAdminIntegrationsLinearInstall - Start Linear OAuth install
@@ -2110,6 +2110,51 @@ func (c *Client) ListAdminOrganization(ctx context.Context, params url.Values) (
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
+// CreateAdminPrivacyAcknowledgment - Post Privacy Acknowledgment
+// POST /admin/privacy/acknowledgment
+func (c *Client) CreateAdminPrivacyAcknowledgment(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/privacy/acknowledgment"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
 // ListAdminPrivacyAcknowledgment - Get Privacy Acknowledgment
 // GET /admin/privacy/acknowledgment
 func (c *Client) ListAdminPrivacyAcknowledgment(ctx context.Context, params url.Values) ([]byte, error) {
@@ -2156,51 +2201,6 @@ func (c *Client) ListAdminPrivacyAcknowledgment(ctx context.Context, params url.
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// CreateAdminPrivacyAcknowledgment - Post Privacy Acknowledgment
-// POST /admin/privacy/acknowledgment
-func (c *Client) CreateAdminPrivacyAcknowledgment(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/privacy/acknowledgment"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListAdminRepositories - Get Repositories
@@ -2347,51 +2347,6 @@ func (c *Client) CreateAdminRepositoriesUninitialize(ctx context.Context, params
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// CreateAdminServiceAccounts - Create Service Account
-// POST /admin/service_accounts
-func (c *Client) CreateAdminServiceAccounts(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/service_accounts"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListAdminServiceAccounts - Get Service Accounts
 // GET /admin/service_accounts
 func (c *Client) ListAdminServiceAccounts(ctx context.Context, params url.Values) ([]byte, error) {
@@ -2435,6 +2390,51 @@ func (c *Client) ListAdminServiceAccounts(ctx context.Context, params url.Values
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateAdminServiceAccounts - Create Service Account
+// POST /admin/service_accounts
+func (c *Client) CreateAdminServiceAccounts(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/service_accounts"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // DeleteAdminServiceAccounts - Delete Service Account
@@ -2485,51 +2485,6 @@ func (c *Client) DeleteAdminServiceAccounts(ctx context.Context, params url.Valu
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
-// ListAdminSla - Get SLAs
-// GET /admin/sla
-func (c *Client) ListAdminSla(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/admin/sla"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // CreateAdminSla - Post SLA
 // POST /admin/sla
 func (c *Client) CreateAdminSla(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
@@ -2573,6 +2528,51 @@ func (c *Client) CreateAdminSla(ctx context.Context, params url.Values, body io.
 	}
 
 	return c.do(ctx, "POST", fullURL, body)
+}
+
+// ListAdminSla - Get SLAs
+// GET /admin/sla
+func (c *Client) ListAdminSla(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/admin/sla"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // UpdateAdminSlaBulk - Put Bulk SLA
@@ -2712,51 +2712,6 @@ func (c *Client) GetAdminTeamTeamID(ctx context.Context, params url.Values) ([]b
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateAdminTeams - Post Team
-// POST /admin/teams
-func (c *Client) CreateAdminTeams(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/teams"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListAdminTeams - Get All Teams
 // GET /admin/teams
 func (c *Client) ListAdminTeams(ctx context.Context, params url.Values) ([]byte, error) {
@@ -2809,6 +2764,51 @@ func (c *Client) ListAdminTeams(ctx context.Context, params url.Values) ([]byte,
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateAdminTeams - Post Team
+// POST /admin/teams
+func (c *Client) CreateAdminTeams(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/teams"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListAdminTeamsAppzip - Get Teams App Zip
@@ -3128,51 +3128,6 @@ func (c *Client) ListAdminTeamsTeamIDFindings(ctx context.Context, params url.Va
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateAdminUiSavedViews - Post UI Saved View
-// POST /admin/ui/savedViews
-func (c *Client) CreateAdminUiSavedViews(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/ui/savedViews"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListAdminUiSavedViews - Get UI Saved Views
 // GET /admin/ui/savedViews
 func (c *Client) ListAdminUiSavedViews(ctx context.Context, params url.Values) ([]byte, error) {
@@ -3216,6 +3171,51 @@ func (c *Client) ListAdminUiSavedViews(ctx context.Context, params url.Values) (
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateAdminUiSavedViews - Post UI Saved View
+// POST /admin/ui/savedViews
+func (c *Client) CreateAdminUiSavedViews(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/admin/ui/savedViews"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // PatchAdminUiSavedViewsSavedViewId - Patch UI Saved View
@@ -3679,51 +3679,6 @@ func (c *Client) GetAdminUserUserID(ctx context.Context, params url.Values) ([]b
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListAdminUsers - Get All Users
-// GET /admin/users
-func (c *Client) ListAdminUsers(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/admin/users"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // CreateAdminUsers - Post User
 // POST /admin/users
 func (c *Client) CreateAdminUsers(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
@@ -3767,6 +3722,51 @@ func (c *Client) CreateAdminUsers(ctx context.Context, params url.Values, body i
 	}
 
 	return c.do(ctx, "POST", fullURL, body)
+}
+
+// ListAdminUsers - Get All Users
+// GET /admin/users
+func (c *Client) ListAdminUsers(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/admin/users"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // CreateAdminUsersBulkSearchMappings - Post Bulk Get User Mappings
