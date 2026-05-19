@@ -12,8 +12,8 @@ func TestResolveFindingType(t *testing.T) {
 		wantErr bool
 	}{
 		{"valid sast", "sast", false},
-		{"valid sca_dependency", "sca_dependency", false},
-		{"valid sca_container", "sca_container", false},
+		{"valid sca_dependencies", "sca_dependencies", false},
+		{"valid sca_containers", "sca_containers", false},
 		{"valid secrets", "secrets", false},
 		{"valid pentest", "pentest", false},
 		{"valid bughunt", "bughunt", false},
@@ -51,22 +51,22 @@ func TestFilterTypesByCapability(t *testing.T) {
 		{
 			name:     "triage support",
 			capFn:    func(c findingTypeConfig) bool { return c.triage },
-			expected: []string{"pentest", "sast", "sca_container", "sca_dependency", "secrets"},
+			expected: []string{"pentest", "sast", "sca_containers", "sca_dependencies", "secrets"},
 		},
 		{
 			name:     "autofix support",
 			capFn:    func(c findingTypeConfig) bool { return c.autofix },
-			expected: []string{"sast", "sca_dependency"},
+			expected: []string{"sast", "sca_dependencies"},
 		},
 		{
 			name:     "ticket support",
 			capFn:    func(c findingTypeConfig) bool { return c.ticket },
-			expected: []string{"pentest", "sast", "sca_dependency", "secrets"},
+			expected: []string{"pentest", "sast", "sca_dependencies", "secrets"},
 		},
 		{
 			name:     "events support",
 			capFn:    func(c findingTypeConfig) bool { return c.events },
-			expected: []string{"pentest", "sast", "sca_dependency", "secrets"},
+			expected: []string{"pentest", "sast", "sca_dependencies", "secrets"},
 		},
 	}
 

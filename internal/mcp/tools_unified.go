@@ -23,13 +23,13 @@ type findingTypeConfig struct {
 }
 
 var findingTypes = map[string]findingTypeConfig{
-	"sast":           {basePath: "/sast/findings", triage: true, autofix: true, ticket: true, events: true},
-	"sca_dependency": {basePath: "/sca/dependencies/findings", triage: true, autofix: true, ticket: true, events: true},
-	"sca_container":  {basePath: "/sca/containers/findings", triage: true},
-	"secrets":        {basePath: "/secrets/findings", triage: true, ticket: true, events: true},
-	"pentest":        {basePath: "/dast/pentest/findings", triage: true, ticket: true, events: true},
-	"bughunt":        {basePath: "/dast/bughunt/findings"},
-	"cspm":           {basePath: "/cspm/findings"},
+	"sast":             {basePath: "/sast/findings", triage: true, autofix: true, ticket: true, events: true},
+	"sca_dependencies": {basePath: "/sca/dependencies/findings", triage: true, autofix: true, ticket: true, events: true},
+	"sca_containers":   {basePath: "/sca/containers/findings", triage: true},
+	"secrets":          {basePath: "/secrets/findings", triage: true, ticket: true, events: true},
+	"pentest":          {basePath: "/dast/pentest/findings", triage: true, ticket: true, events: true},
+	"bughunt":          {basePath: "/dast/bughunt/findings"},
+	"cspm":             {basePath: "/cspm/findings"},
 }
 
 func allFindingTypeNames() []string {
@@ -71,12 +71,12 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 	s.AddTool(
 		mcp.NewTool(
 			"nullify_search_findings",
-			mcp.WithDescription("Search security findings across all or a specific scanner type. When type is omitted, queries all scanner types and merges results."),
+			mcp.WithDescription("Search security findings across all or a specific scanner type. Automatically paginates to return up to limit total findings."),
 			mcp.WithString("type", mcp.Description("Finding type to search"), mcp.Enum(allTypes...)),
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
 			mcp.WithString("status", mcp.Description("Filter by status"), mcp.Enum("open", "fixed", "false_positive", "accepted_risk")),
 			mcp.WithString("repository", mcp.Description("Filter by repository name")),
-			mcp.WithNumber("limit", mcp.Description("Max results per finding type (default 20)")),
+			mcp.WithNumber("limit", mcp.Description("Max total findings to return across all pages (default 100)")),
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := request.GetArguments()
@@ -84,52 +84,97 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 			severity := getStringArg(args, "severity")
 			status := getStringArg(args, "status")
 			repository := getStringArg(args, "repository")
-			limit := getIntArg(args, "limit", 20)
+			limit := getIntArg(args, "limit", 100)
 
-			extra := []string{}
-			if severity != "" {
-				extra = append(extra, "severity", severity)
-			}
-			if status != "" {
-				extra = append(extra, "status", status)
-			}
-			if repository != "" {
-				extra = append(extra, "repository", repository)
-			}
-			extra = append(extra, "limit", fmt.Sprintf("%d", limit))
-			qs := buildQueryString(queryParams, extra...)
+			qs := buildQueryString(queryParams)
 
-			type searchResult struct {
-				Type  string          `json:"type"`
-				Error string          `json:"error,omitempty"`
-				Data  json.RawMessage `json:"data,omitempty"`
+			type unifiedResponse struct {
+				Findings    []json.RawMessage `json:"findings"`
+				Total       int               `json:"total"`
+				HasMoreData bool              `json:"hasMoreData"`
+				ScrollID    *string           `json:"scrollId"`
 			}
 
-			// Determine which types to query
-			types := allTypes
-			if typeName != "" {
-				if _, err := resolveFindingType(typeName); err != nil {
-					return toolError(err), nil
+			type searchOutput struct {
+				Findings []json.RawMessage `json:"findings"`
+				Total    int               `json:"total"`
+			}
+
+			allFindings := make([]json.RawMessage, 0)
+			var scrollID string
+			var lastTotal int
+
+			for {
+				pageSize := 100
+				remaining := limit - len(allFindings)
+				if remaining <= 0 {
+					break
 				}
-				types = []string{typeName}
-			}
-
-			var results []searchResult
-			for _, t := range types {
-				cfg := findingTypes[t]
-				result, err := doGet(ctx, c, cfg.basePath+qs)
-				if err != nil {
-					results = append(results, searchResult{Type: t, Error: err.Error()})
-					continue
+				if remaining < pageSize {
+					pageSize = remaining
 				}
-				if len(result.Content) > 0 {
-					if tc, ok := result.Content[0].(mcp.TextContent); ok {
-						results = append(results, searchResult{Type: t, Data: json.RawMessage(tc.Text)})
+
+				query := map[string]any{
+					"pageSize": pageSize,
+				}
+				if repository != "" {
+					query["repository"] = []string{repository}
+				}
+				if severity != "" {
+					query["severity"] = []string{severity}
+				}
+				if typeName != "" {
+					if _, err := resolveFindingType(typeName); err != nil {
+						return toolError(err), nil
+					}
+					query["type"] = []string{typeName}
+				}
+				if scrollID != "" {
+					query["scrollId"] = scrollID
+				}
+				if status != "" {
+					switch status {
+					case "open":
+						query["isResolved"] = false
+					case "fixed":
+						query["isFixed"] = true
+					case "false_positive":
+						query["isFalsePositive"] = true
+					case "accepted_risk":
+						query["isAllowlisted"] = true
 					}
 				}
+
+				result, err := doPost(ctx, c, "/admin/findings"+qs, map[string]any{"query": query})
+				if err != nil {
+					return toolError(err), nil
+				}
+				if result.IsError {
+					return result, nil
+				}
+				if len(result.Content) == 0 {
+					break
+				}
+				tc, ok := result.Content[0].(mcp.TextContent)
+				if !ok {
+					break
+				}
+
+				var resp unifiedResponse
+				if err := json.Unmarshal([]byte(tc.Text), &resp); err != nil {
+					return toolError(err), nil
+				}
+
+				allFindings = append(allFindings, resp.Findings...)
+				lastTotal = resp.Total
+
+				if !resp.HasMoreData || resp.ScrollID == nil || *resp.ScrollID == "" {
+					break
+				}
+				scrollID = *resp.ScrollID
 			}
 
-			out, _ := json.MarshalIndent(results, "", "  ")
+			out, _ := json.MarshalIndent(searchOutput{Findings: allFindings, Total: lastTotal}, "", "  ")
 			return toolResult(string(out)), nil
 		},
 	)

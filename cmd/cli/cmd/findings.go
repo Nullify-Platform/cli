@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 var findingsCmd = &cobra.Command{
@@ -19,7 +19,8 @@ var findingsCmd = &cobra.Command{
 	Short: "List security findings across all scanner types",
 	Long: `Query and display security findings from all Nullify scanners.
 Supports SAST, SCA (dependencies and containers), Secrets, Pentest, BugHunt, and CSPM.
-Auto-detects the current repository from git if --repo is not specified.`,
+Auto-detects the current repository from git if --repo is not specified.
+Results are paginated automatically up to --limit total findings.`,
 	Example: `  # List all findings
   nullify findings
 
@@ -27,7 +28,10 @@ Auto-detects the current repository from git if --repo is not specified.`,
   nullify findings --severity critical --type sast
 
   # Output as table
-  nullify findings -o table --repo my-org/my-repo`,
+  nullify findings -o table --repo my-repo
+
+  # Fetch up to 500 findings
+  nullify findings --limit 500`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
@@ -54,81 +58,123 @@ Auto-detects the current repository from git if --repo is not specified.`,
 		findingType, _ := cmd.Flags().GetString("type")
 		repo, _ := cmd.Flags().GetString("repo")
 		limit, _ := cmd.Flags().GetInt("limit")
+		debug, _ := cmd.Flags().GetBool("debug")
 
 		if repo == "" {
 			repo = lib.DetectRepoFromGit()
 		}
 
-		endpoints := allScannerEndpoints()
+		qs := lib.BuildQueryString(queryParams)
+		path := "/admin/findings" + qs
 
-		// Filter by type if specified
-		if findingType != "" {
-			filtered := filterEndpointsByType(endpoints, findingType)
-			if filtered == nil {
-				fmt.Fprintf(os.Stderr, "Error: unknown finding type %q. Valid types: sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm\n", findingType)
-				os.Exit(1)
+		type findingsOutput struct {
+			Findings []json.RawMessage `json:"findings"`
+			Total    int               `json:"total"`
+		}
+
+		type unifiedResponse struct {
+			Findings    []json.RawMessage `json:"findings"`
+			Total       int               `json:"total"`
+			HasMoreData bool              `json:"hasMoreData"`
+			ScrollID    *string           `json:"scrollId"`
+		}
+
+		allFindings := make([]json.RawMessage, 0)
+		var scrollID string
+		var lastTotal int
+
+		for {
+			pageSize := 100
+			remaining := limit - len(allFindings)
+			if remaining <= 0 {
+				break
 			}
-			endpoints = filtered
-		}
-
-		type findingResult struct {
-			Type  string          `json:"type"`
-			Error string          `json:"error,omitempty"`
-			Data  json.RawMessage `json:"data,omitempty"`
-		}
-
-		results := make([]findingResult, len(endpoints))
-		g, gctx := errgroup.WithContext(ctx)
-
-		for i, ep := range endpoints {
-			i, ep := i, ep
-			g.Go(func() error {
-				params := make([]string, 0)
-				if severity != "" {
-					params = append(params, "severity", severity)
-				}
-				if status != "" {
-					params = append(params, "status", status)
-				}
-				if repo != "" {
-					params = append(params, "repository", repo)
-				}
-				params = append(params, "limit", fmt.Sprintf("%d", limit))
-
-				qs := lib.BuildQueryString(queryParams, params...)
-				path := ep.path + qs
-
-				resp, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, path)
-				if err != nil {
-					results[i] = findingResult{Type: ep.name, Error: err.Error()}
-				} else {
-					results[i] = findingResult{Type: ep.name, Data: json.RawMessage(resp)}
-				}
-				return nil
-			})
-		}
-
-		_ = g.Wait()
-
-		successCount := 0
-		errorCount := 0
-		for _, result := range results {
-			if result.Error != "" {
-				errorCount++
-				continue
+			if remaining < pageSize {
+				pageSize = remaining
 			}
-			successCount++
+
+			query := map[string]any{
+				"pageSize": pageSize,
+			}
+			if repo != "" {
+				query["repository"] = []string{repo}
+			}
+			if severity != "" {
+				query["severity"] = []string{severity}
+			}
+			if findingType != "" {
+				query["type"] = []string{findingType}
+			}
+			if scrollID != "" {
+				query["scrollId"] = scrollID
+			}
+			if status != "" {
+				switch status {
+				case "open":
+					f := false
+					query["isResolved"] = f
+				case "fixed":
+					t := true
+					query["isFixed"] = t
+				case "false_positive":
+					t := true
+					query["isFalsePositive"] = t
+				case "accepted_risk":
+					t := true
+					query["isAllowlisted"] = t
+				}
+			}
+
+			reqBody := map[string]any{"query": query}
+			bodyBytes, err := json.Marshal(reqBody)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(ExitNetworkError)
+			}
+
+			if debug {
+				fmt.Fprintf(os.Stderr, "[debug] POST %s%s\n", nullifyClient.BaseURL, path)
+				fmt.Fprintf(os.Stderr, "[debug] body: %s\n", string(bodyBytes))
+			}
+
+			respBody, err := lib.DoPostJSON(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, path, bytes.NewReader(bodyBytes))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(ExitNetworkError)
+			}
+
+			if debug {
+				preview := respBody
+				if len(preview) > 500 {
+					preview = preview[:500] + "..."
+				}
+				fmt.Fprintf(os.Stderr, "[debug] response: %s\n", preview)
+			}
+
+			var resp unifiedResponse
+			if err := json.Unmarshal([]byte(respBody), &resp); err != nil {
+				fmt.Fprintf(os.Stderr, "Error parsing response: %v\n", err)
+				os.Exit(ExitNetworkError)
+			}
+
+			allFindings = append(allFindings, resp.Findings...)
+			lastTotal = resp.Total
+
+			if debug {
+				fmt.Fprintf(os.Stderr, "[debug] page fetched: %d findings, hasMoreData=%v, total=%d\n", len(resp.Findings), resp.HasMoreData, resp.Total)
+			}
+
+			if !resp.HasMoreData || resp.ScrollID == nil || *resp.ScrollID == "" {
+				break
+			}
+			scrollID = *resp.ScrollID
 		}
 
-		if successCount == 0 {
-			fmt.Fprintln(os.Stderr, "Error: all scanner requests failed")
-			os.Exit(ExitNetworkError)
+		result := findingsOutput{
+			Findings: allFindings,
+			Total:    lastTotal,
 		}
-		if errorCount > 0 {
-			fmt.Fprintf(os.Stderr, "Warning: %d/%d scanner requests failed\n", errorCount, len(results))
-		}
-
-		out, _ := json.MarshalIndent(results, "", "  ")
+		out, _ := json.MarshalIndent(result, "", "  ")
 		if err := output.Print(cmd, out); err != nil {
 			fmt.Fprintln(os.Stderr, string(out))
 		}
@@ -139,39 +185,9 @@ func init() {
 	rootCmd.AddCommand(findingsCmd)
 
 	findingsCmd.Flags().String("severity", "", "Filter by severity (critical, high, medium, low)")
-	findingsCmd.Flags().String("status", "", "Filter by status (open, fixed, false_positive)")
+	findingsCmd.Flags().String("status", "", "Filter by status (open, fixed, false_positive, accepted_risk)")
 	findingsCmd.Flags().String("type", "", "Filter by type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm)")
 	findingsCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
-	findingsCmd.Flags().Int("limit", 20, "Maximum results per finding type")
-}
-
-// scannerEndpoint represents a scanner type and its API path.
-type scannerEndpoint struct {
-	name string
-	path string
-}
-
-// allScannerEndpoints returns the canonical list of all scanner endpoints.
-func allScannerEndpoints() []scannerEndpoint {
-	return []scannerEndpoint{
-		{"sast", "/sast/findings"},
-		{"sca_dependencies", "/sca/dependencies/findings"},
-		{"sca_containers", "/sca/containers/findings"},
-		{"secrets", "/secrets/findings"},
-		{"pentest", "/dast/pentest/findings"},
-		{"bughunt", "/dast/bughunt/findings"},
-		{"cspm", "/cspm/findings"},
-	}
-}
-
-// filterEndpointsByType returns only endpoints matching the given type name.
-// Returns nil if no match is found.
-func filterEndpointsByType(endpoints []scannerEndpoint, typeName string) []scannerEndpoint {
-	var filtered []scannerEndpoint
-	for _, ep := range endpoints {
-		if ep.name == typeName {
-			filtered = append(filtered, ep)
-		}
-	}
-	return filtered
+	findingsCmd.Flags().Int("limit", 100, "Maximum total findings to return (fetches multiple pages as needed)")
+	findingsCmd.Flags().Bool("debug", false, "Print request URLs, bodies, and responses to stderr")
 }
