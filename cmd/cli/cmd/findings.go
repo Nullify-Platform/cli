@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
@@ -77,10 +78,12 @@ Results are paginated automatically up to --limit total findings.`,
 			Total       int               `json:"total"`
 			HasMoreData bool              `json:"hasMoreData"`
 			ScrollID    *string           `json:"scrollId"`
+			Page        int               `json:"page"`
 		}
 
 		allFindings := make([]json.RawMessage, 0)
 		var scrollID string
+		nextPage := 1
 		var lastTotal int
 
 		for {
@@ -95,15 +98,20 @@ Results are paginated automatically up to --limit total findings.`,
 
 			query := map[string]any{
 				"pageSize": pageSize,
+				"page":     nextPage,
 			}
 			if repo != "" {
 				query["repository"] = []string{repo}
 			}
 			if severity != "" {
-				query["severity"] = []string{severity}
+				query["severity"] = []string{strings.ToUpper(severity)}
 			}
 			if findingType != "" {
-				query["type"] = []string{findingType}
+				if apiType, ok := findingTypeToAPI[findingType]; ok {
+					query["type"] = []string{apiType}
+				} else {
+					query["type"] = []string{findingType}
+				}
 			}
 			if scrollID != "" {
 				query["scrollId"] = scrollID
@@ -161,13 +169,17 @@ Results are paginated automatically up to --limit total findings.`,
 			lastTotal = resp.Total
 
 			if debug {
-				fmt.Fprintf(os.Stderr, "[debug] page fetched: %d findings, hasMoreData=%v, total=%d\n", len(resp.Findings), resp.HasMoreData, resp.Total)
+				fmt.Fprintf(os.Stderr, "[debug] page %d fetched: %d findings, hasMoreData=%v, total=%d\n", nextPage, len(resp.Findings), resp.HasMoreData, resp.Total)
 			}
 
-			if !resp.HasMoreData || resp.ScrollID == nil || *resp.ScrollID == "" {
+			if !resp.HasMoreData || len(resp.Findings) == 0 {
 				break
 			}
-			scrollID = *resp.ScrollID
+			if resp.ScrollID != nil && *resp.ScrollID != "" {
+				scrollID = *resp.ScrollID
+			} else {
+				nextPage = resp.Page + 1
+			}
 		}
 
 		result := findingsOutput{

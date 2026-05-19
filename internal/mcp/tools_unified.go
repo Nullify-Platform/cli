@@ -14,6 +14,18 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// findingTypeToAPI maps CLI type slugs to the API's FindingType values
+// used by the unified /admin/findings endpoint.
+var findingTypeToAPI = map[string]string{
+	"sast":             "Code",
+	"sca_dependencies": "Dependencies",
+	"sca_containers":   "Containers",
+	"secrets":          "Secrets",
+	"pentest":          "Pentest",
+	"bughunt":          "BugHunting",
+	"cspm":             "Cloud",
+}
+
 type findingTypeConfig struct {
 	basePath string
 	triage   bool
@@ -93,6 +105,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 				Total       int               `json:"total"`
 				HasMoreData bool              `json:"hasMoreData"`
 				ScrollID    *string           `json:"scrollId"`
+				Page        int               `json:"page"`
 			}
 
 			type searchOutput struct {
@@ -102,6 +115,7 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 
 			allFindings := make([]json.RawMessage, 0)
 			var scrollID string
+			nextPage := 1
 			var lastTotal int
 
 			for {
@@ -116,18 +130,23 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 
 				query := map[string]any{
 					"pageSize": pageSize,
+					"page":     nextPage,
 				}
 				if repository != "" {
 					query["repository"] = []string{repository}
 				}
 				if severity != "" {
-					query["severity"] = []string{severity}
+					query["severity"] = []string{strings.ToUpper(severity)}
 				}
 				if typeName != "" {
 					if _, err := resolveFindingType(typeName); err != nil {
 						return toolError(err), nil
 					}
-					query["type"] = []string{typeName}
+					if apiType, ok := findingTypeToAPI[typeName]; ok {
+						query["type"] = []string{apiType}
+					} else {
+						query["type"] = []string{typeName}
+					}
 				}
 				if scrollID != "" {
 					query["scrollId"] = scrollID
@@ -168,10 +187,14 @@ func registerUnifiedTools(s *server.MCPServer, c *client.NullifyClient, queryPar
 				allFindings = append(allFindings, resp.Findings...)
 				lastTotal = resp.Total
 
-				if !resp.HasMoreData || resp.ScrollID == nil || *resp.ScrollID == "" {
+				if !resp.HasMoreData || len(resp.Findings) == 0 {
 					break
 				}
-				scrollID = *resp.ScrollID
+				if resp.ScrollID != nil && *resp.ScrollID != "" {
+					scrollID = *resp.ScrollID
+				} else {
+					nextPage = resp.Page + 1
+				}
 			}
 
 			out, _ := json.MarshalIndent(searchOutput{Findings: allFindings, Total: lastTotal}, "", "  ")
