@@ -25,25 +25,25 @@ type Jenkins struct{}
 
 func NewJenkins() Provider { return &Jenkins{} }
 
-func (j *Jenkins) Platform() string { return "JENKINS" }
+func (j *Jenkins) Platform() Platform { return PlatformJenkins }
 
 func (j *Jenkins) Detect() bool { return os.Getenv("JENKINS_URL") != "" }
 
-func (j *Jenkins) BaseRef(ctx context.Context) (string, error) {
+func (j *Jenkins) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("NULLIFY_BASE_REF"); v != "" {
-		return resolveRef(ctx, v)
+		return resolveRef(ctx, repoPath, v)
 	}
 	if v := os.Getenv("CHANGE_TARGET"); v != "" {
-		return resolveRef(ctx, "origin/"+v)
+		return resolveRef(ctx, repoPath, "origin/"+v)
 	}
-	return resolveRef(ctx, "origin/HEAD")
+	return resolveRef(ctx, repoPath, "origin/HEAD")
 }
 
-func (j *Jenkins) HeadRef(ctx context.Context) (string, error) {
+func (j *Jenkins) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("GIT_COMMIT"); v != "" {
 		return v, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (j *Jenkins) PRNumber() (int, bool) {
@@ -82,5 +82,5 @@ func (j *Jenkins) EnrichHeader(h http.Header) {
 	if v := os.Getenv("GIT_COMMIT"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", j.Platform())
+	h.Set("X-Nullify-CI-Provider", j.Platform().String())
 }

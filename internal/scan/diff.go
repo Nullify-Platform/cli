@@ -14,18 +14,30 @@ import (
 	"github.com/nullify-platform/cli/internal/scan/manifest"
 )
 
+// ChangeKind distinguishes the three ways a dependency can change
+// between base and head.
+type ChangeKind string
+
+const (
+	KindAdded   ChangeKind = "added"
+	KindBumped  ChangeKind = "bumped"
+	KindRemoved ChangeKind = "removed"
+)
+
+func (k ChangeKind) String() string { return string(k) }
+
 // ChangedDep is one dependency whose (ecosystem, name, version) tuple
 // changed between base and head. Kind distinguishes the three change
 // modes so the workflow can prioritise "new version + bumped version"
 // for analyze calls while skipping removals (removed deps don't have a
 // new version to analyse).
 type ChangedDep struct {
-	Ecosystem       string
+	Ecosystem       manifest.Ecosystem
 	Name            string
 	Version         string
-	PreviousVersion string // Empty for "added".
-	Kind            string // "added" | "bumped" | "removed"
-	File            string // Lockfile path change was detected in
+	PreviousVersion string     // Empty for KindAdded.
+	Kind            ChangeKind // KindAdded | KindBumped | KindRemoved
+	File            string     // Lockfile path change was detected in
 }
 
 // Diff compares two commits by reading their lockfiles via `git show`
@@ -118,7 +130,7 @@ func parseAtRef(
 }
 
 type entryKey struct {
-	Ecosystem string
+	Ecosystem manifest.Ecosystem
 	Name      string
 }
 
@@ -149,7 +161,7 @@ func diffEntries(base, head map[entryKey]manifest.Entry) []ChangedDep {
 				Ecosystem: headEntry.Ecosystem,
 				Name:      headEntry.Name,
 				Version:   headEntry.Version,
-				Kind:      "added",
+				Kind:      KindAdded,
 				File:      headEntry.File,
 			})
 		case baseEntry.Version != headEntry.Version:
@@ -158,7 +170,7 @@ func diffEntries(base, head map[entryKey]manifest.Entry) []ChangedDep {
 				Name:            headEntry.Name,
 				Version:         headEntry.Version,
 				PreviousVersion: baseEntry.Version,
-				Kind:            "bumped",
+				Kind:            KindBumped,
 				File:            headEntry.File,
 			})
 		}
@@ -169,7 +181,7 @@ func diffEntries(base, head map[entryKey]manifest.Entry) []ChangedDep {
 				Ecosystem:       baseEntry.Ecosystem,
 				Name:            baseEntry.Name,
 				PreviousVersion: baseEntry.Version,
-				Kind:            "removed",
+				Kind:            KindRemoved,
 				File:            baseEntry.File,
 			})
 		}

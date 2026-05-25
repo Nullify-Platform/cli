@@ -2,7 +2,6 @@ package ci
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -26,25 +25,25 @@ type CircleCI struct{}
 
 func NewCircleCI() Provider { return &CircleCI{} }
 
-func (c *CircleCI) Platform() string { return "CIRCLECI" }
+func (c *CircleCI) Platform() Platform { return PlatformCircleCI }
 
 func (c *CircleCI) Detect() bool { return os.Getenv("CIRCLECI") == "true" }
 
-func (c *CircleCI) BaseRef(ctx context.Context) (string, error) {
+func (c *CircleCI) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	// Circle doesn't expose a base commit directly. Best available:
 	// origin/<default-branch>. Callers wanting PR-diff semantics should
 	// set NULLIFY_BASE_REF explicitly.
 	if v := os.Getenv("NULLIFY_BASE_REF"); v != "" {
-		return resolveRef(ctx, v)
+		return resolveRef(ctx, repoPath, v)
 	}
-	return resolveRef(ctx, "origin/HEAD")
+	return resolveRef(ctx, repoPath, "origin/HEAD")
 }
 
-func (c *CircleCI) HeadRef(ctx context.Context) (string, error) {
+func (c *CircleCI) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("CIRCLE_SHA1"); v != "" {
 		return v, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (c *CircleCI) PRNumber() (int, bool) {
@@ -81,9 +80,5 @@ func (c *CircleCI) EnrichHeader(h http.Header) {
 	if v := os.Getenv("CIRCLE_SHA1"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", c.Platform())
+	h.Set("X-Nullify-CI-Provider", c.Platform().String())
 }
-
-// _ is a tiny type guard that keeps fmt imported for future error-wrapping
-// additions without a noisy linter warning in the meantime.
-var _ = fmt.Sprintf

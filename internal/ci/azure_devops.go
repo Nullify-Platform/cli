@@ -21,22 +21,22 @@ type AzureDevOps struct{}
 
 func NewAzureDevOps() Provider { return &AzureDevOps{} }
 
-func (a *AzureDevOps) Platform() string { return "AZURE_DEVOPS" }
+func (a *AzureDevOps) Platform() Platform { return PlatformAzureDevOps }
 
 func (a *AzureDevOps) Detect() bool { return os.Getenv("TF_BUILD") == "True" }
 
-func (a *AzureDevOps) BaseRef(ctx context.Context) (string, error) {
+func (a *AzureDevOps) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("SYSTEM_PULLREQUEST_TARGETBRANCHNAME"); v != "" {
-		return resolveRef(ctx, "origin/"+v)
+		return resolveRef(ctx, repoPath, "origin/"+v)
 	}
-	return resolveRef(ctx, "HEAD^")
+	return resolveRef(ctx, repoPath, "HEAD^")
 }
 
-func (a *AzureDevOps) HeadRef(ctx context.Context) (string, error) {
+func (a *AzureDevOps) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("BUILD_SOURCEVERSION"); v != "" {
 		return v, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (a *AzureDevOps) PRNumber() (int, bool) {
@@ -69,5 +69,5 @@ func (a *AzureDevOps) EnrichHeader(h http.Header) {
 	if v := os.Getenv("BUILD_SOURCEVERSION"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", a.Platform())
+	h.Set("X-Nullify-CI-Provider", a.Platform().String())
 }

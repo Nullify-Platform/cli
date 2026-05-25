@@ -57,7 +57,7 @@ func (n *NPMLock) Parse(data []byte, path string) ([]Entry, error) {
 			continue
 		}
 		out = append(out, Entry{
-			Ecosystem: "npm",
+			Ecosystem: EcosystemNPM,
 			Name:      name,
 			Version:   pkg.Version,
 			File:      path,

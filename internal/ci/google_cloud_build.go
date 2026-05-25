@@ -16,7 +16,7 @@ type GoogleCloudBuild struct{}
 
 func NewGoogleCloudBuild() Provider { return &GoogleCloudBuild{} }
 
-func (g *GoogleCloudBuild) Platform() string { return "GOOGLE_CLOUD_BUILD" }
+func (g *GoogleCloudBuild) Platform() Platform { return PlatformGoogleCloudBuild }
 
 // Detect: Google Cloud Build doesn't expose a single CI=true-style flag;
 // BUILD_ID + PROJECT_ID together are a reasonable signature.
@@ -25,18 +25,18 @@ func (g *GoogleCloudBuild) Detect() bool {
 		os.Getenv("GITLAB_CI") == "" && os.Getenv("GITHUB_ACTIONS") != "true"
 }
 
-func (g *GoogleCloudBuild) BaseRef(ctx context.Context) (string, error) {
+func (g *GoogleCloudBuild) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("NULLIFY_BASE_REF"); v != "" {
-		return resolveRef(ctx, v)
+		return resolveRef(ctx, repoPath, v)
 	}
-	return resolveRef(ctx, "origin/HEAD")
+	return resolveRef(ctx, repoPath, "origin/HEAD")
 }
 
-func (g *GoogleCloudBuild) HeadRef(ctx context.Context) (string, error) {
+func (g *GoogleCloudBuild) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("COMMIT_SHA"); v != "" {
 		return v, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (g *GoogleCloudBuild) PRNumber() (int, bool) {
@@ -61,5 +61,5 @@ func (g *GoogleCloudBuild) EnrichHeader(h http.Header) {
 	if v := os.Getenv("COMMIT_SHA"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", g.Platform())
+	h.Set("X-Nullify-CI-Provider", g.Platform().String())
 }

@@ -20,24 +20,24 @@ type BitbucketPipelines struct{}
 
 func NewBitbucketPipelines() Provider { return &BitbucketPipelines{} }
 
-func (b *BitbucketPipelines) Platform() string { return "BITBUCKET_PIPELINES" }
+func (b *BitbucketPipelines) Platform() Platform { return PlatformBitbucketPipelines }
 
 func (b *BitbucketPipelines) Detect() bool {
 	return os.Getenv("BITBUCKET_BUILD_NUMBER") != ""
 }
 
-func (b *BitbucketPipelines) BaseRef(ctx context.Context) (string, error) {
+func (b *BitbucketPipelines) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("BITBUCKET_PR_DESTINATION_BRANCH"); v != "" {
-		return resolveRef(ctx, "origin/"+v)
+		return resolveRef(ctx, repoPath, "origin/"+v)
 	}
-	return resolveRef(ctx, "HEAD^")
+	return resolveRef(ctx, repoPath, "HEAD^")
 }
 
-func (b *BitbucketPipelines) HeadRef(ctx context.Context) (string, error) {
+func (b *BitbucketPipelines) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("BITBUCKET_COMMIT"); v != "" {
 		return v, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (b *BitbucketPipelines) PRNumber() (int, bool) {
@@ -68,5 +68,5 @@ func (b *BitbucketPipelines) EnrichHeader(h http.Header) {
 	if v := os.Getenv("BITBUCKET_COMMIT"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", b.Platform())
+	h.Set("X-Nullify-CI-Provider", b.Platform().String())
 }

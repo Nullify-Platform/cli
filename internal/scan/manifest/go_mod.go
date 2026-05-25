@@ -53,7 +53,7 @@ func (g *GoMod) Parse(data []byte, path string) ([]Entry, error) {
 		}
 		seen[key] = true
 		out = append(out, Entry{
-			Ecosystem: "go",
+			Ecosystem: EcosystemGo,
 			Name:      modPath,
 			Version:   version,
 			File:      path,

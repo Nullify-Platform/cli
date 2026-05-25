@@ -40,7 +40,7 @@ func (c *CargoLock) Parse(data []byte, path string) ([]Entry, error) {
 			return
 		}
 		out = append(out, Entry{
-			Ecosystem: "crates.io",
+			Ecosystem: EcosystemCargo,
 			Name:      name,
 			Version:   version,
 			File:      path,

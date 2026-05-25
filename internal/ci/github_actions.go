@@ -28,29 +28,30 @@ type GitHubActions struct{}
 
 func NewGitHubActions() Provider { return &GitHubActions{} }
 
-func (g *GitHubActions) Platform() string { return "GITHUB_ACTIONS" }
+func (g *GitHubActions) Platform() Platform { return PlatformGitHubActions }
 
 func (g *GitHubActions) Detect() bool { return os.Getenv("GITHUB_ACTIONS") == "true" }
 
-func (g *GitHubActions) BaseRef(ctx context.Context) (string, error) {
+func (g *GitHubActions) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	// PR build: GITHUB_BASE_REF is populated; resolve to commit.
 	if base := os.Getenv("GITHUB_BASE_REF"); base != "" {
-		return resolveRef(ctx, "origin/"+base)
+		return resolveRef(ctx, repoPath, "origin/"+base)
 	}
 	// Push build: use the previous commit on the pushed ref (HEAD^).
-	// Falls back to the default branch's tip when HEAD has no parent
-	// (first push).
-	if sha, err := resolveRef(ctx, "HEAD^"); err == nil {
+	// Requires a non-shallow checkout — the default actions/checkout is
+	// depth-1, so HEAD^ is absent and we fall back to the default
+	// branch's tip. Set `fetch-depth: 0` for true previous-HEAD diffs.
+	if sha, err := resolveRef(ctx, repoPath, "HEAD^"); err == nil {
 		return sha, nil
 	}
-	return resolveRef(ctx, "origin/HEAD")
+	return resolveRef(ctx, repoPath, "origin/HEAD")
 }
 
-func (g *GitHubActions) HeadRef(ctx context.Context) (string, error) {
+func (g *GitHubActions) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if sha := os.Getenv("GITHUB_SHA"); sha != "" {
 		return sha, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (g *GitHubActions) PRNumber() (int, bool) {
@@ -89,13 +90,15 @@ func (g *GitHubActions) EnrichHeader(h http.Header) {
 	if v := os.Getenv("GITHUB_SHA"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", g.Platform())
+	h.Set("X-Nullify-CI-Provider", g.Platform().String())
 }
 
-// resolveRef runs `git rev-parse` to turn a symbolic ref into a commit.
-// Package-level helper so every provider reuses the same shell-out.
-func resolveRef(ctx context.Context, ref string) (string, error) {
+// resolveRef runs `git rev-parse` in repoPath to turn a symbolic ref into
+// a commit. Package-level helper so every provider reuses the same
+// shell-out, scoped to the repository the workflow is analysing.
+func resolveRef(ctx context.Context, repoPath, ref string) (string, error) {
 	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--verify", ref+"^{commit}")
+	cmd.Dir = repoPath
 	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("git rev-parse %s: %w", ref, err)

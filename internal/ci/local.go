@@ -22,22 +22,22 @@ type Local struct{}
 
 func NewLocal() Provider { return &Local{} }
 
-func (l *Local) Platform() string { return "OTHER" }
+func (l *Local) Platform() Platform { return PlatformOther }
 
 func (l *Local) Detect() bool { return true }
 
-func (l *Local) BaseRef(ctx context.Context) (string, error) {
+func (l *Local) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("NULLIFY_BASE_REF"); v != "" {
-		return resolveRef(ctx, v)
+		return resolveRef(ctx, repoPath, v)
 	}
-	return resolveRef(ctx, "origin/HEAD")
+	return resolveRef(ctx, repoPath, "origin/HEAD")
 }
 
-func (l *Local) HeadRef(ctx context.Context) (string, error) {
+func (l *Local) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("NULLIFY_HEAD_REF"); v != "" {
-		return resolveRef(ctx, v)
+		return resolveRef(ctx, repoPath, v)
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (l *Local) PRNumber() (int, bool) {
@@ -58,5 +58,5 @@ func (l *Local) RepoSlug() (string, string, bool) {
 }
 
 func (l *Local) EnrichHeader(h http.Header) {
-	h.Set("X-Nullify-CI-Provider", l.Platform())
+	h.Set("X-Nullify-CI-Provider", l.Platform().String())
 }

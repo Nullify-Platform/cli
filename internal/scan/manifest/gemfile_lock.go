@@ -88,7 +88,7 @@ func (g *GemfileLock) Parse(data []byte, path string) ([]Entry, error) {
 			continue
 		}
 		out = append(out, Entry{
-			Ecosystem: "rubygems",
+			Ecosystem: EcosystemRubyGems,
 			Name:      name,
 			Version:   version,
 			File:      path,

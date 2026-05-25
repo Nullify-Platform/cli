@@ -85,7 +85,7 @@ func (p *PyPILock) Parse(data []byte, path string) ([]Entry, error) {
 			name = name[:bracket]
 		}
 		out = append(out, Entry{
-			Ecosystem: "pypi",
+			Ecosystem: EcosystemPyPI,
 			Name:      name,
 			Version:   ver,
 			File:      path,

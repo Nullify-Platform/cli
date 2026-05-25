@@ -6,9 +6,8 @@ package ci
 //
 // When adding a new provider:
 //  1. Implement Provider in a new file under this package.
-//  2. Append it to the list below (before Local).
-//  3. Ensure its Platform() value matches a benchmarks.PipelinePlatform
-//     enum — `make -C cli lint-ci-providers` verifies this.
+//  2. Define its Platform constant in ci.go and return it from Platform().
+//  3. Append it to the list below (before Local).
 
 // Default returns the full list of providers in detection priority.
 // Exposed as a constructor (not a package-level var) so tests can build

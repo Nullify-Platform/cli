@@ -15,11 +15,25 @@ import (
 	"strings"
 )
 
-// Entry is one parsed dependency record. Ecosystem matches the
-// vdb_ecosystem enum values so we don't transform names between the CLI
-// and vuln-database.
+// Ecosystem is a package ecosystem identifier. Values match the
+// vdb_ecosystem enum the vuln-database expects, so they travel from the
+// CLI to scpm to vuln-database untransformed — keep them in sync with
+// that enum when adding a parser.
+type Ecosystem string
+
+const (
+	EcosystemNPM      Ecosystem = "npm"
+	EcosystemPyPI     Ecosystem = "pypi"
+	EcosystemGo       Ecosystem = "go"
+	EcosystemCargo    Ecosystem = "crates.io"
+	EcosystemRubyGems Ecosystem = "rubygems"
+)
+
+func (e Ecosystem) String() string { return string(e) }
+
+// Entry is one parsed dependency record.
 type Entry struct {
-	Ecosystem string
+	Ecosystem Ecosystem
 	Name      string
 	Version   string
 	// File is the repo-relative path this entry came from — useful for

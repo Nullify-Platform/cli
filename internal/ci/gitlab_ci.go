@@ -23,11 +23,11 @@ type GitLabCI struct{}
 
 func NewGitLabCI() Provider { return &GitLabCI{} }
 
-func (g *GitLabCI) Platform() string { return "GITLAB_CI" }
+func (g *GitLabCI) Platform() Platform { return PlatformGitLabCI }
 
 func (g *GitLabCI) Detect() bool { return os.Getenv("GITLAB_CI") == "true" }
 
-func (g *GitLabCI) BaseRef(ctx context.Context) (string, error) {
+func (g *GitLabCI) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	// MR build preferred (exact PR target sha)
 	if v := os.Getenv("CI_MERGE_REQUEST_TARGET_BRANCH_SHA"); v != "" {
 		return v, nil
@@ -37,14 +37,14 @@ func (g *GitLabCI) BaseRef(ctx context.Context) (string, error) {
 	if v := os.Getenv("CI_COMMIT_BEFORE_SHA"); v != "" && !strings.HasPrefix(v, "00000000") {
 		return v, nil
 	}
-	return resolveRef(ctx, "origin/HEAD")
+	return resolveRef(ctx, repoPath, "origin/HEAD")
 }
 
-func (g *GitLabCI) HeadRef(ctx context.Context) (string, error) {
+func (g *GitLabCI) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("CI_COMMIT_SHA"); v != "" {
 		return v, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (g *GitLabCI) PRNumber() (int, bool) {
@@ -81,5 +81,5 @@ func (g *GitLabCI) EnrichHeader(h http.Header) {
 	if v := os.Getenv("CI_COMMIT_SHA"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", g.Platform())
+	h.Set("X-Nullify-CI-Provider", g.Platform().String())
 }

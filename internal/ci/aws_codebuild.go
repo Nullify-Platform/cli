@@ -19,24 +19,24 @@ type AWSCodeBuild struct{}
 
 func NewAWSCodeBuild() Provider { return &AWSCodeBuild{} }
 
-func (a *AWSCodeBuild) Platform() string { return "AWS_CODEBUILD" }
+func (a *AWSCodeBuild) Platform() Platform { return PlatformAWSCodeBuild }
 
 func (a *AWSCodeBuild) Detect() bool { return os.Getenv("CODEBUILD_BUILD_ID") != "" }
 
-func (a *AWSCodeBuild) BaseRef(ctx context.Context) (string, error) {
+func (a *AWSCodeBuild) BaseRef(ctx context.Context, repoPath string) (string, error) {
 	// CODEBUILD_WEBHOOK_BASE_REF is "refs/heads/main" shape — strip the
 	// prefix + resolve.
 	if v := os.Getenv("CODEBUILD_WEBHOOK_BASE_REF"); v != "" {
-		return resolveRef(ctx, "origin/"+strings.TrimPrefix(v, "refs/heads/"))
+		return resolveRef(ctx, repoPath, "origin/"+strings.TrimPrefix(v, "refs/heads/"))
 	}
-	return resolveRef(ctx, "origin/HEAD")
+	return resolveRef(ctx, repoPath, "origin/HEAD")
 }
 
-func (a *AWSCodeBuild) HeadRef(ctx context.Context) (string, error) {
+func (a *AWSCodeBuild) HeadRef(ctx context.Context, repoPath string) (string, error) {
 	if v := os.Getenv("CODEBUILD_RESOLVED_SOURCE_VERSION"); v != "" {
 		return v, nil
 	}
-	return resolveRef(ctx, "HEAD")
+	return resolveRef(ctx, repoPath, "HEAD")
 }
 
 func (a *AWSCodeBuild) PRNumber() (int, bool) {
@@ -60,9 +60,13 @@ func (a *AWSCodeBuild) RepoSlug() (string, string, bool) {
 	if repoURL == "" {
 		return "", "", false
 	}
-	// Strip trailing .git + any protocol; keep the final "owner/name"
-	// segment.
+	// Strip trailing .git. Handle both HTTPS
+	// ("https://github.com/owner/repo.git") and SSH
+	// ("git@github.com:owner/repo.git") forms: in the SSH shape the
+	// owner is separated from the host by ':', so normalise that to '/'
+	// before taking the final "owner/name" segments.
 	trimmed := strings.TrimSuffix(repoURL, ".git")
+	trimmed = strings.ReplaceAll(trimmed, ":", "/")
 	parts := strings.Split(trimmed, "/")
 	if len(parts) < 2 {
 		return "", "", false
@@ -77,5 +81,5 @@ func (a *AWSCodeBuild) EnrichHeader(h http.Header) {
 	if v := os.Getenv("CODEBUILD_RESOLVED_SOURCE_VERSION"); v != "" {
 		h.Set("X-Nullify-CI-Commit", v)
 	}
-	h.Set("X-Nullify-CI-Provider", a.Platform())
+	h.Set("X-Nullify-CI-Provider", a.Platform().String())
 }
