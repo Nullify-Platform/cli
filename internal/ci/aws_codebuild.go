@@ -10,10 +10,11 @@ import (
 // AWSCodeBuild — https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
 //
 // Key envs:
-//   CODEBUILD_BUILD_ID              signature
-//   CODEBUILD_RESOLVED_SOURCE_VERSION  head
-//   CODEBUILD_WEBHOOK_BASE_REF      base (webhook-triggered PRs)
-//   CODEBUILD_SOURCE_REPO_URL       https://github.com/org/repo.git
+//
+//	CODEBUILD_BUILD_ID              signature
+//	CODEBUILD_RESOLVED_SOURCE_VERSION  head
+//	CODEBUILD_WEBHOOK_BASE_REF      base (webhook-triggered PRs)
+//	CODEBUILD_SOURCE_REPO_URL       https://github.com/org/repo.git
 type AWSCodeBuild struct{}
 
 func NewAWSCodeBuild() Provider { return &AWSCodeBuild{} }

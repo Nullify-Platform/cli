@@ -10,12 +10,13 @@ import (
 // AzureDevOps — https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables
 //
 // Key envs:
-//   TF_BUILD=True                            signature
-//   BUILD_SOURCEVERSION                      head commit
-//   SYSTEM_PULLREQUEST_TARGETBRANCHNAME      target branch (PR builds)
-//   SYSTEM_PULLREQUEST_PULLREQUESTNUMBER     PR number
-//   BUILD_REPOSITORY_NAME                    repo name (no owner)
-//   BUILD_BUILDID                            run id
+//
+//	TF_BUILD=True                            signature
+//	BUILD_SOURCEVERSION                      head commit
+//	SYSTEM_PULLREQUEST_TARGETBRANCHNAME      target branch (PR builds)
+//	SYSTEM_PULLREQUEST_PULLREQUESTNUMBER     PR number
+//	BUILD_REPOSITORY_NAME                    repo name (no owner)
+//	BUILD_BUILDID                            run id
 type AzureDevOps struct{}
 
 func NewAzureDevOps() Provider { return &AzureDevOps{} }

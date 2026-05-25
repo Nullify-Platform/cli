@@ -10,11 +10,12 @@ import (
 // BitbucketPipelines — https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
 //
 // Key envs:
-//   BITBUCKET_BUILD_NUMBER          signature
-//   BITBUCKET_COMMIT                head
-//   BITBUCKET_PR_DESTINATION_BRANCH target branch (PR builds)
-//   BITBUCKET_PR_ID                 PR number
-//   BITBUCKET_REPO_OWNER / REPO_SLUG
+//
+//	BITBUCKET_BUILD_NUMBER          signature
+//	BITBUCKET_COMMIT                head
+//	BITBUCKET_PR_DESTINATION_BRANCH target branch (PR builds)
+//	BITBUCKET_PR_ID                 PR number
+//	BITBUCKET_REPO_OWNER / REPO_SLUG
 type BitbucketPipelines struct{}
 
 func NewBitbucketPipelines() Provider { return &BitbucketPipelines{} }
