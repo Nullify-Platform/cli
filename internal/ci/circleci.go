@@ -12,15 +12,16 @@ import (
 // CircleCI — https://circleci.com/docs/variables/
 //
 // Key envs:
-//   CIRCLECI=true
-//   CIRCLE_SHA1                     head
-//   CIRCLE_PR_NUMBER                PR number (only when triggered from a
-//                                   forked-PR webhook)
-//   CIRCLE_PULL_REQUEST             "https://github.com/org/repo/pull/N"
-//                                   — parse to recover the PR number
-//                                   for non-forked PRs too
-//   CIRCLE_PROJECT_USERNAME/REPONAME
-//   CIRCLE_WORKFLOW_ID              run id
+//
+//	CIRCLECI=true
+//	CIRCLE_SHA1                     head
+//	CIRCLE_PR_NUMBER                PR number (only when triggered from a
+//	                                forked-PR webhook)
+//	CIRCLE_PULL_REQUEST             "https://github.com/org/repo/pull/N"
+//	                                — parse to recover the PR number
+//	                                for non-forked PRs too
+//	CIRCLE_PROJECT_USERNAME/REPONAME
+//	CIRCLE_WORKFLOW_ID              run id
 type CircleCI struct{}
 
 func NewCircleCI() Provider { return &CircleCI{} }

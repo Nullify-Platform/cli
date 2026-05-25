@@ -15,11 +15,12 @@ import (
 // the operator prefers to set by hand.
 //
 // Key envs:
-//   JENKINS_URL                     signature
-//   GIT_COMMIT                      head
-//   CHANGE_ID                       PR number (Multibranch)
-//   CHANGE_TARGET                   PR target branch
-//   BUILD_NUMBER                    run id
+//
+//	JENKINS_URL                     signature
+//	GIT_COMMIT                      head
+//	CHANGE_ID                       PR number (Multibranch)
+//	CHANGE_TARGET                   PR target branch
+//	BUILD_NUMBER                    run id
 type Jenkins struct{}
 
 func NewJenkins() Provider { return &Jenkins{} }

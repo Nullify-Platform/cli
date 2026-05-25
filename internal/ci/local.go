@@ -12,8 +12,9 @@ import (
 // the registry list.
 //
 // Defaults:
-//   BaseRef = origin/HEAD (the remote's default-branch tip)
-//   HeadRef = HEAD
+//
+//	BaseRef = origin/HEAD (the remote's default-branch tip)
+//	HeadRef = HEAD
 //
 // Operators can override either via NULLIFY_BASE_REF / NULLIFY_HEAD_REF
 // env vars if their local-dev workflow needs something specific.

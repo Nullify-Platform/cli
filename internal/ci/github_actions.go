@@ -13,11 +13,12 @@ import (
 // GitHubActions — https://docs.github.com/en/actions/learn-github-actions/variables
 //
 // Key envs we rely on:
-//   GITHUB_ACTIONS=true       signature
-//   GITHUB_SHA                head commit
-//   GITHUB_EVENT_NAME=pull_request  + GITHUB_BASE_REF (target branch name)
-//   GITHUB_REPOSITORY         owner/name
-//   GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT
+//
+//	GITHUB_ACTIONS=true       signature
+//	GITHUB_SHA                head commit
+//	GITHUB_EVENT_NAME=pull_request  + GITHUB_BASE_REF (target branch name)
+//	GITHUB_REPOSITORY         owner/name
+//	GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT
 //
 // PR base is tricky: GITHUB_BASE_REF is just the target branch NAME, not
 // a commit. BaseRef() resolves it by running `git rev-parse

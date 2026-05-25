@@ -33,12 +33,12 @@ import (
 
 // ExitCodes — stable exit-code table so CI operators can gate merges.
 const (
-	exitNoFinding          = 0
-	exitVulnerableFound    = 10
-	exitSuspiciousFound    = 20
-	exitMaliciousFound     = 30
-	exitInvalidInvocation  = 2
-	exitTransientFailure   = 1
+	exitNoFinding         = 0
+	exitVulnerableFound   = 10
+	exitSuspiciousFound   = 20
+	exitMaliciousFound    = 30
+	exitInvalidInvocation = 2
+	exitTransientFailure  = 1
 )
 
 // RegisterDepsAnalyzeCommand attaches `deps analyze` to the given
@@ -63,12 +63,12 @@ func RegisterDepsAnalyzeCommand(parent *cobra.Command, getClient func() *api.Cli
 	}
 
 	var (
-		baseRef        string
-		headRef        string
-		repoPath       string
-		wait           bool
-		failOn         string
-		outputFormat   string
+		baseRef         string
+		headRef         string
+		repoPath        string
+		wait            bool
+		failOn          string
+		outputFormat    string
 		idempotencySeed string
 	)
 

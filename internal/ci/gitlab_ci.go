@@ -11,13 +11,14 @@ import (
 // GitLabCI — https://docs.gitlab.com/ci/variables/predefined_variables.html
 //
 // Key envs:
-//   GITLAB_CI=true
-//   CI_COMMIT_SHA                   head
-//   CI_MERGE_REQUEST_TARGET_BRANCH_SHA   base (MR builds)
-//   CI_COMMIT_BEFORE_SHA            base (push builds)
-//   CI_MERGE_REQUEST_IID            PR number
-//   CI_PROJECT_PATH                 owner/name
-//   CI_PIPELINE_ID                  run id
+//
+//	GITLAB_CI=true
+//	CI_COMMIT_SHA                   head
+//	CI_MERGE_REQUEST_TARGET_BRANCH_SHA   base (MR builds)
+//	CI_COMMIT_BEFORE_SHA            base (push builds)
+//	CI_MERGE_REQUEST_IID            PR number
+//	CI_PROJECT_PATH                 owner/name
+//	CI_PIPELINE_ID                  run id
 type GitLabCI struct{}
 
 func NewGitLabCI() Provider { return &GitLabCI{} }

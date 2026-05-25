@@ -33,7 +33,7 @@ func (n *NPMLock) Matches(path string) bool {
 }
 
 type npmLockFile struct {
-	LockfileVersion int                             `json:"lockfileVersion"`
+	LockfileVersion int                            `json:"lockfileVersion"`
 	Packages        map[string]npmLockPackageEntry `json:"packages"`
 }
 
@@ -73,10 +73,11 @@ func (n *NPMLock) Parse(data []byte, path string) ([]Entry, error) {
 // stripNodeModulesPrefix turns the lockfile key shape into the npm
 // package name. Handles nested node_modules (transitive conflicts) by
 // taking only the last node_modules/ segment:
-//   "node_modules/lodash"                       → "lodash"
-//   "node_modules/a/node_modules/lodash"        → "lodash"
-//   "node_modules/@scope/pkg"                   → "@scope/pkg"
-//   "node_modules/a/node_modules/@scope/pkg"    → "@scope/pkg"
+//
+//	"node_modules/lodash"                       → "lodash"
+//	"node_modules/a/node_modules/lodash"        → "lodash"
+//	"node_modules/@scope/pkg"                   → "@scope/pkg"
+//	"node_modules/a/node_modules/@scope/pkg"    → "@scope/pkg"
 func stripNodeModulesPrefix(key string) string {
 	const prefix = "node_modules/"
 	idx := strings.LastIndex(key, prefix)
