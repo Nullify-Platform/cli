@@ -25,10 +25,12 @@ type refreshingAuthTransport struct {
 	cacheTTL    time.Duration
 }
 
-// NewRefreshingNullifyClient creates a NullifyClient that automatically refreshes
-// its auth token, suitable for long-running processes like MCP servers.
-func NewRefreshingNullifyClient(nullifyHost string, tokenProvider TokenProvider) (*NullifyClient, error) {
-	// Get initial token
+// NewRefreshingHTTPClient returns an *http.Client whose transport injects a
+// Nullify bearer token (refreshed on a TTL) and retries transient failures. It
+// is suitable for driving the generated api.Client in long-running processes
+// like the MCP server, where a token fetched at startup would otherwise expire.
+func NewRefreshingHTTPClient(nullifyHost string, tokenProvider TokenProvider) (*http.Client, error) {
+	// Fetch an initial token so startup fails fast on auth problems.
 	token, err := tokenProvider()
 	if err != nil {
 		return nil, err
@@ -43,9 +45,18 @@ func NewRefreshingNullifyClient(nullifyHost string, tokenProvider TokenProvider)
 		cacheTTL:      5 * time.Minute,
 	}
 
-	httpClient := &http.Client{
+	return &http.Client{
 		Timeout:   30 * time.Second,
 		Transport: NewRetryTransport(t),
+	}, nil
+}
+
+// NewRefreshingNullifyClient creates a NullifyClient that automatically refreshes
+// its auth token, suitable for long-running processes like MCP servers.
+func NewRefreshingNullifyClient(nullifyHost string, tokenProvider TokenProvider) (*NullifyClient, error) {
+	httpClient, err := NewRefreshingHTTPClient(nullifyHost, tokenProvider)
+	if err != nil {
+		return nil, err
 	}
 
 	apiHost := nullifyHost
