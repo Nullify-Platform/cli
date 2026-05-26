@@ -35,7 +35,7 @@ lint-docker:
 	docker run --rm -v $(shell pwd):/app -w /app hadolint hadolint Dockerfile demo_server/Dockerfile
 
 generate-api:
-	go run ./scripts/generate/main.go --spec ../public-docs/specs/merged-openapi.yml --output internal/api --cmd-output internal/commands
+	go run ./scripts/generate/main.go --spec ../public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml --output internal/api --cmd-output internal/commands
 
 unit:
 	go test -v -skip TestIntegration ./...
