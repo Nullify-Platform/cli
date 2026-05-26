@@ -1,7 +1,8 @@
-// generate reads the merged OpenAPI spec and produces a typed Go API client
-// and cobra command files for the CLI.
+// generate reads the OpenAPI bundle and produces a typed Go API client and
+// cobra command files for the CLI. The bundle is vendored at spec/ from a
+// pinned monorepo commit (see `make fetch-spec`).
 //
-// Usage: go run ./scripts/generate/main.go --spec ../public-docs/specs/merged-openapi.yml
+// Usage: go run ./scripts/generate/main.go --spec spec/nullify-openapi-bundle.yaml
 package main
 
 import (
@@ -64,35 +65,57 @@ type Schema struct {
 	Required   []string             `yaml:"required"`
 }
 
-// Service grouping based on path prefix
+// Service grouping based on path prefix.
+//
+// NOTE: prefixes are matched against the full request path, so any path whose
+// prefix is absent here is silently dropped from the generated CLI. Keep this in
+// sync with the services published in the OpenAPI bundle.
 var serviceMapping = map[string]string{
-	"/sast/":    "sast",
-	"/sca/":     "sca",
-	"/secrets/": "secrets",
-	"/dast/":    "dast",
-	"/admin/":   "admin",
-	"/manager/": "manager",
-	"/context/": "context",
-	"/cspm/":    "cspm",
-	"/ticket/":  "ticket",
+	"/sast/":           "sast",
+	"/sca/":            "sca",
+	"/secrets/":        "secrets",
+	"/dast/":           "dast",
+	"/admin/":          "admin",
+	"/manager/":        "manager",
+	"/context/":        "context",
+	"/cspm/":           "cspm",
+	"/scpm/":           "scpm",
+	"/orchestrator/":   "orchestrator",
+	"/asset-graph/":    "asset-graph",
+	"/infrastructure/": "infrastructure",
+	"/ticket/":         "ticket",
 }
 
 // serviceDescriptions maps service names to human-readable descriptions.
 var serviceDescriptions = map[string]string{
-	"sast":    "Static Application Security Testing (SAST)",
-	"sca":     "Software Composition Analysis (SCA)",
-	"secrets": "Secrets Detection",
-	"dast":    "Dynamic Application Security Testing (DAST)",
-	"admin":   "Administration and Metrics",
-	"manager": "Finding Lifecycle Management",
-	"context": "Repository and Code Classification",
-	"cspm":    "Cloud Security Posture Management (CSPM)",
-	"ticket":  "Ticket Integration",
+	"sast":           "Static Application Security Testing (SAST)",
+	"sca":            "Software Composition Analysis (SCA)",
+	"secrets":        "Secrets Detection",
+	"dast":           "Dynamic Application Security Testing (DAST)",
+	"admin":          "Administration and Metrics",
+	"manager":        "Finding Lifecycle Management",
+	"context":        "Repository and Code Classification",
+	"cspm":           "Cloud Security Posture Management (CSPM)",
+	"scpm":           "SaaS Security Posture Management (SCPM)",
+	"orchestrator":   "Scan Orchestration (autofix batches, code reviews, retriage, onboarding)",
+	"asset-graph":    "Asset Graph (reachability, search, subgraph, summary)",
+	"infrastructure": "Infrastructure Graphs",
+	"ticket":         "Ticket Integration",
 }
 
-// Paths to exclude from CLI generation
+// Paths to exclude from CLI generation.
+//
+// Prefer this list over silent absence from serviceMapping: a path whose prefix
+// is in neither map is dropped anyway, but listing it here records the intent
+// so a future spec audit doesn't rediscover it as a "missing service".
+// These are all paths the published bundle does carry but that aren't useful
+// CLI commands: /auth/* are the auth handshake endpoints (access/refresh/github
+// tokens, logout) the CLI drives through internal/auth, and /core/{bitbucket,jira}/*
+// are integration webhooks/descriptors. Genuinely internal endpoints are kept
+// out of the published bundle at the source (each service's openapi-public.yml),
+// so they never reach here.
 var excludePrefixes = []string{
-	"/internal/",
+	"/auth/",
 	"/core/bitbucket/",
 	"/core/jira/",
 }
@@ -110,10 +133,11 @@ type Endpoint struct {
 	FuncName     string
 	CobraCmd     string
 	CobraPath    string
+	CobraUse     string // unique command name within its service (collision-disambiguated)
 }
 
 func main() {
-	specPath := "../public-docs/specs/merged-openapi.yml"
+	specPath := "spec/nullify-openapi-bundle.yaml"
 	outputDir := "internal/api"
 	cmdOutputDir := "internal/commands"
 
@@ -144,6 +168,7 @@ func main() {
 
 	endpoints := extractEndpoints(spec)
 	grouped := groupByService(endpoints)
+	assignCobraUses(grouped)
 
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output dir: %v\n", err)
@@ -216,11 +241,18 @@ func extractEndpoints(spec OpenAPISpec) []Endpoint {
 		}
 	}
 
+	// Sort fully deterministically. The spec's paths/methods are decoded from YAML
+	// maps (random iteration order), so we must tie-break all the way down to the
+	// method; otherwise two operations on the same path can swap order between runs
+	// and produce spurious regeneration diffs (flaky drift checks).
 	sort.Slice(endpoints, func(i, j int) bool {
 		if endpoints[i].Service != endpoints[j].Service {
 			return endpoints[i].Service < endpoints[j].Service
 		}
-		return endpoints[i].Path < endpoints[j].Path
+		if endpoints[i].Path != endpoints[j].Path {
+			return endpoints[i].Path < endpoints[j].Path
+		}
+		return endpoints[i].Method < endpoints[j].Method
 	})
 
 	return endpoints
@@ -559,7 +591,7 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 	fmt.Fprintf(&sb, "\tserviceCmd := &cobra.Command{\n\t\tUse:   %q,\n\t\tShort: %q,\n\t}\n\tparent.AddCommand(serviceCmd)\n\n", service, svcDesc)
 
 	for _, ep := range endpoints {
-		cobraUse := generateCobraUse(ep)
+		cobraUse := ep.CobraUse
 		summary := strings.ReplaceAll(ep.Summary, `"`, `\"`)
 
 		// Collect path params in URL order (the OpenAPI parameters list is
@@ -581,7 +613,9 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 		fmt.Fprintf(&sb, "\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", useStr, summary)
 
 		if len(pathParamNames) > 0 {
-			fmt.Fprintf(&sb, "\t\t\tArgs:  cobra.MaximumNArgs(%d),\n", len(pathParamNames))
+			// Path parameters are required; enforce exactly N positional args so a
+			// missing arg fails clearly instead of producing a malformed URL.
+			fmt.Fprintf(&sb, "\t\t\tArgs:  cobra.ExactArgs(%d),\n", len(pathParamNames))
 		}
 
 		sb.WriteString("\t\t\tRunE: func(cmd *cobra.Command, args []string) error {\n")
@@ -643,54 +677,104 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 	}
 }
 
-func generateCobraUse(ep Endpoint) string {
-	// Extract the last meaningful segment as the command name
-	parts := strings.Split(ep.Path, "/")
-	var lastNonParam string
-	for i := len(parts) - 1; i >= 0; i-- {
-		if parts[i] != "" && !strings.HasPrefix(parts[i], "{") {
-			lastNonParam = parts[i]
-			break
+// pathSegments returns the non-empty, non-parameter segments of a path.
+func pathSegments(path string) []string {
+	var segs []string
+	for _, part := range strings.Split(path, "/") {
+		if part == "" || strings.HasPrefix(part, "{") {
+			continue
 		}
+		segs = append(segs, part)
 	}
+	return segs
+}
 
-	// Determine action from HTTP method
-	action := ""
-	hasID := false
-	for _, part := range parts {
-		if strings.HasPrefix(part, "{") {
-			hasID = true
-		}
-	}
-
+// cobraAction maps an HTTP method (and whether the path has a path parameter) to
+// the verb prefix used in command names.
+func cobraAction(ep Endpoint) string {
+	hasID := len(extractPathParamNames(ep.Path)) > 0
 	switch ep.Method {
 	case "GET":
 		if hasID {
-			action = "get"
-		} else {
-			action = "list"
+			return "get"
 		}
+		return "list"
 	case "POST":
-		action = "create"
+		return "create"
 	case "PUT":
-		action = "update"
+		return "update"
 	case "PATCH":
-		action = "patch"
+		return "patch"
 	case "DELETE":
-		action = "delete"
+		return "delete"
 	}
+	return ""
+}
 
-	if lastNonParam == "" {
+// generateCobraUse builds the short command name from the action and the last
+// meaningful path segment (e.g. GET /sast/findings -> "list-findings"). It can
+// collide across endpoints that differ only by an intermediate segment
+// (e.g. /dast/pentest/scans and /dast/bughunt/scans both -> "list-scans");
+// assignCobraUses disambiguates those.
+func generateCobraUse(ep Endpoint) string {
+	segs := pathSegments(ep.Path)
+	action := cobraAction(ep)
+	if len(segs) == 0 {
 		return action
 	}
-
-	name := fmt.Sprintf("%s-%s", action, lastNonParam)
-
-	// When hasID is true and method is POST, append "-by-id" to avoid collisions
-	// with batch endpoints (e.g., POST /findings/allowlist vs POST /findings/{id}/allowlist)
-	if hasID && ep.Method == "POST" {
+	name := fmt.Sprintf("%s-%s", action, segs[len(segs)-1])
+	// When the path has a parameter and method is POST, append "-by-id" to avoid
+	// collisions with batch endpoints (e.g. POST /findings/allowlist vs
+	// POST /findings/{id}/allowlist).
+	if len(extractPathParamNames(ep.Path)) > 0 && ep.Method == "POST" {
 		name += "-by-id"
 	}
-
 	return name
+}
+
+// disambiguatedUse builds a fully-qualified command name from every non-service
+// path segment, used when the short name collides with another endpoint in the
+// same service (e.g. /dast/pentest/scans -> "list-pentest-scans").
+func disambiguatedUse(ep Endpoint) string {
+	segs := pathSegments(ep.Path)
+	// Drop the leading service segment; the service is already the cobra parent.
+	if len(segs) > 1 {
+		segs = segs[1:]
+	}
+	action := cobraAction(ep)
+	name := action + "-" + strings.Join(segs, "-")
+	if len(extractPathParamNames(ep.Path)) > 0 && ep.Method == "POST" {
+		name += "-by-id"
+	}
+	return name
+}
+
+// assignCobraUses sets a unique CobraUse on every endpoint within each service.
+// Non-colliding endpoints keep the short name; colliding ones are expanded to
+// include their distinguishing path segments, and any residual duplicates get a
+// numeric suffix as a last resort. This guarantees no two commands under one
+// service parent share a Use (which would silently shadow each other in cobra).
+func assignCobraUses(grouped map[string][]Endpoint) {
+	for _, endpoints := range grouped {
+		base := make([]string, len(endpoints))
+		counts := map[string]int{}
+		for i := range endpoints {
+			base[i] = generateCobraUse(endpoints[i])
+			counts[base[i]]++
+		}
+		seen := map[string]int{}
+		for i := range endpoints {
+			use := base[i]
+			if counts[use] > 1 {
+				use = disambiguatedUse(endpoints[i])
+			}
+			if n := seen[use]; n > 0 {
+				seen[use] = n + 1
+				use = fmt.Sprintf("%s-%d", use, n+1)
+			} else {
+				seen[use] = 1
+			}
+			endpoints[i].CobraUse = use
+		}
+	}
 }

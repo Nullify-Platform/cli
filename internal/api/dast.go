@@ -9,51 +9,6 @@ import (
 	"strings"
 )
 
-// UpdateDastBughuntConfig - Put BugHunt Config
-// PUT /dast/bughunt/config
-func (c *Client) UpdateDastBughuntConfig(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/dast/bughunt/config"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PUT", fullURL, body)
-}
-
 // ListDastBughuntConfig - Get BugHunt Config
 // GET /dast/bughunt/config
 func (c *Client) ListDastBughuntConfig(ctx context.Context, params url.Values) ([]byte, error) {
@@ -97,6 +52,51 @@ func (c *Client) ListDastBughuntConfig(ctx context.Context, params url.Values) (
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// UpdateDastBughuntConfig - Put BugHunt Config
+// PUT /dast/bughunt/config
+func (c *Client) UpdateDastBughuntConfig(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/dast/bughunt/config"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PUT", fullURL, body)
 }
 
 // CreateDastBughuntConfigValidate - Validate BugHunt Config
@@ -373,51 +373,6 @@ func (c *Client) ListDastBughuntFindingsFindingIdTriage(ctx context.Context, par
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateDastBughuntScans - Start BugHunt Scan
-// POST /dast/bughunt/scans
-func (c *Client) CreateDastBughuntScans(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/dast/bughunt/scans"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListDastBughuntScans - Get BugHunt Scans
 // GET /dast/bughunt/scans
 func (c *Client) ListDastBughuntScans(ctx context.Context, params url.Values) ([]byte, error) {
@@ -461,6 +416,51 @@ func (c *Client) ListDastBughuntScans(ctx context.Context, params url.Values) ([
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateDastBughuntScans - Start BugHunt Scan
+// POST /dast/bughunt/scans
+func (c *Client) CreateDastBughuntScans(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/dast/bughunt/scans"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // GetDastBughuntScansScanId - Get BugHunt Scan
@@ -877,52 +877,6 @@ func (c *Client) CreateDastCredentials(ctx context.Context, params url.Values, b
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// GetDastCredentialsCredentialId - Get Credential
-// GET /dast/credentials/{credentialId}
-func (c *Client) GetDastCredentialsCredentialId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/credentials/{credentialId}"
-	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // DeleteDastCredentialsCredentialId - Delete Credential
 // DELETE /dast/credentials/{credentialId}
 func (c *Client) DeleteDastCredentialsCredentialId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -967,6 +921,52 @@ func (c *Client) DeleteDastCredentialsCredentialId(ctx context.Context, params u
 	}
 
 	return c.do(ctx, "DELETE", fullURL, nil)
+}
+
+// GetDastCredentialsCredentialId - Get Credential
+// GET /dast/credentials/{credentialId}
+func (c *Client) GetDastCredentialsCredentialId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/credentials/{credentialId}"
+	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // UpdateDastCredentialsCredentialId - Update Credential
@@ -1061,51 +1061,6 @@ func (c *Client) CreateDastCredentialsCredentialIdValidate(ctx context.Context, 
 	return c.do(ctx, "POST", fullURL, nil)
 }
 
-// CreateDastPentestApplications - Create Application
-// POST /dast/pentest/applications
-func (c *Client) CreateDastPentestApplications(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/dast/pentest/applications"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListDastPentestApplications - Get Pentest App Configs
 // GET /dast/pentest/applications
 func (c *Client) ListDastPentestApplications(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1155,6 +1110,97 @@ func (c *Client) ListDastPentestApplications(ctx context.Context, params url.Val
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateDastPentestApplications - Create Application
+// POST /dast/pentest/applications
+func (c *Client) CreateDastPentestApplications(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/dast/pentest/applications"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
+// DeleteDastPentestApplicationsApplicationId - Delete Pentest App Config
+// DELETE /dast/pentest/applications/{applicationId}
+func (c *Client) DeleteDastPentestApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/pentest/applications/{applicationId}"
+	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // GetDastPentestApplicationsApplicationId - Get Pentest App Config
@@ -1247,52 +1293,6 @@ func (c *Client) UpdateDastPentestApplicationsApplicationId(ctx context.Context,
 	}
 
 	return c.do(ctx, "PUT", fullURL, body)
-}
-
-// DeleteDastPentestApplicationsApplicationId - Delete Pentest App Config
-// DELETE /dast/pentest/applications/{applicationId}
-func (c *Client) DeleteDastPentestApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/pentest/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // CreateDastPentestApplicationsApplicationIdPreflight - Start Pentest Preflight
@@ -1600,10 +1600,108 @@ func (c *Client) CreateDastPentestFindingsFindingIdAllowlist(ctx context.Context
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// CreateDastPentestFindingsFindingIdAutofixCacheCreatePr - Create PR from Cached Pentest Finding Autofix
-// POST /dast/pentest/findings/{findingId}/autofix/cache/create_pr
-func (c *Client) CreateDastPentestFindingsFindingIdAutofixCacheCreatePr(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/dast/pentest/findings/{findingId}/autofix/cache/create_pr"
+// ListDastPentestFindingsFindingIdAutofixActivity - Get DAST Pentest Finding Autofix Activity
+// GET /dast/pentest/findings/{findingId}/autofix/activity
+func (c *Client) ListDastPentestFindingsFindingIdAutofixActivity(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/pentest/findings/{findingId}/autofix/activity"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("since_id"); v != "" {
+		query.Set("since_id", v)
+	}
+	if v := params.Get("limit"); v != "" {
+		query.Set("limit", v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// ListDastPentestFindingsFindingIdAutofixCacheDiff - Get Pentest Finding Autofix Diff
+// GET /dast/pentest/findings/{findingId}/autofix/cache/diff
+func (c *Client) ListDastPentestFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/pentest/findings/{findingId}/autofix/cache/diff"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateDastPentestFindingsFindingIdAutofixFix - Post DAST Pentest Finding AutoFix
+// POST /dast/pentest/findings/{findingId}/autofix/fix
+func (c *Client) CreateDastPentestFindingsFindingIdAutofixFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/dast/pentest/findings/{findingId}/autofix/fix"
 	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
 
 	query := url.Values{}
@@ -1646,10 +1744,56 @@ func (c *Client) CreateDastPentestFindingsFindingIdAutofixCacheCreatePr(ctx cont
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListDastPentestFindingsFindingIdAutofixCacheDiff - Get Pentest Finding Autofix Diff
-// GET /dast/pentest/findings/{findingId}/autofix/cache/diff
-func (c *Client) ListDastPentestFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/dast/pentest/findings/{findingId}/autofix/cache/diff"
+// ListDastPentestFindingsFindingIdAutofixState - Get DAST Pentest Finding Autofix State
+// GET /dast/pentest/findings/{findingId}/autofix/state
+func (c *Client) ListDastPentestFindingsFindingIdAutofixState(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/pentest/findings/{findingId}/autofix/state"
+	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// ListDastPentestFindingsFindingIdAutofixStatus - Get DAST Pentest Finding Autofix Status
+// GET /dast/pentest/findings/{findingId}/autofix/status
+func (c *Client) ListDastPentestFindingsFindingIdAutofixStatus(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/dast/pentest/findings/{findingId}/autofix/status"
 	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
 
 	query := url.Values{}

@@ -9,230 +9,10 @@ import (
 	"strings"
 )
 
-// ListCspmFindings - Get CSPM Findings
-// GET /cspm/findings
-func (c *Client) ListCspmFindings(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/findings"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
-	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
-	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
-	}
-	if v := params.Get("status"); v != "" {
-		query.Set("status", v)
-	}
-	if v := params.Get("accountId"); v != "" {
-		query.Set("accountId", v)
-	}
-	if v := params.Get("region"); v != "" {
-		query.Set("region", v)
-	}
-	if v := params.Get("resourceType"); v != "" {
-		query.Set("resourceType", v)
-	}
-	if v := params.Get("scanId"); v != "" {
-		query.Set("scanId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// GetCspmFindingsFindingId - Get CSPM Finding
-// GET /cspm/findings/{findingId}
-func (c *Client) GetCspmFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// ListCspmFindingsFindingIdAutofixActivity - Get CSPM Finding Autofix Activity
-// GET /cspm/findings/{findingId}/autofix/activity
-func (c *Client) ListCspmFindingsFindingIdAutofixActivity(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/findings/{findingId}/autofix/activity"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("since_id"); v != "" {
-		query.Set("since_id", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// ListCspmFindingsFindingIdAutofixCacheDiff - Get CSPM Finding Autofix Diff
-// GET /cspm/findings/{findingId}/autofix/cache/diff
-func (c *Client) ListCspmFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/findings/{findingId}/autofix/cache/diff"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
-// CreateCspmFindingsFindingIdAutofixFix - Post CSPM Finding Autofix
-// POST /cspm/findings/{findingId}/autofix/fix
-func (c *Client) CreateCspmFindingsFindingIdAutofixFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/cspm/findings/{findingId}/autofix/fix"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+// CreateOrchestratorAutofixBatch - Start Batch Autofix
+// POST /orchestrator/autofix/batch
+func (c *Client) CreateOrchestratorAutofixBatch(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/orchestrator/autofix/batch"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -274,11 +54,11 @@ func (c *Client) CreateCspmFindingsFindingIdAutofixFix(ctx context.Context, para
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListCspmFindingsFindingIdAutofixState - Get CSPM Finding Autofix State
-// GET /cspm/findings/{findingId}/autofix/state
-func (c *Client) ListCspmFindingsFindingIdAutofixState(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/findings/{findingId}/autofix/state"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+// GetOrchestratorAutofixBatchExecutionId - Get Batch Autofix Status
+// GET /orchestrator/autofix/batch/{executionId}
+func (c *Client) GetOrchestratorAutofixBatchExecutionId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/orchestrator/autofix/batch/{executionId}"
+	path = strings.Replace(path, "{executionId}", params.Get("executionId"), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -320,11 +100,10 @@ func (c *Client) ListCspmFindingsFindingIdAutofixState(ctx context.Context, para
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListCspmFindingsFindingIdAutofixStatus - Get CSPM Finding Autofix Status
-// GET /cspm/findings/{findingId}/autofix/status
-func (c *Client) ListCspmFindingsFindingIdAutofixStatus(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/findings/{findingId}/autofix/status"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+// ListOrchestratorCodereviews - Get Code Reviews
+// GET /orchestrator/codereviews
+func (c *Client) ListOrchestratorCodereviews(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/orchestrator/codereviews"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -366,11 +145,56 @@ func (c *Client) ListCspmFindingsFindingIdAutofixStatus(ctx context.Context, par
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateCspmFindingsFindingIdTicket - Create Ticket for CSPM Finding
-// POST /cspm/findings/{findingId}/ticket
-func (c *Client) CreateCspmFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/cspm/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+// GetOrchestratorCodereviewsId - Get Code Review
+// GET /orchestrator/codereviews/{id}
+func (c *Client) GetOrchestratorCodereviewsId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/orchestrator/codereviews/{id}"
+	path = strings.Replace(path, "{id}", params.Get("id"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateOrchestratorFindingsRetriage - Retriage Findings
+// POST /orchestrator/findings/retriage
+func (c *Client) CreateOrchestratorFindingsRetriage(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/orchestrator/findings/retriage"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -412,10 +236,59 @@ func (c *Client) CreateCspmFindingsFindingIdTicket(ctx context.Context, params u
 	return c.do(ctx, "POST", fullURL, body)
 }
 
-// ListCspmScans - Get CSPM Scans
-// GET /cspm/scans
-func (c *Client) ListCspmScans(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/scans"
+// ListOrchestratorFindingsFindingIDAutofixIterations - Get Finding Autofix Iterations
+// GET /orchestrator/findings/{findingID}/autofix-iterations
+func (c *Client) ListOrchestratorFindingsFindingIDAutofixIterations(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/orchestrator/findings/{findingID}/autofix-iterations"
+	path = strings.Replace(path, "{findingID}", params.Get("findingID"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("findingType"); v != "" {
+		query.Set("findingType", v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateOrchestratorOnboardingComplete - Complete Onboarding (Test Only)
+// POST /orchestrator/onboarding/complete
+func (c *Client) CreateOrchestratorOnboardingComplete(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/orchestrator/onboarding/complete"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
@@ -448,23 +321,50 @@ func (c *Client) ListCspmScans(ctx context.Context, params url.Values) ([]byte, 
 	if v := params.Get("bitbucketRepositoryId"); v != "" {
 		query.Set("bitbucketRepositoryId", v)
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
+// CreateOrchestratorOnboardingStart - Start Onboarding
+// POST /orchestrator/onboarding/start
+func (c *Client) CreateOrchestratorOnboardingStart(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/orchestrator/onboarding/start"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
 	}
-	if v := params.Get("status"); v != "" {
-		query.Set("status", v)
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
 	}
-	if v := params.Get("accountId"); v != "" {
-		query.Set("accountId", v)
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
 	}
-	if v := params.Get("region"); v != "" {
-		query.Set("region", v)
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
 	}
-	if v := params.Get("scanType"); v != "" {
-		query.Set("scanType", v)
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
 	}
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -472,14 +372,13 @@ func (c *Client) ListCspmScans(ctx context.Context, params url.Values) ([]byte, 
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	return c.do(ctx, "POST", fullURL, body)
 }
 
-// GetCspmScansScanId - Get CSPM Scan
-// GET /cspm/scans/{scanId}
-func (c *Client) GetCspmScansScanId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/cspm/scans/{scanId}"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+// ListOrchestratorOnboardingStatus - Get Onboarding Status
+// GET /orchestrator/onboarding/status
+func (c *Client) ListOrchestratorOnboardingStatus(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/orchestrator/onboarding/status"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {

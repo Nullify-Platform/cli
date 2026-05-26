@@ -144,6 +144,52 @@ func (c *Client) CreateContextApplicationsRebuild(ctx context.Context, params ur
 	return c.do(ctx, "POST", fullURL, body)
 }
 
+// DeleteContextApplicationsApplicationId - Delete Application
+// DELETE /context/applications/{applicationId}
+func (c *Client) DeleteContextApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/applications/{applicationId}"
+	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "DELETE", fullURL, nil)
+}
+
 // GetContextApplicationsApplicationId - Get Application
 // GET /context/applications/{applicationId}
 func (c *Client) GetContextApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -234,52 +280,6 @@ func (c *Client) PatchContextApplicationsApplicationId(ctx context.Context, para
 	}
 
 	return c.do(ctx, "PATCH", fullURL, body)
-}
-
-// DeleteContextApplicationsApplicationId - Delete Application
-// DELETE /context/applications/{applicationId}
-func (c *Client) DeleteContextApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/context/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // ListContextApplicationsApplicationIdSchema - Get Application Schema
@@ -503,52 +503,6 @@ func (c *Client) ListContextArtifacts(ctx context.Context, params url.Values) ([
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// GetContextArtifactsArtifactId - Get Artifact
-// GET /context/artifacts/{artifactId}
-func (c *Client) GetContextArtifactsArtifactId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/context/artifacts/{artifactId}"
-	path = strings.Replace(path, "{artifactId}", params.Get("artifactId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // DeleteContextArtifactsArtifactId - Delete Artifact
 // DELETE /context/artifacts/{artifactId}
 func (c *Client) DeleteContextArtifactsArtifactId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -593,6 +547,52 @@ func (c *Client) DeleteContextArtifactsArtifactId(ctx context.Context, params ur
 	}
 
 	return c.do(ctx, "DELETE", fullURL, nil)
+}
+
+// GetContextArtifactsArtifactId - Get Artifact
+// GET /context/artifacts/{artifactId}
+func (c *Client) GetContextArtifactsArtifactId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/artifacts/{artifactId}"
+	path = strings.Replace(path, "{artifactId}", params.Get("artifactId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // ListContextAssetInventoryCloudAccounts - Get Asset Inventory Cloud Accounts
@@ -898,52 +898,6 @@ func (c *Client) ListContextCicdPipelines(ctx context.Context, params url.Values
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// GetContextCicdPipelinesPipelineId - Get CI/CD Pipeline
-// GET /context/cicd-pipelines/{pipelineId}
-func (c *Client) GetContextCicdPipelinesPipelineId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/context/cicd-pipelines/{pipelineId}"
-	path = strings.Replace(path, "{pipelineId}", params.Get("pipelineId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // DeleteContextCicdPipelinesPipelineId - Delete CI/CD Pipeline
 // DELETE /context/cicd-pipelines/{pipelineId}
 func (c *Client) DeleteContextCicdPipelinesPipelineId(ctx context.Context, params url.Values) ([]byte, error) {
@@ -988,6 +942,52 @@ func (c *Client) DeleteContextCicdPipelinesPipelineId(ctx context.Context, param
 	}
 
 	return c.do(ctx, "DELETE", fullURL, nil)
+}
+
+// GetContextCicdPipelinesPipelineId - Get CI/CD Pipeline
+// GET /context/cicd-pipelines/{pipelineId}
+func (c *Client) GetContextCicdPipelinesPipelineId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/cicd-pipelines/{pipelineId}"
+	path = strings.Replace(path, "{pipelineId}", params.Get("pipelineId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // ListContextCloudReconAccountsAccountIdDiscoveredNodes - Get Cloud Recon Discovered Nodes
@@ -1330,57 +1330,6 @@ func (c *Client) ListContextCloudScanScanIdStatus(ctx context.Context, params ur
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// ListContextDeps - List Tenant Wide Dependencies (Historical)
-// GET /context/deps
-func (c *Client) ListContextDeps(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/context/deps"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
-	}
-	if v := params.Get("cursor"); v != "" {
-		query.Set("cursor", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
-}
-
 // DeleteContextDeps - Delete dependency data
 // DELETE /context/deps
 func (c *Client) DeleteContextDeps(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1447,6 +1396,57 @@ func (c *Client) DeleteContextDeps(ctx context.Context, params url.Values) ([]by
 	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
+// ListContextDeps - List Tenant Wide Dependencies (Historical)
+// GET /context/deps
+func (c *Client) ListContextDeps(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+	if v := params.Get("pageSize"); v != "" {
+		query.Set("pageSize", v)
+	}
+	if v := params.Get("cursor"); v != "" {
+		query.Set("cursor", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
 // ListContextDepsActive - List Tenant Wide Active Dependencies
 // GET /context/deps/active
 func (c *Client) ListContextDepsActive(ctx context.Context, params url.Values) ([]byte, error) {
@@ -1488,6 +1488,93 @@ func (c *Client) ListContextDepsActive(ctx context.Context, params url.Values) (
 	}
 	if v := params.Get("cursor"); v != "" {
 		query.Set("cursor", v)
+	}
+	if v := params.Get("search"); v != "" {
+		query.Set("search", v)
+	}
+	if v := params.Get("ecosystem"); v != "" {
+		query.Set("ecosystem", v)
+	}
+	if v := params.Get("name"); v != "" {
+		query.Set("name", v)
+	}
+	if v := params.Get("direct"); v != "" {
+		query.Set("direct", v)
+	}
+	if v := params.Get("repositoryId"); v != "" {
+		query.Set("repositoryId", v)
+	}
+	if v := params.Get("projectId"); v != "" {
+		query.Set("projectId", v)
+	}
+	if v := params.Get("range"); v != "" {
+		query.Set("range", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// ListContextDepsActiveSummary - Tenant Wide Active Dependency Summary
+// GET /context/deps/active/summary
+func (c *Client) ListContextDepsActiveSummary(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/deps/active/summary"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+	if v := params.Get("search"); v != "" {
+		query.Set("search", v)
+	}
+	if v := params.Get("ecosystem"); v != "" {
+		query.Set("ecosystem", v)
+	}
+	if v := params.Get("name"); v != "" {
+		query.Set("name", v)
+	}
+	if v := params.Get("direct"); v != "" {
+		query.Set("direct", v)
+	}
+	if v := params.Get("repositoryId"); v != "" {
+		query.Set("repositoryId", v)
+	}
+	if v := params.Get("projectId"); v != "" {
+		query.Set("projectId", v)
+	}
+	if v := params.Get("range"); v != "" {
+		query.Set("range", v)
 	}
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1693,6 +1780,15 @@ func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdActive(ctx
 	}
 	if v := params.Get("bitbucketRepositoryId"); v != "" {
 		query.Set("bitbucketRepositoryId", v)
+	}
+	if v := params.Get("search"); v != "" {
+		query.Set("search", v)
+	}
+	if v := params.Get("ecosystem"); v != "" {
+		query.Set("ecosystem", v)
+	}
+	if v := params.Get("direct"); v != "" {
+		query.Set("direct", v)
 	}
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2116,51 +2212,6 @@ func (c *Client) GetContextEntrypointsEntrypointId(ctx context.Context, params u
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// CreateContextMemories - Create Memory
-// POST /context/memories
-func (c *Client) CreateContextMemories(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/context/memories"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListContextMemories - Get Memories
 // GET /context/memories
 func (c *Client) ListContextMemories(ctx context.Context, params url.Values) ([]byte, error) {
@@ -2225,6 +2276,51 @@ func (c *Client) ListContextMemories(ctx context.Context, params url.Values) ([]
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateContextMemories - Create Memory
+// POST /context/memories
+func (c *Client) CreateContextMemories(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/memories"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListContextMemoriesType - Get Memories By Type
@@ -2474,9 +2570,9 @@ func (c *Client) ListContextMemoriesMemoryIdVersions(ctx context.Context, params
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// UpdateContextOrganization - Upsert Classification of the Organization
-// PUT /context/organization
-func (c *Client) UpdateContextOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+// ListContextOrganization - Get Organization Context
+// GET /context/organization
+func (c *Client) ListContextOrganization(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/context/organization"
 
 	query := url.Values{}
@@ -2516,7 +2612,7 @@ func (c *Client) UpdateContextOrganization(ctx context.Context, params url.Value
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	return c.do(ctx, "GET", fullURL, nil)
 }
 
 // PatchContextOrganization - Update Classification of the Organization
@@ -2564,9 +2660,9 @@ func (c *Client) PatchContextOrganization(ctx context.Context, params url.Values
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// ListContextOrganization - Get Organization Context
-// GET /context/organization
-func (c *Client) ListContextOrganization(ctx context.Context, params url.Values) ([]byte, error) {
+// UpdateContextOrganization - Upsert Classification of the Organization
+// PUT /context/organization
+func (c *Client) UpdateContextOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
 	path := "/context/organization"
 
 	query := url.Values{}
@@ -2606,7 +2702,249 @@ func (c *Client) ListContextOrganization(ctx context.Context, params url.Values)
 		fullURL += "?" + query.Encode()
 	}
 
+	return c.do(ctx, "PUT", fullURL, body)
+}
+
+// CreateContextRagResync - Resync RAG Vector Store
+// POST /context/rag/resync
+func (c *Client) CreateContextRagResync(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/rag/resync"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, nil)
+}
+
+// ListContextRepoScans - List Repo Context Scans
+// GET /context/repo-scans
+func (c *Client) ListContextRepoScans(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repo-scans"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("repositoryId"); v != "" {
+		query.Set("repositoryId", v)
+	}
+	if v := params.Get("commitSha"); v != "" {
+		query.Set("commitSha", v)
+	}
+	if v := params.Get("status"); v != "" {
+		query.Set("status", v)
+	}
+	if v := params.Get("page"); v != "" {
+		query.Set("page", v)
+	}
+	if v := params.Get("pageSize"); v != "" {
+		query.Set("pageSize", v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateContextRepoScans - Create Repo Context Scan
+// POST /context/repo-scans
+func (c *Client) CreateContextRepoScans(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/repo-scans"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
+}
+
+// GetContextRepoScansScanId - Get Repo Context Scan
+// GET /context/repo-scans/{scanId}
+func (c *Client) GetContextRepoScansScanId(ctx context.Context, params url.Values) ([]byte, error) {
+	path := "/context/repo-scans/{scanId}"
+	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// PatchContextRepoScansScanId - Update Repo Context Scan
+// PATCH /context/repo-scans/{scanId}
+func (c *Client) PatchContextRepoScansScanId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/repo-scans/{scanId}"
+	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "PATCH", fullURL, body)
 }
 
 // CreateContextReports - Create Report Generation Job
@@ -2757,9 +3095,9 @@ func (c *Client) ListContextRepositories(ctx context.Context, params url.Values)
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// PatchContextRepositoriesRepositoryId - Update Repository
-// PATCH /context/repositories/{repositoryId}
-func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+// DeleteContextRepositoriesRepositoryId - Delete Repository
+// DELETE /context/repositories/{repositoryId}
+func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
 	path := "/context/repositories/{repositoryId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
@@ -2800,7 +3138,7 @@ func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, param
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	return c.do(ctx, "DELETE", fullURL, nil)
 }
 
 // GetContextRepositoriesRepositoryId - Get Repository
@@ -2849,9 +3187,9 @@ func (c *Client) GetContextRepositoriesRepositoryId(ctx context.Context, params 
 	return c.do(ctx, "GET", fullURL, nil)
 }
 
-// DeleteContextRepositoriesRepositoryId - Delete Repository
-// DELETE /context/repositories/{repositoryId}
-func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+// PatchContextRepositoriesRepositoryId - Update Repository
+// PATCH /context/repositories/{repositoryId}
+func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
 	path := "/context/repositories/{repositoryId}"
 	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
 
@@ -2892,7 +3230,7 @@ func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, para
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	return c.do(ctx, "PATCH", fullURL, body)
 }
 
 // ListContextRepositoriesRepositoryIdProjects - List Projects
@@ -3091,53 +3429,6 @@ func (c *Client) PatchContextRepositoriesRepositoryIdProjectsProjectId(ctx conte
 	return c.do(ctx, "PATCH", fullURL, body)
 }
 
-// CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema - Upload Project Schema
-// POST /context/repositories/{repositoryId}/projects/{projectId}/schema
-func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
 // ListContextRepositoriesRepositoryIdProjectsProjectIdSchema - Get Project Schema
 // GET /context/repositories/{repositoryId}/projects/{projectId}/schema
 func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, params url.Values) ([]byte, error) {
@@ -3183,6 +3474,53 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx 
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema - Upload Project Schema
+// POST /context/repositories/{repositoryId}/projects/{projectId}/schema
+func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema"
+	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata - Get Project Schema Metadata
@@ -3535,6 +3873,51 @@ func (c *Client) GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx conte
 	}
 
 	return c.do(ctx, "GET", fullURL, nil)
+}
+
+// CreateContextSbomsResolve - Get or generate SBOM
+// POST /context/sboms/resolve
+func (c *Client) CreateContextSbomsResolve(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+	path := "/context/sboms/resolve"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if v := params.Get("azureOrganizationId"); v != "" {
+		query.Set("azureOrganizationId", v)
+	}
+	if v := params.Get("bitbucketWorkspaceId"); v != "" {
+		query.Set("bitbucketWorkspaceId", v)
+	}
+	if v := params.Get("githubOwnerId"); v != "" {
+		query.Set("githubOwnerId", v)
+	}
+	if v := params.Get("gitlabGroupId"); v != "" {
+		query.Set("gitlabGroupId", v)
+	}
+	if v := params.Get("installationId"); v != "" {
+		query.Set("installationId", v)
+	}
+	if v := params.Get("azureRepositoryId"); v != "" {
+		query.Set("azureRepositoryId", v)
+	}
+	if v := params.Get("githubRepositoryId"); v != "" {
+		query.Set("githubRepositoryId", v)
+	}
+	if v := params.Get("githubTeamId"); v != "" {
+		query.Set("githubTeamId", v)
+	}
+	if v := params.Get("bitbucketRepositoryId"); v != "" {
+		query.Set("bitbucketRepositoryId", v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	return c.do(ctx, "POST", fullURL, body)
 }
 
 // CreateContextSbomsScan - Scan SBOM (get-or-generate)

@@ -104,6 +104,10 @@ func init() {
 	commands.RegisterSastCommands(apiCmd, getAPIClient)
 	commands.RegisterScaCommands(apiCmd, getAPIClient)
 	commands.RegisterSecretsCommands(apiCmd, getAPIClient)
+	commands.RegisterScpmCommands(apiCmd, getAPIClient)
+	commands.RegisterOrchestratorCommands(apiCmd, getAPIClient)
+	commands.RegisterAssetGraphCommands(apiCmd, getAPIClient)
+	commands.RegisterInfrastructureCommands(apiCmd, getAPIClient)
 }
 
 func setupLogger(ctx context.Context) context.Context {

@@ -20,7 +20,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-findings",
+			Use:   "list-credentials-findings",
 			Short: "Get Secrets Credential Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -81,7 +81,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-batch",
+			Use:   "create-credentials-findings-allowlist-batch",
 			Short: "Allowlist Batch of Credential Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -125,7 +125,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-detailed",
+			Use:   "list-credentials-findings-detailed",
 			Short: "Get Secrets Credential Findings Detailed",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -186,57 +186,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "patch-findings <findingId>",
-			Short: "Update Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.PatchSecretsCredentialsFindingsFindingId(cmd.Context(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "get-findings <findingId>",
+			Use:   "get-credentials-findings <findingId>",
 			Short: "Get Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -282,9 +234,57 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-allowlist-by-id <findingId>",
+			Use:   "patch-credentials-findings <findingId>",
+			Short: "Update Credential Finding",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.PatchSecretsCredentialsFindingsFindingId(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-credentials-findings-allowlist-by-id <findingId>",
 			Short: "Allowlist Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -330,9 +330,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-events <findingId>",
+			Use:   "get-credentials-findings-events <findingId>",
 			Short: "Get Finding Events",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -378,9 +378,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-ticket-by-id <findingId>",
+			Use:   "create-credentials-findings-ticket-by-id <findingId>",
 			Short: "Create Ticket for Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -426,9 +426,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-triage <findingId>",
+			Use:   "get-credentials-findings-triage <findingId>",
 			Short: "Get Triaged Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -474,9 +474,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-unallowlist-by-id <findingId>",
+			Use:   "create-credentials-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -522,9 +522,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-users <findingId>",
+			Use:   "get-credentials-findings-users <findingId>",
 			Short: "Get Credential Finding Related Users",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -581,6 +581,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 					"num-items": "numItems",
 					"event-type": "eventType",
 					"file-owner-name": "fileOwnerName",
+					"finding-id": "findingId",
 					"azure-organization-id": "azureOrganizationId",
 					"bitbucket-workspace-id": "bitbucketWorkspaceId",
 					"github-owner-id": "githubOwnerId",
@@ -612,6 +613,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd.Flags().String("num-items", "", "")
 		cmd.Flags().String("event-type", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("finding-id", "", "")
 		cmd.Flags().String("sort", "", "")
 		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
@@ -688,7 +690,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-batch",
+			Use:   "create-findings-allowlist-batch",
 			Short: "Allowlist Batch of Credential Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -732,7 +734,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-detailed",
+			Use:   "list-findings-detailed",
 			Short: "Get Secrets Credential Findings Detailed - [DEPRECATED - TO BE REMOVED BY 2025]",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -854,57 +856,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "patch-findings <findingId>",
-			Short: "Update Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.PatchSecretsFindingsFindingId(cmd.Context(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "get-findings <findingId>",
 			Short: "Get Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -950,9 +904,57 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-allowlist-by-id <findingId>",
+			Use:   "patch-findings <findingId>",
+			Short: "Update Credential Finding",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.PatchSecretsFindingsFindingId(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-findings-allowlist-by-id <findingId>",
 			Short: "Allowlist Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -998,9 +1000,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-events <findingId>",
+			Use:   "get-findings-events <findingId>",
 			Short: "Get Finding Events",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1046,9 +1048,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-ticket-by-id <findingId>",
+			Use:   "create-findings-ticket-by-id <findingId>",
 			Short: "Create Ticket for Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1094,9 +1096,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-triage <findingId>",
+			Use:   "get-findings-triage <findingId>",
 			Short: "Get Triaged Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1142,9 +1144,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-unallowlist-by-id <findingId>",
+			Use:   "create-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Credential Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1190,9 +1192,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-users <findingId>",
+			Use:   "get-findings-users <findingId>",
 			Short: "Get Credential Finding Related Users",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1238,7 +1240,56 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-findings",
+			Use:   "list-scan-runs",
+			Short: "List Scan Runs",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"repository-id": "repositoryId",
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListSecretsScanRuns(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("repository-id", "", "Repository ID to list scan runs for")
+		cmd.Flags().String("limit", "", "Max scan runs per page (default 10, max 50)")
+		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
+		cmd.Flags().String("sort", "", "Sort order by start time (default newest)")
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-sensitivedata-findings",
 			Short: "Get Sensitive Data Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1299,7 +1350,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-batch",
+			Use:   "create-sensitivedata-findings-allowlist-batch",
 			Short: "Allowlist Batch of Sensitive Data Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1343,57 +1394,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "patch-findings <findingId>",
-			Short: "Update Sensitive Data Finding",
-			Args:  cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.PatchSecretsSensitivedataFindingsFindingId(cmd.Context(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "get-findings <findingId>",
+			Use:   "get-sensitivedata-findings <findingId>",
 			Short: "Get Sensitive Data Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1439,9 +1442,57 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-allowlist-by-id <findingId>",
+			Use:   "patch-sensitivedata-findings <findingId>",
+			Short: "Update Sensitive Data Finding",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.PatchSecretsSensitivedataFindingsFindingId(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-sensitivedata-findings-allowlist-by-id <findingId>",
 			Short: "Allowlist Sensitive Data Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1487,9 +1538,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-ticket-by-id <findingId>",
+			Use:   "create-sensitivedata-findings-ticket-by-id <findingId>",
 			Short: "Create Ticket for Sensitive Data Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1535,9 +1586,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-triage <findingId>",
+			Use:   "get-sensitivedata-findings-triage <findingId>",
 			Short: "Get Triaged Sensitive Data Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1583,9 +1634,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-unallowlist-by-id <findingId>",
+			Use:   "create-sensitivedata-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Sensitive Data Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1631,9 +1682,9 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-users <findingId>",
+			Use:   "get-sensitivedata-findings-users <findingId>",
 			Short: "Get Sensitive Data Finding Related Users",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}

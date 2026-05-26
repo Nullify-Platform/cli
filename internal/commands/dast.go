@@ -20,50 +20,6 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "update-config",
-			Short: "Put BugHunt Config",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.UpdateDastBughuntConfig(cmd.Context(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "list-config",
 			Short: "Get BugHunt Config",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -88,6 +44,50 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 					}
 				})
 				result, err := client.ListDastBughuntConfig(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "update-config",
+			Short: "Put BugHunt Config",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.UpdateDastBughuntConfig(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -152,7 +152,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-findings",
+			Use:   "list-bughunt-findings",
 			Short: "Get BugHunt Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -196,9 +196,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-findings <findingId>",
+			Use:   "get-bughunt-findings <findingId>",
 			Short: "Get BugHunt Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -246,7 +246,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "patch-allowlist <findingId>",
 			Short: "Allowlist BugHunt Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -292,9 +292,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-events <findingId>",
+			Use:   "get-bughunt-findings-events <findingId>",
 			Short: "Get BugHunt Finding Events",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -340,9 +340,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-triage <findingId>",
+			Use:   "get-bughunt-findings-triage <findingId>",
 			Short: "Create Interactor []",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -368,6 +368,50 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 					params.Set("findingId", args[0])
 				}
 				result, err := client.ListDastBughuntFindingsFindingIdTriage(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-bughunt-scans",
+			Short: "Get BugHunt Scans",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListDastBughuntScans(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -432,53 +476,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-scans",
-			Short: "Get BugHunt Scans",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.ListDastBughuntScans(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "get-scans <scanId>",
+			Use:   "get-bughunt-scans <scanId>",
 			Short: "Get BugHunt Scan",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -524,9 +524,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-diff <scanId>",
+			Use:   "get-bughunt-scans-diff <scanId>",
 			Short: "Get BugHunt Scan Diff",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -573,9 +573,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-findings <scanId>",
+			Use:   "get-bughunt-scans-findings <scanId>",
 			Short: "Get BugHunt Scan Findings",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -621,9 +621,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-logs <scanId>",
+			Use:   "get-bughunt-scans-logs <scanId>",
 			Short: "Get BugHunt Sub-Agent Network Log",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -669,9 +669,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-stop-by-id <scanId>",
+			Use:   "create-bughunt-scans-stop-by-id <scanId>",
 			Short: "Stop BugHunt Scan",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -763,7 +763,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-run-now-by-id <suite>",
 			Short: "Run BugHunt Suite Now",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -897,57 +897,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-credentials <credentialId>",
-			Short: "Get Credential",
-			Args:  cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("credentialId", args[0])
-				}
-				result, err := client.GetDastCredentialsCredentialId(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "delete-credentials <credentialId>",
 			Short: "Delete Credential",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -993,9 +945,57 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "get-credentials <credentialId>",
+			Short: "Get Credential",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("credentialId", args[0])
+				}
+				result, err := client.GetDastCredentialsCredentialId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "update-credentials <credentialId>",
 			Short: "Update Credential",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1043,7 +1043,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-validate-by-id <credentialId>",
 			Short: "Validate Credential",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1069,50 +1069,6 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 					params.Set("credentialId", args[0])
 				}
 				result, err := client.CreateDastCredentialsCredentialIdValidate(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-applications",
-			Short: "Create Application",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.CreateDastPentestApplications(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1180,9 +1136,101 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-applications",
+			Short: "Create Application",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateDastPentestApplications(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-applications <applicationId>",
+			Short: "Delete Pentest App Config",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("applicationId", args[0])
+				}
+				result, err := client.DeleteDastPentestApplicationsApplicationId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "get-applications <applicationId>",
 			Short: "Get Pentest App Config",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1230,7 +1278,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "update-applications <applicationId>",
 			Short: "Update Application",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1276,57 +1324,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "delete-applications <applicationId>",
-			Short: "Delete Pentest App Config",
-			Args:  cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("applicationId", args[0])
-				}
-				result, err := client.DeleteDastPentestApplicationsApplicationId(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "create-preflight-by-id <applicationId>",
 			Short: "Start Pentest Preflight",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1374,7 +1374,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-latest <applicationId>",
 			Short: "Get Latest Pentest Preflight for Application",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1422,7 +1422,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-quota <applicationId>",
 			Short: "Get Pentest Preflight Quota",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1468,7 +1468,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-findings",
+			Use:   "list-pentest-findings",
 			Short: "Get Pentest Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1530,9 +1530,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-findings <findingId>",
+			Use:   "get-pentest-findings <findingId>",
 			Short: "Get Pentest Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1580,7 +1580,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-allowlist-by-id <findingId>",
 			Short: "Allowlist Pentest Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1626,13 +1626,14 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-create_pr-by-id <findingId>",
-			Short: "Create PR from Cached Pentest Finding Autofix",
-			Args:  cobra.MaximumNArgs(1),
+			Use:   "get-activity <findingId>",
+			Short: "Get DAST Pentest Finding Autofix Activity",
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
+					"since-id": "since_id",
 					"azure-organization-id": "azureOrganizationId",
 					"bitbucket-workspace-id": "bitbucketWorkspaceId",
 					"github-owner-id": "githubOwnerId",
@@ -1653,13 +1654,15 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				if len(args) > 0 {
 					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateDastPentestFindingsFindingIdAutofixCacheCreatePr(cmd.Context(), params, os.Stdin)
+				result, err := client.ListDastPentestFindingsFindingIdAutofixActivity(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
 				return output.Print(cmd, result)
 			},
 		}
+		cmd.Flags().String("since-id", "", "")
+		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
 		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
@@ -1674,9 +1677,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-diff <findingId>",
+			Use:   "get-pentest-findings-autofix-cache-diff <findingId>",
 			Short: "Get Pentest Finding Autofix Diff",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1722,9 +1725,153 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-events <findingId>",
+			Use:   "create-fix-by-id <findingId>",
+			Short: "Post DAST Pentest Finding AutoFix",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.CreateDastPentestFindingsFindingIdAutofixFix(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-state <findingId>",
+			Short: "Get DAST Pentest Finding Autofix State",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.ListDastPentestFindingsFindingIdAutofixState(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-status <findingId>",
+			Short: "Get DAST Pentest Finding Autofix Status",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.ListDastPentestFindingsFindingIdAutofixStatus(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-pentest-findings-events <findingId>",
 			Short: "Get Pentest Finding Events",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1772,7 +1919,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-full <findingId>",
 			Short: "Get Pentest Finding Full",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1820,7 +1967,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-ticket-by-id <findingId>",
 			Short: "Create Jira Ticket for Pentest Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1866,9 +2013,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-triage <findingId>",
+			Use:   "get-pentest-findings-triage <findingId>",
 			Short: "Get Pentest Finding Full",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1916,7 +2063,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "create-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Pentest Finding",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1964,7 +2111,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-preflights <preflightId>",
 			Short: "Get Pentest Preflight",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2010,9 +2157,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-events <preflightId>",
+			Use:   "get-pentest-preflights-events <preflightId>",
 			Short: "Get Pentest Preflight Events",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2061,7 +2208,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-scans",
+			Use:   "list-pentest-scans",
 			Short: "Get Pentest Scans",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -2108,9 +2255,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-scans <scanId>",
+			Use:   "get-pentest-scans <scanId>",
 			Short: "Get Pentest Scan",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2156,9 +2303,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-findings <scanId>",
+			Use:   "get-pentest-scans-findings <scanId>",
 			Short: "Get Pentest Scan Findings",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2206,7 +2353,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-hypotheses <scanId>",
 			Short: "Get Auth Matrix Hypotheses",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2252,9 +2399,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-logs <scanId>",
+			Use:   "get-pentest-scans-logs <scanId>",
 			Short: "Get Sub-Agent Network Log",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2302,7 +2449,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-report <scanId>",
 			Short: "Get Pentest Scan Report",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2350,7 +2497,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 		cmd := &cobra.Command{
 			Use:   "get-download <scanId>",
 			Short: "Get Pentest Scan Report Download URL",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2396,9 +2543,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-pdf <scanId>",
+			Use:   "get-pentest-scans-report-external-pdf <scanId>",
 			Short: "Get Pentest Scan External Report PDF",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2444,9 +2591,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-pdf <scanId>",
+			Use:   "get-pentest-scans-report-pdf <scanId>",
 			Short: "Get Pentest Scan Report PDF",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2492,9 +2639,9 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-stop-by-id <scanId>",
+			Use:   "create-pentest-scans-stop-by-id <scanId>",
 			Short: "Stop Pentest Scan",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}

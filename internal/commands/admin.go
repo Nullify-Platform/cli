@@ -68,7 +68,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-findings",
+			Use:   "list-assessments-scan-coverage-findings",
 			Short: "Get Scan Coverage Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -181,8 +181,8 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "update-fix-effort",
-			Short: "Put Fix Effort Mapping",
+			Use:   "create-events",
+			Short: "List Unified Events",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -204,7 +204,143 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.UpdateAdminFixEffort(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateAdminEvents(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-finding <findingId>",
+			Short: "Get Finding",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("findingId", args[0])
+				}
+				result, err := client.GetAdminFindingFindingId(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-findings",
+			Short: "Query Findings",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminFindings(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-download",
+			Short: "Download Findings",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminFindingsDownload(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -249,6 +385,50 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 					}
 				})
 				result, err := client.ListAdminFixEffort(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "update-fix-effort",
+			Short: "Put Fix Effort Mapping",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.UpdateAdminFixEffort(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -592,8 +772,8 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-settings",
-			Short: "Upsert Cloud AWS Settings",
+			Use:   "delete-buildkite",
+			Short: "Delete Buildkite Integration",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -615,7 +795,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.CreateAdminIntegrationsCloudAwsSettings(cmd.Context(), params, os.Stdin)
+				result, err := client.DeleteAdminIntegrationsBuildkite(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
@@ -636,7 +816,271 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-settings",
+			Use:   "list-buildkite",
+			Short: "Get Buildkite Integration Status",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminIntegrationsBuildkite(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-integrations-buildkite-token",
+			Short: "Set Buildkite API Token",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminIntegrationsBuildkiteToken(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-circleci",
+			Short: "Delete CircleCI Integration",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.DeleteAdminIntegrationsCircleci(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-circleci",
+			Short: "Get CircleCI Integration Status",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminIntegrationsCircleci(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-integrations-circleci-token",
+			Short: "Set CircleCI API Token",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminIntegrationsCircleciToken(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-integrations-cloud-aws-settings",
+			Short: "Delete Cloud AWS Settings",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.DeleteAdminIntegrationsCloudAwsSettings(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-integrations-cloud-aws-settings",
 			Short: "Get Cloud AWS Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -680,8 +1124,8 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "delete-settings",
-			Short: "Delete Cloud AWS Settings",
+			Use:   "create-integrations-cloud-aws-settings",
+			Short: "Upsert Cloud AWS Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -703,7 +1147,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.DeleteAdminIntegrationsCloudAwsSettings(cmd.Context(), params)
+				result, err := client.CreateAdminIntegrationsCloudAwsSettings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -768,7 +1212,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "delete-settings",
+			Use:   "delete-integrations-cloud-azure-settings",
 			Short: "Delete Cloud Azure Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -812,7 +1256,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-settings",
+			Use:   "list-integrations-cloud-azure-settings",
 			Short: "Get Cloud Azure Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -856,7 +1300,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-settings",
+			Use:   "create-integrations-cloud-azure-settings",
 			Short: "Upsert Cloud Azure Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -900,7 +1344,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "delete-settings",
+			Use:   "delete-integrations-cloud-gcp-settings",
 			Short: "Delete Cloud GCP Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -944,7 +1388,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-settings",
+			Use:   "list-integrations-cloud-gcp-settings",
 			Short: "Get Cloud GCP Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -988,7 +1432,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-settings",
+			Use:   "create-integrations-cloud-gcp-settings",
 			Short: "Upsert Cloud GCP Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1164,8 +1608,8 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-jira",
-			Short: "Update Jira Configuration",
+			Use:   "delete-jenkins",
+			Short: "Delete Jenkins Integration",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -1187,7 +1631,95 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.CreateAdminIntegrationsJira(cmd.Context(), params, os.Stdin)
+				result, err := client.DeleteAdminIntegrationsJenkins(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-jenkins",
+			Short: "Get Jenkins Integration Status",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminIntegrationsJenkins(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-integrations-jenkins-token",
+			Short: "Set Jenkins API Token",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminIntegrationsJenkinsToken(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -1252,7 +1784,51 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-install",
+			Use:   "create-jira",
+			Short: "Update Jira Configuration",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminIntegrationsJira(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-integrations-linear-install",
 			Short: "Start Linear OAuth install",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1472,7 +2048,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-install",
+			Use:   "list-integrations-slack-install",
 			Short: "Start Slack distributed install",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1560,7 +2136,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-teams",
+			Use:   "list-integrations-teams",
 			Short: "Get Integration Teams",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1605,7 +2181,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-users",
+			Use:   "list-integrations-users",
 			Short: "Get Integration Users",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1650,99 +2226,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-finding <findingId>",
-			Short: "Get Finding",
-			Args:  cobra.MaximumNArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.GetAdminMetricsFindingFindingId(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-findings",
-			Short: "Query Findings",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.CreateAdminMetricsFindings(cmd.Context(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-analysis",
+			Use:   "create-metrics-findings",
 			Short: "Post Findings Metrics",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -1765,51 +2249,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.CreateAdminMetricsFindingsAnalysis(cmd.Context(), params, os.Stdin)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-download",
-			Short: "Download Findings",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.CreateAdminMetricsFindingsDownload(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateAdminMetricsFindings(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2007,6 +2447,162 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
+			Use:   "list-aggregate",
+			Short: "Usage Aggregate",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"branch-type": "branchType",
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminMetricsUsageAggregate(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("window", "", "")
+		cmd.Flags().String("class", "", "")
+		cmd.Flags().String("agent", "", "")
+		cmd.Flags().String("branch-type", "", "")
+		cmd.Flags().String("from", "", "")
+		cmd.Flags().String("to", "", "")
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-ledger",
+			Short: "Usage Ledger",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"branch-type": "branchType",
+					"run-id": "runId",
+					"finding-id": "findingId",
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminMetricsUsageLedger(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("class", "", "")
+		cmd.Flags().String("agent", "", "")
+		cmd.Flags().String("branch-type", "", "")
+		cmd.Flags().String("run-id", "", "")
+		cmd.Flags().String("finding-id", "", "")
+		cmd.Flags().String("from", "", "")
+		cmd.Flags().String("to", "", "")
+		cmd.Flags().String("cursor", "", "")
+		cmd.Flags().String("limit", "", "")
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-timeseries",
+			Short: "Usage Timeseries",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminMetricsUsageTimeseries(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("granularity", "", "")
+		cmd.Flags().String("from", "", "")
+		cmd.Flags().String("to", "", "")
+		cmd.Flags().String("class", "", "")
+		cmd.Flags().String("agent", "", "")
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-organization",
 			Short: "Get Organization",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -2148,6 +2744,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				params := url.Values{}
 				flagMap := map[string]string{
 					"next-token": "nextToken",
+					"team-i-ds": "teamIDs",
 					"azure-organization-id": "azureOrganizationId",
 					"bitbucket-workspace-id": "bitbucketWorkspaceId",
 					"github-owner-id": "githubOwnerId",
@@ -2175,6 +2772,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd.Flags().String("next-token", "", "Pagination token for the next page of results")
 		cmd.Flags().String("limit", "", "Maximum number of repositories to return per page")
 		cmd.Flags().String("search", "", "Case-insensitive search filter for repository names")
+		cmd.Flags().String("team-i-ds", "", "Filter repositories by team ULID")
 		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
 		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
@@ -2277,8 +2875,54 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-service_accounts",
-			Short: "Create Service Account",
+			Use:   "delete-repository-property-team-keys",
+			Short: "Delete Repository Property Team Key",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"key-id": "keyId",
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.DeleteAdminRepositoryPropertyTeamKeys(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("key-id", "", "The repository property team key ID")
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-repository-property-team-keys",
+			Short: "List Repository Property Team Keys",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2300,13 +2944,103 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.CreateAdminServiceAccounts(cmd.Context(), params, os.Stdin)
+				result, err := client.ListAdminRepositoryPropertyTeamKeys(cmd.Context(), params)
 				if err != nil {
 					return err
 				}
 				return output.Print(cmd, result)
 			},
 		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-repository-property-team-keys",
+			Short: "Create Repository Property Team Key",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminRepositoryPropertyTeamKeys(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-service_accounts",
+			Short: "Delete Service Account",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"service-account-id": "serviceAccountId",
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.DeleteAdminServiceAccounts(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("service-account-id", "", "The service account ID")
 		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
 		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
@@ -2365,13 +3099,12 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "delete-service_accounts",
-			Short: "Delete Service Account",
+			Use:   "create-service_accounts",
+			Short: "Create Service Account",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
 				flagMap := map[string]string{
-					"service-account-id": "serviceAccountId",
 					"azure-organization-id": "azureOrganizationId",
 					"bitbucket-workspace-id": "bitbucketWorkspaceId",
 					"github-owner-id": "githubOwnerId",
@@ -2389,14 +3122,13 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.DeleteAdminServiceAccounts(cmd.Context(), params)
+				result, err := client.CreateAdminServiceAccounts(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
 				return output.Print(cmd, result)
 			},
 		}
-		cmd.Flags().String("service-account-id", "", "The service account ID")
 		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
 		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
 		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
@@ -2545,7 +3277,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "patch-sla <slaId>",
 			Short: "Patch SLA",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2591,9 +3323,187 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
+			Use:   "list-team-source-preferences",
+			Short: "Get Team Source Preferences",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminTeamSourcePreferences(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "update-team-source-preferences",
+			Short: "Update Team Source Preferences",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.UpdateAdminTeamSourcePreferences(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-team-sync-runs",
+			Short: "List Team Sync Runs",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.ListAdminTeamSyncRuns(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("source", "", "")
+		cmd.Flags().String("limit", "", "")
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-team-sync-runs",
+			Short: "Trigger Team Sync",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminTeamSyncRuns(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "get-team <teamID>",
 			Short: "Get Team",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2619,50 +3529,6 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 					params.Set("teamID", args[0])
 				}
 				result, err := client.GetAdminTeamTeamID(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-teams",
-			Short: "Post Team",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.CreateAdminTeams(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2726,6 +3592,50 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd.Flags().String("next-token", "", "Pagination token for the next page of results")
 		cmd.Flags().String("limit", "", "Maximum number of teams to return per page")
 		cmd.Flags().String("search", "", "Case-insensitive search filter for team names")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-teams",
+			Short: "Post Team",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminTeams(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2819,7 +3729,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "list-findings",
+			Use:   "list-teams-findings",
 			Short: "Get All Team Findings mapping",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
@@ -2863,6 +3773,50 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-teams-findings",
+			Short: "Manual Team Findings Assignment",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminTeamsFindings(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "create-sync",
 			Short: "Sync Team Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -2886,7 +3840,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				result, err := client.CreateAdminTeamsFindingsSync(cmd.Context(), params)
+				result, err := client.CreateAdminTeamsFindingsSync(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -2951,9 +3905,57 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
+			Use:   "delete-teams <teamID>",
+			Short: "Delete Manual Team",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("teamID", args[0])
+				}
+				result, err := client.DeleteAdminTeamsTeamID(cmd.Context(), params)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "patch-teams <teamID>",
 			Short: "Patch Team",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -2999,9 +4001,57 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-events-by-id <teamID>",
+			Short: "List Team Unified Events",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("teamID", args[0])
+				}
+				result, err := client.CreateAdminTeamsTeamIDEvents(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "get-findings <teamID>",
 			Short: "Get Team Findings mapping",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3027,50 +4077,6 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 					params.Set("teamID", args[0])
 				}
 				result, err := client.ListAdminTeamsTeamIDFindings(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-savedViews",
-			Short: "Post UI Saved View",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.CreateAdminUiSavedViews(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -3135,9 +4141,8 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "patch-savedViews <savedViewId>",
-			Short: "Patch UI Saved View",
-			Args:  cobra.MaximumNArgs(1),
+			Use:   "create-savedViews",
+			Short: "Post UI Saved View",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3159,10 +4164,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 						params.Set(f.Name, f.Value.String())
 					}
 				})
-				if len(args) > 0 {
-					params.Set("savedViewId", args[0])
-				}
-				result, err := client.PatchAdminUiSavedViewsSavedViewId(cmd.Context(), params, os.Stdin)
+				result, err := client.CreateAdminUiSavedViews(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -3185,7 +4187,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "delete-savedViews <savedViewId>",
 			Short: "Delete UI Saved View",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3231,6 +4233,54 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
+			Use:   "patch-savedViews <savedViewId>",
+			Short: "Patch UI Saved View",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				if len(args) > 0 {
+					params.Set("savedViewId", args[0])
+				}
+				result, err := client.PatchAdminUiSavedViewsSavedViewId(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-current",
 			Short: "Get Current User",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -3255,50 +4305,6 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 					}
 				})
 				result, err := client.ListAdminUserCurrent(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, result)
-			},
-		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-mapping",
-			Short: "Post Add User Mappings",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.CreateAdminUserMapping(cmd.Context(), params, os.Stdin)
 				if err != nil {
 					return err
 				}
@@ -3367,6 +4373,50 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-mapping",
+			Short: "Post Add User Mappings",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client := getClient()
+				params := url.Values{}
+				flagMap := map[string]string{
+					"azure-organization-id": "azureOrganizationId",
+					"bitbucket-workspace-id": "bitbucketWorkspaceId",
+					"github-owner-id": "githubOwnerId",
+					"gitlab-group-id": "gitlabGroupId",
+					"installation-id": "installationId",
+					"azure-repository-id": "azureRepositoryId",
+					"github-repository-id": "githubRepositoryId",
+					"github-team-id": "githubTeamId",
+					"bitbucket-repository-id": "bitbucketRepositoryId",
+				}
+				cmd.Flags().Visit(func(f *pflag.Flag) {
+					if apiName, ok := flagMap[f.Name]; ok {
+						params.Set(apiName, f.Value.String())
+					} else {
+						params.Set(f.Name, f.Value.String())
+					}
+				})
+				result, err := client.CreateAdminUserMapping(cmd.Context(), params, os.Stdin)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, result)
+			},
+		}
+		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
+		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
+		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
+		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
+		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
+		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
+		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
+		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
+		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-suggestions",
 			Short: "Get User Mapping Suggestions",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -3413,7 +4463,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "delete-mapping <userId>",
 			Short: "Delete User Mapping",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3461,7 +4511,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "update-mapping <userId>",
 			Short: "Edit User Mapping",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3553,7 +4603,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-user <userID>",
 			Short: "Get User",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3733,7 +4783,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-users <providerID>",
 			Short: "Get Provider Users",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3779,9 +4829,9 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 
 	{
 		cmd := &cobra.Command{
-			Use:   "get-users <providerID> <userID>",
+			Use:   "get-users-2 <providerID> <userID>",
 			Short: "Get User By Provider",
-			Args:  cobra.MaximumNArgs(2),
+			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3832,7 +4882,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "delete-erasure <userId>",
 			Short: "Delete User Erasure (GDPR Art. 17)",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
@@ -3880,7 +4930,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 		cmd := &cobra.Command{
 			Use:   "get-export <userId>",
 			Short: "Get User Data Export (GDPR Art. 15, 20)",
-			Args:  cobra.MaximumNArgs(1),
+			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				params := url.Values{}
