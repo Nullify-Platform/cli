@@ -7,6 +7,7 @@ import (
 
 	"strings"
 
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/logger"
@@ -63,17 +64,20 @@ var mcpServeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Create a refreshing client for long-running MCP sessions
+		// Drive the generated API client through a refreshing+retrying transport
+		// so long-running MCP sessions keep working as the token rotates. Tenant
+		// scoping (owner/installation IDs, --repo) rides along as default params.
 		tokenProvider := func() (string, error) {
 			return lib.GetNullifyToken(ctx, authCtx.Host, nullifyToken, githubToken)
 		}
-		nullifyClient, clientErr := client.NewRefreshingNullifyClient(authCtx.Host, tokenProvider)
+		httpClient, clientErr := client.NewRefreshingHTTPClient(authCtx.Host, tokenProvider)
 		if clientErr != nil {
 			fmt.Fprintf(os.Stderr, "Error: failed to create client: %v\n", clientErr)
 			os.Exit(1)
 		}
+		apiClient := api.NewClient(authCtx.Host, "", queryParams, api.WithHTTPClient(httpClient))
 
-		err = mcp.ServeWithClient(ctx, nullifyClient, queryParams, toolSet)
+		err = mcp.ServeWithClient(ctx, apiClient, toolSet)
 		if err != nil {
 			logger.L(ctx).Error("MCP server error", logger.Err(err))
 			os.Exit(1)

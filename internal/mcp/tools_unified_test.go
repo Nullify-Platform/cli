@@ -1,109 +1,74 @@
 package mcp
 
 import (
-	"sort"
+	"reflect"
 	"testing"
 )
 
 func TestResolveFindingType(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   string
-		wantErr bool
-	}{
-		{"valid sast", "sast", false},
-		{"valid sca_dependencies", "sca_dependencies", false},
-		{"valid sca_containers", "sca_containers", false},
-		{"valid secrets", "secrets", false},
-		{"valid pentest", "pentest", false},
-		{"valid bughunt", "bughunt", false},
-		{"valid cspm", "cspm", false},
-		{"unknown type", "invalid", true},
-		{"empty type", "", true},
+	for _, name := range []string{"sast", "sca_dependencies", "sca_containers", "secrets", "pentest", "bughunt", "cspm"} {
+		ft, err := resolveFindingType(name)
+		if err != nil {
+			t.Errorf("unexpected error for type %q: %v", name, err)
+			continue
+		}
+		if ft.apiType == "" {
+			t.Errorf("expected non-empty apiType for %q", name)
+		}
+		if ft.get == nil {
+			t.Errorf("expected a get method for %q", name)
+		}
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := resolveFindingType(tt.input)
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("expected error for type %q, got nil", tt.input)
-				}
-				return
-			}
-			if err != nil {
-				t.Errorf("unexpected error for type %q: %v", tt.input, err)
-				return
-			}
-			if cfg.basePath == "" {
-				t.Errorf("expected non-empty basePath for type %q", tt.input)
-			}
-		})
+	for _, bad := range []string{"invalid", ""} {
+		if _, err := resolveFindingType(bad); err == nil {
+			t.Errorf("expected error for type %q, got nil", bad)
+		}
 	}
 }
 
-func TestFilterTypesByCapability(t *testing.T) {
-	tests := []struct {
-		name     string
-		capFn    func(findingTypeConfig) bool
-		expected []string
+func TestTypesWithCapability(t *testing.T) {
+	cases := []struct {
+		name string
+		pick func(findingType) bool
+		want []string
 	}{
 		{
-			name:     "triage support",
-			capFn:    func(c findingTypeConfig) bool { return c.triage },
-			expected: []string{"pentest", "sast", "sca_containers", "sca_dependencies", "secrets"},
+			name: "allowlist",
+			pick: func(ft findingType) bool { return ft.allowlist != nil },
+			want: []string{"bughunt", "pentest", "sast", "sca_containers", "sca_dependencies", "secrets"},
 		},
 		{
-			name:     "autofix support",
-			capFn:    func(c findingTypeConfig) bool { return c.autofix },
-			expected: []string{"sast", "sca_dependencies"},
+			name: "autofix",
+			pick: func(ft findingType) bool { return ft.autofixFix != nil },
+			want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies"},
 		},
 		{
-			name:     "ticket support",
-			capFn:    func(c findingTypeConfig) bool { return c.ticket },
-			expected: []string{"pentest", "sast", "sca_dependencies", "secrets"},
-		},
-		{
-			name:     "events support",
-			capFn:    func(c findingTypeConfig) bool { return c.events },
-			expected: []string{"pentest", "sast", "sca_dependencies", "secrets"},
+			name: "ticket",
+			pick: func(ft findingType) bool { return ft.ticket != nil },
+			want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "secrets"},
 		},
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := filterTypesByCapability(tt.capFn)
-			sort.Strings(got)
-			sort.Strings(tt.expected)
-
-			if len(got) != len(tt.expected) {
-				t.Errorf("got %v, want %v", got, tt.expected)
-				return
-			}
-			for i := range got {
-				if got[i] != tt.expected[i] {
-					t.Errorf("got %v, want %v", got, tt.expected)
-					return
-				}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := typesWith(tc.pick); !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("typesWith(%s) = %v, want %v", tc.name, got, tc.want)
 			}
 		})
 	}
 }
 
 func TestAllFindingTypeNames(t *testing.T) {
-	names := allFindingTypeNames()
-	if len(names) != 7 {
+	if names := allFindingTypeNames(); len(names) != 7 {
 		t.Errorf("expected 7 finding types, got %d: %v", len(names), names)
 	}
 }
 
 func TestValidToolSets(t *testing.T) {
 	sets := ValidToolSets()
-	if len(sets) != 5 {
-		t.Errorf("expected 5 tool sets, got %d: %v", len(sets), sets)
-	}
-
 	expected := map[string]bool{"default": true, "all": true, "minimal": true, "findings": true, "admin": true}
+	if len(sets) != len(expected) {
+		t.Errorf("expected %d tool sets, got %d: %v", len(expected), len(sets), sets)
+	}
 	for _, s := range sets {
 		if !expected[s] {
 			t.Errorf("unexpected tool set %q", s)

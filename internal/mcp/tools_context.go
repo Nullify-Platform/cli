@@ -3,94 +3,95 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"net/url"
 
-	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/api"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerContextTools(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string) {
+// registerContextTools exposes repository/application inventory and SBOM
+// retrieval. SBOM generate/resolve are pipeline-internal (need clone URL /
+// commit SHA) and are intentionally left to `nullify api context`.
+func registerContextTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool(
-			"list_repositories",
-			mcp.WithDescription("List repositories monitored by Nullify. Shows all connected code repositories with their classification and scanning status."),
-			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
+		mcp.NewTool("list_repositories",
+			mcp.WithDescription("List repositories Nullify monitors for the authenticated installation."),
+			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
-		makeGetHandler(c, "/context/repositories", queryParams),
-	)
-
-	s.AddTool(
-		mcp.NewTool(
-			"get_repository",
-			mcp.WithDescription("Get detailed information about a specific monitored repository."),
-			mcp.WithString("id", mcp.Required(), mcp.Description("The repository ID")),
-		),
-		makeGetByIDHandler(c, "/context/repositories", queryParams),
-	)
-
-	s.AddTool(
-		mcp.NewTool(
-			"list_applications",
-			mcp.WithDescription("List applications classified by Nullify. Applications are logical groupings of repositories and services that form a product or system."),
-			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
-		),
-		makeGetHandler(c, "/context/applications", queryParams),
-	)
-
-	s.AddTool(
-		mcp.NewTool(
-			"get_application",
-			mcp.WithDescription("Get detailed information about a specific application, including its associated repositories and dependencies."),
-			mcp.WithString("id", mcp.Required(), mcp.Description("The application ID")),
-		),
-		makeGetByIDHandler(c, "/context/applications", queryParams),
-	)
-
-	s.AddTool(
-		mcp.NewTool(
-			"list_dependencies",
-			mcp.WithDescription("List third-party dependencies across all monitored repositories. Useful for understanding your supply chain."),
-			mcp.WithNumber("pageSize", mcp.Description("Max results per page (default 20)")),
-			mcp.WithString("cursor", mcp.Description("Pagination cursor from previous response")),
-		),
-		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			args := request.GetArguments()
-			extra := []string{}
-			if ps := getIntArg(args, "pageSize", 0); ps > 0 {
-				extra = append(extra, "pageSize", fmt.Sprintf("%d", ps))
-			}
-			if cur := getStringArg(args, "cursor"); cur != "" {
-				extra = append(extra, "cursor", cur)
-			}
-			qs := buildQueryString(queryParams, extra...)
-			return doGet(ctx, c, "/context/deps"+qs)
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return wrap(c.ListContextRepositories(ctx, listParams(req)))
 		},
 	)
 
 	s.AddTool(
-		mcp.NewTool(
-			"get_sbom",
-			mcp.WithDescription("Get the Software Bill of Materials (SBOM) for a specific repository project."),
-			mcp.WithString("repo_id", mcp.Required(), mcp.Description("The repository ID")),
-			mcp.WithString("project_id", mcp.Required(), mcp.Description("The project ID")),
+		mcp.NewTool("get_repository",
+			mcp.WithDescription("Get a repository by its internal repository ID."),
+			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
 		),
-		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			args := request.GetArguments()
-			repoID := getStringArg(args, "repo_id")
-			projectID := getStringArg(args, "project_id")
-			qs := buildQueryString(queryParams)
-			return doGet(ctx, c, fmt.Sprintf("/context/sboms/repository/%s/project/%s%s", repoID, projectID, qs))
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			p := url.Values{}
+			p.Set("repositoryId", getStringArg(req.GetArguments(), "repository_id"))
+			return wrap(c.GetContextRepositoriesRepositoryId(ctx, p))
 		},
 	)
 
 	s.AddTool(
-		mcp.NewTool(
-			"get_dependency_exposure",
-			mcp.WithDescription("Get dependency exposure analysis showing which dependencies are exposed to the internet or internal networks."),
-			mcp.WithString("ecosystem", mcp.Required(), mcp.Description("Package ecosystem (e.g. npm, pip, maven, go, nuget)")),
-			mcp.WithString("name", mcp.Required(), mcp.Description("Dependency name to check exposure for")),
+		mcp.NewTool("list_applications",
+			mcp.WithDescription("List applications (logical groupings of repositories) in the org."),
+			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
-		makeGetHandler(c, "/context/deps/exposure", queryParams),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return wrap(c.ListContextApplications(ctx, listParams(req)))
+		},
 	)
+
+	s.AddTool(
+		mcp.NewTool("get_application",
+			mcp.WithDescription("Get an application by its ID."),
+			mcp.WithString("application_id", mcp.Required(), mcp.Description("Application ID")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			p := url.Values{}
+			p.Set("applicationId", getStringArg(req.GetArguments(), "application_id"))
+			return wrap(c.GetContextApplicationsApplicationId(ctx, p))
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool("get_latest_sbom",
+			mcp.WithDescription("Get the latest CycloneDX SBOM for a repository."),
+			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			p := url.Values{}
+			p.Set("repositoryId", getStringArg(req.GetArguments(), "repository_id"))
+			return wrap(c.ListContextSbomsRepositoryRepositoryIdLatest(ctx, p))
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool("get_sbom",
+			mcp.WithDescription("Get the SBOM for a specific repository project."),
+			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
+			mcp.WithString("project_id", mcp.Required(), mcp.Description("Project ID within the repository")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := req.GetArguments()
+			p := url.Values{}
+			p.Set("repositoryId", getStringArg(args, "repository_id"))
+			p.Set("projectId", getStringArg(args, "project_id"))
+			return wrap(c.GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx, p))
+		},
+	)
+}
+
+// listParams builds url.Values for a list tool, forwarding an optional limit.
+func listParams(req mcp.CallToolRequest) url.Values {
+	p := url.Values{}
+	if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
+		p.Set("limit", fmt.Sprintf("%d", n))
+	}
+	return p
 }
