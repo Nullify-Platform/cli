@@ -1,7 +1,8 @@
-// generate reads the merged OpenAPI spec and produces a typed Go API client
-// and cobra command files for the CLI.
+// generate reads the OpenAPI bundle and produces a typed Go API client and
+// cobra command files for the CLI. The bundle is vendored at spec/ from a
+// pinned monorepo commit (see `make fetch-spec`).
 //
-// Usage: go run ./scripts/generate/main.go --spec ../public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml
+// Usage: go run ./scripts/generate/main.go --spec spec/nullify-openapi-bundle.yaml
 package main
 
 import (
@@ -126,7 +127,7 @@ type Endpoint struct {
 }
 
 func main() {
-	specPath := "../public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml"
+	specPath := "spec/nullify-openapi-bundle.yaml"
 	outputDir := "internal/api"
 	cmdOutputDir := "internal/commands"
 
@@ -230,11 +231,18 @@ func extractEndpoints(spec OpenAPISpec) []Endpoint {
 		}
 	}
 
+	// Sort fully deterministically. The spec's paths/methods are decoded from YAML
+	// maps (random iteration order), so we must tie-break all the way down to the
+	// method; otherwise two operations on the same path can swap order between runs
+	// and produce spurious regeneration diffs (flaky drift checks).
 	sort.Slice(endpoints, func(i, j int) bool {
 		if endpoints[i].Service != endpoints[j].Service {
 			return endpoints[i].Service < endpoints[j].Service
 		}
-		return endpoints[i].Path < endpoints[j].Path
+		if endpoints[i].Path != endpoints[j].Path {
+			return endpoints[i].Path < endpoints[j].Path
+		}
+		return endpoints[i].Method < endpoints[j].Method
 	})
 
 	return endpoints
