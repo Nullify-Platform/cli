@@ -375,11 +375,11 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 				return toolError(fmt.Errorf("trigger autofix: %w", err)), nil
 			}
 
-			// Poll status until the agent reaches a terminal state. Autofix is an
-			// async Step-Function/Fargate job, so we must wait rather than read a
-			// possibly-empty cache immediately.
+			// Phase 1: wait for the fix to generate. Autofix is an async
+			// Step-Function/Fargate job, so we poll rather than read a possibly-
+			// empty cache immediately.
 			if ft.autofixState != nil {
-				if err := pollAutofix(ctx, c, ft, params); err != nil {
+				if _, err := pollAutofix(ctx, c, ft, params, false); err != nil {
 					return toolError(err), nil
 				}
 			}
@@ -393,15 +393,24 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 				parts = append(parts, "--- diff ---\n"+string(diff))
 			}
 
-			createPR, _ := args["create_pr"].(bool)
-			if createPR && ft.autofixCreatePR != nil {
-				pr, err := ft.autofixCreatePR(c, ctx, params, nil)
-				if err != nil {
-					return toolError(fmt.Errorf("create PR: %w", err)), nil
+			if createPR, _ := args["create_pr"].(bool); createPR {
+				// Some types have an explicit create-PR endpoint; for the rest the
+				// fix run opens the PR itself. Either way, poll PR-creation status
+				// and surface the resulting URL for a complete experience.
+				if ft.autofixCreatePR != nil {
+					if _, err := ft.autofixCreatePR(c, ctx, params, nil); err != nil {
+						return toolError(fmt.Errorf("create PR: %w", err)), nil
+					}
 				}
-				parts = append(parts, "--- pull request ---\n"+string(pr))
-			} else if createPR && ft.autofixCreatePR == nil {
-				parts = append(parts, "--- pull request ---\nNote: this finding type opens the PR as part of the fix run; no separate create-PR call is needed.")
+				if ft.autofixState != nil {
+					st, err := pollAutofix(ctx, c, ft, params, true)
+					if err != nil {
+						return toolError(err), nil
+					}
+					parts = append(parts, formatPRResult(st))
+				} else {
+					parts = append(parts, "--- pull request ---\nPR requested; check the finding in the dashboard for status.")
+				}
 			}
 
 			if len(parts) == 0 {
@@ -410,6 +419,18 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			return toolResult(strings.Join(parts, "\n\n")), nil
 		},
 	)
+}
+
+// formatPRResult renders the PR phase of an autofix status for the tool output.
+func formatPRResult(st autofixStatus) string {
+	switch {
+	case st.PullRequestURL != "":
+		return "--- pull request ---\nOpened: " + st.PullRequestURL
+	case st.PullRequestState != "":
+		return "--- pull request ---\nState: " + st.PullRequestState + " (no URL yet; check the dashboard)"
+	default:
+		return "--- pull request ---\nPR creation in progress; no URL reported yet."
+	}
 }
 
 // findingByIDHandler builds a handler for a no-body, by-ID finding method.
@@ -430,26 +451,49 @@ func findingByIDHandler(c *api.Client, pick func(findingType) methodNoBody, capa
 	}
 }
 
-// pollAutofix polls the autofix status endpoint until it reports a terminal
-// state or the deadline passes.
-func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.Values) error {
-	deadline := time.Now().Add(3 * time.Minute)
+// autofixStatus is the subset of the autofix/status payload we poll on. The
+// endpoint reports both the fix-generation state and, once a PR is requested,
+// the pull-request state and URL.
+type autofixStatus struct {
+	State            string `json:"state"`
+	PullRequestState string `json:"pullRequestState"`
+	PullRequestURL   string `json:"pullRequestUrl"`
+}
+
+func isTerminalState(s string) bool {
+	s = strings.ToLower(s)
+	for _, term := range []string{"complet", "success", "succeed", "done", "created", "open", "merged", "fail", "error", "cancel"} {
+		if strings.Contains(s, term) {
+			return true
+		}
+	}
+	return false
+}
+
+// pollAutofix polls the autofix status endpoint until the watched phase reaches
+// a terminal state or the deadline passes. When watchPR is false it waits on the
+// fix-generation state; when true it waits on PR creation (a non-empty
+// pullRequestUrl or terminal pullRequestState). It returns the last status seen.
+func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.Values, watchPR bool) (autofixStatus, error) {
+	deadline := time.Now().Add(5 * time.Minute)
+	var last autofixStatus
 	for {
 		data, err := ft.autofixState(c, ctx, params)
 		if err != nil {
-			return fmt.Errorf("poll autofix status: %w", err)
+			return last, fmt.Errorf("poll autofix status: %w", err)
 		}
-		lower := strings.ToLower(string(data))
-		if strings.Contains(lower, "complet") || strings.Contains(lower, "success") ||
-			strings.Contains(lower, "fail") || strings.Contains(lower, "error") {
-			return nil
+		_ = json.Unmarshal(data, &last)
+
+		done := isTerminalState(last.State)
+		if watchPR {
+			done = last.PullRequestURL != "" || isTerminalState(last.PullRequestState)
 		}
-		if time.Now().After(deadline) {
-			return nil // return whatever diff exists rather than erroring on a slow agent
+		if done || time.Now().After(deadline) {
+			return last, nil // on timeout, return what we have rather than erroring on a slow agent
 		}
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return last, ctx.Err()
 		case <-time.After(3 * time.Second):
 		}
 	}
