@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"net/http"
 	"os"
-	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/auth"
@@ -84,11 +82,9 @@ func init() {
 			}
 		}
 
-		retryHTTPClient := &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: client.NewRetryTransport(http.DefaultTransport),
-		}
-		return api.NewClient(nullifyHost, token, defaultParams, api.WithHTTPClient(retryHTTPClient))
+		// api.NewClient defaults to a retrying HTTP client, so no
+		// WithHTTPClient override is needed here.
+		return api.NewClient(nullifyHost, token, defaultParams)
 	}
 
 	// Register generated API commands under 'api' parent for cleaner top-level help
