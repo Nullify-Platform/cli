@@ -6,14 +6,14 @@ import (
 )
 
 func TestResolveFindingType(t *testing.T) {
-	for _, name := range []string{"sast", "sca_dependencies", "sca_containers", "secrets", "pentest", "bughunt", "cspm"} {
+	for _, name := range []string{"sast", "sca_dependencies", "sca_containers", "secrets", "pentest", "bughunt", "cspm", "scpm"} {
 		ft, err := resolveFindingType(name)
 		if err != nil {
 			t.Errorf("unexpected error for type %q: %v", name, err)
 			continue
 		}
-		if ft.apiType == "" {
-			t.Errorf("expected non-empty apiType for %q", name)
+		if len(ft.apiTypes) == 0 {
+			t.Errorf("expected non-empty apiTypes for %q", name)
 		}
 		if ft.get == nil {
 			t.Errorf("expected a get method for %q", name)
@@ -35,17 +35,27 @@ func TestTypesWithCapability(t *testing.T) {
 		{
 			name: "allowlist",
 			pick: func(ft findingType) bool { return ft.allowlist != nil },
-			want: []string{"bughunt", "pentest", "sast", "sca_containers", "sca_dependencies", "secrets"},
+			want: []string{"bughunt", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"},
 		},
 		{
 			name: "autofix",
 			pick: func(ft findingType) bool { return ft.autofixFix != nil },
-			want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies"},
+			want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm"},
 		},
 		{
 			name: "ticket",
 			pick: func(ft findingType) bool { return ft.ticket != nil },
 			want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "secrets"},
+		},
+		{
+			name: "triage",
+			pick: func(ft findingType) bool { return ft.triage != nil },
+			want: []string{"bughunt", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"},
+		},
+		{
+			name: "autofix create-PR",
+			pick: func(ft findingType) bool { return ft.autofixCreatePR != nil },
+			want: []string{"scpm"},
 		},
 	}
 	for _, tc := range cases {
@@ -58,8 +68,8 @@ func TestTypesWithCapability(t *testing.T) {
 }
 
 func TestAllFindingTypeNames(t *testing.T) {
-	if names := allFindingTypeNames(); len(names) != 7 {
-		t.Errorf("expected 7 finding types, got %d: %v", len(names), names)
+	if names := allFindingTypeNames(); len(names) != 8 {
+		t.Errorf("expected 8 finding types, got %d: %v", len(names), names)
 	}
 }
 

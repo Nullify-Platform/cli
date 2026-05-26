@@ -27,22 +27,23 @@ type methodWithBody = func(*api.Client, context.Context, url.Values, io.Reader) 
 // method means the platform does not support that capability for the type, and
 // the unified tool will not offer it for that type.
 type findingType struct {
-	apiType      string // value for the /admin/findings "type" filter
-	get          methodNoBody
-	events       methodNoBody
-	ticket       methodWithBody
-	allowlist    methodWithBody
-	unallowlist  methodWithBody
-	autofixFix   methodWithBody
-	autofixState methodNoBody
-	autofixDiff  methodNoBody
+	apiTypes        []string // values for the /admin/findings + /admin/events "type" filter
+	get             methodNoBody
+	triage          methodNoBody // GET .../triage — AI-triage detail (read-only)
+	ticket          methodWithBody
+	allowlist       methodWithBody
+	unallowlist     methodWithBody
+	autofixFix      methodWithBody
+	autofixState    methodNoBody
+	autofixDiff     methodNoBody
+	autofixCreatePR methodWithBody
 }
 
 var findingTypes = map[string]findingType{
 	"sast": {
-		apiType:      "Code",
+		apiTypes:     []string{"Code"},
 		get:          (*api.Client).GetSastFindingsFindingId,
-		events:       (*api.Client).ListSastFindingsFindingIdEvents,
+		triage:       (*api.Client).ListSastFindingsFindingIdTriage,
 		ticket:       (*api.Client).CreateSastFindingsFindingIdTicket,
 		allowlist:    (*api.Client).CreateSastFindingsFindingIdAllowlist,
 		unallowlist:  (*api.Client).CreateSastFindingsFindingIdUnallowlist,
@@ -51,9 +52,9 @@ var findingTypes = map[string]findingType{
 		autofixDiff:  (*api.Client).ListSastFindingsFindingIdAutofixCacheDiff,
 	},
 	"sca_dependencies": {
-		apiType:      "Dependencies",
+		apiTypes:     []string{"Dependencies"},
 		get:          (*api.Client).GetScaDependenciesFindingsFindingId,
-		events:       (*api.Client).ListScaDependenciesFindingsFindingIdEvents,
+		triage:       (*api.Client).ListScaDependenciesFindingsFindingIdTriage,
 		ticket:       (*api.Client).CreateScaDependenciesFindingsFindingIdTicket,
 		allowlist:    (*api.Client).CreateScaDependenciesFindingsFindingIdAllowlist,
 		unallowlist:  (*api.Client).CreateScaDependenciesFindingsFindingIdUnallowlist,
@@ -62,9 +63,9 @@ var findingTypes = map[string]findingType{
 		autofixDiff:  (*api.Client).ListScaDependenciesFindingsFindingIdAutofixCacheDiff,
 	},
 	"sca_containers": {
-		apiType:      "Containers",
+		apiTypes:     []string{"Containers"},
 		get:          (*api.Client).GetScaContainersFindingsFindingId,
-		events:       (*api.Client).ListScaContainersFindingsFindingIdEvents,
+		triage:       (*api.Client).ListScaContainersFindingsFindingIdTriage,
 		ticket:       (*api.Client).CreateScaContainersFindingsFindingIdTicket,
 		allowlist:    (*api.Client).CreateScaContainersFindingsFindingIdAllowlist,
 		unallowlist:  (*api.Client).CreateScaContainersFindingsFindingIdUnallowlist,
@@ -73,18 +74,18 @@ var findingTypes = map[string]findingType{
 		// containers expose no cache-diff endpoint
 	},
 	"secrets": {
-		apiType:     "Secrets",
+		apiTypes:    []string{"SecretsCredentials", "SecretsSensitiveData"},
 		get:         (*api.Client).GetSecretsFindingsFindingId,
-		events:      (*api.Client).ListSecretsFindingsFindingIdEvents,
+		triage:      (*api.Client).ListSecretsFindingsFindingIdTriage,
 		ticket:      (*api.Client).CreateSecretsFindingsFindingIdTicket,
 		allowlist:   (*api.Client).CreateSecretsFindingsFindingIdAllowlist,
 		unallowlist: (*api.Client).CreateSecretsFindingsFindingIdUnallowlist,
 		// secrets have no autofix
 	},
 	"pentest": {
-		apiType:      "Pentest",
+		apiTypes:     []string{"Pentest"},
 		get:          (*api.Client).GetDastPentestFindingsFindingId,
-		events:       (*api.Client).ListDastPentestFindingsFindingIdEvents,
+		triage:       (*api.Client).ListDastPentestFindingsFindingIdTriage,
 		ticket:       (*api.Client).CreateDastPentestFindingsFindingIdTicket,
 		allowlist:    (*api.Client).CreateDastPentestFindingsFindingIdAllowlist,
 		unallowlist:  (*api.Client).CreateDastPentestFindingsFindingIdUnallowlist,
@@ -93,20 +94,32 @@ var findingTypes = map[string]findingType{
 		autofixDiff:  (*api.Client).ListDastPentestFindingsFindingIdAutofixCacheDiff,
 	},
 	"bughunt": {
-		apiType:   "BugHunting",
+		apiTypes:  []string{"BugHunt"},
 		get:       (*api.Client).GetDastBughuntFindingsFindingId,
-		events:    (*api.Client).ListDastBughuntFindingsFindingIdEvents,
+		triage:    (*api.Client).ListDastBughuntFindingsFindingIdTriage,
 		allowlist: (*api.Client).PatchDastBughuntFindingsFindingIdAllowlist,
 		// bughunt has no ticket/unallowlist/autofix
 	},
 	"cspm": {
-		apiType:      "Cloud",
+		apiTypes:     []string{"Cloud"},
 		get:          (*api.Client).GetCspmFindingsFindingId,
 		ticket:       (*api.Client).CreateCspmFindingsFindingIdTicket,
 		autofixFix:   (*api.Client).CreateCspmFindingsFindingIdAutofixFix,
 		autofixState: (*api.Client).ListCspmFindingsFindingIdAutofixStatus,
 		autofixDiff:  (*api.Client).ListCspmFindingsFindingIdAutofixCacheDiff,
-		// cspm has no events/allowlist
+		// cspm has no events/allowlist; triage endpoint not exposed
+	},
+	"scpm": {
+		apiTypes:        []string{"Platform"},
+		get:             (*api.Client).GetScpmFindingsFindingId,
+		triage:          (*api.Client).ListScpmFindingsFindingIdTriage,
+		allowlist:       (*api.Client).CreateScpmFindingsFindingIdAllowlist,
+		unallowlist:     (*api.Client).CreateScpmFindingsFindingIdUnallowlist,
+		autofixFix:      (*api.Client).CreateScpmFindingsFindingIdAutofixFix,
+		autofixState:    (*api.Client).ListScpmFindingsFindingIdAutofixStatus,
+		autofixDiff:     (*api.Client).ListScpmFindingsFindingIdAutofixCacheDiff,
+		autofixCreatePR: (*api.Client).CreateScpmFindingsFindingIdAutofixCacheCreatePr,
+		// scpm has no ticket endpoint
 	},
 }
 
@@ -183,7 +196,7 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 					if err != nil {
 						return toolError(err), nil
 					}
-					query["type"] = []string{ft.apiType}
+					query["type"] = ft.apiTypes
 				}
 				switch getStringArg(args, "status") {
 				case "open":
@@ -230,15 +243,33 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 		findingByIDHandler(c, func(ft findingType) methodNoBody { return ft.get }, "get"),
 	)
 
-	// 3. event history.
+	// 3. event history via the unified /admin/events feed (filtered by finding).
 	s.AddTool(
 		mcp.NewTool(
 			"nullify_get_finding_events",
-			mcp.WithDescription("Get the event history for a finding."),
-			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(typesWith(func(ft findingType) bool { return ft.events != nil })...)),
+			mcp.WithDescription("Get the event history for a finding (status changes, triage, autofix activity)."),
+			mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
+			mcp.WithNumber("limit", mcp.Description("Max events (default 50)")),
+		),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := request.GetArguments()
+			body, _ := json.Marshal(map[string]any{
+				"findingIds": []string{getStringArg(args, "id")},
+				"limit":      getIntArg(args, "limit", 50),
+			})
+			return wrap(c.CreateAdminEvents(ctx, url.Values{}, bytes.NewReader(body)))
+		},
+	)
+
+	// 3b. AI-triage detail (read-only) per finding type.
+	s.AddTool(
+		mcp.NewTool(
+			"nullify_get_finding_triage",
+			mcp.WithDescription("Get the AI-triage analysis for a finding: the model's assessment of exploitability, severity, and recommended disposition."),
+			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(typesWith(func(ft findingType) bool { return ft.triage != nil })...)),
 			mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
 		),
-		findingByIDHandler(c, func(ft findingType) methodNoBody { return ft.events }, "events"),
+		findingByIDHandler(c, func(ft findingType) methodNoBody { return ft.triage }, "triage"),
 	)
 
 	// 4. create a ticket.
@@ -318,13 +349,15 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 		},
 	)
 
-	// 7. autofix: trigger, poll to completion, return the diff.
+	// 7. autofix: trigger, poll to completion, return the diff, and (where a
+	// create-PR endpoint exists) optionally open the pull request.
 	s.AddTool(
 		mcp.NewTool(
 			"nullify_fix_finding",
-			mcp.WithDescription("Generate an autofix for a finding. Triggers the fix agent, waits for it to finish, and returns the resulting diff. Autofix runs asynchronously server-side."),
+			mcp.WithDescription("Generate an autofix for a finding: triggers the fix agent, waits for it to finish, and returns the resulting diff. Autofix runs asynchronously server-side. Set create_pr=true to also open a pull request for finding types that support it."),
 			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(typesWith(func(ft findingType) bool { return ft.autofixFix != nil })...)),
 			mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
+			mcp.WithBoolean("create_pr", mcp.Description("Open a pull request from the generated fix (only for types with a create-PR endpoint)")),
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := request.GetArguments()
@@ -351,10 +384,30 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 				}
 			}
 
-			if ft.autofixDiff == nil {
-				return toolResult("Autofix triggered. No diff endpoint is available for this finding type; check the finding in the dashboard."), nil
+			var parts []string
+			if ft.autofixDiff != nil {
+				diff, err := ft.autofixDiff(c, ctx, params)
+				if err != nil {
+					return toolError(fmt.Errorf("get autofix diff: %w", err)), nil
+				}
+				parts = append(parts, "--- diff ---\n"+string(diff))
 			}
-			return wrap(ft.autofixDiff(c, ctx, params))
+
+			createPR, _ := args["create_pr"].(bool)
+			if createPR && ft.autofixCreatePR != nil {
+				pr, err := ft.autofixCreatePR(c, ctx, params, nil)
+				if err != nil {
+					return toolError(fmt.Errorf("create PR: %w", err)), nil
+				}
+				parts = append(parts, "--- pull request ---\n"+string(pr))
+			} else if createPR && ft.autofixCreatePR == nil {
+				parts = append(parts, "--- pull request ---\nNote: this finding type opens the PR as part of the fix run; no separate create-PR call is needed.")
+			}
+
+			if len(parts) == 0 {
+				return toolResult("Autofix triggered; no diff endpoint is available for this finding type. Check the finding in the dashboard."), nil
+			}
+			return toolResult(strings.Join(parts, "\n\n")), nil
 		},
 	)
 }
