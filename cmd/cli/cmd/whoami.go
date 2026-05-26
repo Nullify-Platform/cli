@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/logger"
@@ -14,11 +13,14 @@ import (
 var whoamiCmd = &cobra.Command{
 	Use:   "whoami",
 	Short: "Show current authentication status",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
 
-		whoamiHost := resolveHost(ctx)
+		whoamiHost, err := resolveHostE(ctx)
+		if err != nil {
+			return err
+		}
 
 		info := map[string]any{
 			"host": whoamiHost,
@@ -44,9 +46,9 @@ var whoamiCmd = &cobra.Command{
 		out, _ := json.MarshalIndent(info, "", "  ")
 
 		if err := output.Print(cmd, out); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			return err
 		}
+		return nil
 	},
 }
 

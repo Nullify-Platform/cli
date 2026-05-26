@@ -13,11 +13,14 @@ import (
 var openCmd = &cobra.Command{
 	Use:   "open",
 	Short: "Open the Nullify dashboard in your browser",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
 
-		openHost := resolveHost(ctx)
+		openHost, err := resolveHostE(ctx)
+		if err != nil {
+			return err
+		}
 		// Strip "api." prefix to get the dashboard URL
 		dashboardHost := strings.TrimPrefix(openHost, "api.")
 		url := "https://" + dashboardHost
@@ -27,9 +30,10 @@ var openCmd = &cobra.Command{
 		}
 
 		if err := auth.OpenBrowser(url); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: could not open browser: %v\nVisit %s manually.\n", err, url)
-			os.Exit(1)
+			fmt.Fprintf(os.Stderr, "Visit %s manually.\n", url)
+			return fmt.Errorf("could not open browser: %w", err)
 		}
+		return nil
 	},
 }
 

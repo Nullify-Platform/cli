@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
 
@@ -14,14 +13,13 @@ import (
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Check for CLI updates",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		ghClient := github.NewClient(nil)
 
 		release, _, err := ghClient.Repositories.GetLatestRelease(ctx, "Nullify-Platform", "cli")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error checking for updates: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("checking for updates: %w", err)
 		}
 
 		latestVersion := strings.TrimPrefix(release.GetTagName(), "v")
@@ -29,7 +27,7 @@ var updateCmd = &cobra.Command{
 
 		if latestVersion == currentVersion || currentVersion == "dev" {
 			fmt.Printf("You are running the latest version (%s)\n", logger.Version)
-			return
+			return nil
 		}
 
 		fmt.Printf("A new version is available: %s (current: %s)\n\n", latestVersion, logger.Version)
@@ -46,6 +44,7 @@ var updateCmd = &cobra.Command{
 		fmt.Println("  # Direct download")
 		fmt.Printf("  curl -sSL https://github.com/Nullify-Platform/cli/releases/download/v%s/nullify_%s_%s.tar.gz | tar xz\n",
 			latestVersion, runtime.GOOS, runtime.GOARCH)
+		return nil
 	},
 }
 

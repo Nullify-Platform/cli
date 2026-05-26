@@ -8,6 +8,8 @@ import (
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
+		// cobra has already printed the error (SilenceErrors is false).
+		// Map it to the appropriate process exit code in one place.
+		os.Exit(cmd.ExitCodeForError(err))
 	}
 }

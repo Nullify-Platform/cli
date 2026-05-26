@@ -14,6 +14,17 @@ import (
 	"github.com/nullify-platform/cli/internal/logger"
 )
 
+// stdinIsTTY reports whether stdin is connected to an interactive terminal.
+// Steps that prompt for input use this to fail fast in non-interactive
+// environments (CI, pipes) instead of blocking forever on a read.
+func stdinIsTTY() bool {
+	info, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+	return info.Mode()&os.ModeCharDevice != 0
+}
+
 // DomainStep checks if a valid host is configured and prompts the user if not.
 func DomainStep() Step {
 	return Step{
@@ -23,6 +34,9 @@ func DomainStep() Step {
 			return err == nil && cfg.Host != ""
 		},
 		Execute: func(ctx context.Context) error {
+			if !stdinIsTTY() {
+				return fmt.Errorf("not a terminal; configure a host non-interactively with 'nullify auth login --host <your-instance>.nullify.ai'")
+			}
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Print("  Enter your Nullify customer name (e.g., 'acme'): ")
 			input, err := reader.ReadString('\n')

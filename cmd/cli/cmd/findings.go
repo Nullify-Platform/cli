@@ -7,8 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nullify-platform/cli/internal/auth"
-	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
@@ -33,26 +31,16 @@ Results are paginated automatically up to --limit total findings.`,
 
   # Fetch up to 500 findings
   nullify findings --limit 500`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
 
-		findingsHost := resolveHost(ctx)
-		token, err := lib.GetNullifyToken(ctx, findingsHost, nullifyToken, githubToken)
+		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			os.Exit(ExitAuthError)
+			return err
 		}
-
-		nullifyClient := client.NewNullifyClient(findingsHost, token)
-
-		creds, err := auth.LoadCredentials()
-		queryParams := map[string]string{}
-		if err == nil {
-			if hostCreds, ok := creds[auth.CredentialKey(findingsHost)]; ok && hostCreds.QueryParameters != nil {
-				queryParams = hostCreds.QueryParameters
-			}
-		}
+		nullifyClient := authCtx.Client()
+		queryParams := authCtx.QueryParams
 
 		severity, _ := cmd.Flags().GetString("severity")
 		status, _ := cmd.Flags().GetString("status")
@@ -136,8 +124,7 @@ Results are paginated automatically up to --limit total findings.`,
 			reqBody := map[string]any{"query": query}
 			bodyBytes, err := json.Marshal(reqBody)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(ExitNetworkError)
+				return networkError("%w", err)
 			}
 
 			if debug {
@@ -147,8 +134,7 @@ Results are paginated automatically up to --limit total findings.`,
 
 			respBody, err := lib.DoPostJSON(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, path, bytes.NewReader(bodyBytes))
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(ExitNetworkError)
+				return networkError("%w", err)
 			}
 
 			if debug {
@@ -161,8 +147,7 @@ Results are paginated automatically up to --limit total findings.`,
 
 			var resp unifiedResponse
 			if err := json.Unmarshal([]byte(respBody), &resp); err != nil {
-				fmt.Fprintf(os.Stderr, "Error parsing response: %v\n", err)
-				os.Exit(ExitNetworkError)
+				return networkError("parsing response: %w", err)
 			}
 
 			allFindings = append(allFindings, resp.Findings...)
@@ -190,6 +175,7 @@ Results are paginated automatically up to --limit total findings.`,
 		if err := output.Print(cmd, out); err != nil {
 			fmt.Fprintln(os.Stderr, string(out))
 		}
+		return nil
 	},
 }
 

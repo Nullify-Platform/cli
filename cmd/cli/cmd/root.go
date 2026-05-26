@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -47,6 +48,10 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() error {
+	// Silence cobra's automatic usage dump on errors (it's noisy for runtime
+	// failures), but let cobra print the error message itself exactly once.
+	rootCmd.SilenceUsage = true
+	rootCmd.SilenceErrors = false
 	return rootCmd.Execute()
 }
 
@@ -137,25 +142,25 @@ func getLogLevel() string {
 	return "warn"
 }
 
-func resolveHost(ctx context.Context) string {
+// resolveHostE resolves the Nullify host from flag, env var, or config file.
+// It returns a coded error (exit code 1 for a malformed host, ExitAuthError
+// when no host is configured) instead of calling os.Exit, so callers in RunE
+// handlers can return it up the stack and let deferred cleanup run.
+func resolveHostE(ctx context.Context) (string, error) {
 	// 1. Flag takes priority
 	if host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(host)
 		if err != nil {
-			logger.L(ctx).Error(
-				"invalid host, must be in the format <your-instance>.nullify.ai",
-				logger.String("host", host),
-			)
-			os.Exit(1)
+			return "", withExitCode(1, fmt.Errorf("invalid host %q, must be in the format <your-instance>.nullify.ai", host))
 		}
-		return sanitized
+		return sanitized, nil
 	}
 
 	// 2. Env var (takes precedence over config file)
 	if envHost := os.Getenv("NULLIFY_HOST"); envHost != "" {
 		sanitized, err := lib.SanitizeNullifyHost(envHost)
 		if err == nil {
-			return sanitized
+			return sanitized, nil
 		}
 		logger.L(ctx).Warn("NULLIFY_HOST env var is invalid, falling through to config", logger.String("host", envHost), logger.Err(err))
 	}
@@ -165,27 +170,37 @@ func resolveHost(ctx context.Context) string {
 	if err == nil && cfg.Host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(cfg.Host)
 		if err == nil {
-			return sanitized
+			return sanitized, nil
 		}
 		logger.L(ctx).Warn("config file host is invalid, ignoring", logger.String("host", cfg.Host), logger.Err(err))
 	}
 
-	logger.L(ctx).Error("no host configured. Run 'nullify init' to set up, or 'nullify auth login --host <your-instance>.nullify.ai' to configure.")
-	os.Exit(ExitAuthError)
-	return ""
+	return "", authError("no host configured. Run 'nullify init' to set up, or 'nullify auth login --host <your-instance>.nullify.ai' to configure.")
 }
 
-func getNullifyClient(ctx context.Context) *client.NullifyClient {
-	nullifyHost := resolveHost(ctx)
+// resolveHost is the os.Exit-on-error variant retained for the generated API
+// commands' getAPIClient factory, which cannot easily thread errors back up.
+func resolveHost(ctx context.Context) string {
+	nullifyHost, err := resolveHostE(ctx)
+	if err != nil {
+		logger.L(ctx).Error("failed to resolve host", logger.Err(err))
+		os.Exit(ExitCodeForError(err))
+	}
+	return nullifyHost
+}
+
+// getNullifyClientE builds a NullifyClient, returning a coded error on auth
+// failure instead of calling os.Exit.
+func getNullifyClientE(ctx context.Context) (*client.NullifyClient, error) {
+	nullifyHost, err := resolveHostE(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	token, err := lib.GetNullifyToken(ctx, nullifyHost, nullifyToken, githubToken)
 	if err != nil {
-		logger.L(ctx).Error(
-			"failed to get token. Run 'nullify auth login' to authenticate.",
-			logger.Err(err),
-		)
-		os.Exit(ExitAuthError)
+		return nil, authError("failed to get token. Run 'nullify auth login' to authenticate: %w", err)
 	}
 
-	return client.NewNullifyClient(nullifyHost, token)
+	return client.NewNullifyClient(nullifyHost, token), nil
 }

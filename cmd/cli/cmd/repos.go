@@ -14,7 +14,7 @@ var reposCmd = &cobra.Command{
 	Use:     "repos",
 	Short:   "List monitored repositories",
 	Example: "  nullify repos\n  nullify repos -o table",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
 
@@ -22,13 +22,13 @@ var reposCmd = &cobra.Command{
 
 		result, err := apiClient.ListContextRepositories(ctx, url.Values{})
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			return err
 		}
 
 		if err := output.Print(cmd, result); err != nil {
 			fmt.Fprintln(os.Stderr, string(result))
 		}
+		return nil
 	},
 }
 
