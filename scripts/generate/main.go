@@ -108,10 +108,13 @@ var serviceDescriptions = map[string]string{
 // Prefer this list over silent absence from serviceMapping: a path whose prefix
 // is in neither map is dropped anyway, but listing it here records the intent
 // so a future spec audit doesn't rediscover it as a "missing service".
-// /auth/* are the auth handshake endpoints (access/refresh/github tokens,
-// logout) the CLI drives through internal/auth, not user-facing API operations.
+// These are all paths the published bundle does carry but that aren't useful
+// CLI commands: /auth/* are the auth handshake endpoints (access/refresh/github
+// tokens, logout) the CLI drives through internal/auth, and /core/{bitbucket,jira}/*
+// are integration webhooks/descriptors. Genuinely internal endpoints are kept
+// out of the published bundle at the source (each service's openapi-public.yml),
+// so they never reach here.
 var excludePrefixes = []string{
-	"/internal/",
 	"/auth/",
 	"/core/bitbucket/",
 	"/core/jira/",
