@@ -1,12 +1,12 @@
 package lib
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -60,13 +60,19 @@ func GetNullifyToken(
 
 		owner := parts[0]
 
-		// TODO(security): Migrate to POST with JSON body on the backend (security-droid) to avoid sending GitHub token in query string.
-		tokenURL := fmt.Sprintf("https://%s/auth/github_token?token=%s&owner=%s", nullifyHost, url.QueryEscape(githubTokenFlag), url.QueryEscape(owner))
-
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
+		// Send the PAT in a POST body, never the URL, so it can't leak into
+		// access logs or proxies. (The backend retains GET for older CLIs.)
+		reqBody, err := json.Marshal(map[string]string{"owner": owner, "token": githubTokenFlag})
 		if err != nil {
 			return "", err
 		}
+		tokenURL := fmt.Sprintf("https://%s/auth/github_token", nullifyHost)
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, bytes.NewReader(reqBody))
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Content-Type", "application/json")
 
 		httpClient := &http.Client{Timeout: 30 * time.Second}
 		res, err := httpClient.Do(req)
