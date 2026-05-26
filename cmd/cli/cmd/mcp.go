@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
-	"os"
-
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/client"
@@ -24,18 +21,13 @@ var mcpServeCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the MCP server",
 	Long:  "Start the Nullify MCP server over stdio. Configure your AI tool to run 'nullify mcp serve'.",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
-			if errors.Is(err, lib.ErrNoToken) {
-				fmt.Fprintf(os.Stderr, "Error: not authenticated. Run 'nullify auth login' first.\n")
-			} else {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-			os.Exit(ExitAuthError)
+			return err
 		}
 
 		queryParams := authCtx.QueryParams
@@ -59,8 +51,7 @@ var mcpServeCmd = &cobra.Command{
 			}
 		}
 		if !validSet {
-			fmt.Fprintf(os.Stderr, "Error: invalid --tools value %q. Valid values: %s\n", toolsFlag, strings.Join(validSets, ", "))
-			os.Exit(1)
+			return fmt.Errorf("invalid --tools value %q. Valid values: %s", toolsFlag, strings.Join(validSets, ", "))
 		}
 
 		// Create a refreshing client for long-running MCP sessions
@@ -69,15 +60,13 @@ var mcpServeCmd = &cobra.Command{
 		}
 		nullifyClient, clientErr := client.NewRefreshingNullifyClient(authCtx.Host, tokenProvider)
 		if clientErr != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to create client: %v\n", clientErr)
-			os.Exit(1)
+			return fmt.Errorf("failed to create client: %w", clientErr)
 		}
 
-		err = mcp.ServeWithClient(ctx, nullifyClient, queryParams, toolSet)
-		if err != nil {
-			logger.L(ctx).Error("MCP server error", logger.Err(err))
-			os.Exit(1)
+		if err := mcp.ServeWithClient(ctx, nullifyClient, queryParams, toolSet); err != nil {
+			return fmt.Errorf("MCP server error: %w", err)
 		}
+		return nil
 	},
 }
 
