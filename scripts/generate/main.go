@@ -103,9 +103,16 @@ var serviceDescriptions = map[string]string{
 	"ticket":         "Ticket Integration",
 }
 
-// Paths to exclude from CLI generation
+// Paths to exclude from CLI generation.
+//
+// Prefer this list over silent absence from serviceMapping: a path whose prefix
+// is in neither map is dropped anyway, but listing it here records the intent
+// so a future spec audit doesn't rediscover it as a "missing service".
+// /auth/* are the auth handshake endpoints (access/refresh/github tokens,
+// logout) the CLI drives through internal/auth, not user-facing API operations.
 var excludePrefixes = []string{
 	"/internal/",
+	"/auth/",
 	"/core/bitbucket/",
 	"/core/jira/",
 }
