@@ -54,13 +54,13 @@ type Tags struct {
 }
 
 type DASTFinding struct {
-	ID       string `json:"id"`
-	Scanner  string `json:"scanner"`
-	Title    string `json:"title"`
-	Severity string `json:"severity"`
-	AppType  string `json:"appType"`
-	CWE      string `json:"cwe"`
-	Solution string `json:"solution"`
+	ID       string   `json:"id"`
+	Scanner  string   `json:"scanner"`
+	Title    string   `json:"title"`
+	Severity Severity `json:"severity"`
+	AppType  string   `json:"appType"`
+	CWE      string   `json:"cwe"`
+	Solution string   `json:"solution"`
 	Tags     []Tags
 	REST     RESTFinding `json:"rest"`
 }

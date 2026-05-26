@@ -3,7 +3,7 @@ package models
 // AuthConfig represents the authentication configuration for Nullify DAST
 type AuthConfig struct {
 	// Single user authentication fields
-	Method          string                 `json:"method,omitempty"`
+	Method          AuthMethod             `json:"method,omitempty"`
 	Username        string                 `json:"username,omitempty"`
 	UserDescription string                 `json:"userDescription,omitempty"`
 	Headers         map[string]string      `json:"headers,omitempty"`
@@ -32,7 +32,7 @@ type UserAuth struct {
 }
 
 type MultiUserAuthConfig struct {
-	Method        string                 `json:"method,omitempty"`
+	Method        AuthMethod             `json:"method,omitempty"`
 	Username      string                 `json:"username,omitempty"`
 	Password      string                 `json:"password,omitempty"`
 	Token         string                 `json:"token,omitempty"`

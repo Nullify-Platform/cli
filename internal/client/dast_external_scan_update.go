@@ -11,7 +11,7 @@ import (
 
 type DASTUpdateExternalScanInput struct {
 	Progress *int                 `json:"progress"`
-	Status   *string              `json:"status"`
+	Status   *ScanStatus          `json:"status"`
 	Findings []models.DASTFinding `json:"findings"`
 
 	*models.RequestDashboardTarget

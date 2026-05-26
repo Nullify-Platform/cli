@@ -12,10 +12,10 @@ import (
 type DASTCreateExternalScanInput struct {
 	AppName string `json:"appName"`
 
-	Progress  *int       `json:"progress"`
-	Status    *string    `json:"status"`
-	StartTime *time.Time `json:"startTime"`
-	EndTime   *time.Time `json:"endTime"`
+	Progress  *int        `json:"progress"`
+	Status    *ScanStatus `json:"status"`
+	StartTime *time.Time  `json:"startTime"`
+	EndTime   *time.Time  `json:"endTime"`
 
 	models.RequestProvider
 	models.RequestDashboardTarget
