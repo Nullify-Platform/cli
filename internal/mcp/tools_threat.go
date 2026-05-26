@@ -94,8 +94,8 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 					body[k] = v
 				}
 			}
-			if cvss := getFloatArg(args, "cvss"); cvss != 0 {
-				body["cvss"] = cvss
+			if _, ok := args["cvss"]; ok {
+				body["cvss"] = getFloatArg(args, "cvss")
 			}
 			if v := splitCSV(getStringArg(args, "cve_ids")); len(v) > 0 {
 				body["cveIds"] = v

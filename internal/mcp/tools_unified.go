@@ -37,6 +37,12 @@ type findingType struct {
 	autofixState    methodNoBody
 	autofixDiff     methodNoBody
 	autofixCreatePR methodWithBody
+
+	// allowlistPatchStyle marks types whose allowlist endpoint is the bughunt
+	// PATCH contract — body {allow, reason} — rather than the POST contract
+	// {allowlistReason, allowlistType} every other type uses. See
+	// hyperdrive PatchBugHuntFindingAllowlistInput vs the per-service POST inputs.
+	allowlistPatchStyle bool
 }
 
 var findingTypes = map[string]findingType{
@@ -94,11 +100,13 @@ var findingTypes = map[string]findingType{
 		autofixDiff:  (*api.Client).ListDastPentestFindingsFindingIdAutofixCacheDiff,
 	},
 	"bughunt": {
-		apiTypes:  []string{"BugHunt"},
-		get:       (*api.Client).GetDastBughuntFindingsFindingId,
-		triage:    (*api.Client).ListDastBughuntFindingsFindingIdTriage,
-		allowlist: (*api.Client).PatchDastBughuntFindingsFindingIdAllowlist,
-		// bughunt has no ticket/unallowlist/autofix
+		apiTypes:            []string{"BugHunt"},
+		get:                 (*api.Client).GetDastBughuntFindingsFindingId,
+		triage:              (*api.Client).ListDastBughuntFindingsFindingIdTriage,
+		allowlist:           (*api.Client).PatchDastBughuntFindingsFindingIdAllowlist,
+		allowlistPatchStyle: true,
+		// bughunt has no ticket/unallowlist/autofix; its PATCH allowlist takes
+		// {allow, reason} (see allowlistPatchStyle).
 	},
 	"cspm": {
 		apiTypes:     []string{"Cloud"},
@@ -153,6 +161,76 @@ func resolveFindingType(name string) (findingType, error) {
 	return ft, nil
 }
 
+// findingSearchOpts are the filters the unified /admin/findings search accepts.
+type findingSearchOpts struct {
+	apiTypes   []string // FindingType values; empty means all types
+	severity   string   // lowercase enum value; uppercased for the API
+	repository string   // repository name
+	status     string   // open | fixed | false_positive | accepted_risk
+	limit      int      // max findings to collect across pages
+}
+
+// searchFindings queries the unified POST /admin/findings endpoint, paginating
+// (with a constant page size) up to opts.limit and returning the collected
+// findings plus the server's reported total. This is the single place finding
+// filters are mapped to the API query, so every search/composite tool stays
+// consistent — in particular, `repository` and `severity` ride in the request
+// body here, whereas the per-scanner GET list endpoints silently ignore them.
+func searchFindings(ctx context.Context, c *api.Client, opts findingSearchOpts) ([]json.RawMessage, int, error) {
+	type pageResp struct {
+		Findings    []json.RawMessage `json:"findings"`
+		Total       int               `json:"total"`
+		HasMoreData bool              `json:"hasMoreData"`
+	}
+	// pageSize stays constant: /admin/findings is page/offset paginated, so
+	// shrinking it on the final page would corrupt the offset (page*pageSize)
+	// and skip/duplicate rows. We over-fetch the last page and trim to limit.
+	const pageSize = 100
+	all := make([]json.RawMessage, 0)
+	var lastTotal int
+	for page := 1; len(all) < opts.limit; page++ {
+		query := map[string]any{"pageSize": pageSize, "page": page}
+		if opts.repository != "" {
+			query["repository"] = []string{opts.repository}
+		}
+		if opts.severity != "" {
+			query["severity"] = []string{strings.ToUpper(opts.severity)}
+		}
+		if len(opts.apiTypes) > 0 {
+			query["type"] = opts.apiTypes
+		}
+		switch opts.status {
+		case "open":
+			query["isResolved"] = false
+		case "fixed":
+			query["isFixed"] = true
+		case "false_positive":
+			query["isFalsePositive"] = true
+		case "accepted_risk":
+			query["isAllowlisted"] = true
+		}
+
+		body, _ := json.Marshal(map[string]any{"query": query})
+		data, err := c.CreateAdminFindings(ctx, url.Values{}, bytes.NewReader(body))
+		if err != nil {
+			return nil, 0, err
+		}
+		var resp pageResp
+		if err := json.Unmarshal(data, &resp); err != nil {
+			return nil, 0, err
+		}
+		lastTotal = resp.Total
+		all = append(all, resp.Findings...)
+		if !resp.HasMoreData || len(resp.Findings) == 0 {
+			break
+		}
+	}
+	if len(all) > opts.limit {
+		all = all[:opts.limit]
+	}
+	return all, lastTotal, nil
+}
+
 func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 	allTypes := allFindingTypeNames()
 
@@ -169,65 +247,24 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := request.GetArguments()
-			limit := getIntArg(args, "limit", 100)
-
-			type pageResp struct {
-				Findings    []json.RawMessage `json:"findings"`
-				Total       int               `json:"total"`
-				HasMoreData bool              `json:"hasMoreData"`
+			opts := findingSearchOpts{
+				severity:   getStringArg(args, "severity"),
+				repository: getStringArg(args, "repository"),
+				status:     getStringArg(args, "status"),
+				limit:      getIntArg(args, "limit", 100),
 			}
-
-			all := make([]json.RawMessage, 0)
-			var lastTotal int
-			for page := 1; len(all) < limit; page++ {
-				pageSize := 100
-				if rem := limit - len(all); rem < pageSize {
-					pageSize = rem
-				}
-				query := map[string]any{"pageSize": pageSize, "page": page}
-				if v := getStringArg(args, "repository"); v != "" {
-					query["repository"] = []string{v}
-				}
-				if v := getStringArg(args, "severity"); v != "" {
-					query["severity"] = []string{strings.ToUpper(v)}
-				}
-				if name := getStringArg(args, "type"); name != "" {
-					ft, err := resolveFindingType(name)
-					if err != nil {
-						return toolError(err), nil
-					}
-					query["type"] = ft.apiTypes
-				}
-				switch getStringArg(args, "status") {
-				case "open":
-					query["isResolved"] = false
-				case "fixed":
-					query["isFixed"] = true
-				case "false_positive":
-					query["isFalsePositive"] = true
-				case "accepted_risk":
-					query["isAllowlisted"] = true
-				}
-
-				body, _ := json.Marshal(map[string]any{"query": query})
-				data, err := c.CreateAdminFindings(ctx, url.Values{}, bytes.NewReader(body))
+			if name := getStringArg(args, "type"); name != "" {
+				ft, err := resolveFindingType(name)
 				if err != nil {
 					return toolError(err), nil
 				}
-				var resp pageResp
-				if err := json.Unmarshal(data, &resp); err != nil {
-					return toolError(err), nil
-				}
-				lastTotal = resp.Total
-				all = append(all, resp.Findings...)
-				if !resp.HasMoreData || len(resp.Findings) == 0 {
-					break
-				}
+				opts.apiTypes = ft.apiTypes
 			}
-			if len(all) > limit {
-				all = all[:limit]
+			findings, total, err := searchFindings(ctx, c, opts)
+			if err != nil {
+				return toolError(err), nil
 			}
-			out, _ := json.MarshalIndent(map[string]any{"findings": all, "total": lastTotal}, "", "  ")
+			out, _ := json.MarshalIndent(map[string]any{"findings": findings, "total": total}, "", "  ")
 			return toolResult(string(out)), nil
 		},
 	)
@@ -316,10 +353,7 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			}
 			params := url.Values{}
 			params.Set("findingId", getStringArg(args, "id"))
-			body, _ := json.Marshal(map[string]string{
-				"allowlistReason": getStringArg(args, "reason"),
-				"allowlistType":   getStringArg(args, "allowlist_type"),
-			})
+			body := allowlistBody(ft, getStringArg(args, "reason"), getStringArg(args, "allowlist_type"))
 			return wrap(ft.allowlist(c, ctx, params, bytes.NewReader(body)))
 		},
 	)
@@ -354,10 +388,10 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
 		mcp.NewTool(
 			"nullify_fix_finding",
-			mcp.WithDescription("Generate an autofix for a finding: triggers the fix agent, waits for it to finish, and returns the resulting diff. Autofix runs asynchronously server-side. Set create_pr=true to also open a pull request for finding types that support it."),
+			mcp.WithDescription("Generate an autofix for a finding: triggers the fix agent, waits for it to finish, and returns the resulting diff. Autofix runs asynchronously server-side. For finding types whose fix flow opens a pull request (e.g. sast, sca) the PR is created as part of the run; set create_pr=true to also wait for and report the resulting PR."),
 			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(typesWith(func(ft findingType) bool { return ft.autofixFix != nil })...)),
 			mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
-			mcp.WithBoolean("create_pr", mcp.Description("Open a pull request from the generated fix (only for types with a create-PR endpoint)")),
+			mcp.WithBoolean("create_pr", mcp.Description("Wait for and report pull-request creation. The fix flow opens the PR for supported types; scpm uses a dedicated create-PR endpoint.")),
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := request.GetArguments()
@@ -452,28 +486,56 @@ func findingByIDHandler(c *api.Client, pick func(findingType) methodNoBody, capa
 }
 
 // autofixStatus is the subset of the autofix/status payload we poll on. The
-// endpoint reports both the fix-generation state and, once a PR is requested,
-// the pull-request state and URL.
+// endpoint reports the fix-generation state, a server-computed `terminal` flag
+// (the authoritative "stop polling" signal), and, once a PR is requested, the
+// pull-request state and URL.
 type autofixStatus struct {
 	State            string `json:"state"`
+	Terminal         bool   `json:"terminal"`
 	PullRequestState string `json:"pullRequestState"`
 	PullRequestURL   string `json:"pullRequestUrl"`
 }
 
-func isTerminalState(s string) bool {
-	s = strings.ToLower(s)
-	for _, term := range []string{"complet", "success", "succeed", "done", "created", "open", "merged", "fail", "error", "cancel"} {
-		if strings.Contains(s, term) {
-			return true
-		}
+// autoFixStateCached is the one terminal fix-generation state that carries no
+// PR ("proposed changes are available in S3 but no PR has been created").
+// Mirrors models.AutoFixStateCached in hyperdrive; the generated client returns
+// the raw status JSON, so we match the literal. When waiting on PR creation we
+// must not stop here even though the server reports terminal=true.
+const autoFixStateCached = "cached"
+
+// allowlistBody builds the allowlist request body for a finding type. bughunt's
+// PATCH endpoint takes {allow, reason}; every other type's POST endpoint takes
+// {allowlistReason, allowlistType}. allowlistType has no bughunt equivalent.
+func allowlistBody(ft findingType, reason, allowlistType string) []byte {
+	if ft.allowlistPatchStyle {
+		body, _ := json.Marshal(map[string]any{"allow": true, "reason": reason})
+		return body
 	}
-	return false
+	body, _ := json.Marshal(map[string]string{
+		"allowlistReason": reason,
+		"allowlistType":   allowlistType,
+	})
+	return body
 }
 
-// pollAutofix polls the autofix status endpoint until the watched phase reaches
-// a terminal state or the deadline passes. When watchPR is false it waits on the
-// fix-generation state; when true it waits on PR creation (a non-empty
-// pullRequestUrl or terminal pullRequestState). It returns the last status seen.
+// autofixPhaseDone reports whether the watched autofix phase has finished, using
+// the server-computed `terminal` flag as the authority. The fix-generation phase
+// is done once terminal. The PR phase is done once a PR URL exists, or the run
+// reaches a terminal state other than "cached" — "cached" is terminal but means
+// the fix was generated without a PR, so we keep waiting for PR creation.
+func autofixPhaseDone(st autofixStatus, watchPR bool) bool {
+	if watchPR {
+		return st.PullRequestURL != "" || (st.Terminal && st.State != autoFixStateCached)
+	}
+	return st.Terminal
+}
+
+// pollAutofix polls the autofix status endpoint until the watched phase is done
+// or the deadline passes. It trusts the server-computed `terminal` flag rather
+// than inferring terminality from the state string. When watchPR is false it
+// waits for fix generation to finish; when true it waits for PR creation (a
+// non-empty pullRequestUrl, or a terminal state other than "cached", which is
+// terminal but has no PR). It returns the last status seen.
 func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.Values, watchPR bool) (autofixStatus, error) {
 	deadline := time.Now().Add(5 * time.Minute)
 	var last autofixStatus
@@ -484,11 +546,7 @@ func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.
 		}
 		_ = json.Unmarshal(data, &last)
 
-		done := isTerminalState(last.State)
-		if watchPR {
-			done = last.PullRequestURL != "" || isTerminalState(last.PullRequestState)
-		}
-		if done || time.Now().After(deadline) {
+		if autofixPhaseDone(last, watchPR) || time.Now().After(deadline) {
 			return last, nil // on timeout, return what we have rather than erroring on a slow agent
 		}
 		select {

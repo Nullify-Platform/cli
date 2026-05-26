@@ -65,20 +65,25 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := req.GetArguments()
 			limit := getIntArg(args, "limit", 20)
+			repo := getStringArg(args, "repository")
+			severity := getStringArg(args, "severity")
 			var parts []string
+			// Fan out over the unified /admin/findings endpoint per type:
+			// repository/severity are honored there (the per-scanner GET list
+			// endpoints silently drop both).
 			for _, sc := range scannerListers {
-				p := url.Values{}
-				p.Set("repository", getStringArg(args, "repository"))
-				if sev := getStringArg(args, "severity"); sev != "" {
-					p.Set("severity", sev)
-				}
-				p.Set("limit", fmt.Sprintf("%d", limit))
-				data, err := sc.list(c, ctx, p)
+				findings, _, err := searchFindings(ctx, c, findingSearchOpts{
+					apiTypes:   findingTypes[sc.name].apiTypes,
+					severity:   severity,
+					repository: repo,
+					limit:      limit,
+				})
 				if err != nil {
 					parts = append(parts, fmt.Sprintf("--- %s ---\nError: %v", sc.name, err))
 					continue
 				}
-				parts = append(parts, fmt.Sprintf("--- %s ---\n%s", sc.name, string(data)))
+				b, _ := json.MarshalIndent(findings, "", "  ")
+				parts = append(parts, fmt.Sprintf("--- %s ---\n%s", sc.name, string(b)))
 			}
 			return toolResult(strings.Join(parts, "\n\n")), nil
 		},
@@ -93,15 +98,18 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			limit := getIntArg(req.GetArguments(), "limit", 10)
 			var parts []string
 			for _, sc := range scannerListers {
+				apiTypes := findingTypes[sc.name].apiTypes
 				for _, sev := range []string{"critical", "high"} {
-					p := url.Values{}
-					p.Set("severity", sev)
-					p.Set("limit", fmt.Sprintf("%d", limit))
-					data, err := sc.list(c, ctx, p)
-					if err != nil {
+					findings, _, err := searchFindings(ctx, c, findingSearchOpts{
+						apiTypes: apiTypes,
+						severity: sev,
+						limit:    limit,
+					})
+					if err != nil || len(findings) == 0 {
 						continue
 					}
-					parts = append(parts, fmt.Sprintf("--- %s (%s) ---\n%s", sc.name, sev, string(data)))
+					b, _ := json.MarshalIndent(findings, "", "  ")
+					parts = append(parts, fmt.Sprintf("--- %s (%s) ---\n%s", sc.name, sev, string(b)))
 				}
 			}
 			if len(parts) == 0 {
