@@ -496,6 +496,15 @@ type autofixStatus struct {
 	PullRequestURL   string `json:"pullRequestUrl"`
 }
 
+// autofixStatusResp mirrors the wire shape of every per-service autofix-status
+// endpoint: the payload is wrapped under "status". See
+// hyperdrive/pkg/endpoints/autofix_status_output.go — the generator preserves
+// the named field rather than embedding so typed-string enums survive in the
+// OpenAPI schema, which means clients must unwrap.
+type autofixStatusResp struct {
+	Status autofixStatus `json:"status"`
+}
+
 // autoFixStateCached is the one terminal fix-generation state that carries no
 // PR ("proposed changes are available in S3 but no PR has been created").
 // Mirrors models.AutoFixStateCached in hyperdrive; the generated client returns
@@ -544,7 +553,10 @@ func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.
 		if err != nil {
 			return last, fmt.Errorf("poll autofix status: %w", err)
 		}
-		_ = json.Unmarshal(data, &last)
+		var wrapper autofixStatusResp
+		if err := json.Unmarshal(data, &wrapper); err == nil {
+			last = wrapper.Status
+		}
 
 		if autofixPhaseDone(last, watchPR) || time.Now().After(deadline) {
 			return last, nil // on timeout, return what we have rather than erroring on a slow agent

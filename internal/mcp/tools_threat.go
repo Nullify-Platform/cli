@@ -24,39 +24,11 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			limit := getIntArg(req.GetArguments(), "limit", 100)
-
-			type listResp struct {
-				ThreatInvestigations []json.RawMessage `json:"threatInvestigations"`
-				NumItems             int               `json:"numItems"`
+			all, err := listThreatInvestigations(ctx, c, limit)
+			if err != nil {
+				return toolError(err), nil
 			}
-			all := make([]json.RawMessage, 0)
-			var numItems int
-			const pageSize = 50
-			for page := 1; len(all) < limit; page++ {
-				p := url.Values{}
-				p.Set("page", itoa(page))
-				p.Set("pageSize", itoa(pageSize))
-				data, err := c.ListManagerThreatInvestigations(ctx, p)
-				if err != nil {
-					return toolError(err), nil
-				}
-				var resp listResp
-				if err := json.Unmarshal(data, &resp); err != nil {
-					return toolError(err), nil
-				}
-				numItems = resp.NumItems
-				if len(resp.ThreatInvestigations) == 0 {
-					break
-				}
-				all = append(all, resp.ThreatInvestigations...)
-				if len(all) >= numItems || len(resp.ThreatInvestigations) < pageSize {
-					break
-				}
-			}
-			if len(all) > limit {
-				all = all[:limit]
-			}
-			out, _ := json.MarshalIndent(map[string]any{"threatInvestigations": all, "numItems": numItems}, "", "  ")
+			out, _ := json.MarshalIndent(map[string]any{"threatInvestigations": all, "numItems": len(all)}, "", "  ")
 			return toolResult(string(out)), nil
 		},
 	)
@@ -109,6 +81,42 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 	)
 }
 
+// listThreatInvestigations paginates GET /manager/threat-investigations up to
+// limit. The server's `numItems` is the per-page count, not the total (see
+// manager/internal/endpoints/threatinvestigations_get.go), so we can't use it
+// as a stop signal — only a short page or an empty page tells us we're done.
+func listThreatInvestigations(ctx context.Context, c *api.Client, limit int) ([]json.RawMessage, error) {
+	type listResp struct {
+		ThreatInvestigations []json.RawMessage `json:"threatInvestigations"`
+	}
+	const pageSize = 50
+	all := make([]json.RawMessage, 0)
+	for page := 1; len(all) < limit; page++ {
+		p := url.Values{}
+		p.Set("page", strconv.Itoa(page))
+		p.Set("pageSize", strconv.Itoa(pageSize))
+		data, err := c.ListManagerThreatInvestigations(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		var resp listResp
+		if err := json.Unmarshal(data, &resp); err != nil {
+			return nil, err
+		}
+		if len(resp.ThreatInvestigations) == 0 {
+			break
+		}
+		all = append(all, resp.ThreatInvestigations...)
+		if len(resp.ThreatInvestigations) < pageSize {
+			break
+		}
+	}
+	if len(all) > limit {
+		all = all[:limit]
+	}
+	return all, nil
+}
+
 func splitCSV(s string) []string {
 	if s == "" {
 		return nil
@@ -120,8 +128,4 @@ func splitCSV(s string) []string {
 		}
 	}
 	return out
-}
-
-func itoa(n int) string {
-	return strconv.Itoa(n)
 }

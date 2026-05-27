@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -211,5 +212,71 @@ func TestAllowlistBody(t *testing.T) {
 	}
 	if _, ok := bugBody["allowlistType"]; ok {
 		t.Errorf("bughunt allowlist body must not contain 'allowlistType': %v", bugBody)
+	}
+}
+
+// listThreatInvestigations must paginate past the first page even though the
+// server returns `numItems = len(page)` — the per-page count, not the total
+// (manager/internal/endpoints/threatinvestigations_get.go). The previous break
+// on `len(all) >= numItems` capped results at 50 regardless of limit.
+func TestListThreatInvestigationsPaginatesPastPageOne(t *testing.T) {
+	investigations := func(n int) string {
+		items := make([]string, n)
+		for i := range items {
+			items[i] = `{}`
+		}
+		return strings.Join(items, ",")
+	}
+	page := 0
+	ft := &fakeTransport{respond: func(capturedReq) (int, string) {
+		page++
+		// Two full pages of 50, then a short page of 20 (total 120 > limit 100).
+		// numItems intentionally reports the per-page count to mirror the real
+		// server behavior we used to be fooled by.
+		switch page {
+		case 1, 2:
+			return 200, fmt.Sprintf(`{"threatInvestigations":[%s],"numItems":50}`, investigations(50))
+		default:
+			return 200, fmt.Sprintf(`{"threatInvestigations":[%s],"numItems":20}`, investigations(20))
+		}
+	}}
+
+	all, err := listThreatInvestigations(context.Background(), testClient(ft), 100)
+	if err != nil {
+		t.Fatalf("listThreatInvestigations: %v", err)
+	}
+	if len(all) != 100 {
+		t.Errorf("got %d investigations, want 100 (trimmed to limit)", len(all))
+	}
+	if len(ft.requests) != 2 {
+		t.Errorf("got %d page requests, want 2 (limit hit after page 2)", len(ft.requests))
+	}
+}
+
+// pollAutofix must unwrap the server's `{status: {...}}` envelope. The
+// per-service endpoints (see hyperdrive's AutofixStatusOutput) wrap the
+// state/terminal/pullRequestUrl fields under a named "status" key so the
+// generator preserves typed-string enums. A flat unmarshal yields zero values,
+// Terminal stays false, and the poll loop runs to the 5-minute deadline on
+// every fix call.
+func TestPollAutofixUnwrapsStatusEnvelope(t *testing.T) {
+	ft := &fakeTransport{respond: func(capturedReq) (int, string) {
+		return 200, `{"status":{"state":"cached","terminal":true},"version":"1"}`
+	}}
+	params := url.Values{}
+	params.Set("findingId", "f1")
+
+	st, err := pollAutofix(context.Background(), testClient(ft), findingTypes["sast"], params, false)
+	if err != nil {
+		t.Fatalf("pollAutofix: %v", err)
+	}
+	if !st.Terminal {
+		t.Errorf("Terminal = false, want true (envelope not unwrapped)")
+	}
+	if st.State != "cached" {
+		t.Errorf("State = %q, want %q", st.State, "cached")
+	}
+	if len(ft.requests) != 1 {
+		t.Errorf("got %d polls, want 1 (terminal on first poll)", len(ft.requests))
 	}
 }
