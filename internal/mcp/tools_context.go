@@ -85,6 +85,44 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			return wrap(c.GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx, p))
 		},
 	)
+
+	s.AddTool(
+		mcp.NewTool("list_dependencies",
+			mcp.WithDescription("List third-party dependencies across all monitored repositories. Useful for understanding the supply chain. Paginated via cursor."),
+			mcp.WithNumber("pageSize", mcp.Description("Max results per page")),
+			mcp.WithString("cursor", mcp.Description("Pagination cursor from a previous response")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := req.GetArguments()
+			p := url.Values{}
+			if n := getIntArg(args, "pageSize", 0); n > 0 {
+				p.Set("pageSize", fmt.Sprintf("%d", n))
+			}
+			if cur := getStringArg(args, "cursor"); cur != "" {
+				p.Set("cursor", cur)
+			}
+			return wrap(c.ListContextDeps(ctx, p))
+		},
+	)
+
+	s.AddTool(
+		mcp.NewTool("get_dependency_exposure",
+			mcp.WithDescription("Get exposure analysis for a specific dependency: which repositories use it and how (internet-facing vs internal)."),
+			mcp.WithString("ecosystem", mcp.Required(), mcp.Description("Package ecosystem (e.g. npm, pypi, maven, go, nuget)")),
+			mcp.WithString("name", mcp.Required(), mcp.Description("Dependency name to check exposure for")),
+			mcp.WithString("range", mcp.Description("Version range filter (optional)")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := req.GetArguments()
+			p := url.Values{}
+			p.Set("ecosystem", getStringArg(args, "ecosystem"))
+			p.Set("name", getStringArg(args, "name"))
+			if r := getStringArg(args, "range"); r != "" {
+				p.Set("range", r)
+			}
+			return wrap(c.ListContextDepsExposure(ctx, p))
+		},
+	)
 }
 
 // listParams builds url.Values for a list tool, forwarding an optional limit.

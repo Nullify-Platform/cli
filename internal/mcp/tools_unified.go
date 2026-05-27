@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -182,10 +183,18 @@ func searchFindings(ctx context.Context, c *api.Client, opts findingSearchOpts) 
 		Total       int               `json:"total"`
 		HasMoreData bool              `json:"hasMoreData"`
 	}
-	// pageSize stays constant: /admin/findings is page/offset paginated, so
-	// shrinking it on the final page would corrupt the offset (page*pageSize)
-	// and skip/duplicate rows. We over-fetch the last page and trim to limit.
-	const pageSize = 100
+	// pageSize is chosen once per call and held constant across pages:
+	// /admin/findings is page/offset paginated, so shrinking pageSize on the
+	// final page would corrupt offset (page*pageSize) and skip/duplicate
+	// rows. Composite tools call with limits as low as 10, so we clamp
+	// instead of hard-pinning at 100 to avoid fetching 100× the rows we keep.
+	pageSize := opts.limit
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	if pageSize < 20 {
+		pageSize = 20
+	}
 	all := make([]json.RawMessage, 0)
 	var lastTotal int
 	for page := 1; len(all) < opts.limit; page++ {
@@ -411,14 +420,19 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 
 			// Phase 1: wait for the fix to generate. Autofix is an async
 			// Step-Function/Fargate job, so we poll rather than read a possibly-
-			// empty cache immediately.
+			// empty cache immediately. On timeout the fix may still be running
+			// — return now with what we have rather than hiding the in-progress
+			// state behind a "diff failed" error from the unfetched cache.
+			var parts []string
 			if ft.autofixState != nil {
 				if _, err := pollAutofix(ctx, c, ft, params, false); err != nil {
+					if errors.Is(err, context.DeadlineExceeded) {
+						return toolResult("Autofix triggered but did not finish within the poll deadline; check the finding in the dashboard."), nil
+					}
 					return toolError(err), nil
 				}
 			}
 
-			var parts []string
 			if ft.autofixDiff != nil {
 				diff, err := ft.autofixDiff(c, ctx, params)
 				if err != nil {
@@ -438,10 +452,14 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 				}
 				if ft.autofixState != nil {
 					st, err := pollAutofix(ctx, c, ft, params, true)
-					if err != nil {
+					switch {
+					case errors.Is(err, context.DeadlineExceeded):
+						parts = append(parts, "--- pull request ---\nStill running after the poll deadline; check the finding in the dashboard.")
+					case err != nil:
 						return toolError(err), nil
+					default:
+						parts = append(parts, formatPRResult(st))
 					}
-					parts = append(parts, formatPRResult(st))
 				} else {
 					parts = append(parts, "--- pull request ---\nPR requested; check the finding in the dashboard for status.")
 				}
@@ -539,14 +557,24 @@ func autofixPhaseDone(st autofixStatus, watchPR bool) bool {
 	return st.Terminal
 }
 
+// autofixPollDeadline is the default per-call timeout for pollAutofix. Tests
+// shorten it via the override hook below.
+var autofixPollDeadline = 5 * time.Minute
+
+// autofixPollInterval is the gap between polls. Tests shorten it to keep the
+// timeout-path test fast.
+var autofixPollInterval = 3 * time.Second
+
 // pollAutofix polls the autofix status endpoint until the watched phase is done
 // or the deadline passes. It trusts the server-computed `terminal` flag rather
 // than inferring terminality from the state string. When watchPR is false it
 // waits for fix generation to finish; when true it waits for PR creation (a
 // non-empty pullRequestUrl, or a terminal state other than "cached", which is
-// terminal but has no PR). It returns the last status seen.
+// terminal but has no PR). On deadline it returns context.DeadlineExceeded so
+// callers can render "still running, check the dashboard" instead of fake
+// empty-PR output.
 func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.Values, watchPR bool) (autofixStatus, error) {
-	deadline := time.Now().Add(5 * time.Minute)
+	deadline := time.Now().Add(autofixPollDeadline)
 	var last autofixStatus
 	for {
 		data, err := ft.autofixState(c, ctx, params)
@@ -558,13 +586,16 @@ func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.
 			last = wrapper.Status
 		}
 
-		if autofixPhaseDone(last, watchPR) || time.Now().After(deadline) {
-			return last, nil // on timeout, return what we have rather than erroring on a slow agent
+		if autofixPhaseDone(last, watchPR) {
+			return last, nil
+		}
+		if time.Now().After(deadline) {
+			return last, context.DeadlineExceeded
 		}
 		select {
 		case <-ctx.Done():
 			return last, ctx.Err()
-		case <-time.After(3 * time.Second):
+		case <-time.After(autofixPollInterval):
 		}
 	}
 }

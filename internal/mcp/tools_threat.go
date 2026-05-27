@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -66,8 +67,13 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 					body[k] = v
 				}
 			}
-			if _, ok := args["cvss"]; ok {
-				body["cvss"] = getFloatArg(args, "cvss")
+			if v, ok := args["cvss"]; ok {
+				switch v.(type) {
+				case float64, int:
+					body["cvss"] = getFloatArg(args, "cvss")
+				default:
+					return toolError(fmt.Errorf("cvss must be a number, got %T", v)), nil
+				}
 			}
 			if v := splitCSV(getStringArg(args, "cve_ids")); len(v) > 0 {
 				body["cveIds"] = v

@@ -75,6 +75,10 @@ var mcpServeCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Error: failed to create client: %v\n", clientErr)
 			os.Exit(1)
 		}
+		// Empty token literal is intentional: the refreshing transport's
+		// RoundTrip injects (and rotates) the Authorization header after
+		// api.Client.do sets it, so the static value in api.Client is
+		// overridden on every request.
 		apiClient := api.NewClient(authCtx.Host, "", queryParams, api.WithHTTPClient(httpClient))
 
 		err = mcp.ServeWithClient(ctx, apiClient, toolSet)

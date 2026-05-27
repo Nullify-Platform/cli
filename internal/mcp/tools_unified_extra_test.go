@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
 )
@@ -278,5 +280,65 @@ func TestPollAutofixUnwrapsStatusEnvelope(t *testing.T) {
 	}
 	if len(ft.requests) != 1 {
 		t.Errorf("got %d polls, want 1 (terminal on first poll)", len(ft.requests))
+	}
+}
+
+// On deadline, pollAutofix must return context.DeadlineExceeded so the tool
+// can render a "still running" message instead of silently falling through to
+// empty PR-URL output.
+func TestPollAutofixSignalsDeadlineExceeded(t *testing.T) {
+	t.Cleanup(func() {
+		autofixPollDeadline = 5 * time.Minute
+		autofixPollInterval = 3 * time.Second
+	})
+	autofixPollDeadline = 50 * time.Millisecond
+	autofixPollInterval = 5 * time.Millisecond
+
+	ft := &fakeTransport{respond: func(capturedReq) (int, string) {
+		// Server never reports terminal — the polling loop runs to the deadline.
+		return 200, `{"status":{"state":"in_progress_agent","terminal":false},"version":"1"}`
+	}}
+	params := url.Values{}
+	params.Set("findingId", "f1")
+
+	_, err := pollAutofix(context.Background(), testClient(ft), findingTypes["sast"], params, false)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("err = %v, want context.DeadlineExceeded", err)
+	}
+	if len(ft.requests) < 2 {
+		t.Errorf("got %d polls, want >= 2 (loop ran at least one interval)", len(ft.requests))
+	}
+}
+
+// searchFindings used to hard-pin pageSize=100, fetching ~100× the rows when
+// composite tools requested a small limit. The clamp keeps pageSize within
+// [20, 100] and constant across pages so the offset math stays valid.
+func TestSearchFindingsClampsPageSize(t *testing.T) {
+	cases := []struct {
+		name     string
+		limit    int
+		wantPage int
+	}{
+		{"small limit clamps up to 20", 10, 20},
+		{"medium limit uses limit", 40, 40},
+		{"large limit clamps to 100", 250, 100},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(capturedReq) (int, string) {
+				return 200, findingsPage(0, 0, false)
+			}}
+			_, _, err := searchFindings(context.Background(), testClient(ft), findingSearchOpts{limit: tc.limit})
+			if err != nil {
+				t.Fatalf("searchFindings: %v", err)
+			}
+			if len(ft.requests) == 0 {
+				t.Fatalf("no requests")
+			}
+			q := reqQuery(t, ft.requests[0].body)
+			if q["pageSize"] != float64(tc.wantPage) {
+				t.Errorf("pageSize = %v, want %d", q["pageSize"], tc.wantPage)
+			}
+		})
 	}
 }
