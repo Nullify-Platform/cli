@@ -6,61 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/stretchr/testify/require"
 )
-
-func TestBuildQueryString(t *testing.T) {
-	tests := []struct {
-		name         string
-		queryParams  map[string]string
-		extra        []string
-		wantEmpty    bool
-		wantContains []string
-	}{
-		{
-			name:        "empty params",
-			queryParams: map[string]string{},
-			extra:       nil,
-			wantEmpty:   true,
-		},
-		{
-			name:         "base params only",
-			queryParams:  map[string]string{"orgId": "org-123"},
-			wantContains: []string{"orgId=org-123"},
-		},
-		{
-			name:         "extra params",
-			queryParams:  map[string]string{"orgId": "org-123"},
-			extra:        []string{"severity", "critical"},
-			wantContains: []string{"orgId=org-123", "severity=critical"},
-		},
-		{
-			name:        "skip empty extra",
-			queryParams: map[string]string{},
-			extra:       []string{"key", ""},
-			wantEmpty:   true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := buildQueryString(tt.queryParams, tt.extra...)
-			if tt.wantEmpty {
-				if result != "" {
-					t.Errorf("expected empty, got %q", result)
-				}
-				return
-			}
-			for _, s := range tt.wantContains {
-				if !strings.Contains(result, s) {
-					t.Errorf("expected %q to contain %q", result, s)
-				}
-			}
-		})
-	}
-}
 
 func TestGetStringArg(t *testing.T) {
 	args := map[string]any{
@@ -103,8 +52,7 @@ func TestServeWithClientIOHandlesEOF(t *testing.T) {
 
 	err = serveWithClientIO(
 		ctx,
-		client.NewNullifyClient("acme.nullify.ai", "token"),
-		map[string]string{},
+		api.NewClient("acme.nullify.ai", "token", map[string]string{}),
 		ToolSetDefault,
 		strings.NewReader(""),
 		io.Discard,
