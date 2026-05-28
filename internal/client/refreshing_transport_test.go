@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strings"
@@ -169,7 +170,7 @@ func TestGetTokenRefreshesOnTTLExpiry(t *testing.T) {
 	tr.cacheTTL = time.Millisecond
 	tr.cachedAt = time.Now().Add(-time.Hour) // expired
 
-	got := tr.getToken(nil)
+	got := tr.getToken(context.Background())
 	if got != "new" {
 		t.Errorf("getToken = %q, want new (TTL expired)", got)
 	}
