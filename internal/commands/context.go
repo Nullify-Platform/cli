@@ -53,13 +53,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-applications",
 			Short: "Create Application",
+			Long: "Request body (JSON) fields: application (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextApplicationsInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextApplications(cmd.Context(), in)
@@ -73,6 +97,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -80,13 +106,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-rebuild",
 			Short: "Rebuild Applications",
+			Long: "Request body (JSON) fields: force (boolean, required), providerOwnerId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextApplicationsRebuildInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextApplicationsRebuild(cmd.Context(), in)
@@ -100,6 +150,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -153,14 +205,38 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-applications <applicationId>",
 			Short: "Update Application",
+			Long: "Request body (JSON) fields: application (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchContextApplicationsApplicationIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.ApplicationID = args[0]
@@ -175,6 +251,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -810,13 +888,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-scans",
 			Short: "Persist Cloud Recon Scan",
+			Long: "Request body (JSON) fields: accountId (string, required), completedAt (string), modelName (string), payload (string, required), provider (string, required), scanId (string), schemaVersion (string, required), startedAt (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextCloudReconScansInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextCloudReconScans(cmd.Context(), in)
@@ -830,6 +932,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1587,13 +1691,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-memories",
 			Short: "Create Memory",
+			Long: "Request body (JSON) fields: citations (array), confidence (number), content (string, required), createdBy (string), crossReferences (array), isUserCreated (boolean), memoryType (object, required), metadata (object), parentNoteId (string), priority (object), resourceId (string), resourceType (object), tags (array), title (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextMemoriesInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextMemories(cmd.Context(), in)
@@ -1607,6 +1735,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1710,14 +1840,38 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-memories <memoryId>",
 			Short: "Update Memory",
+			Long: "Request body (JSON) fields: citations (array), confidence (number), content (string), createNewVersion (boolean), crossReferences (array), metadata (object), parentNoteId (string), priority (object), tags (array), title (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchContextMemoriesMemoryIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.MemoryID = args[0]
@@ -1732,6 +1886,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1792,13 +1948,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-organization",
 			Short: "Update Classification of the Organization",
+			Long: "Request body (JSON) fields: name (string), notes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchContextOrganizationInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				data, err := client.PatchContextOrganization(cmd.Context(), in)
@@ -1808,6 +1988,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1815,13 +1997,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "update-organization",
 			Short: "Upsert Classification of the Organization",
+			Long: "Request body (JSON) fields: organization (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.UpdateContextOrganizationInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.UpdateContextOrganization(cmd.Context(), in)
@@ -1835,6 +2041,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1917,13 +2125,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-repo-scans",
 			Short: "Create Repo Context Scan",
+			Long: "Request body (JSON) fields: branch (string), commitSha (string, required), projectsTouched (array), repositoryId (string, required), sbomsGenerated (array), status (string), subagentsRun (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextRepoScansInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextRepoScans(cmd.Context(), in)
@@ -1937,6 +2169,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1967,14 +2201,38 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-repo-scans <scanId>",
 			Short: "Update Repo Context Scan",
+			Long: "Request body (JSON) fields: completedAt (string), errorMessage (string), projectsTouched (array), sbomsGenerated (array), status (string), subagentsRun (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchContextRepoScansScanIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.ScanID = args[0]
@@ -1989,6 +2247,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1996,13 +2256,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-reports",
 			Short: "Create Report Generation Job",
+			Long: "Request body (JSON) fields: packages (array, required), repositories (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextReportsInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextReports(cmd.Context(), in)
@@ -2016,6 +2300,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2137,14 +2423,38 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-repositories <repositoryId>",
 			Short: "Update Repository",
+			Long: "Request body (JSON) fields: name (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchContextRepositoriesRepositoryIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.RepositoryID = args[0]
@@ -2155,6 +2465,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2252,14 +2564,38 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-projects <repositoryId> <projectId>",
 			Short: "Update Project",
+			Long: "Request body (JSON) fields: deletedAt (string), description (string), isDeleted (boolean), metadata (object), tags (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchContextRepositoriesRepositoryIdProjectsProjectIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.RepositoryID = args[0]
@@ -2275,6 +2611,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2306,14 +2644,38 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-schema-by-id <repositoryId> <projectId>",
 			Short: "Upload Project Schema",
+			Long: "Request body (JSON) fields: content (string, required), format (object, required), type (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.RepositoryID = args[0]
@@ -2329,6 +2691,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2384,13 +2748,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-replay",
 			Short: "Compute Dependencies Repository/Project SBOM Ingest Replay",
+			Long: "Request body (JSON) fields: globalReplay (boolean), projectID (string), repositoryID (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextSbomingestorReplayInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextSbomingestorReplay(cmd.Context(), in)
@@ -2404,6 +2792,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2452,13 +2842,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-generate",
 			Short: "Generate SBOM",
+			Long: "Request body (JSON) fields: cloneUrl (string), commitSha (string), defaultBranch (string), repositoryId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextSbomsGenerateInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextSbomsGenerate(cmd.Context(), in)
@@ -2472,6 +2886,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2564,13 +2980,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-resolve",
 			Short: "Get or generate SBOM",
+			Long: "Request body (JSON) fields: branch (string), cdxgenMajor (integer), cloneURL (string), commitSHA (string), isDefaultBranchPush (boolean), lockfileSetHash (string), ownerProvider (object), repositoryID (string), repositoryProvider (object), scannerVersion (string), tenantID (string), timestamp (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextSbomsResolveInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextSbomsResolve(cmd.Context(), in)
@@ -2584,6 +3024,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2591,13 +3033,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-scan",
 			Short: "Scan SBOM (get-or-generate)",
+			Long: "Request body (JSON) fields: commitSha (string, required), forceRegenerate (boolean), projectId (string, required), repositoryId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextSbomsScanInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextSbomsScan(cmd.Context(), in)
@@ -2611,6 +3077,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2665,13 +3133,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-file",
 			Short: "Post Vault File",
+			Long: "Request body (JSON) fields: description (string), fileName (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextVaultFileInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextVaultFile(cmd.Context(), in)
@@ -2685,6 +3177,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2734,14 +3228,38 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-file <fileName>",
 			Short: "Patch Vault File",
+			Long: "Request body (JSON) fields: documentId (string), metadata (object), processedAt (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchContextVaultFileFileNameInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FileName = args[0]
@@ -2756,6 +3274,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2805,13 +3325,37 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-onboard",
 			Short: "Trigger Vault Onboarding",
+			Long: "Request body (JSON) fields: fileIDs (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateContextVaultOnboardInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				out, err := client.CreateContextVaultOnboard(cmd.Context(), in)
@@ -2825,6 +3369,8 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
