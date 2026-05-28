@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -265,10 +264,7 @@ func TestPollAutofixUnwrapsStatusEnvelope(t *testing.T) {
 	ft := &fakeTransport{respond: func(capturedReq) (int, string) {
 		return 200, `{"status":{"state":"cached","terminal":true},"version":"1"}`
 	}}
-	params := url.Values{}
-	params.Set("findingId", "f1")
-
-	st, err := pollAutofix(context.Background(), testClient(ft), findingTypes["sast"], params, false)
+	st, err := pollAutofix(context.Background(), testClient(ft), findingTypes["sast"], "f1", false)
 	if err != nil {
 		t.Fatalf("pollAutofix: %v", err)
 	}
@@ -298,10 +294,7 @@ func TestPollAutofixSignalsDeadlineExceeded(t *testing.T) {
 		// Server never reports terminal — the polling loop runs to the deadline.
 		return 200, `{"status":{"state":"in_progress_agent","terminal":false},"version":"1"}`
 	}}
-	params := url.Values{}
-	params.Set("findingId", "f1")
-
-	_, err := pollAutofix(context.Background(), testClient(ft), findingTypes["sast"], params, false)
+	_, err := pollAutofix(context.Background(), testClient(ft), findingTypes["sast"], "f1", false)
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("err = %v, want context.DeadlineExceeded", err)
 	}

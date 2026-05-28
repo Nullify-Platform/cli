@@ -2,14 +2,24 @@
 package commands
 
 import (
-	"net/url"
+	"encoding/json"
+	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/api/models"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
+
+var _ = json.Marshal
+var _ = fmt.Errorf
+var _ = os.Stdin
+var _ = strconv.Atoi
+var _ = strings.Split
+var _ = models.RequestScope{}
 
 func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 	serviceCmd := &cobra.Command{
@@ -24,56 +34,72 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-					"next-token": "nextToken",
-					"sort-by": "sortBy",
-					"account-id": "accountId",
-					"resource-type": "resourceType",
-					"scan-id": "scanId",
+				in := api.ListCspmFindingsInput{}
+				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
+					x := string(v)
+					in.AccountID = &x
 				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
+				if v, _ := cmd.Flags().GetString("limit"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("limit"+": %w", err)
 					} else {
-						params.Set(f.Name, f.Value.String())
+						x := int(n)
+						in.Limit = &x
 					}
-				})
-				result, err := client.ListCspmFindings(cmd.Context(), params)
+				}
+				if v, _ := cmd.Flags().GetString("next-token"); v != "" {
+					x := string(v)
+					in.NextToken = &x
+				}
+				if v, _ := cmd.Flags().GetString("region"); v != "" {
+					x := string(v)
+					in.Region = &x
+				}
+				if v, _ := cmd.Flags().GetString("resource-type"); v != "" {
+					x := string(v)
+					in.ResourceType = &x
+				}
+				if v, _ := cmd.Flags().GetString("scan-id"); v != "" {
+					x := string(v)
+					in.ScanID = &x
+				}
+				if v, _ := cmd.Flags().GetString("severity"); v != "" {
+					x := string(v)
+					in.Severity = &x
+				}
+				if v, _ := cmd.Flags().GetString("sort"); v != "" {
+					x := string(v)
+					in.Sort = &x
+				}
+				if v, _ := cmd.Flags().GetString("sort-by"); v != "" {
+					x := string(v)
+					in.SortBy = &x
+				}
+				if v, _ := cmd.Flags().GetString("status"); v != "" {
+					x := string(v)
+					in.Status = &x
+				}
+				out, err := client.ListCspmFindings(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		cmd.Flags().String("account-id", "", "Filter by account ID")
 		cmd.Flags().String("limit", "", "Maximum number of findings to return")
 		cmd.Flags().String("next-token", "", "Token for pagination")
-		cmd.Flags().String("sort", "", "Sort order (asc or desc)")
-		cmd.Flags().String("sort-by", "", "Field to sort by (priority, time, severity)")
-		cmd.Flags().String("severity", "", "Filter by severity")
-		cmd.Flags().String("status", "", "Filter by status")
-		cmd.Flags().String("account-id", "", "Filter by account ID")
 		cmd.Flags().String("region", "", "Filter by region")
 		cmd.Flags().String("resource-type", "", "Filter by resource type")
 		cmd.Flags().String("scan-id", "", "Filter by scan ID")
+		cmd.Flags().String("severity", "", "Filter by severity")
+		cmd.Flags().String("sort", "", "Sort order (asc or desc)")
+		cmd.Flags().String("sort-by", "", "Field to sort by (priority, time, severity)")
+		cmd.Flags().String("status", "", "Filter by status")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -84,44 +110,19 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.GetCspmFindingsFindingId(cmd.Context(), params)
+				in := api.GetCspmFindingsFindingIdInput{}
+				in.FindingID = args[0]
+				out, err := client.GetCspmFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -132,47 +133,33 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"since-id": "since_id",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
+				in := api.ListCspmFindingsFindingIdAutofixActivityInput{}
+				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("limit"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("limit"+": %w", err)
 					} else {
-						params.Set(f.Name, f.Value.String())
+						x := int32(n)
+						in.Limit = &x
 					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
 				}
-				result, err := client.ListCspmFindingsFindingIdAutofixActivity(cmd.Context(), params)
+				if v, _ := cmd.Flags().GetString("since-id"); v != "" {
+					x := string(v)
+					in.SinceID = &x
+				}
+				out, err := client.ListCspmFindingsFindingIdAutofixActivity(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("since-id", "", "")
 		cmd.Flags().String("limit", "", "")
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		cmd.Flags().String("since-id", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -183,44 +170,19 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.ListCspmFindingsFindingIdAutofixCacheDiff(cmd.Context(), params)
+				in := api.ListCspmFindingsFindingIdAutofixCacheDiffInput{}
+				in.FindingID = args[0]
+				out, err := client.ListCspmFindingsFindingIdAutofixCacheDiff(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -231,44 +193,25 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
+				in := api.CreateCspmFindingsFindingIdAutofixFixInput{}
+				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+					dec := json.NewDecoder(os.Stdin)
+					if err := dec.Decode(&in); err != nil {
+						return fmt.Errorf("decode body from stdin: %w", err)
 					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateCspmFindingsFindingIdAutofixFix(cmd.Context(), params, os.Stdin)
+				in.FindingID = args[0]
+				out, err := client.CreateCspmFindingsFindingIdAutofixFix(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -279,44 +222,19 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.ListCspmFindingsFindingIdAutofixState(cmd.Context(), params)
+				in := api.ListCspmFindingsFindingIdAutofixStateInput{}
+				in.FindingID = args[0]
+				out, err := client.ListCspmFindingsFindingIdAutofixState(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -327,44 +245,19 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
-				}
-				result, err := client.ListCspmFindingsFindingIdAutofixStatus(cmd.Context(), params)
+				in := api.ListCspmFindingsFindingIdAutofixStatusInput{}
+				in.FindingID = args[0]
+				out, err := client.ListCspmFindingsFindingIdAutofixStatus(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -375,44 +268,25 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
+				in := api.CreateCspmFindingsFindingIdTicketInput{}
+				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+					dec := json.NewDecoder(os.Stdin)
+					if err := dec.Decode(&in); err != nil {
+						return fmt.Errorf("decode body from stdin: %w", err)
 					}
-				})
-				if len(args) > 0 {
-					params.Set("findingId", args[0])
 				}
-				result, err := client.CreateCspmFindingsFindingIdTicket(cmd.Context(), params, os.Stdin)
+				in.FindingID = args[0]
+				out, err := client.CreateCspmFindingsFindingIdTicket(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -422,50 +296,52 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Scans",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-					"next-token": "nextToken",
-					"account-id": "accountId",
-					"scan-type": "scanType",
+				in := api.ListCspmScansInput{}
+				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
+					x := string(v)
+					in.AccountID = &x
 				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
+				if v, _ := cmd.Flags().GetString("limit"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("limit"+": %w", err)
 					} else {
-						params.Set(f.Name, f.Value.String())
+						x := int(n)
+						in.Limit = &x
 					}
-				})
-				result, err := client.ListCspmScans(cmd.Context(), params)
+				}
+				if v, _ := cmd.Flags().GetString("next-token"); v != "" {
+					x := string(v)
+					in.NextToken = &x
+				}
+				if v, _ := cmd.Flags().GetString("region"); v != "" {
+					x := string(v)
+					in.Region = &x
+				}
+				if v, _ := cmd.Flags().GetString("scan-type"); v != "" {
+					x := string(v)
+					in.ScanType = &x
+				}
+				if v, _ := cmd.Flags().GetString("status"); v != "" {
+					x := string(v)
+					in.Status = &x
+				}
+				out, err := client.ListCspmScans(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		cmd.Flags().String("account-id", "", "Filter by account ID")
 		cmd.Flags().String("limit", "", "Maximum number of scans to return")
 		cmd.Flags().String("next-token", "", "Token for pagination")
-		cmd.Flags().String("status", "", "Filter by scan status")
-		cmd.Flags().String("account-id", "", "Filter by account ID")
 		cmd.Flags().String("region", "", "Filter by region")
 		cmd.Flags().String("scan-type", "", "Filter by scan type")
+		cmd.Flags().String("status", "", "Filter by scan status")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -476,44 +352,19 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				if len(args) > 0 {
-					params.Set("scanId", args[0])
-				}
-				result, err := client.GetCspmScansScanId(cmd.Context(), params)
+				in := api.GetCspmScansScanIdInput{}
+				in.ScanID = args[0]
+				out, err := client.GetCspmScansScanId(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 

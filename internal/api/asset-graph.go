@@ -2,217 +2,190 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListAssetGraphReachabilityInput is the input for ListAssetGraphReachability — Get Asset Graph Reachability.
+type ListAssetGraphReachabilityInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	NodeID *string `url:"nodeId,omitempty" json:"-"`
+	models.RequestScope
+}
 
 // ListAssetGraphReachability - Get Asset Graph Reachability
 // GET /asset-graph/reachability
-func (c *Client) ListAssetGraphReachability(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAssetGraphReachability(ctx context.Context, in ListAssetGraphReachabilityInput) (*models.EndpointsGetAssetGraphReachabilityOutput, error) {
 	path := "/asset-graph/reachability"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nodeId"); v != "" {
-		query.Set("nodeId", v)
+	if in.NodeID != nil {
+		query.Set("nodeId", string(*in.NodeID))
 	}
-	if v := params.Get("accountId"); v != "" {
-		query.Set("accountId", v)
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphReachabilityOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAssetGraphSearchInput is the input for ListAssetGraphSearch — Search Asset Graph.
+type ListAssetGraphSearchInput struct {
+	MaxResults *int `url:"maxResults,omitempty" json:"-"`
+	ObjectTypes []string `url:"objectTypes,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAssetGraphSearch - Search Asset Graph
 // GET /asset-graph/search
-func (c *Client) ListAssetGraphSearch(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAssetGraphSearch(ctx context.Context, in ListAssetGraphSearchInput) (*models.EndpointsGetAssetGraphSearchOutput, error) {
 	path := "/asset-graph/search"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("q"); v != "" {
-		query.Set("q", v)
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
 	}
-	if v := params.Get("objectTypes"); v != "" {
-		query.Set("objectTypes", v)
+	for _, v := range in.ObjectTypes {
+		query.Add("objectTypes", string(v))
 	}
-	if v := params.Get("maxResults"); v != "" {
-		query.Set("maxResults", v)
+	if in.MaxResults != nil {
+		query.Set("maxResults", strconv.Itoa(int(*in.MaxResults)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphSearchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAssetGraphSubgraphInput is the input for ListAssetGraphSubgraph — Get Asset Graph Subgraph.
+type ListAssetGraphSubgraphInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Depth *int `url:"depth,omitempty" json:"-"`
+	MaxNodes *int `url:"maxNodes,omitempty" json:"-"`
+	ObjectTypes []string `url:"objectTypes,omitempty" json:"-"`
+	RootNodeID *string `url:"rootNodeId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAssetGraphSubgraph - Get Asset Graph Subgraph
 // GET /asset-graph/subgraph
-func (c *Client) ListAssetGraphSubgraph(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAssetGraphSubgraph(ctx context.Context, in ListAssetGraphSubgraphInput) (*models.EndpointsGetAssetGraphSubgraphOutput, error) {
 	path := "/asset-graph/subgraph"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("rootNodeId"); v != "" {
-		query.Set("rootNodeId", v)
+	if in.RootNodeID != nil {
+		query.Set("rootNodeId", string(*in.RootNodeID))
 	}
-	if v := params.Get("depth"); v != "" {
-		query.Set("depth", v)
+	if in.Depth != nil {
+		query.Set("depth", strconv.Itoa(int(*in.Depth)))
 	}
-	if v := params.Get("maxNodes"); v != "" {
-		query.Set("maxNodes", v)
+	if in.MaxNodes != nil {
+		query.Set("maxNodes", strconv.Itoa(int(*in.MaxNodes)))
 	}
-	if v := params.Get("accountId"); v != "" {
-		query.Set("accountId", v)
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
 	}
-	if v := params.Get("objectTypes"); v != "" {
-		query.Set("objectTypes", v)
+	for _, v := range in.ObjectTypes {
+		query.Add("objectTypes", string(v))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphSubgraphOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAssetGraphSummaryInput is the input for ListAssetGraphSummary — Get Asset Graph Summary.
+type ListAssetGraphSummaryInput struct {
+	models.RequestScope
 }
 
 // ListAssetGraphSummary - Get Asset Graph Summary
 // GET /asset-graph/summary
-func (c *Client) ListAssetGraphSummary(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAssetGraphSummary(ctx context.Context, in ListAssetGraphSummaryInput) (*models.EndpointsGetAssetGraphSummaryOutput, error) {
 	path := "/asset-graph/summary"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphSummaryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+

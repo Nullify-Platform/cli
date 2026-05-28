@@ -2,1938 +2,1720 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListScaContainersFindingsInput is the input for ListScaContainersFindings — Get SCA Container Findings.
+type ListScaContainersFindingsInput struct {
+	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Package *string `url:"package,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
+}
 
 // ListScaContainersFindings - Get SCA Container Findings
 // GET /sca/containers/findings
-func (c *Client) ListScaContainersFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindings(ctx context.Context, in ListScaContainersFindingsInput) (*models.EndpointsGetSCAContainerFindingsOutput, error) {
 	path := "/sca/containers/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("package"); v != "" {
-		query.Set("package", v)
+	if in.Package != nil {
+		query.Set("package", string(*in.Package))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("autoFixState"); v != "" {
-		query.Set("autoFixState", v)
+	if in.AutoFixState != nil {
+		query.Set("autoFixState", string(*in.AutoFixState))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaContainersFindingsDetailedInput is the input for ListScaContainersFindingsDetailed — Get SCA Container Findings [DEPRECATED - TO BE REMOVED BY 2025].
+type ListScaContainersFindingsDetailedInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Package *string `url:"package,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsDetailed - Get SCA Container Findings [DEPRECATED - TO BE REMOVED BY 2025]
 // GET /sca/containers/findings/detailed
-func (c *Client) ListScaContainersFindingsDetailed(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsDetailed(ctx context.Context, in ListScaContainersFindingsDetailedInput) (*models.EndpointsGetSCAContainerFindingsDetailedOutput, error) {
 	path := "/sca/containers/findings/detailed"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("package"); v != "" {
-		query.Set("package", v)
+	if in.Package != nil {
+		query.Set("package", string(*in.Package))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingsDetailedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaContainersFindingsPreviewInput is the input for ListScaContainersFindingsPreview — Get SCA Container Findings Preview.
+type ListScaContainersFindingsPreviewInput struct {
+	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Package *string `url:"package,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsPreview - Get SCA Container Findings Preview
 // GET /sca/containers/findings/preview
-func (c *Client) ListScaContainersFindingsPreview(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsPreview(ctx context.Context, in ListScaContainersFindingsPreviewInput) (*models.EndpointsGetSCAContainerFindingsOutput, error) {
 	path := "/sca/containers/findings/preview"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("package"); v != "" {
-		query.Set("package", v)
+	if in.Package != nil {
+		query.Set("package", string(*in.Package))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("autoFixState"); v != "" {
-		query.Set("autoFixState", v)
+	if in.AutoFixState != nil {
+		query.Set("autoFixState", string(*in.AutoFixState))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetScaContainersFindingsFindingIdInput is the input for GetScaContainersFindingsFindingId — Get Container Finding.
+type GetScaContainersFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetScaContainersFindingsFindingId - Get Container Finding
 // GET /sca/containers/findings/{findingId}
-func (c *Client) GetScaContainersFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetScaContainersFindingsFindingId(ctx context.Context, in GetScaContainersFindingsFindingIdInput) (*models.EndpointsGetSCAContainerFindingOutput, error) {
 	path := "/sca/containers/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchScaContainersFindingsFindingIdInput is the input for PatchScaContainersFindingsFindingId — Update Container Finding.
+type PatchScaContainersFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	models.RequestScope
 }
 
 // PatchScaContainersFindingsFindingId - Update Container Finding
 // PATCH /sca/containers/findings/{findingId}
-func (c *Client) PatchScaContainersFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchScaContainersFindingsFindingId(ctx context.Context, in PatchScaContainersFindingsFindingIdInput) (*models.EndpointsPatchSCAContainerFindingOutput, error) {
 	path := "/sca/containers/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+		SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	}{
+		PriorityOverride: in.PriorityOverride,
+		SeverityOverride: in.SeverityOverride,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSCAContainerFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaContainersFindingsFindingIdAllowlistInput is the input for CreateScaContainersFindingsFindingIdAllowlist — Allowlist Container Finding.
+type CreateScaContainersFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateScaContainersFindingsFindingIdAllowlist - Allowlist Container Finding
 // POST /sca/containers/findings/{findingId}/allowlist
-func (c *Client) CreateScaContainersFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaContainersFindingsFindingIdAllowlist(ctx context.Context, in CreateScaContainersFindingsFindingIdAllowlistInput) ([]byte, error) {
 	path := "/sca/containers/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListScaContainersFindingsFindingIdAutofixActivityInput is the input for ListScaContainersFindingsFindingIdAutofixActivity — Get SCA Container Finding Autofix Activity.
+type ListScaContainersFindingsFindingIdAutofixActivityInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	SinceID *string `url:"since_id,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsFindingIdAutofixActivity - Get SCA Container Finding Autofix Activity
 // GET /sca/containers/findings/{findingId}/autofix/activity
-func (c *Client) ListScaContainersFindingsFindingIdAutofixActivity(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsFindingIdAutofixActivity(ctx context.Context, in ListScaContainersFindingsFindingIdAutofixActivityInput) (*models.EndpointsGetAutofixActivityLogOutput, error) {
 	path := "/sca/containers/findings/{findingId}/autofix/activity"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("since_id"); v != "" {
-		query.Set("since_id", v)
+	if in.SinceID != nil {
+		query.Set("since_id", string(*in.SinceID))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAutofixActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaContainersFindingsFindingIdAutofixFixInput is the input for CreateScaContainersFindingsFindingIdAutofixFix — Fix Container Findings.
+type CreateScaContainersFindingsFindingIdAutofixFixInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	Message *string `json:"message,omitempty"`
+	OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	models.RequestScope
 }
 
 // CreateScaContainersFindingsFindingIdAutofixFix - Fix Container Findings
 // POST /sca/containers/findings/{findingId}/autofix/fix
-func (c *Client) CreateScaContainersFindingsFindingIdAutofixFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaContainersFindingsFindingIdAutofixFix(ctx context.Context, in CreateScaContainersFindingsFindingIdAutofixFixInput) (*models.EndpointsPostSCAContainerFindingFixOutput, error) {
 	path := "/sca/containers/findings/{findingId}/autofix/fix"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		Force *bool `json:"force,omitempty"`
+		Message *string `json:"message,omitempty"`
+		OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		Force: in.Force,
+		Message: in.Message,
+		OriginCampaignID: in.OriginCampaignID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSCAContainerFindingFixOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaContainersFindingsFindingIdAutofixStateInput is the input for ListScaContainersFindingsFindingIdAutofixState — Get Container Finding Autofix State.
+type ListScaContainersFindingsFindingIdAutofixStateInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsFindingIdAutofixState - Get Container Finding Autofix State
 // GET /sca/containers/findings/{findingId}/autofix/state
-func (c *Client) ListScaContainersFindingsFindingIdAutofixState(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsFindingIdAutofixState(ctx context.Context, in ListScaContainersFindingsFindingIdAutofixStateInput) (*models.EndpointsGetSCAContainerFindingAutofixStateOutput, error) {
 	path := "/sca/containers/findings/{findingId}/autofix/state"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingAutofixStateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaContainersFindingsFindingIdAutofixStatusInput is the input for ListScaContainersFindingsFindingIdAutofixStatus — Get Container Finding Autofix Status.
+type ListScaContainersFindingsFindingIdAutofixStatusInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsFindingIdAutofixStatus - Get Container Finding Autofix Status
 // GET /sca/containers/findings/{findingId}/autofix/status
-func (c *Client) ListScaContainersFindingsFindingIdAutofixStatus(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsFindingIdAutofixStatus(ctx context.Context, in ListScaContainersFindingsFindingIdAutofixStatusInput) (*models.EndpointsGetSCAContainerFindingAutofixStatusOutput, error) {
 	path := "/sca/containers/findings/{findingId}/autofix/status"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingAutofixStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaContainersFindingsFindingIdEventsInput is the input for ListScaContainersFindingsFindingIdEvents — Get SCA Container Finding Events.
+type ListScaContainersFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsFindingIdEvents - Get SCA Container Finding Events
 // GET /sca/containers/findings/{findingId}/events
-func (c *Client) ListScaContainersFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsFindingIdEvents(ctx context.Context, in ListScaContainersFindingsFindingIdEventsInput) (*models.EndpointsGetSCAContainerFindingEventsOutput, error) {
 	path := "/sca/containers/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaContainersFindingsFindingIdTicketInput is the input for CreateScaContainersFindingsFindingIdTicket — Create Jira Ticket.
+type CreateScaContainersFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	models.RequestScope
 }
 
 // CreateScaContainersFindingsFindingIdTicket - Create Jira Ticket
 // POST /sca/containers/findings/{findingId}/ticket
-func (c *Client) CreateScaContainersFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaContainersFindingsFindingIdTicket(ctx context.Context, in CreateScaContainersFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketDependencyFindingOutput, error) {
 	path := "/sca/containers/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketDependencyFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaContainersFindingsFindingIdTriageInput is the input for ListScaContainersFindingsFindingIdTriage — Get Triaged Finding.
+type ListScaContainersFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsFindingIdTriage - Get Triaged Finding
 // GET /sca/containers/findings/{findingId}/triage
-func (c *Client) ListScaContainersFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsFindingIdTriage(ctx context.Context, in ListScaContainersFindingsFindingIdTriageInput) (*models.EndpointsGetSCAContainerFindingTriageOutput, error) {
 	path := "/sca/containers/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaContainersFindingsFindingIdUnallowlistInput is the input for CreateScaContainersFindingsFindingIdUnallowlist — Unallowlist Container Finding.
+type CreateScaContainersFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	models.RequestScope
 }
 
 // CreateScaContainersFindingsFindingIdUnallowlist - Unallowlist Container Finding
 // POST /sca/containers/findings/{findingId}/unallowlist
-func (c *Client) CreateScaContainersFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaContainersFindingsFindingIdUnallowlist(ctx context.Context, in CreateScaContainersFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/sca/containers/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListScaContainersFindingsFindingIdUsersInput is the input for ListScaContainersFindingsFindingIdUsers — Get Finding Related Users.
+type ListScaContainersFindingsFindingIdUsersInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaContainersFindingsFindingIdUsers - Get Finding Related Users
 // GET /sca/containers/findings/{findingId}/users
-func (c *Client) ListScaContainersFindingsFindingIdUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaContainersFindingsFindingIdUsers(ctx context.Context, in ListScaContainersFindingsFindingIdUsersInput) (*models.EndpointsGetSCAContainerFindingUsersOutput, error) {
 	path := "/sca/containers/findings/{findingId}/users"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAContainerFindingUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsInput is the input for ListScaDependenciesFindings — Get SCA Dependency Findings.
+type ListScaDependenciesFindingsInput struct {
+	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Package *string `url:"package,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindings - Get SCA Dependency Findings
 // GET /sca/dependencies/findings
-func (c *Client) ListScaDependenciesFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindings(ctx context.Context, in ListScaDependenciesFindingsInput) (*models.EndpointsGetSCADependencyFindingsOutput, error) {
 	path := "/sca/dependencies/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("package"); v != "" {
-		query.Set("package", v)
+	if in.Package != nil {
+		query.Set("package", string(*in.Package))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("autoFixState"); v != "" {
-		query.Set("autoFixState", v)
+	if in.AutoFixState != nil {
+		query.Set("autoFixState", string(*in.AutoFixState))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsDetailedInput is the input for ListScaDependenciesFindingsDetailed — Get SCA Dependency Findings Detailed [DEPRECATED - TO BE REMOVED BY 2025].
+type ListScaDependenciesFindingsDetailedInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Package *string `url:"package,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsDetailed - Get SCA Dependency Findings Detailed [DEPRECATED - TO BE REMOVED BY 2025]
 // GET /sca/dependencies/findings/detailed
-func (c *Client) ListScaDependenciesFindingsDetailed(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsDetailed(ctx context.Context, in ListScaDependenciesFindingsDetailedInput) (*models.EndpointsGetSCADependencyFindingsDetailedOutput, error) {
 	path := "/sca/dependencies/findings/detailed"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("package"); v != "" {
-		query.Set("package", v)
+	if in.Package != nil {
+		query.Set("package", string(*in.Package))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingsDetailedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsPreviewInput is the input for ListScaDependenciesFindingsPreview — Get SCA Dependency Findings Preview.
+type ListScaDependenciesFindingsPreviewInput struct {
+	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Package *string `url:"package,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsPreview - Get SCA Dependency Findings Preview
 // GET /sca/dependencies/findings/preview
-func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, in ListScaDependenciesFindingsPreviewInput) (*models.EndpointsGetSCADependencyFindingsOutput, error) {
 	path := "/sca/dependencies/findings/preview"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("package"); v != "" {
-		query.Set("package", v)
+	if in.Package != nil {
+		query.Set("package", string(*in.Package))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("autoFixState"); v != "" {
-		query.Set("autoFixState", v)
+	if in.AutoFixState != nil {
+		query.Set("autoFixState", string(*in.AutoFixState))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetScaDependenciesFindingsFindingIdInput is the input for GetScaDependenciesFindingsFindingId — Get Finding.
+type GetScaDependenciesFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetScaDependenciesFindingsFindingId - Get Finding
 // GET /sca/dependencies/findings/{findingId}
-func (c *Client) GetScaDependenciesFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetScaDependenciesFindingsFindingId(ctx context.Context, in GetScaDependenciesFindingsFindingIdInput) (*models.EndpointsGetSCADependencyFindingOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchScaDependenciesFindingsFindingIdInput is the input for PatchScaDependenciesFindingsFindingId — Update Dependencies Finding.
+type PatchScaDependenciesFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	models.RequestScope
 }
 
 // PatchScaDependenciesFindingsFindingId - Update Dependencies Finding
 // PATCH /sca/dependencies/findings/{findingId}
-func (c *Client) PatchScaDependenciesFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchScaDependenciesFindingsFindingId(ctx context.Context, in PatchScaDependenciesFindingsFindingIdInput) (*models.EndpointsPatchSCADependencyFindingOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+		SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	}{
+		PriorityOverride: in.PriorityOverride,
+		SeverityOverride: in.SeverityOverride,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSCADependencyFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaDependenciesFindingsFindingIdAllowlistInput is the input for CreateScaDependenciesFindingsFindingIdAllowlist — Allowlist Dependency Finding.
+type CreateScaDependenciesFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateScaDependenciesFindingsFindingIdAllowlist - Allowlist Dependency Finding
 // POST /sca/dependencies/findings/{findingId}/allowlist
-func (c *Client) CreateScaDependenciesFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaDependenciesFindingsFindingIdAllowlist(ctx context.Context, in CreateScaDependenciesFindingsFindingIdAllowlistInput) ([]byte, error) {
 	path := "/sca/dependencies/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListScaDependenciesFindingsFindingIdAutofixActivityInput is the input for ListScaDependenciesFindingsFindingIdAutofixActivity — Get SCA Dependency Finding Autofix Activity.
+type ListScaDependenciesFindingsFindingIdAutofixActivityInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	SinceID *string `url:"since_id,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsFindingIdAutofixActivity - Get SCA Dependency Finding Autofix Activity
 // GET /sca/dependencies/findings/{findingId}/autofix/activity
-func (c *Client) ListScaDependenciesFindingsFindingIdAutofixActivity(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsFindingIdAutofixActivity(ctx context.Context, in ListScaDependenciesFindingsFindingIdAutofixActivityInput) (*models.EndpointsGetAutofixActivityLogOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/autofix/activity"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("since_id"); v != "" {
-		query.Set("since_id", v)
+	if in.SinceID != nil {
+		query.Set("since_id", string(*in.SinceID))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAutofixActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput is the input for ListScaDependenciesFindingsFindingIdAutofixCacheDiff — Get SCA Dependency Finding Fix.
+type ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsFindingIdAutofixCacheDiff - Get SCA Dependency Finding Fix
 // GET /sca/dependencies/findings/{findingId}/autofix/cache/diff
-func (c *Client) ListScaDependenciesFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsFindingIdAutofixCacheDiff(ctx context.Context, in ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput) (*models.EndpointsGetSCADependencyFindingFixOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/autofix/cache/diff"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingFixOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaDependenciesFindingsFindingIdAutofixFixInput is the input for CreateScaDependenciesFindingsFindingIdAutofixFix — Fix Dependency Finding.
+type CreateScaDependenciesFindingsFindingIdAutofixFixInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	Message *string `json:"message,omitempty"`
+	OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	models.RequestScope
 }
 
 // CreateScaDependenciesFindingsFindingIdAutofixFix - Fix Dependency Finding
 // POST /sca/dependencies/findings/{findingId}/autofix/fix
-func (c *Client) CreateScaDependenciesFindingsFindingIdAutofixFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaDependenciesFindingsFindingIdAutofixFix(ctx context.Context, in CreateScaDependenciesFindingsFindingIdAutofixFixInput) (*models.EndpointsPostSCADependencyFindingFixOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/autofix/fix"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		Force *bool `json:"force,omitempty"`
+		Message *string `json:"message,omitempty"`
+		OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		Force: in.Force,
+		Message: in.Message,
+		OriginCampaignID: in.OriginCampaignID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSCADependencyFindingFixOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsFindingIdAutofixStateInput is the input for ListScaDependenciesFindingsFindingIdAutofixState — Get Dependency Finding Autofix State.
+type ListScaDependenciesFindingsFindingIdAutofixStateInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsFindingIdAutofixState - Get Dependency Finding Autofix State
 // GET /sca/dependencies/findings/{findingId}/autofix/state
-func (c *Client) ListScaDependenciesFindingsFindingIdAutofixState(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsFindingIdAutofixState(ctx context.Context, in ListScaDependenciesFindingsFindingIdAutofixStateInput) (*models.EndpointsGetSCADependencyFindingAutofixStateOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/autofix/state"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingAutofixStateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsFindingIdAutofixStatusInput is the input for ListScaDependenciesFindingsFindingIdAutofixStatus — Get Dependency Finding Autofix Status.
+type ListScaDependenciesFindingsFindingIdAutofixStatusInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsFindingIdAutofixStatus - Get Dependency Finding Autofix Status
 // GET /sca/dependencies/findings/{findingId}/autofix/status
-func (c *Client) ListScaDependenciesFindingsFindingIdAutofixStatus(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsFindingIdAutofixStatus(ctx context.Context, in ListScaDependenciesFindingsFindingIdAutofixStatusInput) (*models.EndpointsGetSCADependencyFindingAutofixStatusOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/autofix/status"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingAutofixStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsFindingIdEventsInput is the input for ListScaDependenciesFindingsFindingIdEvents — Get SCA Dependency Finding Events.
+type ListScaDependenciesFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsFindingIdEvents - Get SCA Dependency Finding Events
 // GET /sca/dependencies/findings/{findingId}/events
-func (c *Client) ListScaDependenciesFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsFindingIdEvents(ctx context.Context, in ListScaDependenciesFindingsFindingIdEventsInput) (*models.EndpointsGetSCADependencyFindingEventsOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaDependenciesFindingsFindingIdTicketInput is the input for CreateScaDependenciesFindingsFindingIdTicket — Create Jira Ticket.
+type CreateScaDependenciesFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	models.RequestScope
 }
 
 // CreateScaDependenciesFindingsFindingIdTicket - Create Jira Ticket
 // POST /sca/dependencies/findings/{findingId}/ticket
-func (c *Client) CreateScaDependenciesFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaDependenciesFindingsFindingIdTicket(ctx context.Context, in CreateScaDependenciesFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketDependencyFindingOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketDependencyFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsFindingIdTriageInput is the input for ListScaDependenciesFindingsFindingIdTriage — Get Triaged Finding.
+type ListScaDependenciesFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsFindingIdTriage - Get Triaged Finding
 // GET /sca/dependencies/findings/{findingId}/triage
-func (c *Client) ListScaDependenciesFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsFindingIdTriage(ctx context.Context, in ListScaDependenciesFindingsFindingIdTriageInput) (*models.EndpointsGetSCADependencyFindingTriageOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaDependenciesFindingsFindingIdUnallowlistInput is the input for CreateScaDependenciesFindingsFindingIdUnallowlist — Unallowlist Dependency Finding.
+type CreateScaDependenciesFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	models.RequestScope
 }
 
 // CreateScaDependenciesFindingsFindingIdUnallowlist - Unallowlist Dependency Finding
 // POST /sca/dependencies/findings/{findingId}/unallowlist
-func (c *Client) CreateScaDependenciesFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScaDependenciesFindingsFindingIdUnallowlist(ctx context.Context, in CreateScaDependenciesFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/sca/dependencies/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListScaDependenciesFindingsFindingIdUsersInput is the input for ListScaDependenciesFindingsFindingIdUsers — Get Finding Related Users.
+type ListScaDependenciesFindingsFindingIdUsersInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaDependenciesFindingsFindingIdUsers - Get Finding Related Users
 // GET /sca/dependencies/findings/{findingId}/users
-func (c *Client) ListScaDependenciesFindingsFindingIdUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaDependenciesFindingsFindingIdUsers(ctx context.Context, in ListScaDependenciesFindingsFindingIdUsersInput) (*models.EndpointsGetSCADependencyFindingUsersOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/users"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCADependencyFindingUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaEventsInput is the input for ListScaEvents — Get SCA Events.
+type ListScaEventsInput struct {
+	EventType []string `url:"eventType,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FindingID *string `url:"findingId,omitempty" json:"-"`
+	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaEvents - Get SCA Events
 // GET /sca/events
-func (c *Client) ListScaEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaEvents(ctx context.Context, in ListScaEventsInput) (*models.EndpointsGetSCAEventsOutput, error) {
 	path := "/sca/events"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("fromTime"); v != "" {
-		query.Set("fromTime", v)
+	if in.FromTime != nil {
+		query.Set("fromTime", string(*in.FromTime))
 	}
-	if v := params.Get("eventType"); v != "" {
-		query.Set("eventType", v)
+	for _, v := range in.EventType {
+		query.Add("eventType", string(v))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("findingId"); v != "" {
-		query.Set("findingId", v)
+	if in.FindingID != nil {
+		query.Set("findingId", string(*in.FindingID))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaRepositoriesInput is the input for ListScaRepositories — Get Repository Stats.
+type ListScaRepositoriesInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaRepositories - Get Repository Stats
 // GET /sca/repositories
-func (c *Client) ListScaRepositories(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaRepositories(ctx context.Context, in ListScaRepositoriesInput) (*models.EndpointsGetSCARepositoriesOutput, error) {
 	path := "/sca/repositories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCARepositoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetScaRepositoriesRepositoryIdInput is the input for GetScaRepositoriesRepositoryId — Get Repository Stats.
+type GetScaRepositoriesRepositoryIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	models.RequestScope
 }
 
 // GetScaRepositoriesRepositoryId - Get Repository Stats
 // GET /sca/repositories/{repositoryId}
-func (c *Client) GetScaRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetScaRepositoriesRepositoryId(ctx context.Context, in GetScaRepositoriesRepositoryIdInput) (*models.EndpointsGetSCARepositoryOutput, error) {
 	path := "/sca/repositories/{repositoryId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCARepositoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaRepositoriesRepositoryIdSbomInput is the input for ListScaRepositoriesRepositoryIdSbom — Get Repository SBOM.
+type ListScaRepositoriesRepositoryIdSbomInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	models.RequestScope
 }
 
 // ListScaRepositoriesRepositoryIdSbom - Get Repository SBOM
 // GET /sca/repositories/{repositoryId}/sbom
-func (c *Client) ListScaRepositoriesRepositoryIdSbom(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaRepositoriesRepositoryIdSbom(ctx context.Context, in ListScaRepositoriesRepositoryIdSbomInput) (*models.EndpointsGetSCARepositorySBOMOutput, error) {
 	path := "/sca/repositories/{repositoryId}/sbom"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCARepositorySBOMOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaScanRunsInput is the input for ListScaScanRuns — List Scan Runs.
+type ListScaScanRunsInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	ScanType *string `url:"scanType,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScaScanRuns - List Scan Runs
 // GET /sca/scan-runs
-func (c *Client) ListScaScanRuns(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScaScanRuns(ctx context.Context, in ListScaScanRunsInput) (*models.EndpointsGetScanRunsOutput, error) {
 	path := "/sca/scan-runs"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("scanType"); v != "" {
-		query.Set("scanType", v)
+	if in.ScanType != nil {
+		query.Set("scanType", string(*in.ScanType))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("offset"); v != "" {
-		query.Set("offset", v)
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetScanRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+

@@ -2,13 +2,24 @@
 package commands
 
 import (
-	"net/url"
+	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/api/models"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
+
+var _ = json.Marshal
+var _ = fmt.Errorf
+var _ = os.Stdin
+var _ = strconv.Atoi
+var _ = strings.Split
+var _ = models.RequestScope{}
 
 func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Client) {
 	serviceCmd := &cobra.Command{
@@ -23,45 +34,28 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Short: "Get Asset Graph Reachability",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"node-id": "nodeId",
-					"account-id": "accountId",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
+				in := api.ListAssetGraphReachabilityInput{}
+				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
+					x := string(v)
+					in.AccountID = &x
 				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.ListAssetGraphReachability(cmd.Context(), params)
+				if v, _ := cmd.Flags().GetString("node-id"); v != "" {
+					x := string(v)
+					in.NodeID = &x
+				}
+				out, err := client.ListAssetGraphReachability(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("node-id", "", "")
 		cmd.Flags().String("account-id", "", "")
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		cmd.Flags().String("node-id", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -71,46 +65,38 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Short: "Search Asset Graph",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"object-types": "objectTypes",
-					"max-results": "maxResults",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
+				in := api.ListAssetGraphSearchInput{}
+				if v, _ := cmd.Flags().GetString("max-results"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("maxResults"+": %w", err)
 					} else {
-						params.Set(f.Name, f.Value.String())
+						x := int(n)
+						in.MaxResults = &x
 					}
-				})
-				result, err := client.ListAssetGraphSearch(cmd.Context(), params)
+				}
+				if v, _ := cmd.Flags().GetString("object-types"); v != "" {
+					for _, s := range strings.Split(v, ",") {
+						in.ObjectTypes = append(in.ObjectTypes, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("q"); v != "" {
+					x := string(v)
+					in.Q = &x
+				}
+				out, err := client.ListAssetGraphSearch(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("q", "", "")
-		cmd.Flags().String("object-types", "", "")
 		cmd.Flags().String("max-results", "", "")
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		cmd.Flags().String("object-types", "", "")
+		cmd.Flags().String("q", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -120,50 +106,52 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Short: "Get Asset Graph Subgraph",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"root-node-id": "rootNodeId",
-					"max-nodes": "maxNodes",
-					"account-id": "accountId",
-					"object-types": "objectTypes",
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
+				in := api.ListAssetGraphSubgraphInput{}
+				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
+					x := string(v)
+					in.AccountID = &x
 				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
+				if v, _ := cmd.Flags().GetString("depth"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("depth"+": %w", err)
 					} else {
-						params.Set(f.Name, f.Value.String())
+						x := int(n)
+						in.Depth = &x
 					}
-				})
-				result, err := client.ListAssetGraphSubgraph(cmd.Context(), params)
+				}
+				if v, _ := cmd.Flags().GetString("max-nodes"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("maxNodes"+": %w", err)
+					} else {
+						x := int(n)
+						in.MaxNodes = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("object-types"); v != "" {
+					for _, s := range strings.Split(v, ",") {
+						in.ObjectTypes = append(in.ObjectTypes, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("root-node-id"); v != "" {
+					x := string(v)
+					in.RootNodeID = &x
+				}
+				out, err := client.ListAssetGraphSubgraph(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("root-node-id", "", "")
+		cmd.Flags().String("account-id", "", "")
 		cmd.Flags().String("depth", "", "")
 		cmd.Flags().String("max-nodes", "", "")
-		cmd.Flags().String("account-id", "", "")
 		cmd.Flags().String("object-types", "", "")
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
+		cmd.Flags().String("root-node-id", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -173,41 +161,18 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Short: "Get Asset Graph Summary",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
-				params := url.Values{}
-				flagMap := map[string]string{
-					"azure-organization-id": "azureOrganizationId",
-					"bitbucket-workspace-id": "bitbucketWorkspaceId",
-					"github-owner-id": "githubOwnerId",
-					"gitlab-group-id": "gitlabGroupId",
-					"installation-id": "installationId",
-					"azure-repository-id": "azureRepositoryId",
-					"github-repository-id": "githubRepositoryId",
-					"github-team-id": "githubTeamId",
-					"bitbucket-repository-id": "bitbucketRepositoryId",
-				}
-				cmd.Flags().Visit(func(f *pflag.Flag) {
-					if apiName, ok := flagMap[f.Name]; ok {
-						params.Set(apiName, f.Value.String())
-					} else {
-						params.Set(f.Name, f.Value.String())
-					}
-				})
-				result, err := client.ListAssetGraphSummary(cmd.Context(), params)
+				in := api.ListAssetGraphSummaryInput{}
+				out, err := client.ListAssetGraphSummary(cmd.Context(), in)
 				if err != nil {
 					return err
 				}
-				return output.Print(cmd, result)
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
 			},
 		}
-		cmd.Flags().String("azure-organization-id", "", "The Azure organization ID")
-		cmd.Flags().String("bitbucket-workspace-id", "", "The Bitbucket workspace ID")
-		cmd.Flags().String("github-owner-id", "", "The Github owner ID")
-		cmd.Flags().String("gitlab-group-id", "", "The GitLab group ID")
-		cmd.Flags().String("installation-id", "", "The Nullify installation ID")
-		cmd.Flags().String("azure-repository-id", "", "Filter by Azure repository IDs")
-		cmd.Flags().String("github-repository-id", "", "Filter by GitHub repository IDs")
-		cmd.Flags().String("github-team-id", "", "Filter by GitHub team ID")
-		cmd.Flags().String("bitbucket-repository-id", "", "Filter by Bitbucket repository IDs")
 		serviceCmd.AddCommand(cmd)
 	}
 

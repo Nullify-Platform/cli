@@ -2,7 +2,6 @@ package mcp
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/nullify-platform/cli/internal/api"
 
@@ -17,7 +16,11 @@ func registerManagerTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			return wrap(c.ListManagerCampaigns(ctx, listParams(req)))
+			in := api.ListManagerCampaignsInput{}
+			if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
+				in.PageSize = &n
+			}
+			return wrapTyped(c.ListManagerCampaigns(ctx, in))
 		},
 	)
 
@@ -27,9 +30,9 @@ func registerManagerTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("campaign_id", mcp.Required(), mcp.Description("The campaign ID")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			p := url.Values{}
-			p.Set("campaignId", getStringArg(req.GetArguments(), "campaign_id"))
-			return wrap(c.GetManagerCampaignsCampaignId(ctx, p))
+			return wrapTyped(c.GetManagerCampaignsCampaignId(ctx, api.GetManagerCampaignsCampaignIdInput{
+				CampaignID: getStringArg(req.GetArguments(), "campaign_id"),
+			}))
 		},
 	)
 
@@ -39,7 +42,11 @@ func registerManagerTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			return wrap(c.ListManagerEscalations(ctx, listParams(req)))
+			in := api.ListManagerEscalationsInput{}
+			if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
+				in.PageSize = &n
+			}
+			return wrapTyped(c.ListManagerEscalations(ctx, in))
 		},
 	)
 }
