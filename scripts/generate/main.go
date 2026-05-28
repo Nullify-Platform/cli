@@ -610,6 +610,9 @@ func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 		useStr += " <" + name + ">"
 	}
 	fmt.Fprintf(sb, "\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", useStr, summary)
+	if ep.HasBody && ep.BodySchema != "" {
+		fmt.Fprintf(sb, "\t\t\tLong: %q,\n", bodyHelpText(ep, r))
+	}
 	if len(pathNames) > 0 {
 		fmt.Fprintf(sb, "\t\t\tArgs:  cobra.ExactArgs(%d),\n", len(pathNames))
 	}
@@ -617,11 +620,27 @@ func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 	sb.WriteString("\t\t\t\tclient := getClient()\n")
 	fmt.Fprintf(sb, "\t\t\t\tin := api.%s{}\n", inputStructName(ep))
 
-	// Body from stdin (before path/query overrides so the latter win).
+	// Body resolution (before path/query overrides so the latter win):
+	//   --data wins, else --data-file (- for stdin), else piped stdin fallback.
 	if ep.HasBody && ep.BodySchema != "" {
-		sb.WriteString("\t\t\t\tif stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {\n")
-		sb.WriteString("\t\t\t\t\tdec := json.NewDecoder(os.Stdin)\n")
-		sb.WriteString("\t\t\t\t\tif err := dec.Decode(&in); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(\"decode body from stdin: %w\", err)\n\t\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\tdataFlag, _ := cmd.Flags().GetString(\"data\")\n")
+		sb.WriteString("\t\t\t\tdataFile, _ := cmd.Flags().GetString(\"data-file\")\n")
+		sb.WriteString("\t\t\t\tswitch {\n")
+		sb.WriteString("\t\t\t\tcase dataFlag != \"\":\n")
+		sb.WriteString("\t\t\t\t\tif err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(\"decode --data: %w\", err)\n\t\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\tcase dataFile == \"-\":\n")
+		sb.WriteString("\t\t\t\t\tif err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(\"decode --data-file stdin: %w\", err)\n\t\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\tcase dataFile != \"\":\n")
+		sb.WriteString("\t\t\t\t\tf, err := os.Open(dataFile)\n")
+		sb.WriteString("\t\t\t\t\tif err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(\"open --data-file: %w\", err)\n\t\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\t\tdec := json.NewDecoder(f)\n")
+		sb.WriteString("\t\t\t\t\tdecErr := dec.Decode(&in)\n")
+		sb.WriteString("\t\t\t\t\tf.Close()\n")
+		sb.WriteString("\t\t\t\t\tif decErr != nil {\n\t\t\t\t\t\treturn fmt.Errorf(\"decode --data-file: %w\", decErr)\n\t\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\tdefault:\n")
+		sb.WriteString("\t\t\t\t\tif stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {\n")
+		sb.WriteString("\t\t\t\t\t\tif err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {\n\t\t\t\t\t\t\treturn fmt.Errorf(\"decode body from stdin: %w\", err)\n\t\t\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\t\t}\n")
 		sb.WriteString("\t\t\t\t}\n")
 	}
 
@@ -662,8 +681,60 @@ func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 		flagName := toKebabCase(p.Name)
 		fmt.Fprintf(sb, "\t\tcmd.Flags().String(%q, \"\", %q)\n", flagName, desc)
 	}
+	if ep.HasBody && ep.BodySchema != "" {
+		sb.WriteString("\t\tcmd.Flags().String(\"data\", \"\", \"Request body as a raw JSON string\")\n")
+		sb.WriteString("\t\tcmd.Flags().String(\"data-file\", \"\", \"Read request body JSON from a file (- for stdin)\")\n")
+	}
 
 	sb.WriteString("\t\tserviceCmd.AddCommand(cmd)\n\t}\n\n")
+}
+
+// bodyHelpText builds the cobra Long text for a body-bearing endpoint by
+// surfacing the top-level properties of the request schema, so users can
+// discover the body shape from --help instead of digging through the spec.
+// Falls back to a generic note when the schema is missing or has no top-level
+// properties (e.g. a $ref to a primitive or alias).
+func bodyHelpText(ep Endpoint, r *modelRegistry) string {
+	const usage = "\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin."
+	s, ok := r.schemas[ep.BodySchema]
+	if !ok || len(s.Properties) == 0 {
+		return "Request body: raw JSON." + usage
+	}
+	required := map[string]bool{}
+	for _, n := range s.Required {
+		required[n] = true
+	}
+	names := make([]string, 0, len(s.Properties))
+	for n := range s.Properties {
+		names = append(names, n)
+	}
+	sort.Strings(names)
+	parts := make([]string, 0, len(names))
+	for _, n := range names {
+		ref := s.Properties[n]
+		part := n + " (" + jsonTypeHint(ref)
+		if required[n] {
+			part += ", required"
+		}
+		part += ")"
+		parts = append(parts, part)
+	}
+	return "Request body (JSON) fields: " + strings.Join(parts, ", ") + "." + usage
+}
+
+// jsonTypeHint returns a short JSON-style type label for a SchemaRef, suitable
+// for use in cobra help text. Falls back to "object" for $refs (which point to
+// a component schema, almost always a struct) and for unknown shapes.
+func jsonTypeHint(ref SchemaRef) string {
+	if ref.Ref != "" {
+		return "object"
+	}
+	switch ref.Type {
+	case "string", "integer", "number", "boolean", "array", "object":
+		return ref.Type
+	default:
+		return "object"
+	}
 }
 
 // emitFlagToInput writes the code that copies one flag value into the typed

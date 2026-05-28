@@ -108,13 +108,37 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-credentials-findings-allowlist-batch",
 			Short: "Allowlist Batch of Credential Findings",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsCredentialsFindingsAllowlistBatchInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				data, err := client.CreateSecretsCredentialsFindingsAllowlistBatch(cmd.Context(), in)
@@ -124,6 +148,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -230,14 +256,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-credentials-findings <findingId>",
 			Short: "Update Credential Finding",
+			Long: "Request body (JSON) fields: priorityOverride (object), severityOverride (object), userNotes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchSecretsCredentialsFindingsFindingIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -252,6 +302,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -259,14 +311,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-credentials-findings-allowlist-by-id <findingId>",
 			Short: "Allowlist Credential Finding",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsCredentialsFindingsFindingIdAllowlistInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -277,6 +353,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -307,14 +385,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-credentials-findings-ticket-by-id <findingId>",
 			Short: "Create Ticket for Credential Finding",
+			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsCredentialsFindingsFindingIdTicketInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -329,6 +431,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -359,14 +463,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-credentials-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Credential Finding",
+			Long: "Request body (JSON) fields: unallowlistReason (string, required), unallowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsCredentialsFindingsFindingIdUnallowlistInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -377,6 +505,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -559,13 +689,37 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-findings-allowlist-batch",
 			Short: "Allowlist Batch of Credential Findings",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsFindingsAllowlistBatchInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				data, err := client.CreateSecretsFindingsAllowlistBatch(cmd.Context(), in)
@@ -575,6 +729,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -757,14 +913,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-findings <findingId>",
 			Short: "Update Credential Finding",
+			Long: "Request body (JSON) fields: priorityOverride (object), severityOverride (object), userNotes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchSecretsFindingsFindingIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -779,6 +959,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -786,14 +968,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-findings-allowlist-by-id <findingId>",
 			Short: "Allowlist Credential Finding",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsFindingsFindingIdAllowlistInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -804,6 +1010,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -834,14 +1042,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-findings-ticket-by-id <findingId>",
 			Short: "Create Ticket for Credential Finding",
+			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsFindingsFindingIdTicketInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -856,6 +1088,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -886,14 +1120,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Credential Finding",
+			Long: "Request body (JSON) fields: unallowlistReason (string, required), unallowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsFindingsFindingIdUnallowlistInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -904,6 +1162,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1059,13 +1319,37 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-sensitivedata-findings-allowlist-batch",
 			Short: "Allowlist Batch of Sensitive Data Findings",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsSensitivedataFindingsAllowlistBatchInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				data, err := client.CreateSecretsSensitivedataFindingsAllowlistBatch(cmd.Context(), in)
@@ -1075,6 +1359,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1105,14 +1391,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "patch-sensitivedata-findings <findingId>",
 			Short: "Update Sensitive Data Finding",
+			Long: "Request body (JSON) fields: priorityOverride (object), userNotes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.PatchSecretsSensitivedataFindingsFindingIdInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -1127,6 +1437,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1134,14 +1446,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-sensitivedata-findings-allowlist-by-id <findingId>",
 			Short: "Allowlist Sensitive Data Finding",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsSensitivedataFindingsFindingIdAllowlistInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -1152,6 +1488,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1159,14 +1497,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-sensitivedata-findings-ticket-by-id <findingId>",
 			Short: "Create Ticket for Sensitive Data Finding",
+			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsSensitivedataFindingsFindingIdTicketInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -1181,6 +1543,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1211,14 +1575,38 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 		cmd := &cobra.Command{
 			Use:   "create-sensitivedata-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Sensitive Data Finding",
+			Long: "Request body (JSON) fields: unallowlistReason (string, required), unallowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client := getClient()
 				in := api.CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput{}
-				if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-					dec := json.NewDecoder(os.Stdin)
-					if err := dec.Decode(&in); err != nil {
-						return fmt.Errorf("decode body from stdin: %w", err)
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
 					}
 				}
 				in.FindingID = args[0]
@@ -1229,6 +1617,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
