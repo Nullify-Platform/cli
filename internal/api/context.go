@@ -2,4376 +2,3829 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListContextApplicationsInput is the input for ListContextApplications — Get Applications.
+type ListContextApplicationsInput struct {
+	models.RequestScope
+}
 
 // ListContextApplications - Get Applications
 // GET /context/applications
-func (c *Client) ListContextApplications(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextApplications(ctx context.Context, in ListContextApplicationsInput) (*models.EndpointsGetContextApplicationsOutput, error) {
 	path := "/context/applications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetContextApplicationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextApplicationsInput is the input for CreateContextApplications — Create Application.
+type CreateContextApplicationsInput struct {
+	Application models.ModelsAgentAppContextSeed `json:"application"`
+	models.RequestScope
 }
 
 // CreateContextApplications - Create Application
 // POST /context/applications
-func (c *Client) CreateContextApplications(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextApplications(ctx context.Context, in CreateContextApplicationsInput) (*models.EndpointsPostContextApplicationOutput, error) {
 	path := "/context/applications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Application models.ModelsAgentAppContextSeed `json:"application"`
+	}{
+		Application: in.Application,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostContextApplicationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextApplicationsRebuildInput is the input for CreateContextApplicationsRebuild — Rebuild Applications.
+type CreateContextApplicationsRebuildInput struct {
+	Force bool `json:"force"`
+	ProviderOwnerID string `json:"providerOwnerId"`
+	models.RequestScope
 }
 
 // CreateContextApplicationsRebuild - Rebuild Applications
 // POST /context/applications/rebuild
-func (c *Client) CreateContextApplicationsRebuild(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextApplicationsRebuild(ctx context.Context, in CreateContextApplicationsRebuildInput) (*models.EndpointsRebuildApplicationsOutput, error) {
 	path := "/context/applications/rebuild"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Force bool `json:"force"`
+		ProviderOwnerID string `json:"providerOwnerId"`
+	}{
+		Force: in.Force,
+		ProviderOwnerID: in.ProviderOwnerID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsRebuildApplicationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextApplicationsApplicationIdInput is the input for DeleteContextApplicationsApplicationId — Delete Application.
+type DeleteContextApplicationsApplicationIdInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextApplicationsApplicationId - Delete Application
 // DELETE /context/applications/{applicationId}
-func (c *Client) DeleteContextApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextApplicationsApplicationId(ctx context.Context, in DeleteContextApplicationsApplicationIdInput) (*models.EndpointsDeleteContextApplicationOutput, error) {
 	path := "/context/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteContextApplicationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextApplicationsApplicationIdInput is the input for GetContextApplicationsApplicationId — Get Application.
+type GetContextApplicationsApplicationIdInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextApplicationsApplicationId - Get Application
 // GET /context/applications/{applicationId}
-func (c *Client) GetContextApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextApplicationsApplicationId(ctx context.Context, in GetContextApplicationsApplicationIdInput) (*models.EndpointsGetContextApplicationOutput, error) {
 	path := "/context/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetContextApplicationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextApplicationsApplicationIdInput is the input for PatchContextApplicationsApplicationId — Update Application.
+type PatchContextApplicationsApplicationIdInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	Application models.ModelsAppContextSeed `json:"application"`
+	models.RequestScope
 }
 
 // PatchContextApplicationsApplicationId - Update Application
 // PATCH /context/applications/{applicationId}
-func (c *Client) PatchContextApplicationsApplicationId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchContextApplicationsApplicationId(ctx context.Context, in PatchContextApplicationsApplicationIdInput) (*models.EndpointsPatchContextApplicationOutput, error) {
 	path := "/context/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Application models.ModelsAppContextSeed `json:"application"`
+	}{
+		Application: in.Application,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchContextApplicationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextApplicationsApplicationIdSchemaInput is the input for ListContextApplicationsApplicationIdSchema — Get Application Schema.
+type ListContextApplicationsApplicationIdSchemaInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	models.RequestScope
 }
 
 // ListContextApplicationsApplicationIdSchema - Get Application Schema
 // GET /context/applications/{applicationId}/schema
-func (c *Client) ListContextApplicationsApplicationIdSchema(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextApplicationsApplicationIdSchema(ctx context.Context, in ListContextApplicationsApplicationIdSchemaInput) (*models.EndpointsGetApplicationSchemaOutput, error) {
 	path := "/context/applications/{applicationId}/schema"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetApplicationSchemaOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextArtifactDeploymentsInput is the input for ListContextArtifactDeployments — List Artifact Deployments.
+type ListContextArtifactDeploymentsInput struct {
+	ArtifactID *string `url:"artifactId,omitempty" json:"-"`
+	CloudResourceID *string `url:"cloudResourceId,omitempty" json:"-"`
+	ComputeType *string `url:"computeType,omitempty" json:"-"`
+	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextArtifactDeployments - List Artifact Deployments
 // GET /context/artifact-deployments
-func (c *Client) ListContextArtifactDeployments(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextArtifactDeployments(ctx context.Context, in ListContextArtifactDeploymentsInput) (*models.EndpointsListArtifactDeploymentsOutput, error) {
 	path := "/context/artifact-deployments"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("artifactId"); v != "" {
-		query.Set("artifactId", v)
+	if in.ArtifactID != nil {
+		query.Set("artifactId", string(*in.ArtifactID))
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("cloudResourceId"); v != "" {
-		query.Set("cloudResourceId", v)
+	if in.CloudResourceID != nil {
+		query.Set("cloudResourceId", string(*in.CloudResourceID))
 	}
-	if v := params.Get("computeType"); v != "" {
-		query.Set("computeType", v)
+	if in.ComputeType != nil {
+		query.Set("computeType", string(*in.ComputeType))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("includeDeleted"); v != "" {
-		query.Set("includeDeleted", v)
+	if in.IncludeDeleted != nil {
+		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListArtifactDeploymentsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextArtifactDeploymentsDeploymentIdInput is the input for GetContextArtifactDeploymentsDeploymentId — Get Artifact Deployment.
+type GetContextArtifactDeploymentsDeploymentIdInput struct {
+	DeploymentID string `path:"deploymentId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextArtifactDeploymentsDeploymentId - Get Artifact Deployment
 // GET /context/artifact-deployments/{deploymentId}
-func (c *Client) GetContextArtifactDeploymentsDeploymentId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextArtifactDeploymentsDeploymentId(ctx context.Context, in GetContextArtifactDeploymentsDeploymentIdInput) (*models.EndpointsGetArtifactDeploymentOutput, error) {
 	path := "/context/artifact-deployments/{deploymentId}"
-	path = strings.Replace(path, "{deploymentId}", params.Get("deploymentId"), 1)
+	path = strings.Replace(path, "{deploymentId}", url.PathEscape(in.DeploymentID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetArtifactDeploymentOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextArtifactsInput is the input for ListContextArtifacts — List Artifacts.
+type ListContextArtifactsInput struct {
+	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Type *string `url:"type,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextArtifacts - List Artifacts
 // GET /context/artifacts
-func (c *Client) ListContextArtifacts(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextArtifacts(ctx context.Context, in ListContextArtifactsInput) (*models.EndpointsListArtifactsOutput, error) {
 	path := "/context/artifacts"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("type"); v != "" {
-		query.Set("type", v)
+	if in.Type != nil {
+		query.Set("type", string(*in.Type))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("includeDeleted"); v != "" {
-		query.Set("includeDeleted", v)
+	if in.IncludeDeleted != nil {
+		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListArtifactsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextArtifactsArtifactIdInput is the input for DeleteContextArtifactsArtifactId — Delete Artifact.
+type DeleteContextArtifactsArtifactIdInput struct {
+	ArtifactID string `path:"artifactId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextArtifactsArtifactId - Delete Artifact
 // DELETE /context/artifacts/{artifactId}
-func (c *Client) DeleteContextArtifactsArtifactId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextArtifactsArtifactId(ctx context.Context, in DeleteContextArtifactsArtifactIdInput) (*models.EndpointsDeleteArtifactOutput, error) {
 	path := "/context/artifacts/{artifactId}"
-	path = strings.Replace(path, "{artifactId}", params.Get("artifactId"), 1)
+	path = strings.Replace(path, "{artifactId}", url.PathEscape(in.ArtifactID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteArtifactOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextArtifactsArtifactIdInput is the input for GetContextArtifactsArtifactId — Get Artifact.
+type GetContextArtifactsArtifactIdInput struct {
+	ArtifactID string `path:"artifactId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextArtifactsArtifactId - Get Artifact
 // GET /context/artifacts/{artifactId}
-func (c *Client) GetContextArtifactsArtifactId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextArtifactsArtifactId(ctx context.Context, in GetContextArtifactsArtifactIdInput) (*models.EndpointsGetArtifactOutput, error) {
 	path := "/context/artifacts/{artifactId}"
-	path = strings.Replace(path, "{artifactId}", params.Get("artifactId"), 1)
+	path = strings.Replace(path, "{artifactId}", url.PathEscape(in.ArtifactID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetArtifactOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryCloudAccountsInput is the input for ListContextAssetInventoryCloudAccounts — Get Asset Inventory Cloud Accounts.
+type ListContextAssetInventoryCloudAccountsInput struct {
+	Active *bool `url:"active,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextAssetInventoryCloudAccounts - Get Asset Inventory Cloud Accounts
 // GET /context/asset-inventory/cloud-accounts
-func (c *Client) ListContextAssetInventoryCloudAccounts(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextAssetInventoryCloudAccounts(ctx context.Context, in ListContextAssetInventoryCloudAccountsInput) (*models.EndpointsGetCloudAccountRecordsOutput, error) {
 	path := "/context/asset-inventory/cloud-accounts"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("provider"); v != "" {
-		query.Set("provider", v)
-	}
-	if v := params.Get("active"); v != "" {
-		query.Set("active", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudAccountRecordsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryCloudResourcesInput is the input for ListContextAssetInventoryCloudResources — Get Asset Inventory Cloud Resources.
+type ListContextAssetInventoryCloudResourcesInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	Category *string `url:"category,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	Type *string `url:"type,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextAssetInventoryCloudResources - Get Asset Inventory Cloud Resources
 // GET /context/asset-inventory/cloud-resources
-func (c *Client) ListContextAssetInventoryCloudResources(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextAssetInventoryCloudResources(ctx context.Context, in ListContextAssetInventoryCloudResourcesInput) (*models.EndpointsGetAssetInventoryCloudResourcesOutput, error) {
 	path := "/context/asset-inventory/cloud-resources"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Category != nil {
+		query.Set("category", string(*in.Category))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Type != nil {
+		query.Set("type", string(*in.Type))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
 	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("category"); v != "" {
-		query.Set("category", v)
-	}
-	if v := params.Get("type"); v != "" {
-		query.Set("type", v)
-	}
-	if v := params.Get("provider"); v != "" {
-		query.Set("provider", v)
-	}
-	if v := params.Get("accountId"); v != "" {
-		query.Set("accountId", v)
-	}
-	if v := params.Get("active"); v != "" {
-		query.Set("active", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetInventoryCloudResourcesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryPublicFacingInput is the input for ListContextAssetInventoryPublicFacing — Get Public Facing Assets.
+type ListContextAssetInventoryPublicFacingInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	CloudProvider *string `url:"cloudProvider,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextAssetInventoryPublicFacing - Get Public Facing Assets
 // GET /context/asset-inventory/public-facing
-func (c *Client) ListContextAssetInventoryPublicFacing(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextAssetInventoryPublicFacing(ctx context.Context, in ListContextAssetInventoryPublicFacingInput) (*models.EndpointsGetPublicFacingAssetsOutput, error) {
 	path := "/context/asset-inventory/public-facing"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.CloudProvider != nil {
+		query.Set("cloudProvider", string(*in.CloudProvider))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("cloudProvider"); v != "" {
-		query.Set("cloudProvider", v)
-	}
-	if v := params.Get("accountId"); v != "" {
-		query.Set("accountId", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPublicFacingAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryResourcesInput is the input for ListContextAssetInventoryResources — Get Asset Inventory Resources.
+type ListContextAssetInventoryResourcesInput struct {
+	Active *bool `url:"active,omitempty" json:"-"`
+	Category *string `url:"category,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Type *string `url:"type,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextAssetInventoryResources - Get Asset Inventory Resources
 // GET /context/asset-inventory/resources
-func (c *Client) ListContextAssetInventoryResources(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextAssetInventoryResources(ctx context.Context, in ListContextAssetInventoryResourcesInput) (*models.EndpointsGetAssetInventoryResourcesOutput, error) {
 	path := "/context/asset-inventory/resources"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Category != nil {
+		query.Set("category", string(*in.Category))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Type != nil {
+		query.Set("type", string(*in.Type))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("category"); v != "" {
-		query.Set("category", v)
-	}
-	if v := params.Get("type"); v != "" {
-		query.Set("type", v)
-	}
-	if v := params.Get("active"); v != "" {
-		query.Set("active", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetInventoryResourcesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCicdPipelinesInput is the input for ListContextCicdPipelines — List CI/CD Pipelines.
+type ListContextCicdPipelinesInput struct {
+	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Platform *string `url:"platform,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextCicdPipelines - List CI/CD Pipelines
 // GET /context/cicd-pipelines
-func (c *Client) ListContextCicdPipelines(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextCicdPipelines(ctx context.Context, in ListContextCicdPipelinesInput) (*models.EndpointsListPipelinesOutput, error) {
 	path := "/context/cicd-pipelines"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("platform"); v != "" {
-		query.Set("platform", v)
+	if in.Platform != nil {
+		query.Set("platform", string(*in.Platform))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("includeDeleted"); v != "" {
-		query.Set("includeDeleted", v)
+	if in.IncludeDeleted != nil {
+		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListPipelinesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextCicdPipelinesPipelineIdInput is the input for DeleteContextCicdPipelinesPipelineId — Delete CI/CD Pipeline.
+type DeleteContextCicdPipelinesPipelineIdInput struct {
+	PipelineID string `path:"pipelineId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextCicdPipelinesPipelineId - Delete CI/CD Pipeline
 // DELETE /context/cicd-pipelines/{pipelineId}
-func (c *Client) DeleteContextCicdPipelinesPipelineId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextCicdPipelinesPipelineId(ctx context.Context, in DeleteContextCicdPipelinesPipelineIdInput) (*models.EndpointsDeletePipelineOutput, error) {
 	path := "/context/cicd-pipelines/{pipelineId}"
-	path = strings.Replace(path, "{pipelineId}", params.Get("pipelineId"), 1)
+	path = strings.Replace(path, "{pipelineId}", url.PathEscape(in.PipelineID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeletePipelineOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextCicdPipelinesPipelineIdInput is the input for GetContextCicdPipelinesPipelineId — Get CI/CD Pipeline.
+type GetContextCicdPipelinesPipelineIdInput struct {
+	PipelineID string `path:"pipelineId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextCicdPipelinesPipelineId - Get CI/CD Pipeline
 // GET /context/cicd-pipelines/{pipelineId}
-func (c *Client) GetContextCicdPipelinesPipelineId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextCicdPipelinesPipelineId(ctx context.Context, in GetContextCicdPipelinesPipelineIdInput) (*models.EndpointsGetPipelineOutput, error) {
 	path := "/context/cicd-pipelines/{pipelineId}"
-	path = strings.Replace(path, "{pipelineId}", params.Get("pipelineId"), 1)
+	path = strings.Replace(path, "{pipelineId}", url.PathEscape(in.PipelineID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPipelineOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdDiscoveredNodesInput is the input for ListContextCloudReconAccountsAccountIdDiscoveredNodes — Get Cloud Recon Discovered Nodes.
+type ListContextCloudReconAccountsAccountIdDiscoveredNodesInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	ObjectType *string `url:"objectType,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	Source *string `url:"source,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextCloudReconAccountsAccountIdDiscoveredNodes - Get Cloud Recon Discovered Nodes
 // GET /context/cloud-recon/accounts/{accountId}/discovered-nodes
-func (c *Client) ListContextCloudReconAccountsAccountIdDiscoveredNodes(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextCloudReconAccountsAccountIdDiscoveredNodes(ctx context.Context, in ListContextCloudReconAccountsAccountIdDiscoveredNodesInput) (*models.EndpointsGetCloudReconDiscoveredNodesOutput, error) {
 	path := "/context/cloud-recon/accounts/{accountId}/discovered-nodes"
-	path = strings.Replace(path, "{accountId}", params.Get("accountId"), 1)
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.ObjectType != nil {
+		query.Set("objectType", string(*in.ObjectType))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Source != nil {
+		query.Set("source", string(*in.Source))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("objectType"); v != "" {
-		query.Set("objectType", v)
-	}
-	if v := params.Get("source"); v != "" {
-		query.Set("source", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
-	if v := params.Get("offset"); v != "" {
-		query.Set("offset", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconDiscoveredNodesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdHotspotsInput is the input for ListContextCloudReconAccountsAccountIdHotspots — Get Cloud Recon Hotspots.
+type ListContextCloudReconAccountsAccountIdHotspotsInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextCloudReconAccountsAccountIdHotspots - Get Cloud Recon Hotspots
 // GET /context/cloud-recon/accounts/{accountId}/hotspots
-func (c *Client) ListContextCloudReconAccountsAccountIdHotspots(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextCloudReconAccountsAccountIdHotspots(ctx context.Context, in ListContextCloudReconAccountsAccountIdHotspotsInput) (*models.EndpointsGetCloudReconHotspotsOutput, error) {
 	path := "/context/cloud-recon/accounts/{accountId}/hotspots"
-	path = strings.Replace(path, "{accountId}", params.Get("accountId"), 1)
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
-	if v := params.Get("offset"); v != "" {
-		query.Set("offset", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconHotspotsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdScansLatestInput is the input for ListContextCloudReconAccountsAccountIdScansLatest — Get Latest Cloud Recon Scan.
+type ListContextCloudReconAccountsAccountIdScansLatestInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	models.RequestScope
 }
 
 // ListContextCloudReconAccountsAccountIdScansLatest - Get Latest Cloud Recon Scan
 // GET /context/cloud-recon/accounts/{accountId}/scans/latest
-func (c *Client) ListContextCloudReconAccountsAccountIdScansLatest(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextCloudReconAccountsAccountIdScansLatest(ctx context.Context, in ListContextCloudReconAccountsAccountIdScansLatestInput) (*models.EndpointsGetLatestCloudReconScanOutput, error) {
 	path := "/context/cloud-recon/accounts/{accountId}/scans/latest"
-	path = strings.Replace(path, "{accountId}", params.Get("accountId"), 1)
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetLatestCloudReconScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextCloudReconScansInput is the input for CreateContextCloudReconScans — Persist Cloud Recon Scan.
+type CreateContextCloudReconScansInput struct {
+	AccountID string `json:"accountId"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	ModelName *string `json:"modelName,omitempty"`
+	Payload string `json:"payload"`
+	Provider string `json:"provider"`
+	ScanID *string `json:"scanId,omitempty"`
+	SchemaVersion string `json:"schemaVersion"`
+	StartedAt string `json:"startedAt"`
+	models.RequestScope
 }
 
 // CreateContextCloudReconScans - Persist Cloud Recon Scan
 // POST /context/cloud-recon/scans
-func (c *Client) CreateContextCloudReconScans(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextCloudReconScans(ctx context.Context, in CreateContextCloudReconScansInput) (*models.EndpointsPostCloudReconScanOutput, error) {
 	path := "/context/cloud-recon/scans"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AccountID string `json:"accountId"`
+		CompletedAt *string `json:"completedAt,omitempty"`
+		ModelName *string `json:"modelName,omitempty"`
+		Payload string `json:"payload"`
+		Provider string `json:"provider"`
+		ScanID *string `json:"scanId,omitempty"`
+		SchemaVersion string `json:"schemaVersion"`
+		StartedAt string `json:"startedAt"`
+	}{
+		AccountID: in.AccountID,
+		CompletedAt: in.CompletedAt,
+		ModelName: in.ModelName,
+		Payload: in.Payload,
+		Provider: in.Provider,
+		ScanID: in.ScanID,
+		SchemaVersion: in.SchemaVersion,
+		StartedAt: in.StartedAt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCloudReconScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconTenantsCrossAccountTrustsInput is the input for ListContextCloudReconTenantsCrossAccountTrusts — Get Tenant Cloud Recon Cross-Account Trusts.
+type ListContextCloudReconTenantsCrossAccountTrustsInput struct {
+	models.RequestScope
 }
 
 // ListContextCloudReconTenantsCrossAccountTrusts - Get Tenant Cloud Recon Cross-Account Trusts
 // GET /context/cloud-recon/tenants/cross-account-trusts
-func (c *Client) ListContextCloudReconTenantsCrossAccountTrusts(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextCloudReconTenantsCrossAccountTrusts(ctx context.Context, in ListContextCloudReconTenantsCrossAccountTrustsInput) (*models.EndpointsGetCloudReconTenantTrustsOutput, error) {
 	path := "/context/cloud-recon/tenants/cross-account-trusts"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconTenantTrustsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextCloudScanStartInput is the input for CreateContextCloudScanStart — Start Cloud Scan.
+type CreateContextCloudScanStartInput struct {
+	models.RequestScope
 }
 
 // CreateContextCloudScanStart - Start Cloud Scan
 // POST /context/cloud-scan/start
-func (c *Client) CreateContextCloudScanStart(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) CreateContextCloudScanStart(ctx context.Context, in CreateContextCloudScanStartInput) (*models.EndpointsContextStartCloudScanOutput, error) {
 	path := "/context/cloud-scan/start"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, nil)
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextStartCloudScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudScanScanIdStatusInput is the input for ListContextCloudScanScanIdStatus — Get Cloud Scan Status.
+type ListContextCloudScanScanIdStatusInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListContextCloudScanScanIdStatus - Get Cloud Scan Status
 // GET /context/cloud-scan/{scanId}/status
-func (c *Client) ListContextCloudScanScanIdStatus(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextCloudScanScanIdStatus(ctx context.Context, in ListContextCloudScanScanIdStatusInput) (*models.EndpointsContextGetCloudScanStatusOutput, error) {
 	path := "/context/cloud-scan/{scanId}/status"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextGetCloudScanStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextDepsInput is the input for DeleteContextDeps — Delete dependency data.
+type DeleteContextDepsInput struct {
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	Global *bool `url:"global,omitempty" json:"-"`
+	IntroducedAt *string `url:"introducedAt,omitempty" json:"-"`
+	Name *string `url:"name,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Version *string `url:"version,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextDeps - Delete dependency data
 // DELETE /context/deps
-func (c *Client) DeleteContextDeps(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextDeps(ctx context.Context, in DeleteContextDepsInput) (*models.EndpointsDeleteDepsOutput, error) {
 	path := "/context/deps"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.Name != nil {
+		query.Set("name", string(*in.Name))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
+	if in.Version != nil {
+		query.Set("version", string(*in.Version))
 	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
+	if in.IntroducedAt != nil {
+		query.Set("introducedAt", string(*in.IntroducedAt))
 	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
+	if in.Global != nil {
+		query.Set("global", strconv.FormatBool(*in.Global))
 	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
-	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
-	}
-	if v := params.Get("ecosystem"); v != "" {
-		query.Set("ecosystem", v)
-	}
-	if v := params.Get("name"); v != "" {
-		query.Set("name", v)
-	}
-	if v := params.Get("version"); v != "" {
-		query.Set("version", v)
-	}
-	if v := params.Get("introducedAt"); v != "" {
-		query.Set("introducedAt", v)
-	}
-	if v := params.Get("global"); v != "" {
-		query.Set("global", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteDepsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsInput is the input for ListContextDeps — List Tenant Wide Dependencies (Historical).
+type ListContextDepsInput struct {
+	Cursor *string `url:"cursor,omitempty" json:"-"`
+	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDeps - List Tenant Wide Dependencies (Historical)
 // GET /context/deps
-func (c *Client) ListContextDeps(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDeps(ctx context.Context, in ListContextDepsInput) (*models.EndpointsGetDepsOutput, error) {
 	path := "/context/deps"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
-	}
-	if v := params.Get("cursor"); v != "" {
-		query.Set("cursor", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDepsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsActiveInput is the input for ListContextDepsActive — List Tenant Wide Active Dependencies.
+type ListContextDepsActiveInput struct {
+	Cursor *string `url:"cursor,omitempty" json:"-"`
+	Direct *bool `url:"direct,omitempty" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	Name *string `url:"name,omitempty" json:"-"`
+	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	Range *string `url:"range,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsActive - List Tenant Wide Active Dependencies
 // GET /context/deps/active
-func (c *Client) ListContextDepsActive(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsActive(ctx context.Context, in ListContextDepsActiveInput) (*models.EndpointsGetActiveDepsOutput, error) {
 	path := "/context/deps/active"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
+	if in.Name != nil {
+		query.Set("name", string(*in.Name))
 	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
+	if in.Direct != nil {
+		query.Set("direct", strconv.FormatBool(*in.Direct))
 	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
+	if in.Range != nil {
+		query.Set("range", string(*in.Range))
 	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
-	}
-	if v := params.Get("cursor"); v != "" {
-		query.Set("cursor", v)
-	}
-	if v := params.Get("search"); v != "" {
-		query.Set("search", v)
-	}
-	if v := params.Get("ecosystem"); v != "" {
-		query.Set("ecosystem", v)
-	}
-	if v := params.Get("name"); v != "" {
-		query.Set("name", v)
-	}
-	if v := params.Get("direct"); v != "" {
-		query.Set("direct", v)
-	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
-	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
-	}
-	if v := params.Get("range"); v != "" {
-		query.Set("range", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetActiveDepsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsActiveSummaryInput is the input for ListContextDepsActiveSummary — Tenant Wide Active Dependency Summary.
+type ListContextDepsActiveSummaryInput struct {
+	Direct *bool `url:"direct,omitempty" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	Name *string `url:"name,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	Range *string `url:"range,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsActiveSummary - Tenant Wide Active Dependency Summary
 // GET /context/deps/active/summary
-func (c *Client) ListContextDepsActiveSummary(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsActiveSummary(ctx context.Context, in ListContextDepsActiveSummaryInput) (*models.EndpointsGetActiveDepsSummaryOutput, error) {
 	path := "/context/deps/active/summary"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Name != nil {
+		query.Set("name", string(*in.Name))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.Direct != nil {
+		query.Set("direct", strconv.FormatBool(*in.Direct))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
+	if in.Range != nil {
+		query.Set("range", string(*in.Range))
 	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("search"); v != "" {
-		query.Set("search", v)
-	}
-	if v := params.Get("ecosystem"); v != "" {
-		query.Set("ecosystem", v)
-	}
-	if v := params.Get("name"); v != "" {
-		query.Set("name", v)
-	}
-	if v := params.Get("direct"); v != "" {
-		query.Set("direct", v)
-	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
-	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
-	}
-	if v := params.Get("range"); v != "" {
-		query.Set("range", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetActiveDepsSummaryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsByRefBomRefInput is the input for ListContextDepsByRefBomRef — Get Dependencies by Bom Ref.
+type ListContextDepsByRefBomRefInput struct {
+	BomRef string `path:"bomRef" json:"-"`
+	Cursor *string `url:"cursor,omitempty" json:"-"`
+	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsByRefBomRef - Get Dependencies by Bom Ref
 // GET /context/deps/by-ref/{bomRef}
-func (c *Client) ListContextDepsByRefBomRef(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsByRefBomRef(ctx context.Context, in ListContextDepsByRefBomRefInput) (*models.EndpointsGetDepsByBomRefOutput, error) {
 	path := "/context/deps/by-ref/{bomRef}"
-	path = strings.Replace(path, "{bomRef}", params.Get("bomRef"), 1)
+	path = strings.Replace(path, "{bomRef}", url.PathEscape(in.BomRef), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
-	}
-	if v := params.Get("cursor"); v != "" {
-		query.Set("cursor", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDepsByBomRefOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsDependentsBomRefInput is the input for ListContextDepsDependentsBomRef — List Dependents of a Bom Ref.
+type ListContextDepsDependentsBomRefInput struct {
+	BomRef string `path:"bomRef" json:"-"`
+	Cursor *string `url:"cursor,omitempty" json:"-"`
+	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsDependentsBomRef - List Dependents of a Bom Ref
 // GET /context/deps/dependents/{bomRef}
-func (c *Client) ListContextDepsDependentsBomRef(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsDependentsBomRef(ctx context.Context, in ListContextDepsDependentsBomRefInput) (*models.EndpointsGetDepsDependentsOutput, error) {
 	path := "/context/deps/dependents/{bomRef}"
-	path = strings.Replace(path, "{bomRef}", params.Get("bomRef"), 1)
+	path = strings.Replace(path, "{bomRef}", url.PathEscape(in.BomRef), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
-	}
-	if v := params.Get("cursor"); v != "" {
-		query.Set("cursor", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDepsDependentsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsExposureInput is the input for ListContextDepsExposure — Global package exposure by version filter (semver or hash).
+type ListContextDepsExposureInput struct {
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	Name *string `url:"name,omitempty" json:"-"`
+	Range *string `url:"range,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsExposure - Global package exposure by version filter (semver or hash)
 // GET /context/deps/exposure
-func (c *Client) ListContextDepsExposure(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsExposure(ctx context.Context, in ListContextDepsExposureInput) (*models.EndpointsGetExposureOutput, error) {
 	path := "/context/deps/exposure"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Name != nil {
+		query.Set("name", string(*in.Name))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Range != nil {
+		query.Set("range", string(*in.Range))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("ecosystem"); v != "" {
-		query.Set("ecosystem", v)
-	}
-	if v := params.Get("name"); v != "" {
-		query.Set("name", v)
-	}
-	if v := params.Get("range"); v != "" {
-		query.Set("range", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetExposureOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdActiveInput is the input for ListContextDepsRepositoryRepositoryIdProjectProjectIdActive — List Active Dependencies.
+type ListContextDepsRepositoryRepositoryIdProjectProjectIdActiveInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	Direct *bool `url:"direct,omitempty" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsRepositoryRepositoryIdProjectProjectIdActive - List Active Dependencies
 // GET /context/deps/repository/{repositoryId}/project/{projectId}/active
-func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdActive(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdActive(ctx context.Context, in ListContextDepsRepositoryRepositoryIdProjectProjectIdActiveInput) (*models.EndpointsGetProjectActiveDepsOutput, error) {
 	path := "/context/deps/repository/{repositoryId}/project/{projectId}/active"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Direct != nil {
+		query.Set("direct", strconv.FormatBool(*in.Direct))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("search"); v != "" {
-		query.Set("search", v)
-	}
-	if v := params.Get("ecosystem"); v != "" {
-		query.Set("ecosystem", v)
-	}
-	if v := params.Get("direct"); v != "" {
-		query.Set("direct", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectActiveDepsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommitInput is the input for ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit — Dependencies at commit.
+type ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommitInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	Commit string `path:"commit" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit - Dependencies at commit
 // GET /context/deps/repository/{repositoryId}/project/{projectId}/at/{commit}
-func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit(ctx context.Context, in ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommitInput) (*models.EndpointsGetDepsAtCommitOutput, error) {
 	path := "/context/deps/repository/{repositoryId}/project/{projectId}/at/{commit}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
-	path = strings.Replace(path, "{commit}", params.Get("commit"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
+	path = strings.Replace(path, "{commit}", url.PathEscape(in.Commit), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDepsAtCommitOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdDiffInput is the input for ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff — Dependency diff between two commits.
+type ListContextDepsRepositoryRepositoryIdProjectProjectIdDiffInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	FromCommit *string `url:"fromCommit,omitempty" json:"-"`
+	ToCommit *string `url:"toCommit,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff - Dependency diff between two commits
 // GET /context/deps/repository/{repositoryId}/project/{projectId}/diff
-func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff(ctx context.Context, in ListContextDepsRepositoryRepositoryIdProjectProjectIdDiffInput) (*models.EndpointsGetDepsDiffOutput, error) {
 	path := "/context/deps/repository/{repositoryId}/project/{projectId}/diff"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.FromCommit != nil {
+		query.Set("fromCommit", string(*in.FromCommit))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.ToCommit != nil {
+		query.Set("toCommit", string(*in.ToCommit))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("fromCommit"); v != "" {
-		query.Set("fromCommit", v)
-	}
-	if v := params.Get("toCommit"); v != "" {
-		query.Set("toCommit", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDepsDiffOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdExposureInput is the input for ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure — Project package exposure by version filter (semver or hash).
+type ListContextDepsRepositoryRepositoryIdProjectProjectIdExposureInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	Name *string `url:"name,omitempty" json:"-"`
+	Range *string `url:"range,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure - Project package exposure by version filter (semver or hash)
 // GET /context/deps/repository/{repositoryId}/project/{projectId}/exposure
-func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure(ctx context.Context, in ListContextDepsRepositoryRepositoryIdProjectProjectIdExposureInput) (*models.EndpointsGetProjectExposureOutput, error) {
 	path := "/context/deps/repository/{repositoryId}/project/{projectId}/exposure"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Name != nil {
+		query.Set("name", string(*in.Name))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Range != nil {
+		query.Set("range", string(*in.Range))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("ecosystem"); v != "" {
-		query.Set("ecosystem", v)
-	}
-	if v := params.Get("name"); v != "" {
-		query.Set("name", v)
-	}
-	if v := params.Get("range"); v != "" {
-		query.Set("range", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectExposureOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsRepositoryRepositoryIdProjectProjectIdHistoryInput is the input for ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory — Package exposure history (windows).
+type ListContextDepsRepositoryRepositoryIdProjectProjectIdHistoryInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	Name *string `url:"name,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory - Package exposure history (windows)
 // GET /context/deps/repository/{repositoryId}/project/{projectId}/history
-func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory(ctx context.Context, in ListContextDepsRepositoryRepositoryIdProjectProjectIdHistoryInput) (*models.EndpointsGetDepsHistoryOut, error) {
 	path := "/context/deps/repository/{repositoryId}/project/{projectId}/history"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Name != nil {
+		query.Set("name", string(*in.Name))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("ecosystem"); v != "" {
-		query.Set("ecosystem", v)
-	}
-	if v := params.Get("name"); v != "" {
-		query.Set("name", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDepsHistoryOut
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextDepsWithoutLockfileInput is the input for ListContextDepsWithoutLockfile — List projects/repos without lockfiles.
+type ListContextDepsWithoutLockfileInput struct {
+	Level *string `url:"level,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextDepsWithoutLockfile - List projects/repos without lockfiles
 // GET /context/deps/without-lockfile
-func (c *Client) ListContextDepsWithoutLockfile(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextDepsWithoutLockfile(ctx context.Context, in ListContextDepsWithoutLockfileInput) (*models.EndpointsGetDepsWithoutLockfileOutput, error) {
 	path := "/context/deps/without-lockfile"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Level != nil {
+		query.Set("level", string(*in.Level))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("level"); v != "" {
-		query.Set("level", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDepsWithoutLockfileOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextEntrypointsInput is the input for ListContextEntrypoints — List Entrypoints.
+type ListContextEntrypointsInput struct {
+	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
+	Kind *string `url:"kind,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextEntrypoints - List Entrypoints
 // GET /context/entrypoints
-func (c *Client) ListContextEntrypoints(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextEntrypoints(ctx context.Context, in ListContextEntrypointsInput) (*models.EndpointsListEntrypointsOutput, error) {
 	path := "/context/entrypoints"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("kind"); v != "" {
-		query.Set("kind", v)
+	if in.Kind != nil {
+		query.Set("kind", string(*in.Kind))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("includeDeleted"); v != "" {
-		query.Set("includeDeleted", v)
+	if in.IncludeDeleted != nil {
+		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListEntrypointsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextEntrypointsEntrypointIdInput is the input for DeleteContextEntrypointsEntrypointId — Delete Entrypoint.
+type DeleteContextEntrypointsEntrypointIdInput struct {
+	EntrypointID string `path:"entrypointId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextEntrypointsEntrypointId - Delete Entrypoint
 // DELETE /context/entrypoints/{entrypointId}
-func (c *Client) DeleteContextEntrypointsEntrypointId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextEntrypointsEntrypointId(ctx context.Context, in DeleteContextEntrypointsEntrypointIdInput) (*models.EndpointsDeleteEntrypointOutput, error) {
 	path := "/context/entrypoints/{entrypointId}"
-	path = strings.Replace(path, "{entrypointId}", params.Get("entrypointId"), 1)
+	path = strings.Replace(path, "{entrypointId}", url.PathEscape(in.EntrypointID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteEntrypointOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextEntrypointsEntrypointIdInput is the input for GetContextEntrypointsEntrypointId — Get Entrypoint.
+type GetContextEntrypointsEntrypointIdInput struct {
+	EntrypointID string `path:"entrypointId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextEntrypointsEntrypointId - Get Entrypoint
 // GET /context/entrypoints/{entrypointId}
-func (c *Client) GetContextEntrypointsEntrypointId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextEntrypointsEntrypointId(ctx context.Context, in GetContextEntrypointsEntrypointIdInput) (*models.EndpointsGetEntrypointOutput, error) {
 	path := "/context/entrypoints/{entrypointId}"
-	path = strings.Replace(path, "{entrypointId}", params.Get("entrypointId"), 1)
+	path = strings.Replace(path, "{entrypointId}", url.PathEscape(in.EntrypointID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetEntrypointOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextMemoriesInput is the input for ListContextMemories — Get Memories.
+type ListContextMemoriesInput struct {
+	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	MemoryType *string `url:"memoryType,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Priority *string `url:"priority,omitempty" json:"-"`
+	ResourceID *string `url:"resourceId,omitempty" json:"-"`
+	ResourceType *string `url:"resourceType,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextMemories - Get Memories
 // GET /context/memories
-func (c *Client) ListContextMemories(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextMemories(ctx context.Context, in ListContextMemoriesInput) (*models.EndpointsGetMemoriesOutput, error) {
 	path := "/context/memories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.ResourceID != nil {
+		query.Set("resourceId", string(*in.ResourceID))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.ResourceType != nil {
+		query.Set("resourceType", string(*in.ResourceType))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.MemoryType != nil {
+		query.Set("memoryType", string(*in.MemoryType))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.Priority != nil {
+		query.Set("priority", string(*in.Priority))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
+	if in.IsLatest != nil {
+		query.Set("isLatest", strconv.FormatBool(*in.IsLatest))
 	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("resourceId"); v != "" {
-		query.Set("resourceId", v)
-	}
-	if v := params.Get("resourceType"); v != "" {
-		query.Set("resourceType", v)
-	}
-	if v := params.Get("memoryType"); v != "" {
-		query.Set("memoryType", v)
-	}
-	if v := params.Get("priority"); v != "" {
-		query.Set("priority", v)
-	}
-	if v := params.Get("isLatest"); v != "" {
-		query.Set("isLatest", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMemoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextMemoriesInput is the input for CreateContextMemories — Create Memory.
+type CreateContextMemoriesInput struct {
+	Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
+	Confidence *float64 `json:"confidence,omitempty"`
+	Content string `json:"content"`
+	CreatedBy *string `json:"createdBy,omitempty"`
+	CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+	IsUserCreated *bool `json:"isUserCreated,omitempty"`
+	MemoryType models.ModelsMemoryMemoryType `json:"memoryType"`
+	Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
+	ParentNoteID *string `json:"parentNoteId,omitempty"`
+	Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	Tags []string `json:"tags,omitempty"`
+	Title *string `json:"title,omitempty"`
+	models.RequestScope
 }
 
 // CreateContextMemories - Create Memory
 // POST /context/memories
-func (c *Client) CreateContextMemories(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextMemories(ctx context.Context, in CreateContextMemoriesInput) (*models.EndpointsPostMemoryOutput, error) {
 	path := "/context/memories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
+		Confidence *float64 `json:"confidence,omitempty"`
+		Content string `json:"content"`
+		CreatedBy *string `json:"createdBy,omitempty"`
+		CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+		IsUserCreated *bool `json:"isUserCreated,omitempty"`
+		MemoryType models.ModelsMemoryMemoryType `json:"memoryType"`
+		Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
+		ParentNoteID *string `json:"parentNoteId,omitempty"`
+		Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+		ResourceID *string `json:"resourceId,omitempty"`
+		ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+		Tags []string `json:"tags,omitempty"`
+		Title *string `json:"title,omitempty"`
+	}{
+		Citations: in.Citations,
+		Confidence: in.Confidence,
+		Content: in.Content,
+		CreatedBy: in.CreatedBy,
+		CrossReferences: in.CrossReferences,
+		IsUserCreated: in.IsUserCreated,
+		MemoryType: in.MemoryType,
+		Metadata: in.Metadata,
+		ParentNoteID: in.ParentNoteID,
+		Priority: in.Priority,
+		ResourceID: in.ResourceID,
+		ResourceType: in.ResourceType,
+		Tags: in.Tags,
+		Title: in.Title,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostMemoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextMemoriesTypeInput is the input for ListContextMemoriesType — Get Memories By Type.
+type ListContextMemoriesTypeInput struct {
+	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	MemoryType *string `url:"memoryType,omitempty" json:"-"`
+	PaginationToken *string `url:"paginationToken,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextMemoriesType - Get Memories By Type
 // GET /context/memories/type
-func (c *Client) ListContextMemoriesType(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextMemoriesType(ctx context.Context, in ListContextMemoriesTypeInput) (*models.EndpointsGetMemoriesByTypeOutput, error) {
 	path := "/context/memories/type"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.MemoryType != nil {
+		query.Set("memoryType", string(*in.MemoryType))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.IsLatest != nil {
+		query.Set("isLatest", strconv.FormatBool(*in.IsLatest))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.PaginationToken != nil {
+		query.Set("paginationToken", string(*in.PaginationToken))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("memoryType"); v != "" {
-		query.Set("memoryType", v)
-	}
-	if v := params.Get("isLatest"); v != "" {
-		query.Set("isLatest", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
-	if v := params.Get("paginationToken"); v != "" {
-		query.Set("paginationToken", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMemoriesByTypeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextMemoriesMemoryIdInput is the input for DeleteContextMemoriesMemoryId — Delete Memory.
+type DeleteContextMemoriesMemoryIdInput struct {
+	MemoryID string `path:"memoryId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextMemoriesMemoryId - Delete Memory
 // DELETE /context/memories/{memoryId}
-func (c *Client) DeleteContextMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextMemoriesMemoryId(ctx context.Context, in DeleteContextMemoriesMemoryIdInput) (*models.EndpointsDeleteMemoryOutput, error) {
 	path := "/context/memories/{memoryId}"
-	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
+	path = strings.Replace(path, "{memoryId}", url.PathEscape(in.MemoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteMemoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextMemoriesMemoryIdInput is the input for GetContextMemoriesMemoryId — Get Memory.
+type GetContextMemoriesMemoryIdInput struct {
+	MemoryID string `path:"memoryId" json:"-"`
+	Version *string `url:"version,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // GetContextMemoriesMemoryId - Get Memory
 // GET /context/memories/{memoryId}
-func (c *Client) GetContextMemoriesMemoryId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextMemoriesMemoryId(ctx context.Context, in GetContextMemoriesMemoryIdInput) (*models.EndpointsGetMemoryOutput, error) {
 	path := "/context/memories/{memoryId}"
-	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
+	path = strings.Replace(path, "{memoryId}", url.PathEscape(in.MemoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Version != nil {
+		query.Set("version", string(*in.Version))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("version"); v != "" {
-		query.Set("version", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMemoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextMemoriesMemoryIdInput is the input for PatchContextMemoriesMemoryId — Update Memory.
+type PatchContextMemoriesMemoryIdInput struct {
+	MemoryID string `path:"memoryId" json:"-"`
+	Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
+	Confidence *float64 `json:"confidence,omitempty"`
+	Content *string `json:"content,omitempty"`
+	CreateNewVersion *bool `json:"createNewVersion,omitempty"`
+	CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+	Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
+	ParentNoteID *string `json:"parentNoteId,omitempty"`
+	Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+	Tags []string `json:"tags,omitempty"`
+	Title *string `json:"title,omitempty"`
+	models.RequestScope
 }
 
 // PatchContextMemoriesMemoryId - Update Memory
 // PATCH /context/memories/{memoryId}
-func (c *Client) PatchContextMemoriesMemoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchContextMemoriesMemoryId(ctx context.Context, in PatchContextMemoriesMemoryIdInput) (*models.EndpointsPatchMemoryOutput, error) {
 	path := "/context/memories/{memoryId}"
-	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
+	path = strings.Replace(path, "{memoryId}", url.PathEscape(in.MemoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
+		Confidence *float64 `json:"confidence,omitempty"`
+		Content *string `json:"content,omitempty"`
+		CreateNewVersion *bool `json:"createNewVersion,omitempty"`
+		CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+		Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
+		ParentNoteID *string `json:"parentNoteId,omitempty"`
+		Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+		Tags []string `json:"tags,omitempty"`
+		Title *string `json:"title,omitempty"`
+	}{
+		Citations: in.Citations,
+		Confidence: in.Confidence,
+		Content: in.Content,
+		CreateNewVersion: in.CreateNewVersion,
+		CrossReferences: in.CrossReferences,
+		Metadata: in.Metadata,
+		ParentNoteID: in.ParentNoteID,
+		Priority: in.Priority,
+		Tags: in.Tags,
+		Title: in.Title,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchMemoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextMemoriesMemoryIdVersionsInput is the input for ListContextMemoriesMemoryIdVersions — Get Memory Versions.
+type ListContextMemoriesMemoryIdVersionsInput struct {
+	MemoryID string `path:"memoryId" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextMemoriesMemoryIdVersions - Get Memory Versions
 // GET /context/memories/{memoryId}/versions
-func (c *Client) ListContextMemoriesMemoryIdVersions(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextMemoriesMemoryIdVersions(ctx context.Context, in ListContextMemoriesMemoryIdVersionsInput) (*models.EndpointsGetMemoryVersionsOutput, error) {
 	path := "/context/memories/{memoryId}/versions"
-	path = strings.Replace(path, "{memoryId}", params.Get("memoryId"), 1)
+	path = strings.Replace(path, "{memoryId}", url.PathEscape(in.MemoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMemoryVersionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextOrganizationInput is the input for ListContextOrganization — Get Organization Context.
+type ListContextOrganizationInput struct {
+	models.RequestScope
 }
 
 // ListContextOrganization - Get Organization Context
 // GET /context/organization
-func (c *Client) ListContextOrganization(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextOrganization(ctx context.Context, in ListContextOrganizationInput) (*models.EndpointsGetOrganizationOutput, error) {
 	path := "/context/organization"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetOrganizationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextOrganizationInput is the input for PatchContextOrganization — Update Classification of the Organization.
+type PatchContextOrganizationInput struct {
+	Name *string `json:"name,omitempty"`
+	Notes *string `json:"notes,omitempty"`
+	models.RequestScope
 }
 
 // PatchContextOrganization - Update Classification of the Organization
 // PATCH /context/organization
-func (c *Client) PatchContextOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchContextOrganization(ctx context.Context, in PatchContextOrganizationInput) ([]byte, error) {
 	path := "/context/organization"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Name *string `json:"name,omitempty"`
+		Notes *string `json:"notes,omitempty"`
+	}{
+		Name: in.Name,
+		Notes: in.Notes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// UpdateContextOrganizationInput is the input for UpdateContextOrganization — Upsert Classification of the Organization.
+type UpdateContextOrganizationInput struct {
+	Organization *models.ModelsOrgContext `json:"organization,omitempty"`
+	models.RequestScope
 }
 
 // UpdateContextOrganization - Upsert Classification of the Organization
 // PUT /context/organization
-func (c *Client) UpdateContextOrganization(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) UpdateContextOrganization(ctx context.Context, in UpdateContextOrganizationInput) (*models.EndpointsCreateOrganizationOutput, error) {
 	path := "/context/organization"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Organization *models.ModelsOrgContext `json:"organization,omitempty"`
+	}{
+		Organization: in.Organization,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsCreateOrganizationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextRagResyncInput is the input for CreateContextRagResync — Resync RAG Vector Store.
+type CreateContextRagResyncInput struct {
+	models.RequestScope
 }
 
 // CreateContextRagResync - Resync RAG Vector Store
 // POST /context/rag/resync
-func (c *Client) CreateContextRagResync(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) CreateContextRagResync(ctx context.Context, in CreateContextRagResyncInput) (*models.EndpointsPostRAGResyncOutput, error) {
 	path := "/context/rag/resync"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, nil)
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostRAGResyncOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepoScansInput is the input for ListContextRepoScans — List Repo Context Scans.
+type ListContextRepoScansInput struct {
+	CommitSha *string `url:"commitSha,omitempty" json:"-"`
+	Page *int `url:"page,omitempty" json:"-"`
+	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Status *string `url:"status,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextRepoScans - List Repo Context Scans
 // GET /context/repo-scans
-func (c *Client) ListContextRepoScans(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextRepoScans(ctx context.Context, in ListContextRepoScansInput) (*models.EndpointsListRepoScansOutput, error) {
 	path := "/context/repo-scans"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("commitSha"); v != "" {
-		query.Set("commitSha", v)
+	if in.CommitSha != nil {
+		query.Set("commitSha", string(*in.CommitSha))
 	}
-	if v := params.Get("status"); v != "" {
-		query.Set("status", v)
+	if in.Status != nil {
+		query.Set("status", string(*in.Status))
 	}
-	if v := params.Get("page"); v != "" {
-		query.Set("page", v)
+	if in.Page != nil {
+		query.Set("page", strconv.Itoa(int(*in.Page)))
 	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListRepoScansOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextRepoScansInput is the input for CreateContextRepoScans — Create Repo Context Scan.
+type CreateContextRepoScansInput struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitSha string `json:"commitSha"`
+	ProjectsTouched []models.EndpointsRepoScanProjectTouched `json:"projectsTouched,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	SbomsGenerated []models.EndpointsRepoScanSBOMGenerated `json:"sbomsGenerated,omitempty"`
+	Status *string `json:"status,omitempty"`
+	SubagentsRun map[string]models.EndpointsRepoScanSubagent `json:"subagentsRun,omitempty"`
+	models.RequestScope
 }
 
 // CreateContextRepoScans - Create Repo Context Scan
 // POST /context/repo-scans
-func (c *Client) CreateContextRepoScans(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextRepoScans(ctx context.Context, in CreateContextRepoScansInput) (*models.EndpointsCreateRepoScanOutput, error) {
 	path := "/context/repo-scans"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+		CommitSha string `json:"commitSha"`
+		ProjectsTouched []models.EndpointsRepoScanProjectTouched `json:"projectsTouched,omitempty"`
+		RepositoryID string `json:"repositoryId"`
+		SbomsGenerated []models.EndpointsRepoScanSBOMGenerated `json:"sbomsGenerated,omitempty"`
+		Status *string `json:"status,omitempty"`
+		SubagentsRun map[string]models.EndpointsRepoScanSubagent `json:"subagentsRun,omitempty"`
+	}{
+		Branch: in.Branch,
+		CommitSha: in.CommitSha,
+		ProjectsTouched: in.ProjectsTouched,
+		RepositoryID: in.RepositoryID,
+		SbomsGenerated: in.SbomsGenerated,
+		Status: in.Status,
+		SubagentsRun: in.SubagentsRun,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsCreateRepoScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextRepoScansScanIdInput is the input for GetContextRepoScansScanId — Get Repo Context Scan.
+type GetContextRepoScansScanIdInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextRepoScansScanId - Get Repo Context Scan
 // GET /context/repo-scans/{scanId}
-func (c *Client) GetContextRepoScansScanId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextRepoScansScanId(ctx context.Context, in GetContextRepoScansScanIdInput) (*models.EndpointsGetRepoScanOutput, error) {
 	path := "/context/repo-scans/{scanId}"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetRepoScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextRepoScansScanIdInput is the input for PatchContextRepoScansScanId — Update Repo Context Scan.
+type PatchContextRepoScansScanIdInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	ProjectsTouched []models.EndpointsRepoScanProjectTouched `json:"projectsTouched,omitempty"`
+	SbomsGenerated []models.EndpointsRepoScanSBOMGenerated `json:"sbomsGenerated,omitempty"`
+	Status *string `json:"status,omitempty"`
+	SubagentsRun map[string]models.EndpointsRepoScanSubagent `json:"subagentsRun,omitempty"`
+	models.RequestScope
 }
 
 // PatchContextRepoScansScanId - Update Repo Context Scan
 // PATCH /context/repo-scans/{scanId}
-func (c *Client) PatchContextRepoScansScanId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchContextRepoScansScanId(ctx context.Context, in PatchContextRepoScansScanIdInput) (*models.EndpointsPatchRepoScanOutput, error) {
 	path := "/context/repo-scans/{scanId}"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		CompletedAt *string `json:"completedAt,omitempty"`
+		ErrorMessage *string `json:"errorMessage,omitempty"`
+		ProjectsTouched []models.EndpointsRepoScanProjectTouched `json:"projectsTouched,omitempty"`
+		SbomsGenerated []models.EndpointsRepoScanSBOMGenerated `json:"sbomsGenerated,omitempty"`
+		Status *string `json:"status,omitempty"`
+		SubagentsRun map[string]models.EndpointsRepoScanSubagent `json:"subagentsRun,omitempty"`
+	}{
+		CompletedAt: in.CompletedAt,
+		ErrorMessage: in.ErrorMessage,
+		ProjectsTouched: in.ProjectsTouched,
+		SbomsGenerated: in.SbomsGenerated,
+		Status: in.Status,
+		SubagentsRun: in.SubagentsRun,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchRepoScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextReportsInput is the input for CreateContextReports — Create Report Generation Job.
+type CreateContextReportsInput struct {
+	Packages []models.EndpointsPackageFilter `json:"packages,omitempty"`
+	Repositories []string `json:"repositories,omitempty"`
+	models.RequestScope
 }
 
 // CreateContextReports - Create Report Generation Job
 // POST /context/reports
-func (c *Client) CreateContextReports(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextReports(ctx context.Context, in CreateContextReportsInput) (*models.EndpointsPostReportOutput, error) {
 	path := "/context/reports"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Packages []models.EndpointsPackageFilter `json:"packages,omitempty"`
+		Repositories []string `json:"repositories,omitempty"`
+	}{
+		Packages: in.Packages,
+		Repositories: in.Repositories,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostReportOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextReportsJobIdInput is the input for GetContextReportsJobId — Get Report Status.
+type GetContextReportsJobIdInput struct {
+	JobID string `path:"jobId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextReportsJobId - Get Report Status
 // GET /context/reports/{jobId}
-func (c *Client) GetContextReportsJobId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextReportsJobId(ctx context.Context, in GetContextReportsJobIdInput) (*models.EndpointsGetReportStatusOutput, error) {
 	path := "/context/reports/{jobId}"
-	path = strings.Replace(path, "{jobId}", params.Get("jobId"), 1)
+	path = strings.Replace(path, "{jobId}", url.PathEscape(in.JobID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetReportStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepositoriesInput is the input for ListContextRepositories — Get Contexts of Repositories.
+type ListContextRepositoriesInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextRepositories - Get Contexts of Repositories
 // GET /context/repositories
-func (c *Client) ListContextRepositories(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextRepositories(ctx context.Context, in ListContextRepositoriesInput) (*models.EndpointsGetRepositoriesOutput, error) {
 	path := "/context/repositories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetRepositoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextRepositoriesRepositoryIdInput is the input for DeleteContextRepositoriesRepositoryId — Delete Repository.
+type DeleteContextRepositoriesRepositoryIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextRepositoriesRepositoryId - Delete Repository
 // DELETE /context/repositories/{repositoryId}
-func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, in DeleteContextRepositoriesRepositoryIdInput) (*models.EndpointsDeleteRepositoryOutput, error) {
 	path := "/context/repositories/{repositoryId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteRepositoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextRepositoriesRepositoryIdInput is the input for GetContextRepositoriesRepositoryId — Get Repository.
+type GetContextRepositoriesRepositoryIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextRepositoriesRepositoryId - Get Repository
 // GET /context/repositories/{repositoryId}
-func (c *Client) GetContextRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextRepositoriesRepositoryId(ctx context.Context, in GetContextRepositoriesRepositoryIdInput) (*models.EndpointsGetRepositoryOutput, error) {
 	path := "/context/repositories/{repositoryId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetRepositoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextRepositoriesRepositoryIdInput is the input for PatchContextRepositoriesRepositoryId — Update Repository.
+type PatchContextRepositoriesRepositoryIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	Name *string `json:"name,omitempty"`
+	models.RequestScope
 }
 
 // PatchContextRepositoriesRepositoryId - Update Repository
 // PATCH /context/repositories/{repositoryId}
-func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, in PatchContextRepositoriesRepositoryIdInput) ([]byte, error) {
 	path := "/context/repositories/{repositoryId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Name *string `json:"name,omitempty"`
+	}{
+		Name: in.Name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListContextRepositoriesRepositoryIdProjectsInput is the input for ListContextRepositoriesRepositoryIdProjects — List Projects.
+type ListContextRepositoriesRepositoryIdProjectsInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextRepositoriesRepositoryIdProjects - List Projects
 // GET /context/repositories/{repositoryId}/projects
-func (c *Client) ListContextRepositoriesRepositoryIdProjects(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextRepositoriesRepositoryIdProjects(ctx context.Context, in ListContextRepositoriesRepositoryIdProjectsInput) (*models.EndpointsListRepositoryProjectsOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("includeDeleted"); v != "" {
-		query.Set("includeDeleted", v)
+	if in.IncludeDeleted != nil {
+		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListRepositoryProjectsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextRepositoriesRepositoryIdProjectsProjectIdInput is the input for DeleteContextRepositoriesRepositoryIdProjectsProjectId — Delete Project.
+type DeleteContextRepositoriesRepositoryIdProjectsProjectIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextRepositoriesRepositoryIdProjectsProjectId - Delete Project
 // DELETE /context/repositories/{repositoryId}/projects/{projectId}
-func (c *Client) DeleteContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, in DeleteContextRepositoriesRepositoryIdProjectsProjectIdInput) (*models.EndpointsDeleteProjectOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects/{projectId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteProjectOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextRepositoriesRepositoryIdProjectsProjectIdInput is the input for GetContextRepositoriesRepositoryIdProjectsProjectId — Get Project.
+type GetContextRepositoriesRepositoryIdProjectsProjectIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextRepositoriesRepositoryIdProjectsProjectId - Get Project
 // GET /context/repositories/{repositoryId}/projects/{projectId}
-func (c *Client) GetContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, in GetContextRepositoriesRepositoryIdProjectsProjectIdInput) (*models.EndpointsGetProjectOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects/{projectId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextRepositoriesRepositoryIdProjectsProjectIdInput is the input for PatchContextRepositoriesRepositoryIdProjectsProjectId — Update Project.
+type PatchContextRepositoriesRepositoryIdProjectsProjectIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	DeletedAt *string `json:"deletedAt,omitempty"`
+	Description *string `json:"description,omitempty"`
+	IsDeleted *bool `json:"isDeleted,omitempty"`
+	Metadata map[string]json.RawMessage `json:"metadata,omitempty"`
+	Tags []string `json:"tags,omitempty"`
+	models.RequestScope
 }
 
 // PatchContextRepositoriesRepositoryIdProjectsProjectId - Update Project
 // PATCH /context/repositories/{repositoryId}/projects/{projectId}
-func (c *Client) PatchContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchContextRepositoriesRepositoryIdProjectsProjectId(ctx context.Context, in PatchContextRepositoriesRepositoryIdProjectsProjectIdInput) (*models.EndpointsUpdateProjectOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects/{projectId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		DeletedAt *string `json:"deletedAt,omitempty"`
+		Description *string `json:"description,omitempty"`
+		IsDeleted *bool `json:"isDeleted,omitempty"`
+		Metadata map[string]json.RawMessage `json:"metadata,omitempty"`
+		Tags []string `json:"tags,omitempty"`
+	}{
+		DeletedAt: in.DeletedAt,
+		Description: in.Description,
+		IsDeleted: in.IsDeleted,
+		Metadata: in.Metadata,
+		Tags: in.Tags,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsUpdateProjectOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput is the input for ListContextRepositoriesRepositoryIdProjectsProjectIdSchema — Get Project Schema.
+type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	models.RequestScope
 }
 
 // ListContextRepositoriesRepositoryIdProjectsProjectIdSchema - Get Project Schema
 // GET /context/repositories/{repositoryId}/projects/{projectId}/schema
-func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, in ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput) (*models.EndpointsGetProjectSchemaOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectSchemaOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput is the input for CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema — Upload Project Schema.
+type CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	Content string `json:"content"`
+	Format models.ModelsSchemaFormat `json:"format"`
+	Type models.ModelsSchemaType `json:"type"`
+	models.RequestScope
 }
 
 // CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema - Upload Project Schema
 // POST /context/repositories/{repositoryId}/projects/{projectId}/schema
-func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx context.Context, in CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput) (*models.EndpointsPostProjectSchemaOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Content string `json:"content"`
+		Format models.ModelsSchemaFormat `json:"format"`
+		Type models.ModelsSchemaType `json:"type"`
+	}{
+		Content: in.Content,
+		Format: in.Format,
+		Type: in.Type,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostProjectSchemaOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadataInput is the input for ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata — Get Project Schema Metadata.
+type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadataInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	models.RequestScope
 }
 
 // ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata - Get Project Schema Metadata
 // GET /context/repositories/{repositoryId}/projects/{projectId}/schema/metadata
-func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadata(ctx context.Context, in ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadataInput) (*models.EndpointsGetProjectSchemaMetadataOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema/metadata"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectSchemaMetadataOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRawInput is the input for ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRaw — Get Project Schema Raw File.
+type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRawInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	models.RequestScope
 }
 
 // ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRaw - Get Project Schema Raw File
 // GET /context/repositories/{repositoryId}/projects/{projectId}/schema/raw
-func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRaw(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRaw(ctx context.Context, in ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRawInput) (*models.EndpointsGetProjectSchemaRawOutput, error) {
 	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema/raw"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectSchemaRawOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSbomingestorReplayInput is the input for CreateContextSbomingestorReplay — Compute Dependencies Repository/Project SBOM Ingest Replay.
+type CreateContextSbomingestorReplayInput struct {
+	GlobalReplay *bool `json:"globalReplay,omitempty"`
+	ProjectID *string `json:"projectID,omitempty"`
+	RepositoryID *string `json:"repositoryID,omitempty"`
+	models.RequestScope
 }
 
 // CreateContextSbomingestorReplay - Compute Dependencies Repository/Project SBOM Ingest Replay
 // POST /context/sbomingestor/replay
-func (c *Client) CreateContextSbomingestorReplay(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextSbomingestorReplay(ctx context.Context, in CreateContextSbomingestorReplayInput) (*models.EndpointsSBOMIngestReplayOutput, error) {
 	path := "/context/sbomingestor/replay"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		GlobalReplay *bool `json:"globalReplay,omitempty"`
+		ProjectID *string `json:"projectID,omitempty"`
+		RepositoryID *string `json:"repositoryID,omitempty"`
+	}{
+		GlobalReplay: in.GlobalReplay,
+		ProjectID: in.ProjectID,
+		RepositoryID: in.RepositoryID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSBOMIngestReplayOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextSbomsInput is the input for DeleteContextSboms — Delete SBOMs for tenant.
+type DeleteContextSbomsInput struct {
+	DryRun *bool `url:"dryRun,omitempty" json:"-"`
+	InvalidOnly *bool `url:"invalidOnly,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextSboms - Delete SBOMs for tenant
 // DELETE /context/sboms
-func (c *Client) DeleteContextSboms(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextSboms(ctx context.Context, in DeleteContextSbomsInput) (*models.EndpointsDeleteSBOMOutput, error) {
 	path := "/context/sboms"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.InvalidOnly != nil {
+		query.Set("invalidOnly", strconv.FormatBool(*in.InvalidOnly))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.DryRun != nil {
+		query.Set("dryRun", strconv.FormatBool(*in.DryRun))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
-	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
-	}
-	if v := params.Get("invalidOnly"); v != "" {
-		query.Set("invalidOnly", v)
-	}
-	if v := params.Get("dryRun"); v != "" {
-		query.Set("dryRun", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteSBOMOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSbomsGenerateInput is the input for CreateContextSbomsGenerate — Generate SBOM.
+type CreateContextSbomsGenerateInput struct {
+	CloneURL *string `json:"cloneUrl,omitempty"`
+	CommitSha *string `json:"commitSha,omitempty"`
+	DefaultBranch *string `json:"defaultBranch,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	models.RequestScope
 }
 
 // CreateContextSbomsGenerate - Generate SBOM
 // POST /context/sboms/generate
-func (c *Client) CreateContextSbomsGenerate(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextSbomsGenerate(ctx context.Context, in CreateContextSbomsGenerateInput) (*models.EndpointsPostSBOMGenerateOutput, error) {
 	path := "/context/sboms/generate"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		CloneURL *string `json:"cloneUrl,omitempty"`
+		CommitSha *string `json:"commitSha,omitempty"`
+		DefaultBranch *string `json:"defaultBranch,omitempty"`
+		RepositoryID string `json:"repositoryId"`
+	}{
+		CloneURL: in.CloneURL,
+		CommitSha: in.CommitSha,
+		DefaultBranch: in.DefaultBranch,
+		RepositoryID: in.RepositoryID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSBOMGenerateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextSbomsRepositoryRepositoryIdLatestInput is the input for ListContextSbomsRepositoryRepositoryIdLatest — Get Latest SBOMs for Repository.
+type ListContextSbomsRepositoryRepositoryIdLatestInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	models.RequestScope
 }
 
 // ListContextSbomsRepositoryRepositoryIdLatest - Get Latest SBOMs for Repository
 // GET /context/sboms/repository/{repositoryId}/latest
-func (c *Client) ListContextSbomsRepositoryRepositoryIdLatest(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextSbomsRepositoryRepositoryIdLatest(ctx context.Context, in ListContextSbomsRepositoryRepositoryIdLatestInput) (*models.EndpointsGetLatestSBOMsOutput, error) {
 	path := "/context/sboms/repository/{repositoryId}/latest"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetLatestSBOMsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput is the input for GetContextSbomsRepositoryRepositoryIdProjectProjectId — Get Repository/Project SBOMs.
+type GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	FromCommit *string `url:"fromCommit,omitempty" json:"-"`
+	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	Page *int `url:"page,omitempty" json:"-"`
+	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	UntilCommit *string `url:"untilCommit,omitempty" json:"-"`
+	UntilTime *string `url:"untilTime,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // GetContextSbomsRepositoryRepositoryIdProjectProjectId - Get Repository/Project SBOMs
 // GET /context/sboms/repository/{repositoryId}/project/{projectId}
-func (c *Client) GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx context.Context, in GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput) (*models.EndpointsGetSBOMSOutput, error) {
 	path := "/context/sboms/repository/{repositoryId}/project/{projectId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
-	path = strings.Replace(path, "{projectId}", params.Get("projectId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("page"); v != "" {
-		query.Set("page", v)
+	if in.Page != nil {
+		query.Set("page", strconv.Itoa(int(*in.Page)))
 	}
-	if v := params.Get("pageSize"); v != "" {
-		query.Set("pageSize", v)
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
-	if v := params.Get("fromCommit"); v != "" {
-		query.Set("fromCommit", v)
+	if in.FromCommit != nil {
+		query.Set("fromCommit", string(*in.FromCommit))
 	}
-	if v := params.Get("untilCommit"); v != "" {
-		query.Set("untilCommit", v)
+	if in.UntilCommit != nil {
+		query.Set("untilCommit", string(*in.UntilCommit))
 	}
-	if v := params.Get("fromTime"); v != "" {
-		query.Set("fromTime", v)
+	if in.FromTime != nil {
+		query.Set("fromTime", string(*in.FromTime))
 	}
-	if v := params.Get("untilTime"); v != "" {
-		query.Set("untilTime", v)
+	if in.UntilTime != nil {
+		query.Set("untilTime", string(*in.UntilTime))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSBOMSOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSbomsResolveInput is the input for CreateContextSbomsResolve — Get or generate SBOM.
+type CreateContextSbomsResolveInput struct {
+	Branch *string `json:"branch,omitempty"`
+	CdxgenMajor *int `json:"cdxgenMajor,omitempty"`
+	CloneURL *string `json:"cloneURL,omitempty"`
+	CommitSHA *string `json:"commitSHA,omitempty"`
+	IsDefaultBranchPush *bool `json:"isDefaultBranchPush,omitempty"`
+	LockfileSetHash *string `json:"lockfileSetHash,omitempty"`
+	OwnerProvider *models.ModelsOwnerProvider `json:"ownerProvider,omitempty"`
+	RepositoryID *string `json:"repositoryID,omitempty"`
+	RepositoryProvider *models.ModelsGitRepositoryProvider `json:"repositoryProvider,omitempty"`
+	ScannerVersion *string `json:"scannerVersion,omitempty"`
+	TenantID *string `json:"tenantID,omitempty"`
+	Timestamp *string `json:"timestamp,omitempty"`
+	models.RequestScope
 }
 
 // CreateContextSbomsResolve - Get or generate SBOM
 // POST /context/sboms/resolve
-func (c *Client) CreateContextSbomsResolve(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextSbomsResolve(ctx context.Context, in CreateContextSbomsResolveInput) (*models.EndpointsPostSBOMResolveOutput, error) {
 	path := "/context/sboms/resolve"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+		CdxgenMajor *int `json:"cdxgenMajor,omitempty"`
+		CloneURL *string `json:"cloneURL,omitempty"`
+		CommitSHA *string `json:"commitSHA,omitempty"`
+		IsDefaultBranchPush *bool `json:"isDefaultBranchPush,omitempty"`
+		LockfileSetHash *string `json:"lockfileSetHash,omitempty"`
+		OwnerProvider *models.ModelsOwnerProvider `json:"ownerProvider,omitempty"`
+		RepositoryID *string `json:"repositoryID,omitempty"`
+		RepositoryProvider *models.ModelsGitRepositoryProvider `json:"repositoryProvider,omitempty"`
+		ScannerVersion *string `json:"scannerVersion,omitempty"`
+		TenantID *string `json:"tenantID,omitempty"`
+		Timestamp *string `json:"timestamp,omitempty"`
+	}{
+		Branch: in.Branch,
+		CdxgenMajor: in.CdxgenMajor,
+		CloneURL: in.CloneURL,
+		CommitSHA: in.CommitSHA,
+		IsDefaultBranchPush: in.IsDefaultBranchPush,
+		LockfileSetHash: in.LockfileSetHash,
+		OwnerProvider: in.OwnerProvider,
+		RepositoryID: in.RepositoryID,
+		RepositoryProvider: in.RepositoryProvider,
+		ScannerVersion: in.ScannerVersion,
+		TenantID: in.TenantID,
+		Timestamp: in.Timestamp,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSBOMResolveOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSbomsScanInput is the input for CreateContextSbomsScan — Scan SBOM (get-or-generate).
+type CreateContextSbomsScanInput struct {
+	CommitSha string `json:"commitSha"`
+	ForceRegenerate *bool `json:"forceRegenerate,omitempty"`
+	ProjectID string `json:"projectId"`
+	RepositoryID string `json:"repositoryId"`
+	models.RequestScope
 }
 
 // CreateContextSbomsScan - Scan SBOM (get-or-generate)
 // POST /context/sboms/scan
-func (c *Client) CreateContextSbomsScan(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextSbomsScan(ctx context.Context, in CreateContextSbomsScanInput) (*models.EndpointsPostSBOMScanOutput, error) {
 	path := "/context/sboms/scan"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		CommitSha string `json:"commitSha"`
+		ForceRegenerate *bool `json:"forceRegenerate,omitempty"`
+		ProjectID string `json:"projectId"`
+		RepositoryID string `json:"repositoryId"`
+	}{
+		CommitSha: in.CommitSha,
+		ForceRegenerate: in.ForceRegenerate,
+		ProjectID: in.ProjectID,
+		RepositoryID: in.RepositoryID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSBOMScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextSbomsTreeInput is the input for ListContextSbomsTree — Get SBOM key tree for tenant.
+type ListContextSbomsTreeInput struct {
+	Verbose *bool `url:"verbose,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListContextSbomsTree - Get SBOM key tree for tenant
 // GET /context/sboms/tree
-func (c *Client) ListContextSbomsTree(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextSbomsTree(ctx context.Context, in ListContextSbomsTreeInput) (*models.EndpointsGetSBOMTreeOutput, error) {
 	path := "/context/sboms/tree"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Verbose != nil {
+		query.Set("verbose", strconv.FormatBool(*in.Verbose))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("verbose"); v != "" {
-		query.Set("verbose", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSBOMTreeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextSchemasInput is the input for ListContextSchemas — List Schemas.
+type ListContextSchemasInput struct {
+	models.RequestScope
 }
 
 // ListContextSchemas - List Schemas
 // GET /context/schemas
-func (c *Client) ListContextSchemas(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextSchemas(ctx context.Context, in ListContextSchemasInput) (*models.EndpointsListSchemasOutput, error) {
 	path := "/context/schemas"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListSchemasOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextVaultFileInput is the input for CreateContextVaultFile — Post Vault File.
+type CreateContextVaultFileInput struct {
+	Description *string `json:"description,omitempty"`
+	FileName string `json:"fileName"`
+	models.RequestScope
 }
 
 // CreateContextVaultFile - Post Vault File
 // POST /context/vault/file
-func (c *Client) CreateContextVaultFile(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextVaultFile(ctx context.Context, in CreateContextVaultFileInput) (*models.EndpointsPostVaultFileOutput, error) {
 	path := "/context/vault/file"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Description *string `json:"description,omitempty"`
+		FileName string `json:"fileName"`
+	}{
+		Description: in.Description,
+		FileName: in.FileName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostVaultFileOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextVaultFileFileIdInput is the input for DeleteContextVaultFileFileId — Delete Vault File.
+type DeleteContextVaultFileFileIdInput struct {
+	FileID string `path:"fileId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteContextVaultFileFileId - Delete Vault File
 // DELETE /context/vault/file/{fileId}
-func (c *Client) DeleteContextVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteContextVaultFileFileId(ctx context.Context, in DeleteContextVaultFileFileIdInput) ([]byte, error) {
 	path := "/context/vault/file/{fileId}"
-	path = strings.Replace(path, "{fileId}", params.Get("fileId"), 1)
+	path = strings.Replace(path, "{fileId}", url.PathEscape(in.FileID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	return data, err
+}
+
+// GetContextVaultFileFileIdInput is the input for GetContextVaultFileFileId — Get Vault File.
+type GetContextVaultFileFileIdInput struct {
+	FileID string `path:"fileId" json:"-"`
+	models.RequestScope
 }
 
 // GetContextVaultFileFileId - Get Vault File
 // GET /context/vault/file/{fileId}
-func (c *Client) GetContextVaultFileFileId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetContextVaultFileFileId(ctx context.Context, in GetContextVaultFileFileIdInput) (*models.EndpointsGetVaultFileOutput, error) {
 	path := "/context/vault/file/{fileId}"
-	path = strings.Replace(path, "{fileId}", params.Get("fileId"), 1)
+	path = strings.Replace(path, "{fileId}", url.PathEscape(in.FileID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetVaultFileOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextVaultFileFileNameInput is the input for PatchContextVaultFileFileName — Patch Vault File.
+type PatchContextVaultFileFileNameInput struct {
+	FileName string `path:"fileName" json:"-"`
+	DocumentID *string `json:"documentId,omitempty"`
+	Metadata map[string]json.RawMessage `json:"metadata,omitempty"`
+	ProcessedAt *string `json:"processedAt,omitempty"`
+	models.RequestScope
 }
 
 // PatchContextVaultFileFileName - Patch Vault File
 // PATCH /context/vault/file/{fileName}
-func (c *Client) PatchContextVaultFileFileName(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchContextVaultFileFileName(ctx context.Context, in PatchContextVaultFileFileNameInput) (*models.EndpointsPatchVaultFileOutput, error) {
 	path := "/context/vault/file/{fileName}"
-	path = strings.Replace(path, "{fileName}", params.Get("fileName"), 1)
+	path = strings.Replace(path, "{fileName}", url.PathEscape(in.FileName), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		DocumentID *string `json:"documentId,omitempty"`
+		Metadata map[string]json.RawMessage `json:"metadata,omitempty"`
+		ProcessedAt *string `json:"processedAt,omitempty"`
+	}{
+		DocumentID: in.DocumentID,
+		Metadata: in.Metadata,
+		ProcessedAt: in.ProcessedAt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchVaultFileOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextVaultFilesInput is the input for ListContextVaultFiles — Get Vault Files.
+type ListContextVaultFilesInput struct {
+	models.RequestScope
 }
 
 // ListContextVaultFiles - Get Vault Files
 // GET /context/vault/files
-func (c *Client) ListContextVaultFiles(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextVaultFiles(ctx context.Context, in ListContextVaultFilesInput) (*models.EndpointsGetVaultFilesOutput, error) {
 	path := "/context/vault/files"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetVaultFilesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextVaultFilesListInput is the input for ListContextVaultFilesList — Get Vault Files List.
+type ListContextVaultFilesListInput struct {
+	models.RequestScope
 }
 
 // ListContextVaultFilesList - Get Vault Files List
 // GET /context/vault/files/list
-func (c *Client) ListContextVaultFilesList(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListContextVaultFilesList(ctx context.Context, in ListContextVaultFilesListInput) (*models.EndpointsGetVaultFilesListOutput, error) {
 	path := "/context/vault/files/list"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetVaultFilesListOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextVaultOnboardInput is the input for CreateContextVaultOnboard — Trigger Vault Onboarding.
+type CreateContextVaultOnboardInput struct {
+	FileIDs []string `json:"fileIDs,omitempty"`
+	models.RequestScope
 }
 
 // CreateContextVaultOnboard - Trigger Vault Onboarding
 // POST /context/vault/onboard
-func (c *Client) CreateContextVaultOnboard(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateContextVaultOnboard(ctx context.Context, in CreateContextVaultOnboardInput) (*models.EndpointsPostVaultOnboardOutput, error) {
 	path := "/context/vault/onboard"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		FileIDs []string `json:"fileIDs,omitempty"`
+	}{
+		FileIDs: in.FileIDs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostVaultOnboardOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+

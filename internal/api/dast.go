@@ -2,2764 +2,2253 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListDastBughuntConfigInput is the input for ListDastBughuntConfig — Get BugHunt Config.
+type ListDastBughuntConfigInput struct {
+	models.RequestScope
+}
 
 // ListDastBughuntConfig - Get BugHunt Config
 // GET /dast/bughunt/config
-func (c *Client) ListDastBughuntConfig(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntConfig(ctx context.Context, in ListDastBughuntConfigInput) (*models.EndpointsGetBugHuntConfigOutput, error) {
 	path := "/dast/bughunt/config"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateDastBughuntConfigInput is the input for UpdateDastBughuntConfig — Put BugHunt Config.
+type UpdateDastBughuntConfigInput struct {
+	Config models.EndpointsBugHuntConfigInput `json:"config"`
+	models.RequestScope
 }
 
 // UpdateDastBughuntConfig - Put BugHunt Config
 // PUT /dast/bughunt/config
-func (c *Client) UpdateDastBughuntConfig(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) UpdateDastBughuntConfig(ctx context.Context, in UpdateDastBughuntConfigInput) (*models.EndpointsPutBugHuntConfigOutput, error) {
 	path := "/dast/bughunt/config"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Config models.EndpointsBugHuntConfigInput `json:"config"`
+	}{
+		Config: in.Config,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutBugHuntConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastBughuntConfigValidateInput is the input for CreateDastBughuntConfigValidate — Validate BugHunt Config.
+type CreateDastBughuntConfigValidateInput struct {
+	Config models.EndpointsBugHuntConfigInput `json:"config"`
+	models.RequestScope
 }
 
 // CreateDastBughuntConfigValidate - Validate BugHunt Config
 // POST /dast/bughunt/config/validate
-func (c *Client) CreateDastBughuntConfigValidate(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastBughuntConfigValidate(ctx context.Context, in CreateDastBughuntConfigValidateInput) (*models.EndpointsValidateBugHuntConfigOutput, error) {
 	path := "/dast/bughunt/config/validate"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Config models.EndpointsBugHuntConfigInput `json:"config"`
+	}{
+		Config: in.Config,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsValidateBugHuntConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntFindingsInput is the input for ListDastBughuntFindings — Get BugHunt Findings.
+type ListDastBughuntFindingsInput struct {
+	models.RequestScope
 }
 
 // ListDastBughuntFindings - Get BugHunt Findings
 // GET /dast/bughunt/findings
-func (c *Client) ListDastBughuntFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntFindings(ctx context.Context, in ListDastBughuntFindingsInput) (*models.EndpointsGetBugHuntFindingsOutput, error) {
 	path := "/dast/bughunt/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetDastBughuntFindingsFindingIdInput is the input for GetDastBughuntFindingsFindingId — Get BugHunt Finding.
+type GetDastBughuntFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetDastBughuntFindingsFindingId - Get BugHunt Finding
 // GET /dast/bughunt/findings/{findingId}
-func (c *Client) GetDastBughuntFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetDastBughuntFindingsFindingId(ctx context.Context, in GetDastBughuntFindingsFindingIdInput) (*models.EndpointsGetBugHuntFindingOutput, error) {
 	path := "/dast/bughunt/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchDastBughuntFindingsFindingIdAllowlistInput is the input for PatchDastBughuntFindingsFindingIdAllowlist — Allowlist BugHunt Finding.
+type PatchDastBughuntFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Allow bool `json:"allow"`
+	Reason string `json:"reason"`
+	models.RequestScope
 }
 
 // PatchDastBughuntFindingsFindingIdAllowlist - Allowlist BugHunt Finding
 // PATCH /dast/bughunt/findings/{findingId}/allowlist
-func (c *Client) PatchDastBughuntFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchDastBughuntFindingsFindingIdAllowlist(ctx context.Context, in PatchDastBughuntFindingsFindingIdAllowlistInput) (*models.EndpointsPatchBugHuntFindingAllowlistOutput, error) {
 	path := "/dast/bughunt/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Allow bool `json:"allow"`
+		Reason string `json:"reason"`
+	}{
+		Allow: in.Allow,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchBugHuntFindingAllowlistOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntFindingsFindingIdEventsInput is the input for ListDastBughuntFindingsFindingIdEvents — Get BugHunt Finding Events.
+type ListDastBughuntFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastBughuntFindingsFindingIdEvents - Get BugHunt Finding Events
 // GET /dast/bughunt/findings/{findingId}/events
-func (c *Client) ListDastBughuntFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntFindingsFindingIdEvents(ctx context.Context, in ListDastBughuntFindingsFindingIdEventsInput) (*models.EndpointsGetBugHuntFindingEventsOutput, error) {
 	path := "/dast/bughunt/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntFindingsFindingIdTriageInput is the input for ListDastBughuntFindingsFindingIdTriage — Create Interactor [].
+type ListDastBughuntFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastBughuntFindingsFindingIdTriage - Create Interactor []
 // GET /dast/bughunt/findings/{findingId}/triage
-func (c *Client) ListDastBughuntFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntFindingsFindingIdTriage(ctx context.Context, in ListDastBughuntFindingsFindingIdTriageInput) (*models.EndpointsGetBugHuntFindingTriageOutput, error) {
 	path := "/dast/bughunt/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntScansInput is the input for ListDastBughuntScans — Get BugHunt Scans.
+type ListDastBughuntScansInput struct {
+	models.RequestScope
 }
 
 // ListDastBughuntScans - Get BugHunt Scans
 // GET /dast/bughunt/scans
-func (c *Client) ListDastBughuntScans(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntScans(ctx context.Context, in ListDastBughuntScansInput) (*models.EndpointsGetBugHuntScansOutput, error) {
 	path := "/dast/bughunt/scans"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntScansOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastBughuntScansInput is the input for CreateDastBughuntScans — Start BugHunt Scan.
+type CreateDastBughuntScansInput struct {
+	Intensity models.ModelsBugHuntScanIntensity `json:"intensity"`
+	Scope models.ModelsScopePolicy `json:"scope"`
+	models.RequestScope
 }
 
 // CreateDastBughuntScans - Start BugHunt Scan
 // POST /dast/bughunt/scans
-func (c *Client) CreateDastBughuntScans(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastBughuntScans(ctx context.Context, in CreateDastBughuntScansInput) (*models.EndpointsPostBugHuntScanOutput, error) {
 	path := "/dast/bughunt/scans"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Intensity models.ModelsBugHuntScanIntensity `json:"intensity"`
+		Scope models.ModelsScopePolicy `json:"scope"`
+	}{
+		Intensity: in.Intensity,
+		Scope: in.Scope,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBugHuntScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetDastBughuntScansScanIdInput is the input for GetDastBughuntScansScanId — Get BugHunt Scan.
+type GetDastBughuntScansScanIdInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // GetDastBughuntScansScanId - Get BugHunt Scan
 // GET /dast/bughunt/scans/{scanId}
-func (c *Client) GetDastBughuntScansScanId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetDastBughuntScansScanId(ctx context.Context, in GetDastBughuntScansScanIdInput) (*models.EndpointsGetBugHuntScanOutput, error) {
 	path := "/dast/bughunt/scans/{scanId}"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntScansScanIdDiffInput is the input for ListDastBughuntScansScanIdDiff — Get BugHunt Scan Diff.
+type ListDastBughuntScansScanIdDiffInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	Against *string `url:"against,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListDastBughuntScansScanIdDiff - Get BugHunt Scan Diff
 // GET /dast/bughunt/scans/{scanId}/diff
-func (c *Client) ListDastBughuntScansScanIdDiff(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntScansScanIdDiff(ctx context.Context, in ListDastBughuntScansScanIdDiffInput) (*models.EndpointsGetBugHuntScanDiffOutput, error) {
 	path := "/dast/bughunt/scans/{scanId}/diff"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("against"); v != "" {
-		query.Set("against", v)
+	if in.Against != nil {
+		query.Set("against", string(*in.Against))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntScanDiffOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntScansScanIdFindingsInput is the input for ListDastBughuntScansScanIdFindings — Get BugHunt Scan Findings.
+type ListDastBughuntScansScanIdFindingsInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastBughuntScansScanIdFindings - Get BugHunt Scan Findings
 // GET /dast/bughunt/scans/{scanId}/findings
-func (c *Client) ListDastBughuntScansScanIdFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntScansScanIdFindings(ctx context.Context, in ListDastBughuntScansScanIdFindingsInput) (*models.EndpointsGetBugHuntScanFindingsOutput, error) {
 	path := "/dast/bughunt/scans/{scanId}/findings"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntScanFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntScansScanIdLogsInput is the input for ListDastBughuntScansScanIdLogs — Get BugHunt Sub-Agent Network Log.
+type ListDastBughuntScansScanIdLogsInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastBughuntScansScanIdLogs - Get BugHunt Sub-Agent Network Log
 // GET /dast/bughunt/scans/{scanId}/logs
-func (c *Client) ListDastBughuntScansScanIdLogs(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntScansScanIdLogs(ctx context.Context, in ListDastBughuntScansScanIdLogsInput) (*models.EndpointsGetSubAgentNetworkLogOutput, error) {
 	path := "/dast/bughunt/scans/{scanId}/logs"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSubAgentNetworkLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastBughuntScansScanIdStopInput is the input for CreateDastBughuntScansScanIdStop — Stop BugHunt Scan.
+type CreateDastBughuntScansScanIdStopInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // CreateDastBughuntScansScanIdStop - Stop BugHunt Scan
 // POST /dast/bughunt/scans/{scanId}/stop
-func (c *Client) CreateDastBughuntScansScanIdStop(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) CreateDastBughuntScansScanIdStop(ctx context.Context, in CreateDastBughuntScansScanIdStopInput) (*models.EndpointsStopBugHuntScanOutput, error) {
 	path := "/dast/bughunt/scans/{scanId}/stop"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, nil)
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsStopBugHuntScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastBughuntSuiteRunsInput is the input for ListDastBughuntSuiteRuns — Get BugHunt Suite Runs.
+type ListDastBughuntSuiteRunsInput struct {
+	models.RequestScope
 }
 
 // ListDastBughuntSuiteRuns - Get BugHunt Suite Runs
 // GET /dast/bughunt/suite-runs
-func (c *Client) ListDastBughuntSuiteRuns(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastBughuntSuiteRuns(ctx context.Context, in ListDastBughuntSuiteRunsInput) (*models.EndpointsGetBugHuntSuiteRunsOutput, error) {
 	path := "/dast/bughunt/suite-runs"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBugHuntSuiteRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastBughuntSuitesSuiteRunNowInput is the input for CreateDastBughuntSuitesSuiteRunNow — Run BugHunt Suite Now.
+type CreateDastBughuntSuitesSuiteRunNowInput struct {
+	Suite string `path:"suite" json:"-"`
+	Intensity *models.ModelsBugHuntScanIntensity `json:"intensity,omitempty"`
+	models.RequestScope
 }
 
 // CreateDastBughuntSuitesSuiteRunNow - Run BugHunt Suite Now
 // POST /dast/bughunt/suites/{suite}/run-now
-func (c *Client) CreateDastBughuntSuitesSuiteRunNow(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastBughuntSuitesSuiteRunNow(ctx context.Context, in CreateDastBughuntSuitesSuiteRunNowInput) (*models.EndpointsPostBugHuntSuiteRunNowOutput, error) {
 	path := "/dast/bughunt/suites/{suite}/run-now"
-	path = strings.Replace(path, "{suite}", params.Get("suite"), 1)
+	path = strings.Replace(path, "{suite}", url.PathEscape(in.Suite), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Intensity *models.ModelsBugHuntScanIntensity `json:"intensity,omitempty"`
+	}{
+		Intensity: in.Intensity,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBugHuntSuiteRunNowOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastCredentialsInput is the input for ListDastCredentials — Get All Credentials.
+type ListDastCredentialsInput struct {
+	models.RequestScope
 }
 
 // ListDastCredentials - Get All Credentials
 // GET /dast/credentials
-func (c *Client) ListDastCredentials(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastCredentials(ctx context.Context, in ListDastCredentialsInput) (*models.EndpointsGetCredentialsOutput, error) {
 	path := "/dast/credentials"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCredentialsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastCredentialsInput is the input for CreateDastCredentials — Create Credential.
+type CreateDastCredentialsInput struct {
+	Config models.ModelsCredentialConfig `json:"config"`
+	Description string `json:"description"`
+	Name string `json:"name"`
+	Type models.ModelsCredentialType `json:"type"`
+	models.RequestScope
 }
 
 // CreateDastCredentials - Create Credential
 // POST /dast/credentials
-func (c *Client) CreateDastCredentials(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastCredentials(ctx context.Context, in CreateDastCredentialsInput) (*models.EndpointsPostCredentialOutput, error) {
 	path := "/dast/credentials"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Config models.ModelsCredentialConfig `json:"config"`
+		Description string `json:"description"`
+		Name string `json:"name"`
+		Type models.ModelsCredentialType `json:"type"`
+	}{
+		Config: in.Config,
+		Description: in.Description,
+		Name: in.Name,
+		Type: in.Type,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteDastCredentialsCredentialIdInput is the input for DeleteDastCredentialsCredentialId — Delete Credential.
+type DeleteDastCredentialsCredentialIdInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteDastCredentialsCredentialId - Delete Credential
 // DELETE /dast/credentials/{credentialId}
-func (c *Client) DeleteDastCredentialsCredentialId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteDastCredentialsCredentialId(ctx context.Context, in DeleteDastCredentialsCredentialIdInput) (*models.EndpointsDeleteCredentialOutput, error) {
 	path := "/dast/credentials/{credentialId}"
-	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetDastCredentialsCredentialIdInput is the input for GetDastCredentialsCredentialId — Get Credential.
+type GetDastCredentialsCredentialIdInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	models.RequestScope
 }
 
 // GetDastCredentialsCredentialId - Get Credential
 // GET /dast/credentials/{credentialId}
-func (c *Client) GetDastCredentialsCredentialId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetDastCredentialsCredentialId(ctx context.Context, in GetDastCredentialsCredentialIdInput) (*models.EndpointsGetCredentialOutput, error) {
 	path := "/dast/credentials/{credentialId}"
-	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateDastCredentialsCredentialIdInput is the input for UpdateDastCredentialsCredentialId — Update Credential.
+type UpdateDastCredentialsCredentialIdInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	Config models.ModelsCredentialConfig `json:"config"`
+	Description string `json:"description"`
+	Name string `json:"name"`
+	Type models.ModelsCredentialType `json:"type"`
+	models.RequestScope
 }
 
 // UpdateDastCredentialsCredentialId - Update Credential
 // PUT /dast/credentials/{credentialId}
-func (c *Client) UpdateDastCredentialsCredentialId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) UpdateDastCredentialsCredentialId(ctx context.Context, in UpdateDastCredentialsCredentialIdInput) (*models.EndpointsPutCredentialOutput, error) {
 	path := "/dast/credentials/{credentialId}"
-	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Config models.ModelsCredentialConfig `json:"config"`
+		Description string `json:"description"`
+		Name string `json:"name"`
+		Type models.ModelsCredentialType `json:"type"`
+	}{
+		Config: in.Config,
+		Description: in.Description,
+		Name: in.Name,
+		Type: in.Type,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastCredentialsCredentialIdValidateInput is the input for CreateDastCredentialsCredentialIdValidate — Validate Credential.
+type CreateDastCredentialsCredentialIdValidateInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	models.RequestScope
 }
 
 // CreateDastCredentialsCredentialIdValidate - Validate Credential
 // POST /dast/credentials/{credentialId}/validate
-func (c *Client) CreateDastCredentialsCredentialIdValidate(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) CreateDastCredentialsCredentialIdValidate(ctx context.Context, in CreateDastCredentialsCredentialIdValidateInput) (*models.EndpointsValidateCredentialOutput, error) {
 	path := "/dast/credentials/{credentialId}/validate"
-	path = strings.Replace(path, "{credentialId}", params.Get("credentialId"), 1)
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, nil)
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsValidateCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestApplicationsInput is the input for ListDastPentestApplications — Get Pentest App Configs.
+type ListDastPentestApplicationsInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestApplications - Get Pentest App Configs
 // GET /dast/pentest/applications
-func (c *Client) ListDastPentestApplications(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestApplications(ctx context.Context, in ListDastPentestApplicationsInput) (*models.EndpointsGetPentestAppConfigsOutput, error) {
 	path := "/dast/pentest/applications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestAppConfigsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestApplicationsInput is the input for CreateDastPentestApplications — Create Application.
+type CreateDastPentestApplicationsInput struct {
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Targets []models.ModelsApplicationPentestTarget `json:"targets,omitempty"`
+	models.RequestScope
 }
 
 // CreateDastPentestApplications - Create Application
 // POST /dast/pentest/applications
-func (c *Client) CreateDastPentestApplications(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastPentestApplications(ctx context.Context, in CreateDastPentestApplicationsInput) (*models.EndpointsPostPentestAppConfigOutput, error) {
 	path := "/dast/pentest/applications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		CredentialIds []string `json:"credentialIds,omitempty"`
+		ID *string `json:"id,omitempty"`
+		Targets []models.ModelsApplicationPentestTarget `json:"targets,omitempty"`
+	}{
+		CredentialIds: in.CredentialIds,
+		ID: in.ID,
+		Targets: in.Targets,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostPentestAppConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteDastPentestApplicationsApplicationIdInput is the input for DeleteDastPentestApplicationsApplicationId — Delete Pentest App Config.
+type DeleteDastPentestApplicationsApplicationIdInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteDastPentestApplicationsApplicationId - Delete Pentest App Config
 // DELETE /dast/pentest/applications/{applicationId}
-func (c *Client) DeleteDastPentestApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteDastPentestApplicationsApplicationId(ctx context.Context, in DeleteDastPentestApplicationsApplicationIdInput) (*models.EndpointsDeletePentestAppConfigOutput, error) {
 	path := "/dast/pentest/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeletePentestAppConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetDastPentestApplicationsApplicationIdInput is the input for GetDastPentestApplicationsApplicationId — Get Pentest App Config.
+type GetDastPentestApplicationsApplicationIdInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	models.RequestScope
 }
 
 // GetDastPentestApplicationsApplicationId - Get Pentest App Config
 // GET /dast/pentest/applications/{applicationId}
-func (c *Client) GetDastPentestApplicationsApplicationId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetDastPentestApplicationsApplicationId(ctx context.Context, in GetDastPentestApplicationsApplicationIdInput) (*models.EndpointsGetPentestAppConfigOutput, error) {
 	path := "/dast/pentest/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestAppConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateDastPentestApplicationsApplicationIdInput is the input for UpdateDastPentestApplicationsApplicationId — Update Application.
+type UpdateDastPentestApplicationsApplicationIdInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	Targets []models.ModelsApplicationPentestTarget `json:"targets,omitempty"`
+	models.RequestScope
 }
 
 // UpdateDastPentestApplicationsApplicationId - Update Application
 // PUT /dast/pentest/applications/{applicationId}
-func (c *Client) UpdateDastPentestApplicationsApplicationId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) UpdateDastPentestApplicationsApplicationId(ctx context.Context, in UpdateDastPentestApplicationsApplicationIdInput) (*models.EndpointsPutPentestAppConfigOutput, error) {
 	path := "/dast/pentest/applications/{applicationId}"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		CredentialIds []string `json:"credentialIds,omitempty"`
+		Targets []models.ModelsApplicationPentestTarget `json:"targets,omitempty"`
+	}{
+		CredentialIds: in.CredentialIds,
+		Targets: in.Targets,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutPentestAppConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestApplicationsApplicationIdPreflightInput is the input for CreateDastPentestApplicationsApplicationIdPreflight — Start Pentest Preflight.
+type CreateDastPentestApplicationsApplicationIdPreflightInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	TriggeredByScan *bool `json:"triggeredByScan,omitempty"`
+	models.RequestScope
 }
 
 // CreateDastPentestApplicationsApplicationIdPreflight - Start Pentest Preflight
 // POST /dast/pentest/applications/{applicationId}/preflight
-func (c *Client) CreateDastPentestApplicationsApplicationIdPreflight(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastPentestApplicationsApplicationIdPreflight(ctx context.Context, in CreateDastPentestApplicationsApplicationIdPreflightInput) (*models.EndpointsStartPentestPreflightOutput, error) {
 	path := "/dast/pentest/applications/{applicationId}/preflight"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		TriggeredByScan *bool `json:"triggeredByScan,omitempty"`
+	}{
+		TriggeredByScan: in.TriggeredByScan,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsStartPentestPreflightOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestApplicationsApplicationIdPreflightLatestInput is the input for ListDastPentestApplicationsApplicationIdPreflightLatest — Get Latest Pentest Preflight for Application.
+type ListDastPentestApplicationsApplicationIdPreflightLatestInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestApplicationsApplicationIdPreflightLatest - Get Latest Pentest Preflight for Application
 // GET /dast/pentest/applications/{applicationId}/preflight/latest
-func (c *Client) ListDastPentestApplicationsApplicationIdPreflightLatest(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestApplicationsApplicationIdPreflightLatest(ctx context.Context, in ListDastPentestApplicationsApplicationIdPreflightLatestInput) (*models.EndpointsGetLatestPentestPreflightOutput, error) {
 	path := "/dast/pentest/applications/{applicationId}/preflight/latest"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetLatestPentestPreflightOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestApplicationsApplicationIdPreflightQuotaInput is the input for ListDastPentestApplicationsApplicationIdPreflightQuota — Get Pentest Preflight Quota.
+type ListDastPentestApplicationsApplicationIdPreflightQuotaInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestApplicationsApplicationIdPreflightQuota - Get Pentest Preflight Quota
 // GET /dast/pentest/applications/{applicationId}/preflight/quota
-func (c *Client) ListDastPentestApplicationsApplicationIdPreflightQuota(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestApplicationsApplicationIdPreflightQuota(ctx context.Context, in ListDastPentestApplicationsApplicationIdPreflightQuotaInput) (*models.EndpointsGetPentestPreflightQuotaOutput, error) {
 	path := "/dast/pentest/applications/{applicationId}/preflight/quota"
-	path = strings.Replace(path, "{applicationId}", params.Get("applicationId"), 1)
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestPreflightQuotaOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestFindingsInput is the input for ListDastPentestFindings — Get Pentest Findings.
+type ListDastPentestFindingsInput struct {
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	ScanID *string `url:"scanId,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindings - Get Pentest Findings
 // GET /dast/pentest/findings
-func (c *Client) ListDastPentestFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindings(ctx context.Context, in ListDastPentestFindingsInput) (*models.EndpointsGetPentestFindingsOutput, error) {
 	path := "/dast/pentest/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("scanId"); v != "" {
-		query.Set("scanId", v)
+	if in.ScanID != nil {
+		query.Set("scanId", string(*in.ScanID))
 	}
-	if v := params.Get("priorityLabel"); v != "" {
-		query.Set("priorityLabel", v)
+	if in.PriorityLabel != nil {
+		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isLatest"); v != "" {
-		query.Set("isLatest", v)
+	if in.IsLatest != nil {
+		query.Set("isLatest", strconv.FormatBool(*in.IsLatest))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetDastPentestFindingsFindingIdInput is the input for GetDastPentestFindingsFindingId — Get Pentest Finding.
+type GetDastPentestFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetDastPentestFindingsFindingId - Get Pentest Finding
 // GET /dast/pentest/findings/{findingId}
-func (c *Client) GetDastPentestFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetDastPentestFindingsFindingId(ctx context.Context, in GetDastPentestFindingsFindingIdInput) (*models.EndpointsGetPentestFindingOutput, error) {
 	path := "/dast/pentest/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestFindingsFindingIdAllowlistInput is the input for CreateDastPentestFindingsFindingIdAllowlist — Allowlist Pentest Finding.
+type CreateDastPentestFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateDastPentestFindingsFindingIdAllowlist - Allowlist Pentest Finding
 // POST /dast/pentest/findings/{findingId}/allowlist
-func (c *Client) CreateDastPentestFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastPentestFindingsFindingIdAllowlist(ctx context.Context, in CreateDastPentestFindingsFindingIdAllowlistInput) ([]byte, error) {
 	path := "/dast/pentest/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListDastPentestFindingsFindingIdAutofixActivityInput is the input for ListDastPentestFindingsFindingIdAutofixActivity — Get DAST Pentest Finding Autofix Activity.
+type ListDastPentestFindingsFindingIdAutofixActivityInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	SinceID *string `url:"since_id,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindingsFindingIdAutofixActivity - Get DAST Pentest Finding Autofix Activity
 // GET /dast/pentest/findings/{findingId}/autofix/activity
-func (c *Client) ListDastPentestFindingsFindingIdAutofixActivity(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindingsFindingIdAutofixActivity(ctx context.Context, in ListDastPentestFindingsFindingIdAutofixActivityInput) (*models.EndpointsGetAutofixActivityLogOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/autofix/activity"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("since_id"); v != "" {
-		query.Set("since_id", v)
+	if in.SinceID != nil {
+		query.Set("since_id", string(*in.SinceID))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAutofixActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestFindingsFindingIdAutofixCacheDiffInput is the input for ListDastPentestFindingsFindingIdAutofixCacheDiff — Get Pentest Finding Autofix Diff.
+type ListDastPentestFindingsFindingIdAutofixCacheDiffInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindingsFindingIdAutofixCacheDiff - Get Pentest Finding Autofix Diff
 // GET /dast/pentest/findings/{findingId}/autofix/cache/diff
-func (c *Client) ListDastPentestFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindingsFindingIdAutofixCacheDiff(ctx context.Context, in ListDastPentestFindingsFindingIdAutofixCacheDiffInput) (*models.EndpointsGetPentestFindingAutofixDiffOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/autofix/cache/diff"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestFindingAutofixDiffOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestFindingsFindingIdAutofixFixInput is the input for CreateDastPentestFindingsFindingIdAutofixFix — Post DAST Pentest Finding AutoFix.
+type CreateDastPentestFindingsFindingIdAutofixFixInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	Message *string `json:"message,omitempty"`
+	OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	models.RequestScope
 }
 
 // CreateDastPentestFindingsFindingIdAutofixFix - Post DAST Pentest Finding AutoFix
 // POST /dast/pentest/findings/{findingId}/autofix/fix
-func (c *Client) CreateDastPentestFindingsFindingIdAutofixFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastPentestFindingsFindingIdAutofixFix(ctx context.Context, in CreateDastPentestFindingsFindingIdAutofixFixInput) (*models.EndpointsPostAutofixDASTPentestFindingOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/autofix/fix"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		Force *bool `json:"force,omitempty"`
+		Message *string `json:"message,omitempty"`
+		OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		Force: in.Force,
+		Message: in.Message,
+		OriginCampaignID: in.OriginCampaignID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAutofixDASTPentestFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestFindingsFindingIdAutofixStateInput is the input for ListDastPentestFindingsFindingIdAutofixState — Get DAST Pentest Finding Autofix State.
+type ListDastPentestFindingsFindingIdAutofixStateInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindingsFindingIdAutofixState - Get DAST Pentest Finding Autofix State
 // GET /dast/pentest/findings/{findingId}/autofix/state
-func (c *Client) ListDastPentestFindingsFindingIdAutofixState(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindingsFindingIdAutofixState(ctx context.Context, in ListDastPentestFindingsFindingIdAutofixStateInput) (*models.EndpointsGetDASTFindingAutofixStateOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/autofix/state"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDASTFindingAutofixStateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestFindingsFindingIdAutofixStatusInput is the input for ListDastPentestFindingsFindingIdAutofixStatus — Get DAST Pentest Finding Autofix Status.
+type ListDastPentestFindingsFindingIdAutofixStatusInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindingsFindingIdAutofixStatus - Get DAST Pentest Finding Autofix Status
 // GET /dast/pentest/findings/{findingId}/autofix/status
-func (c *Client) ListDastPentestFindingsFindingIdAutofixStatus(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindingsFindingIdAutofixStatus(ctx context.Context, in ListDastPentestFindingsFindingIdAutofixStatusInput) (*models.EndpointsGetDASTFindingAutofixStatusOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/autofix/status"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDASTFindingAutofixStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestFindingsFindingIdEventsInput is the input for ListDastPentestFindingsFindingIdEvents — Get Pentest Finding Events.
+type ListDastPentestFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindingsFindingIdEvents - Get Pentest Finding Events
 // GET /dast/pentest/findings/{findingId}/events
-func (c *Client) ListDastPentestFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindingsFindingIdEvents(ctx context.Context, in ListDastPentestFindingsFindingIdEventsInput) (*models.EndpointsGetPentestFindingEventsOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestFindingsFindingIdFullInput is the input for ListDastPentestFindingsFindingIdFull — Get Pentest Finding Full.
+type ListDastPentestFindingsFindingIdFullInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindingsFindingIdFull - Get Pentest Finding Full
 // GET /dast/pentest/findings/{findingId}/full
-func (c *Client) ListDastPentestFindingsFindingIdFull(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindingsFindingIdFull(ctx context.Context, in ListDastPentestFindingsFindingIdFullInput) (*models.EndpointsGetPentestFindingFullOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/full"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestFindingFullOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestFindingsFindingIdTicketInput is the input for CreateDastPentestFindingsFindingIdTicket — Create Jira Ticket for Pentest Finding.
+type CreateDastPentestFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	models.RequestScope
 }
 
 // CreateDastPentestFindingsFindingIdTicket - Create Jira Ticket for Pentest Finding
 // POST /dast/pentest/findings/{findingId}/ticket
-func (c *Client) CreateDastPentestFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastPentestFindingsFindingIdTicket(ctx context.Context, in CreateDastPentestFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketPentestFindingOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketPentestFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestFindingsFindingIdTriageInput is the input for ListDastPentestFindingsFindingIdTriage — Get Pentest Finding Full.
+type ListDastPentestFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestFindingsFindingIdTriage - Get Pentest Finding Full
 // GET /dast/pentest/findings/{findingId}/triage
-func (c *Client) ListDastPentestFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestFindingsFindingIdTriage(ctx context.Context, in ListDastPentestFindingsFindingIdTriageInput) (*models.EndpointsGetPentestFindingFullOutput, error) {
 	path := "/dast/pentest/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestFindingFullOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestFindingsFindingIdUnallowlistInput is the input for CreateDastPentestFindingsFindingIdUnallowlist — Unallowlist Pentest Finding.
+type CreateDastPentestFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	models.RequestScope
 }
 
 // CreateDastPentestFindingsFindingIdUnallowlist - Unallowlist Pentest Finding
 // POST /dast/pentest/findings/{findingId}/unallowlist
-func (c *Client) CreateDastPentestFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastPentestFindingsFindingIdUnallowlist(ctx context.Context, in CreateDastPentestFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/dast/pentest/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// GetDastPentestPreflightsPreflightIdInput is the input for GetDastPentestPreflightsPreflightId — Get Pentest Preflight.
+type GetDastPentestPreflightsPreflightIdInput struct {
+	PreflightID string `path:"preflightId" json:"-"`
+	models.RequestScope
 }
 
 // GetDastPentestPreflightsPreflightId - Get Pentest Preflight
 // GET /dast/pentest/preflights/{preflightId}
-func (c *Client) GetDastPentestPreflightsPreflightId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetDastPentestPreflightsPreflightId(ctx context.Context, in GetDastPentestPreflightsPreflightIdInput) (*models.EndpointsGetPentestPreflightOutput, error) {
 	path := "/dast/pentest/preflights/{preflightId}"
-	path = strings.Replace(path, "{preflightId}", params.Get("preflightId"), 1)
+	path = strings.Replace(path, "{preflightId}", url.PathEscape(in.PreflightID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestPreflightOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestPreflightsPreflightIdEventsInput is the input for ListDastPentestPreflightsPreflightIdEvents — Get Pentest Preflight Events.
+type ListDastPentestPreflightsPreflightIdEventsInput struct {
+	PreflightID string `path:"preflightId" json:"-"`
+	AfterSeq *int64 `url:"afterSeq,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestPreflightsPreflightIdEvents - Get Pentest Preflight Events
 // GET /dast/pentest/preflights/{preflightId}/events
-func (c *Client) ListDastPentestPreflightsPreflightIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestPreflightsPreflightIdEvents(ctx context.Context, in ListDastPentestPreflightsPreflightIdEventsInput) (*models.EndpointsGetPentestPreflightEventsOutput, error) {
 	path := "/dast/pentest/preflights/{preflightId}/events"
-	path = strings.Replace(path, "{preflightId}", params.Get("preflightId"), 1)
+	path = strings.Replace(path, "{preflightId}", url.PathEscape(in.PreflightID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("afterSeq"); v != "" {
-		query.Set("afterSeq", v)
+	if in.AfterSeq != nil {
+		query.Set("afterSeq", strconv.FormatInt(*in.AfterSeq, 10))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestPreflightEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansInput is the input for ListDastPentestScans — Get Pentest Scans.
+type ListDastPentestScansInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScans - Get Pentest Scans
 // GET /dast/pentest/scans
-func (c *Client) ListDastPentestScans(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScans(ctx context.Context, in ListDastPentestScansInput) (*models.EndpointsGetPentestScansOutput, error) {
 	path := "/dast/pentest/scans"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScansOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetDastPentestScansScanIdInput is the input for GetDastPentestScansScanId — Get Pentest Scan.
+type GetDastPentestScansScanIdInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // GetDastPentestScansScanId - Get Pentest Scan
 // GET /dast/pentest/scans/{scanId}
-func (c *Client) GetDastPentestScansScanId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetDastPentestScansScanId(ctx context.Context, in GetDastPentestScansScanIdInput) (*models.EndpointsGetPentestScanOutput, error) {
 	path := "/dast/pentest/scans/{scanId}"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdFindingsInput is the input for ListDastPentestScansScanIdFindings — Get Pentest Scan Findings.
+type ListDastPentestScansScanIdFindingsInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScansScanIdFindings - Get Pentest Scan Findings
 // GET /dast/pentest/scans/{scanId}/findings
-func (c *Client) ListDastPentestScansScanIdFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScansScanIdFindings(ctx context.Context, in ListDastPentestScansScanIdFindingsInput) (*models.EndpointsGetPentestScanFindingsOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/findings"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScanFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdHypothesesInput is the input for ListDastPentestScansScanIdHypotheses — Get Auth Matrix Hypotheses.
+type ListDastPentestScansScanIdHypothesesInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScansScanIdHypotheses - Get Auth Matrix Hypotheses
 // GET /dast/pentest/scans/{scanId}/hypotheses
-func (c *Client) ListDastPentestScansScanIdHypotheses(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScansScanIdHypotheses(ctx context.Context, in ListDastPentestScansScanIdHypothesesInput) (*models.EndpointsGetAuthMatrixHypothesesOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/hypotheses"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAuthMatrixHypothesesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdLogsInput is the input for ListDastPentestScansScanIdLogs — Get Sub-Agent Network Log.
+type ListDastPentestScansScanIdLogsInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScansScanIdLogs - Get Sub-Agent Network Log
 // GET /dast/pentest/scans/{scanId}/logs
-func (c *Client) ListDastPentestScansScanIdLogs(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScansScanIdLogs(ctx context.Context, in ListDastPentestScansScanIdLogsInput) (*models.EndpointsGetSubAgentNetworkLogOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/logs"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSubAgentNetworkLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdReportInput is the input for ListDastPentestScansScanIdReport — Get Pentest Scan Report.
+type ListDastPentestScansScanIdReportInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScansScanIdReport - Get Pentest Scan Report
 // GET /dast/pentest/scans/{scanId}/report
-func (c *Client) ListDastPentestScansScanIdReport(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScansScanIdReport(ctx context.Context, in ListDastPentestScansScanIdReportInput) (*models.EndpointsGetPentestScanReportOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/report"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScanReportOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdReportDownloadInput is the input for ListDastPentestScansScanIdReportDownload — Get Pentest Scan Report Download URL.
+type ListDastPentestScansScanIdReportDownloadInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScansScanIdReportDownload - Get Pentest Scan Report Download URL
 // GET /dast/pentest/scans/{scanId}/report/download
-func (c *Client) ListDastPentestScansScanIdReportDownload(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScansScanIdReportDownload(ctx context.Context, in ListDastPentestScansScanIdReportDownloadInput) (*models.EndpointsGetPentestScanReportDownloadURLOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/report/download"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScanReportDownloadURLOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdReportExternalPdfInput is the input for ListDastPentestScansScanIdReportExternalPdf — Get Pentest Scan External Report PDF.
+type ListDastPentestScansScanIdReportExternalPdfInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScansScanIdReportExternalPdf - Get Pentest Scan External Report PDF
 // GET /dast/pentest/scans/{scanId}/report/external/pdf
-func (c *Client) ListDastPentestScansScanIdReportExternalPdf(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScansScanIdReportExternalPdf(ctx context.Context, in ListDastPentestScansScanIdReportExternalPdfInput) (*models.EndpointsGetPentestScanReportPDFOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/report/external/pdf"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScanReportPDFOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdReportPdfInput is the input for ListDastPentestScansScanIdReportPdf — Get Pentest Scan Report PDF.
+type ListDastPentestScansScanIdReportPdfInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // ListDastPentestScansScanIdReportPdf - Get Pentest Scan Report PDF
 // GET /dast/pentest/scans/{scanId}/report/pdf
-func (c *Client) ListDastPentestScansScanIdReportPdf(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastPentestScansScanIdReportPdf(ctx context.Context, in ListDastPentestScansScanIdReportPdfInput) (*models.EndpointsGetPentestScanReportPDFOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/report/pdf"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScanReportPDFOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestScansScanIdStopInput is the input for CreateDastPentestScansScanIdStop — Stop Pentest Scan.
+type CreateDastPentestScansScanIdStopInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	models.RequestScope
 }
 
 // CreateDastPentestScansScanIdStop - Stop Pentest Scan
 // POST /dast/pentest/scans/{scanId}/stop
-func (c *Client) CreateDastPentestScansScanIdStop(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) CreateDastPentestScansScanIdStop(ctx context.Context, in CreateDastPentestScansScanIdStopInput) (*models.EndpointsStopPentestScanOutput, error) {
 	path := "/dast/pentest/scans/{scanId}/stop"
-	path = strings.Replace(path, "{scanId}", params.Get("scanId"), 1)
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, nil)
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsStopPentestScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestStartInput is the input for CreateDastPentestStart — Start Pentest Scan from Application.
+type CreateDastPentestStartInput struct {
+	ApplicationID string `json:"applicationId"`
+	ConfigOverrides *models.ModelsApplicationPentestConfigOverrides `json:"configOverrides,omitempty"`
+	models.RequestScope
 }
 
 // CreateDastPentestStart - Start Pentest Scan from Application
 // POST /dast/pentest/start
-func (c *Client) CreateDastPentestStart(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateDastPentestStart(ctx context.Context, in CreateDastPentestStartInput) (*models.EndpointsStartPentestScanFromApplicationOutput, error) {
 	path := "/dast/pentest/start"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		ApplicationID string `json:"applicationId"`
+		ConfigOverrides *models.ModelsApplicationPentestConfigOverrides `json:"configOverrides,omitempty"`
+	}{
+		ApplicationID: in.ApplicationID,
+		ConfigOverrides: in.ConfigOverrides,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsStartPentestScanFromApplicationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastScansStatusLastInput is the input for ListDastScansStatusLast — Get Pentest Last Scan Status.
+type ListDastScansStatusLastInput struct {
+	models.RequestScope
 }
 
 // ListDastScansStatusLast - Get Pentest Last Scan Status
 // GET /dast/scans/status/last
-func (c *Client) ListDastScansStatusLast(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastScansStatusLast(ctx context.Context, in ListDastScansStatusLastInput) (*models.EndpointsGetDASTLastScanStatusesOutput, error) {
 	path := "/dast/scans/status/last"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDASTLastScanStatusesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastSourceipsInput is the input for ListDastSourceips — Get Source IPs.
+type ListDastSourceipsInput struct {
+	models.RequestScope
 }
 
 // ListDastSourceips - Get Source IPs
 // GET /dast/sourceips
-func (c *Client) ListDastSourceips(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListDastSourceips(ctx context.Context, in ListDastSourceipsInput) (*models.EndpointsGetSourceIPsOutput, error) {
 	path := "/dast/sourceips"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSourceIPsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+

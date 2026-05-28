@@ -2,328 +2,256 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListInfrastructureGraphsInput is the input for ListInfrastructureGraphs — List Infrastructure Graphs.
+type ListInfrastructureGraphsInput struct {
+	models.RequestScope
+}
 
 // ListInfrastructureGraphs - List Infrastructure Graphs
 // GET /infrastructure/graphs
-func (c *Client) ListInfrastructureGraphs(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListInfrastructureGraphs(ctx context.Context, in ListInfrastructureGraphsInput) (*models.EndpointsListInfrastructureGraphsOutput, error) {
 	path := "/infrastructure/graphs"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListInfrastructureGraphsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListInfrastructureGraphsInfoInput is the input for ListInfrastructureGraphsInfo — Get Infrastructure Graph Info.
+type ListInfrastructureGraphsInfoInput struct {
+	models.RequestScope
 }
 
 // ListInfrastructureGraphsInfo - Get Infrastructure Graph Info
 // GET /infrastructure/graphs/info
-func (c *Client) ListInfrastructureGraphsInfo(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListInfrastructureGraphsInfo(ctx context.Context, in ListInfrastructureGraphsInfoInput) (*models.EndpointsInfrastructureGraphInfo, error) {
 	path := "/infrastructure/graphs/info"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsInfrastructureGraphInfo
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListInfrastructureGraphsSummaryInput is the input for ListInfrastructureGraphsSummary — Get Infrastructure Graph Summary.
+type ListInfrastructureGraphsSummaryInput struct {
+	models.RequestScope
 }
 
 // ListInfrastructureGraphsSummary - Get Infrastructure Graph Summary
 // GET /infrastructure/graphs/summary
-func (c *Client) ListInfrastructureGraphsSummary(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListInfrastructureGraphsSummary(ctx context.Context, in ListInfrastructureGraphsSummaryInput) (*models.EndpointsGetInfrastructureGraphSummaryOutput, error) {
 	path := "/infrastructure/graphs/summary"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphSummaryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetInfrastructureGraphsAccountIdInput is the input for GetInfrastructureGraphsAccountId — Get Infrastructure Graph.
+type GetInfrastructureGraphsAccountIdInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	models.RequestScope
 }
 
 // GetInfrastructureGraphsAccountId - Get Infrastructure Graph
 // GET /infrastructure/graphs/{accountId}
-func (c *Client) GetInfrastructureGraphsAccountId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetInfrastructureGraphsAccountId(ctx context.Context, in GetInfrastructureGraphsAccountIdInput) (*models.EndpointsGetInfrastructureGraphOutput, error) {
 	path := "/infrastructure/graphs/{accountId}"
-	path = strings.Replace(path, "{accountId}", params.Get("accountId"), 1)
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListInfrastructureGraphsAccountIdDownloadInput is the input for ListInfrastructureGraphsAccountIdDownload — Get Infrastructure Graph Download URL.
+type ListInfrastructureGraphsAccountIdDownloadInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	models.RequestScope
 }
 
 // ListInfrastructureGraphsAccountIdDownload - Get Infrastructure Graph Download URL
 // GET /infrastructure/graphs/{accountId}/download
-func (c *Client) ListInfrastructureGraphsAccountIdDownload(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListInfrastructureGraphsAccountIdDownload(ctx context.Context, in ListInfrastructureGraphsAccountIdDownloadInput) (*models.EndpointsGetInfrastructureGraphDownloadOutput, error) {
 	path := "/infrastructure/graphs/{accountId}/download"
-	path = strings.Replace(path, "{accountId}", params.Get("accountId"), 1)
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphDownloadOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListInfrastructureGraphsAccountIdVersionsInput is the input for ListInfrastructureGraphsAccountIdVersions — List Infrastructure Graph Versions.
+type ListInfrastructureGraphsAccountIdVersionsInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	models.RequestScope
 }
 
 // ListInfrastructureGraphsAccountIdVersions - List Infrastructure Graph Versions
 // GET /infrastructure/graphs/{accountId}/versions
-func (c *Client) ListInfrastructureGraphsAccountIdVersions(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListInfrastructureGraphsAccountIdVersions(ctx context.Context, in ListInfrastructureGraphsAccountIdVersionsInput) (*models.EndpointsListInfrastructureGraphVersionsOutput, error) {
 	path := "/infrastructure/graphs/{accountId}/versions"
-	path = strings.Replace(path, "{accountId}", params.Get("accountId"), 1)
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListInfrastructureGraphVersionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListInfrastructureGraphsAccountIdVersionsVersionInput is the input for ListInfrastructureGraphsAccountIdVersionsVersion — Get Infrastructure Graph Version.
+type ListInfrastructureGraphsAccountIdVersionsVersionInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	Version string `path:"version" json:"-"`
+	models.RequestScope
 }
 
 // ListInfrastructureGraphsAccountIdVersionsVersion - Get Infrastructure Graph Version
 // GET /infrastructure/graphs/{accountId}/versions/{version}
-func (c *Client) ListInfrastructureGraphsAccountIdVersionsVersion(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListInfrastructureGraphsAccountIdVersionsVersion(ctx context.Context, in ListInfrastructureGraphsAccountIdVersionsVersionInput) (*models.EndpointsGetInfrastructureGraphVersionOutput, error) {
 	path := "/infrastructure/graphs/{accountId}/versions/{version}"
-	path = strings.Replace(path, "{accountId}", params.Get("accountId"), 1)
-	path = strings.Replace(path, "{version}", params.Get("version"), 1)
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+	path = strings.Replace(path, "{version}", url.PathEscape(in.Version), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphVersionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+

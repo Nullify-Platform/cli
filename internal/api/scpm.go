@@ -2,16 +2,37 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// CreateScpmContainersAnalyzeInput is the input for CreateScpmContainersAnalyze — Request malware analysis for an OCI container image.
+type CreateScpmContainersAnalyzeInput struct {
+	IdempotencyKey *string `json:"idempotencyKey,omitempty"`
+	PreviousReference *string `json:"previousReference,omitempty"`
+	Reference string `json:"reference"`
+	Registry string `json:"registry"`
+	Repository string `json:"repository"`
+}
 
 // CreateScpmContainersAnalyze - Request malware analysis for an OCI container image
 // POST /scpm/containers/analyze
-func (c *Client) CreateScpmContainersAnalyze(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmContainersAnalyze(ctx context.Context, in CreateScpmContainersAnalyzeInput) (*models.EndpointsAnalyzeContainerOutput, error) {
 	path := "/scpm/containers/analyze"
 
 	query := url.Values{}
@@ -24,29 +45,61 @@ func (c *Client) CreateScpmContainersAnalyze(ctx context.Context, params url.Val
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		IdempotencyKey *string `json:"idempotencyKey,omitempty"`
+		PreviousReference *string `json:"previousReference,omitempty"`
+		Reference string `json:"reference"`
+		Registry string `json:"registry"`
+		Repository string `json:"repository"`
+	}{
+		IdempotencyKey: in.IdempotencyKey,
+		PreviousReference: in.PreviousReference,
+		Reference: in.Reference,
+		Registry: in.Registry,
+		Repository: in.Repository,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAnalyzeContainerOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmDependenciesInput is the input for ListScpmDependencies — Get CI/CD Dependencies.
+type ListScpmDependenciesInput struct {
+	Name *string `url:"name,omitempty" json:"-"`
+	Pinned *bool `url:"pinned,omitempty" json:"-"`
+	Platform *string `url:"platform,omitempty" json:"-"`
+	Version *string `url:"version,omitempty" json:"-"`
 }
 
 // ListScpmDependencies - Get CI/CD Dependencies
 // GET /scpm/dependencies
-func (c *Client) ListScpmDependencies(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmDependencies(ctx context.Context, in ListScpmDependenciesInput) (*models.EndpointsGetDependenciesOutput, error) {
 	path := "/scpm/dependencies"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("name"); v != "" {
-		query.Set("name", v)
+	if in.Name != nil {
+		query.Set("name", string(*in.Name))
 	}
-	if v := params.Get("version"); v != "" {
-		query.Set("version", v)
+	if in.Version != nil {
+		query.Set("version", string(*in.Version))
 	}
-	if v := params.Get("platform"); v != "" {
-		query.Set("platform", v)
+	if in.Platform != nil {
+		query.Set("platform", string(*in.Platform))
 	}
-	if v := params.Get("pinned"); v != "" {
-		query.Set("pinned", v)
+	if in.Pinned != nil {
+		query.Set("pinned", strconv.FormatBool(*in.Pinned))
 	}
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -54,12 +107,29 @@ func (c *Client) ListScpmDependencies(ctx context.Context, params url.Values) ([
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDependenciesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmDependenciesAnalyzeInput is the input for CreateScpmDependenciesAnalyze — Request malware analysis for a dependency.
+type CreateScpmDependenciesAnalyzeInput struct {
+	Ecosystem string `json:"ecosystem"`
+	IdempotencyKey *string `json:"idempotencyKey,omitempty"`
+	Name string `json:"name"`
+	PreviousVersion *string `json:"previousVersion,omitempty"`
+	Version string `json:"version"`
 }
 
 // CreateScpmDependenciesAnalyze - Request malware analysis for a dependency
 // POST /scpm/dependencies/analyze
-func (c *Client) CreateScpmDependenciesAnalyze(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmDependenciesAnalyze(ctx context.Context, in CreateScpmDependenciesAnalyzeInput) (*models.EndpointsAnalyzeDependencyOutput, error) {
 	path := "/scpm/dependencies/analyze"
 
 	query := url.Values{}
@@ -72,12 +142,41 @@ func (c *Client) CreateScpmDependenciesAnalyze(ctx context.Context, params url.V
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Ecosystem string `json:"ecosystem"`
+		IdempotencyKey *string `json:"idempotencyKey,omitempty"`
+		Name string `json:"name"`
+		PreviousVersion *string `json:"previousVersion,omitempty"`
+		Version string `json:"version"`
+	}{
+		Ecosystem: in.Ecosystem,
+		IdempotencyKey: in.IdempotencyKey,
+		Name: in.Name,
+		PreviousVersion: in.PreviousVersion,
+		Version: in.Version,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAnalyzeDependencyOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmDependenciesQueryBatchInput is the input for CreateScpmDependenciesQueryBatch — Batch query vulnerabilities + malware verdict for dependencies.
+type CreateScpmDependenciesQueryBatchInput struct {
+	Packages []models.EndpointsBatchQueryDependencyPackage `json:"packages,omitempty"`
 }
 
 // CreateScpmDependenciesQueryBatch - Batch query vulnerabilities + malware verdict for dependencies
 // POST /scpm/dependencies/query/batch
-func (c *Client) CreateScpmDependenciesQueryBatch(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmDependenciesQueryBatch(ctx context.Context, in CreateScpmDependenciesQueryBatchInput) (*models.EndpointsBatchQueryDependenciesOutput, error) {
 	path := "/scpm/dependencies/query/batch"
 
 	query := url.Values{}
@@ -90,1065 +189,986 @@ func (c *Client) CreateScpmDependenciesQueryBatch(ctx context.Context, params ur
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Packages []models.EndpointsBatchQueryDependencyPackage `json:"packages,omitempty"`
+	}{
+		Packages: in.Packages,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsBatchQueryDependenciesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmEventsInput is the input for ListScpmEvents — Get SCPM Events.
+type ListScpmEventsInput struct {
+	models.RequestScope
 }
 
 // ListScpmEvents - Get SCPM Events
 // GET /scpm/events
-func (c *Client) ListScpmEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmEvents(ctx context.Context, in ListScpmEventsInput) (*models.EndpointsGetSCPMEventsOutput, error) {
 	path := "/scpm/events"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsInput is the input for ListScpmFindings — Get SCPM Findings.
+type ListScpmFindingsInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindings - Get SCPM Findings
 // GET /scpm/findings
-func (c *Client) ListScpmFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindings(ctx context.Context, in ListScpmFindingsInput) (*models.EndpointsGetSCPMFindingsOutput, error) {
 	path := "/scpm/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("priorityLabel"); v != "" {
-		query.Set("priorityLabel", v)
+	if in.PriorityLabel != nil {
+		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("hasPullRequest"); v != "" {
-		query.Set("hasPullRequest", v)
+	if in.HasPullRequest != nil {
+		query.Set("hasPullRequest", strconv.FormatBool(*in.HasPullRequest))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("repositoryIds"); v != "" {
-		query.Set("repositoryIds", v)
+	for _, v := range in.RepositoryIds {
+		query.Add("repositoryIds", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isArchived"); v != "" {
-		query.Set("isArchived", v)
+	if in.IsArchived != nil {
+		query.Set("isArchived", strconv.FormatBool(*in.IsArchived))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsAllowlistInput is the input for CreateScpmFindingsAllowlist — Allowlist Batch of SCPM Findings.
+type CreateScpmFindingsAllowlistInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsAllowlist - Allowlist Batch of SCPM Findings
 // POST /scpm/findings/allowlist
-func (c *Client) CreateScpmFindingsAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsAllowlist(ctx context.Context, in CreateScpmFindingsAllowlistInput) ([]byte, error) {
 	path := "/scpm/findings/allowlist"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListScpmFindingsDetailedInput is the input for ListScpmFindingsDetailed — Get Findings Detailed.
+type ListScpmFindingsDetailedInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsDetailed - Get Findings Detailed
 // GET /scpm/findings/detailed
-func (c *Client) ListScpmFindingsDetailed(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsDetailed(ctx context.Context, in ListScpmFindingsDetailedInput) (*models.EndpointsGetSCPMFindingsDetailedOutput, error) {
 	path := "/scpm/findings/detailed"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("priorityLabel"); v != "" {
-		query.Set("priorityLabel", v)
+	if in.PriorityLabel != nil {
+		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("hasPullRequest"); v != "" {
-		query.Set("hasPullRequest", v)
+	if in.HasPullRequest != nil {
+		query.Set("hasPullRequest", strconv.FormatBool(*in.HasPullRequest))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isArchived"); v != "" {
-		query.Set("isArchived", v)
+	if in.IsArchived != nil {
+		query.Set("isArchived", strconv.FormatBool(*in.IsArchived))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingsDetailedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsPreviewInput is the input for ListScpmFindingsPreview — Get SCPM Findings.
+type ListScpmFindingsPreviewInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsPreview - Get SCPM Findings
 // GET /scpm/findings/preview
-func (c *Client) ListScpmFindingsPreview(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsPreview(ctx context.Context, in ListScpmFindingsPreviewInput) (*models.EndpointsGetSCPMFindingsOutput, error) {
 	path := "/scpm/findings/preview"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("priorityLabel"); v != "" {
-		query.Set("priorityLabel", v)
+	if in.PriorityLabel != nil {
+		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("hasPullRequest"); v != "" {
-		query.Set("hasPullRequest", v)
+	if in.HasPullRequest != nil {
+		query.Set("hasPullRequest", strconv.FormatBool(*in.HasPullRequest))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("repositoryIds"); v != "" {
-		query.Set("repositoryIds", v)
+	for _, v := range in.RepositoryIds {
+		query.Add("repositoryIds", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isArchived"); v != "" {
-		query.Set("isArchived", v)
+	if in.IsArchived != nil {
+		query.Set("isArchived", strconv.FormatBool(*in.IsArchived))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsRetriageInput is the input for CreateScpmFindingsRetriage — Retriage Findings.
+type CreateScpmFindingsRetriageInput struct {
+	Branch *string `json:"branch,omitempty"`
+	ContinueOnError *bool `json:"continueOnError,omitempty"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	ForceRetriage *bool `json:"forceRetriage,omitempty"`
+	PriorityMinimum *string `json:"priorityMinimum,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	ReprocessFailedTriages *bool `json:"reprocessFailedTriages,omitempty"`
+	ReprocessFalsePositives *bool `json:"reprocessFalsePositives,omitempty"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsRetriage - Retriage Findings
 // POST /scpm/findings/retriage
-func (c *Client) CreateScpmFindingsRetriage(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsRetriage(ctx context.Context, in CreateScpmFindingsRetriageInput) (*models.EndpointsPostRetriageSCPMFindingsOutput, error) {
 	path := "/scpm/findings/retriage"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+		ContinueOnError *bool `json:"continueOnError,omitempty"`
+		FindingIds []string `json:"findingIds,omitempty"`
+		ForceRetriage *bool `json:"forceRetriage,omitempty"`
+		PriorityMinimum *string `json:"priorityMinimum,omitempty"`
+		RepositoryIds []string `json:"repositoryIds,omitempty"`
+		ReprocessFailedTriages *bool `json:"reprocessFailedTriages,omitempty"`
+		ReprocessFalsePositives *bool `json:"reprocessFalsePositives,omitempty"`
+	}{
+		Branch: in.Branch,
+		ContinueOnError: in.ContinueOnError,
+		FindingIds: in.FindingIds,
+		ForceRetriage: in.ForceRetriage,
+		PriorityMinimum: in.PriorityMinimum,
+		RepositoryIds: in.RepositoryIds,
+		ReprocessFailedTriages: in.ReprocessFailedTriages,
+		ReprocessFalsePositives: in.ReprocessFalsePositives,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostRetriageSCPMFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsUploadInput is the input for CreateScpmFindingsUpload — Get Presigned URL to Upload SCPM Findings.
+type CreateScpmFindingsUploadInput struct {
+	ScanID string `json:"scanId"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsUpload - Get Presigned URL to Upload SCPM Findings
 // POST /scpm/findings/upload
-func (c *Client) CreateScpmFindingsUpload(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsUpload(ctx context.Context, in CreateScpmFindingsUploadInput) (*models.EndpointsPostGetUploadSCPMFindingsURLOutput, error) {
 	path := "/scpm/findings/upload"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		ScanID string `json:"scanId"`
+	}{
+		ScanID: in.ScanID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostGetUploadSCPMFindingsURLOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetScpmFindingsFindingIdInput is the input for GetScpmFindingsFindingId — Get Finding.
+type GetScpmFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetScpmFindingsFindingId - Get Finding
 // GET /scpm/findings/{findingId}
-func (c *Client) GetScpmFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetScpmFindingsFindingId(ctx context.Context, in GetScpmFindingsFindingIdInput) (*models.EndpointsGetSCPMFindingOutput, error) {
 	path := "/scpm/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchScpmFindingsFindingIdInput is the input for PatchScpmFindingsFindingId — Update Finding.
+type PatchScpmFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	models.RequestScope
 }
 
 // PatchScpmFindingsFindingId - Update Finding
 // PATCH /scpm/findings/{findingId}
-func (c *Client) PatchScpmFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchScpmFindingsFindingId(ctx context.Context, in PatchScpmFindingsFindingIdInput) (*models.EndpointsPatchSCPMFindingOutput, error) {
 	path := "/scpm/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+		SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	}{
+		PriorityOverride: in.PriorityOverride,
+		SeverityOverride: in.SeverityOverride,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsFindingIdAllowlistInput is the input for CreateScpmFindingsFindingIdAllowlist — Allowlist Finding.
+type CreateScpmFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsFindingIdAllowlist - Allowlist Finding
 // POST /scpm/findings/{findingId}/allowlist
-func (c *Client) CreateScpmFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsFindingIdAllowlist(ctx context.Context, in CreateScpmFindingsFindingIdAllowlistInput) (*models.EndpointsPostAllowlistSCPMFindingOutput, error) {
 	path := "/scpm/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowlistSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsFindingIdAutofixActivityInput is the input for ListScpmFindingsFindingIdAutofixActivity — Get SCPM Finding Autofix Activity.
+type ListScpmFindingsFindingIdAutofixActivityInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	SinceID *string `url:"since_id,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsFindingIdAutofixActivity - Get SCPM Finding Autofix Activity
 // GET /scpm/findings/{findingId}/autofix/activity
-func (c *Client) ListScpmFindingsFindingIdAutofixActivity(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsFindingIdAutofixActivity(ctx context.Context, in ListScpmFindingsFindingIdAutofixActivityInput) (*models.EndpointsGetAutofixActivityLogOutput, error) {
 	path := "/scpm/findings/{findingId}/autofix/activity"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("since_id"); v != "" {
-		query.Set("since_id", v)
+	if in.SinceID != nil {
+		query.Set("since_id", string(*in.SinceID))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAutofixActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsFindingIdAutofixCacheInput is the input for CreateScpmFindingsFindingIdAutofixCache — Cache Autofix.
+type CreateScpmFindingsFindingIdAutofixCacheInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Force *bool `json:"force,omitempty"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsFindingIdAutofixCache - Cache Autofix
 // POST /scpm/findings/{findingId}/autofix/cache
-func (c *Client) CreateScpmFindingsFindingIdAutofixCache(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsFindingIdAutofixCache(ctx context.Context, in CreateScpmFindingsFindingIdAutofixCacheInput) ([]byte, error) {
 	path := "/scpm/findings/{findingId}/autofix/cache"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Force *bool `json:"force,omitempty"`
+	}{
+		Force: in.Force,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// CreateScpmFindingsFindingIdAutofixCacheCreatePrInput is the input for CreateScpmFindingsFindingIdAutofixCacheCreatePr — Create Pull Request from Cached Fix.
+type CreateScpmFindingsFindingIdAutofixCacheCreatePrInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Message *string `json:"message,omitempty"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsFindingIdAutofixCacheCreatePr - Create Pull Request from Cached Fix
 // POST /scpm/findings/{findingId}/autofix/cache/create_pr
-func (c *Client) CreateScpmFindingsFindingIdAutofixCacheCreatePr(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsFindingIdAutofixCacheCreatePr(ctx context.Context, in CreateScpmFindingsFindingIdAutofixCacheCreatePrInput) (*models.EndpointsPostCreatePullRequestSCPMFindingOutput, error) {
 	path := "/scpm/findings/{findingId}/autofix/cache/create_pr"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Message *string `json:"message,omitempty"`
+	}{
+		Message: in.Message,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreatePullRequestSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsFindingIdAutofixCacheDiffInput is the input for ListScpmFindingsFindingIdAutofixCacheDiff — Get SCPM Finding Autofix Diff.
+type ListScpmFindingsFindingIdAutofixCacheDiffInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsFindingIdAutofixCacheDiff - Get SCPM Finding Autofix Diff
 // GET /scpm/findings/{findingId}/autofix/cache/diff
-func (c *Client) ListScpmFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsFindingIdAutofixCacheDiff(ctx context.Context, in ListScpmFindingsFindingIdAutofixCacheDiffInput) (*models.EndpointsGetSCPMFindingFixOutput, error) {
 	path := "/scpm/findings/{findingId}/autofix/cache/diff"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingFixOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsFindingIdAutofixFixInput is the input for CreateScpmFindingsFindingIdAutofixFix — Autofix Finding.
+type CreateScpmFindingsFindingIdAutofixFixInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	Message *string `json:"message,omitempty"`
+	OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsFindingIdAutofixFix - Autofix Finding
 // POST /scpm/findings/{findingId}/autofix/fix
-func (c *Client) CreateScpmFindingsFindingIdAutofixFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsFindingIdAutofixFix(ctx context.Context, in CreateScpmFindingsFindingIdAutofixFixInput) (*models.EndpointsPostAutofixSCPMFindingOutput, error) {
 	path := "/scpm/findings/{findingId}/autofix/fix"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		Force *bool `json:"force,omitempty"`
+		Message *string `json:"message,omitempty"`
+		OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		Force: in.Force,
+		Message: in.Message,
+		OriginCampaignID: in.OriginCampaignID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAutofixSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsFindingIdAutofixStateInput is the input for ListScpmFindingsFindingIdAutofixState — Get SCPM Finding Autofix State.
+type ListScpmFindingsFindingIdAutofixStateInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsFindingIdAutofixState - Get SCPM Finding Autofix State
 // GET /scpm/findings/{findingId}/autofix/state
-func (c *Client) ListScpmFindingsFindingIdAutofixState(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsFindingIdAutofixState(ctx context.Context, in ListScpmFindingsFindingIdAutofixStateInput) (*models.EndpointsGetSCPMFindingAutofixStateOutput, error) {
 	path := "/scpm/findings/{findingId}/autofix/state"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingAutofixStateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsFindingIdAutofixStatusInput is the input for ListScpmFindingsFindingIdAutofixStatus — Get SCPM Finding Autofix Status.
+type ListScpmFindingsFindingIdAutofixStatusInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsFindingIdAutofixStatus - Get SCPM Finding Autofix Status
 // GET /scpm/findings/{findingId}/autofix/status
-func (c *Client) ListScpmFindingsFindingIdAutofixStatus(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsFindingIdAutofixStatus(ctx context.Context, in ListScpmFindingsFindingIdAutofixStatusInput) (*models.EndpointsGetSCPMFindingAutofixStatusOutput, error) {
 	path := "/scpm/findings/{findingId}/autofix/status"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingAutofixStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsFindingIdEventsInput is the input for ListScpmFindingsFindingIdEvents — Get Finding Events.
+type ListScpmFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsFindingIdEvents - Get Finding Events
 // GET /scpm/findings/{findingId}/events
-func (c *Client) ListScpmFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsFindingIdEvents(ctx context.Context, in ListScpmFindingsFindingIdEventsInput) (*models.EndpointsGetSCPMFindingEventsOutput, error) {
 	path := "/scpm/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsFindingIdTriageInput is the input for ListScpmFindingsFindingIdTriage — Get Triaged Finding.
+type ListScpmFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListScpmFindingsFindingIdTriage - Get Triaged Finding
 // GET /scpm/findings/{findingId}/triage
-func (c *Client) ListScpmFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListScpmFindingsFindingIdTriage(ctx context.Context, in ListScpmFindingsFindingIdTriageInput) (*models.EndpointsGetSCPMFindingTriageOutput, error) {
 	path := "/scpm/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsFindingIdUnallowlistInput is the input for CreateScpmFindingsFindingIdUnallowlist — Unallowlist Finding.
+type CreateScpmFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	models.RequestScope
 }
 
 // CreateScpmFindingsFindingIdUnallowlist - Unallowlist Finding
 // POST /scpm/findings/{findingId}/unallowlist
-func (c *Client) CreateScpmFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateScpmFindingsFindingIdUnallowlist(ctx context.Context, in CreateScpmFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/scpm/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
 }
+
