@@ -2,8 +2,7 @@ package mcp
 
 import (
 	"context"
-	"fmt"
-	"net/url"
+	"encoding/json"
 
 	"github.com/nullify-platform/cli/internal/api"
 
@@ -21,7 +20,11 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			return wrap(c.ListContextRepositories(ctx, listParams(req)))
+			in := api.ListContextRepositoriesInput{}
+			if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
+				in.Limit = &n
+			}
+			return wrapTyped(c.ListContextRepositories(ctx, in))
 		},
 	)
 
@@ -31,9 +34,9 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			p := url.Values{}
-			p.Set("repositoryId", getStringArg(req.GetArguments(), "repository_id"))
-			return wrap(c.GetContextRepositoriesRepositoryId(ctx, p))
+			return wrapTyped(c.GetContextRepositoriesRepositoryId(ctx, api.GetContextRepositoriesRepositoryIdInput{
+				RepositoryID: getStringArg(req.GetArguments(), "repository_id"),
+			}))
 		},
 	)
 
@@ -43,7 +46,11 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			return wrap(c.ListContextApplications(ctx, listParams(req)))
+			// list_applications has no limit field on the spec input; the limit
+			// arg is kept for compatibility with the prior tool shape but is
+			// silently ignored — the endpoint returns the full set.
+			_ = req
+			return wrapTyped(c.ListContextApplications(ctx, api.ListContextApplicationsInput{}))
 		},
 	)
 
@@ -53,9 +60,9 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("application_id", mcp.Required(), mcp.Description("Application ID")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			p := url.Values{}
-			p.Set("applicationId", getStringArg(req.GetArguments(), "application_id"))
-			return wrap(c.GetContextApplicationsApplicationId(ctx, p))
+			return wrapTyped(c.GetContextApplicationsApplicationId(ctx, api.GetContextApplicationsApplicationIdInput{
+				ApplicationID: getStringArg(req.GetArguments(), "application_id"),
+			}))
 		},
 	)
 
@@ -65,9 +72,9 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			p := url.Values{}
-			p.Set("repositoryId", getStringArg(req.GetArguments(), "repository_id"))
-			return wrap(c.ListContextSbomsRepositoryRepositoryIdLatest(ctx, p))
+			return wrapTyped(c.ListContextSbomsRepositoryRepositoryIdLatest(ctx, api.ListContextSbomsRepositoryRepositoryIdLatestInput{
+				RepositoryID: getStringArg(req.GetArguments(), "repository_id"),
+			}))
 		},
 	)
 
@@ -79,10 +86,10 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := req.GetArguments()
-			p := url.Values{}
-			p.Set("repositoryId", getStringArg(args, "repository_id"))
-			p.Set("projectId", getStringArg(args, "project_id"))
-			return wrap(c.GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx, p))
+			return wrapTyped(c.GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx, api.GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput{
+				RepositoryID: getStringArg(args, "repository_id"),
+				ProjectID:    getStringArg(args, "project_id"),
+			}))
 		},
 	)
 
@@ -94,14 +101,15 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := req.GetArguments()
-			p := url.Values{}
+			in := api.ListContextDepsInput{}
 			if n := getIntArg(args, "pageSize", 0); n > 0 {
-				p.Set("pageSize", fmt.Sprintf("%d", n))
+				ps := int32(n)
+				in.PageSize = &ps
 			}
 			if cur := getStringArg(args, "cursor"); cur != "" {
-				p.Set("cursor", cur)
+				in.Cursor = &cur
 			}
-			return wrap(c.ListContextDeps(ctx, p))
+			return wrapTyped(c.ListContextDeps(ctx, in))
 		},
 	)
 
@@ -114,22 +122,30 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := req.GetArguments()
-			p := url.Values{}
-			p.Set("ecosystem", getStringArg(args, "ecosystem"))
-			p.Set("name", getStringArg(args, "name"))
-			if r := getStringArg(args, "range"); r != "" {
-				p.Set("range", r)
+			eco := getStringArg(args, "ecosystem")
+			name := getStringArg(args, "name")
+			in := api.ListContextDepsExposureInput{
+				Ecosystem: &eco,
+				Name:      &name,
 			}
-			return wrap(c.ListContextDepsExposure(ctx, p))
+			if r := getStringArg(args, "range"); r != "" {
+				in.Range = &r
+			}
+			return wrapTyped(c.ListContextDepsExposure(ctx, in))
 		},
 	)
 }
 
-// listParams builds url.Values for a list tool, forwarding an optional limit.
-func listParams(req mcp.CallToolRequest) url.Values {
-	p := url.Values{}
-	if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
-		p.Set("limit", fmt.Sprintf("%d", n))
+// wrapTyped is a small adapter for tool handlers that call a typed method
+// returning (*T, error): it marshals the response to JSON and wraps it as an
+// MCP tool result. (The typed equivalent of the legacy wrap() helper.)
+func wrapTyped[T any](out *T, err error) (*mcp.CallToolResult, error) {
+	if err != nil {
+		return toolError(err), nil
 	}
-	return p
+	b, err := json.Marshal(out)
+	if err != nil {
+		return toolError(err), nil
+	}
+	return toolResult(string(b)), nil
 }

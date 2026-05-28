@@ -3,7 +3,6 @@ package mcp
 import (
 	"context"
 	"encoding/json"
-	"net/url"
 
 	"github.com/nullify-platform/cli/internal/api"
 
@@ -20,7 +19,11 @@ func registerResources(s *server.MCPServer, c *api.Client) {
 			MIMEType:    "application/json",
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
-			data, err := c.CreateAdminMetricsOverview(ctx, nil, jsonReader(metricsOverviewBody()))
+			out, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput())
+			if err != nil {
+				return nil, err
+			}
+			data, err := json.Marshal(out)
 			if err != nil {
 				return nil, err
 			}
@@ -38,7 +41,11 @@ func registerResources(s *server.MCPServer, c *api.Client) {
 			MIMEType:    "application/json",
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
-			data, err := c.ListContextRepositories(ctx, nil)
+			out, err := c.ListContextRepositories(ctx, api.ListContextRepositoriesInput{})
+			if err != nil {
+				return nil, err
+			}
+			data, err := json.Marshal(out)
 			if err != nil {
 				return nil, err
 			}
@@ -63,22 +70,26 @@ func registerResources(s *server.MCPServer, c *api.Client) {
 			}
 			recent := []struct {
 				name string
-				list methodNoBody
+				list func(ctx context.Context, c *api.Client) (json.RawMessage, error)
 			}{
-				{"sast", (*api.Client).ListSastFindings},
-				{"sca_dependencies", (*api.Client).ListScaDependenciesFindings},
-				{"secrets", (*api.Client).ListSecretsFindings},
+				{"sast", func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+					return marshalOut(c.ListSastFindings(ctx, api.ListSastFindingsInput{Limit: limitPtr(5)}))
+				}},
+				{"sca_dependencies", func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+					return marshalOut(c.ListScaDependenciesFindings(ctx, api.ListScaDependenciesFindingsInput{Limit: limitPtr(5)}))
+				}},
+				{"secrets", func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+					return marshalOut(c.ListSecretsFindings(ctx, api.ListSecretsFindingsInput{Limit: limitPtr(5)}))
+				}},
 			}
 			var out []entry
 			for _, r := range recent {
-				p := url.Values{}
-				p.Set("limit", "5")
-				data, err := r.list(c, ctx, p)
+				data, err := r.list(ctx, c)
 				if err != nil {
 					out = append(out, entry{Type: r.name, Error: err.Error()})
 					continue
 				}
-				out = append(out, entry{Type: r.name, Data: json.RawMessage(data)})
+				out = append(out, entry{Type: r.name, Data: data})
 			}
 			b, _ := json.MarshalIndent(out, "", "  ")
 			return []mcplib.ResourceContents{

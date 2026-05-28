@@ -18,7 +18,11 @@ func registerCSPMTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			return wrap(c.ListCspmScans(ctx, listParams(req)))
+			in := api.ListCspmScansInput{}
+			if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
+				in.Limit = &n
+			}
+			return wrapTyped(c.ListCspmScans(ctx, in))
 		},
 	)
 }

@@ -1,12 +1,9 @@
 package mcp
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/api"
@@ -40,9 +37,9 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("id", mcp.Required(), mcp.Description("The threat investigation ID")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			p := url.Values{}
-			p.Set("threatInvestigationId", getStringArg(req.GetArguments(), "id"))
-			return wrap(c.GetManagerThreatInvestigationsThreatInvestigationId(ctx, p))
+			return wrapTyped(c.GetManagerThreatInvestigationsThreatInvestigationId(ctx, api.GetManagerThreatInvestigationsThreatInvestigationIdInput{
+				ThreatInvestigationID: getStringArg(req.GetArguments(), "id"),
+			}))
 		},
 	)
 
@@ -61,28 +58,40 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := req.GetArguments()
-			body := map[string]any{"title": getStringArg(args, "title")}
-			for _, k := range []string{"description", "severity", "advice", "ecosystem", "keywords"} {
-				if v := getStringArg(args, k); v != "" {
-					body[k] = v
-				}
+			in := api.CreateManagerThreatInvestigationsInput{
+				Title: getStringArg(args, "title"),
+			}
+			if v := getStringArg(args, "description"); v != "" {
+				in.Description = &v
+			}
+			if v := getStringArg(args, "severity"); v != "" {
+				in.Severity = &v
+			}
+			if v := getStringArg(args, "advice"); v != "" {
+				in.Advice = &v
+			}
+			if v := getStringArg(args, "ecosystem"); v != "" {
+				in.Ecosystem = &v
+			}
+			if v := getStringArg(args, "keywords"); v != "" {
+				in.Keywords = &v
 			}
 			if v, ok := args["cvss"]; ok {
 				switch v.(type) {
 				case float64, int:
-					body["cvss"] = getFloatArg(args, "cvss")
+					n := getFloatArg(args, "cvss")
+					in.Cvss = &n
 				default:
 					return toolError(fmt.Errorf("cvss must be a number, got %T", v)), nil
 				}
 			}
 			if v := splitCSV(getStringArg(args, "cve_ids")); len(v) > 0 {
-				body["cveIds"] = v
+				in.CveIds = v
 			}
 			if v := splitCSV(getStringArg(args, "article_links")); len(v) > 0 {
-				body["articleLinks"] = v
+				in.ArticleLinks = v
 			}
-			data, _ := json.Marshal(body)
-			return wrap(c.CreateManagerThreatInvestigations(ctx, nil, bytes.NewReader(data)))
+			return wrapTyped(c.CreateManagerThreatInvestigations(ctx, in))
 		},
 	)
 }
@@ -92,27 +101,27 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 // manager/internal/endpoints/threatinvestigations_get.go), so we can't use it
 // as a stop signal — only a short page or an empty page tells us we're done.
 func listThreatInvestigations(ctx context.Context, c *api.Client, limit int) ([]json.RawMessage, error) {
-	type listResp struct {
-		ThreatInvestigations []json.RawMessage `json:"threatInvestigations"`
-	}
 	const pageSize = 50
 	all := make([]json.RawMessage, 0)
 	for page := 1; len(all) < limit; page++ {
-		p := url.Values{}
-		p.Set("page", strconv.Itoa(page))
-		p.Set("pageSize", strconv.Itoa(pageSize))
-		data, err := c.ListManagerThreatInvestigations(ctx, p)
+		p, ps := page, pageSize
+		resp, err := c.ListManagerThreatInvestigations(ctx, api.ListManagerThreatInvestigationsInput{
+			Page:     &p,
+			PageSize: &ps,
+		})
 		if err != nil {
-			return nil, err
-		}
-		var resp listResp
-		if err := json.Unmarshal(data, &resp); err != nil {
 			return nil, err
 		}
 		if len(resp.ThreatInvestigations) == 0 {
 			break
 		}
-		all = append(all, resp.ThreatInvestigations...)
+		for _, ti := range resp.ThreatInvestigations {
+			b, err := json.Marshal(ti)
+			if err != nil {
+				return nil, err
+			}
+			all = append(all, b)
+		}
 		if len(resp.ThreatInvestigations) < pageSize {
 			break
 		}

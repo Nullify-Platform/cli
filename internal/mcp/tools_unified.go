@@ -1,43 +1,47 @@
 package mcp
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/url"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/api/models"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// methodNoBody / methodWithBody are the two shapes of generated api.Client
-// methods, captured as method expressions so the per-type dispatch table can
-// route a unified tool to the right typed endpoint.
-type methodNoBody = func(*api.Client, context.Context, url.Values) ([]byte, error)
-type methodWithBody = func(*api.Client, context.Context, url.Values, io.Reader) ([]byte, error)
+// findingMethodGet adapts a typed no-body generated client method to a uniform
+// "fetch by finding-id, return JSON bytes" shape so the per-finding-type
+// dispatch table can route a single tool to the right typed endpoint.
+type findingMethodGet = func(c *api.Client, ctx context.Context, findingID string) (json.RawMessage, error)
 
-// findingType maps a CLI finding-type slug to its api.Client methods. A nil
-// method means the platform does not support that capability for the type, and
-// the unified tool will not offer it for that type.
+// findingMethodAction adapts a typed body-taking generated client method. The
+// body is supplied as already-marshalled JSON bytes; the closure decodes them
+// into the typed input struct (path/url fields are tagged json:"-" so they
+// don't conflict), sets the FindingID, calls the typed method, and re-marshals
+// the typed response.
+type findingMethodAction = func(c *api.Client, ctx context.Context, findingID string, body []byte) (json.RawMessage, error)
+
+// findingType bundles the typed-client capabilities for one finding-type slug.
+// A nil method means the platform does not support that capability for the
+// type, and the unified tool will not offer it for that type.
 type findingType struct {
 	apiTypes        []string // values for the /admin/findings + /admin/events "type" filter
-	get             methodNoBody
-	triage          methodNoBody // GET .../triage — AI-triage detail (read-only)
-	ticket          methodWithBody
-	allowlist       methodWithBody
-	unallowlist     methodWithBody
-	autofixFix      methodWithBody
-	autofixState    methodNoBody
-	autofixDiff     methodNoBody
-	autofixCreatePR methodWithBody
+	get             findingMethodGet
+	triage          findingMethodGet // GET .../triage — AI-triage detail (read-only)
+	ticket          findingMethodAction
+	allowlist       findingMethodAction
+	unallowlist     findingMethodAction
+	autofixFix      findingMethodAction
+	autofixState    findingMethodGet
+	autofixDiff     findingMethodGet
+	autofixCreatePR findingMethodAction
 
 	// allowlistPatchStyle marks types whose allowlist endpoint is the bughunt
 	// PATCH contract — body {allow, reason} — rather than the POST contract
@@ -46,88 +50,351 @@ type findingType struct {
 	allowlistPatchStyle bool
 }
 
+// marshalOut is a tiny helper that turns any (*T, error) typed-method result
+// into a (json.RawMessage, error) for the adapter signature.
+func marshalOut[T any](out *T, err error) (json.RawMessage, error) {
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(out)
+}
+
+// rawOut passes through a ([]byte, error) result. Some endpoints have no $ref
+// in their 2xx response schema, so the generator falls back to a raw-bytes
+// return; this adapter avoids re-marshalling.
+func rawOut(data []byte, err error) (json.RawMessage, error) {
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(data), nil
+}
+
+// decodeBody unmarshals body bytes into a typed input struct. Empty body is
+// treated as "no body fields"; the typed method's body marshal will then send
+// an empty JSON object (or whatever the omitempty pattern dictates).
+func decodeBody[T any](body []byte, in *T) error {
+	if len(body) == 0 {
+		return nil
+	}
+	return json.Unmarshal(body, in)
+}
+
 var findingTypes = map[string]findingType{
 	"sast": {
-		apiTypes:     []string{"Code"},
-		get:          (*api.Client).GetSastFindingsFindingId,
-		triage:       (*api.Client).ListSastFindingsFindingIdTriage,
-		ticket:       (*api.Client).CreateSastFindingsFindingIdTicket,
-		allowlist:    (*api.Client).CreateSastFindingsFindingIdAllowlist,
-		unallowlist:  (*api.Client).CreateSastFindingsFindingIdUnallowlist,
-		autofixFix:   (*api.Client).CreateSastFindingsFindingIdAutofixFix,
-		autofixState: (*api.Client).ListSastFindingsFindingIdAutofixStatus,
-		autofixDiff:  (*api.Client).ListSastFindingsFindingIdAutofixCacheDiff,
+		apiTypes: []string{"Code"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetSastFindingsFindingId(ctx, api.GetSastFindingsFindingIdInput{FindingID: id}))
+		},
+		triage: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListSastFindingsFindingIdTriage(ctx, api.ListSastFindingsFindingIdTriageInput{FindingID: id}))
+		},
+		ticket: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateSastFindingsFindingIdTicketInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateSastFindingsFindingIdTicket(ctx, in))
+		},
+		allowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateSastFindingsFindingIdAllowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateSastFindingsFindingIdAllowlist(ctx, in))
+		},
+		unallowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateSastFindingsFindingIdUnallowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateSastFindingsFindingIdUnallowlist(ctx, in))
+		},
+		autofixFix: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateSastFindingsFindingIdAutofixFixInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateSastFindingsFindingIdAutofixFix(ctx, in))
+		},
+		autofixState: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListSastFindingsFindingIdAutofixStatus(ctx, api.ListSastFindingsFindingIdAutofixStatusInput{FindingID: id}))
+		},
+		autofixDiff: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListSastFindingsFindingIdAutofixCacheDiff(ctx, api.ListSastFindingsFindingIdAutofixCacheDiffInput{FindingID: id}))
+		},
 	},
 	"sca_dependencies": {
-		apiTypes:     []string{"Dependencies"},
-		get:          (*api.Client).GetScaDependenciesFindingsFindingId,
-		triage:       (*api.Client).ListScaDependenciesFindingsFindingIdTriage,
-		ticket:       (*api.Client).CreateScaDependenciesFindingsFindingIdTicket,
-		allowlist:    (*api.Client).CreateScaDependenciesFindingsFindingIdAllowlist,
-		unallowlist:  (*api.Client).CreateScaDependenciesFindingsFindingIdUnallowlist,
-		autofixFix:   (*api.Client).CreateScaDependenciesFindingsFindingIdAutofixFix,
-		autofixState: (*api.Client).ListScaDependenciesFindingsFindingIdAutofixStatus,
-		autofixDiff:  (*api.Client).ListScaDependenciesFindingsFindingIdAutofixCacheDiff,
+		apiTypes: []string{"Dependencies"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetScaDependenciesFindingsFindingId(ctx, api.GetScaDependenciesFindingsFindingIdInput{FindingID: id}))
+		},
+		triage: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScaDependenciesFindingsFindingIdTriage(ctx, api.ListScaDependenciesFindingsFindingIdTriageInput{FindingID: id}))
+		},
+		ticket: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaDependenciesFindingsFindingIdTicketInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateScaDependenciesFindingsFindingIdTicket(ctx, in))
+		},
+		allowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaDependenciesFindingsFindingIdAllowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateScaDependenciesFindingsFindingIdAllowlist(ctx, in))
+		},
+		unallowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaDependenciesFindingsFindingIdUnallowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateScaDependenciesFindingsFindingIdUnallowlist(ctx, in))
+		},
+		autofixFix: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaDependenciesFindingsFindingIdAutofixFixInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateScaDependenciesFindingsFindingIdAutofixFix(ctx, in))
+		},
+		autofixState: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScaDependenciesFindingsFindingIdAutofixStatus(ctx, api.ListScaDependenciesFindingsFindingIdAutofixStatusInput{FindingID: id}))
+		},
+		autofixDiff: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScaDependenciesFindingsFindingIdAutofixCacheDiff(ctx, api.ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput{FindingID: id}))
+		},
 	},
 	"sca_containers": {
-		apiTypes:     []string{"Containers"},
-		get:          (*api.Client).GetScaContainersFindingsFindingId,
-		triage:       (*api.Client).ListScaContainersFindingsFindingIdTriage,
-		ticket:       (*api.Client).CreateScaContainersFindingsFindingIdTicket,
-		allowlist:    (*api.Client).CreateScaContainersFindingsFindingIdAllowlist,
-		unallowlist:  (*api.Client).CreateScaContainersFindingsFindingIdUnallowlist,
-		autofixFix:   (*api.Client).CreateScaContainersFindingsFindingIdAutofixFix,
-		autofixState: (*api.Client).ListScaContainersFindingsFindingIdAutofixStatus,
+		apiTypes: []string{"Containers"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetScaContainersFindingsFindingId(ctx, api.GetScaContainersFindingsFindingIdInput{FindingID: id}))
+		},
+		triage: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScaContainersFindingsFindingIdTriage(ctx, api.ListScaContainersFindingsFindingIdTriageInput{FindingID: id}))
+		},
+		ticket: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaContainersFindingsFindingIdTicketInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateScaContainersFindingsFindingIdTicket(ctx, in))
+		},
+		allowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaContainersFindingsFindingIdAllowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateScaContainersFindingsFindingIdAllowlist(ctx, in))
+		},
+		unallowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaContainersFindingsFindingIdUnallowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateScaContainersFindingsFindingIdUnallowlist(ctx, in))
+		},
+		autofixFix: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScaContainersFindingsFindingIdAutofixFixInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateScaContainersFindingsFindingIdAutofixFix(ctx, in))
+		},
+		autofixState: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScaContainersFindingsFindingIdAutofixStatus(ctx, api.ListScaContainersFindingsFindingIdAutofixStatusInput{FindingID: id}))
+		},
 		// containers expose no cache-diff endpoint
 	},
 	"secrets": {
-		apiTypes:    []string{"SecretsCredentials", "SecretsSensitiveData"},
-		get:         (*api.Client).GetSecretsFindingsFindingId,
-		triage:      (*api.Client).ListSecretsFindingsFindingIdTriage,
-		ticket:      (*api.Client).CreateSecretsFindingsFindingIdTicket,
-		allowlist:   (*api.Client).CreateSecretsFindingsFindingIdAllowlist,
-		unallowlist: (*api.Client).CreateSecretsFindingsFindingIdUnallowlist,
+		apiTypes: []string{"SecretsCredentials", "SecretsSensitiveData"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetSecretsFindingsFindingId(ctx, api.GetSecretsFindingsFindingIdInput{FindingID: id}))
+		},
+		triage: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListSecretsFindingsFindingIdTriage(ctx, api.ListSecretsFindingsFindingIdTriageInput{FindingID: id}))
+		},
+		ticket: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateSecretsFindingsFindingIdTicketInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateSecretsFindingsFindingIdTicket(ctx, in))
+		},
+		allowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateSecretsFindingsFindingIdAllowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateSecretsFindingsFindingIdAllowlist(ctx, in))
+		},
+		unallowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateSecretsFindingsFindingIdUnallowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateSecretsFindingsFindingIdUnallowlist(ctx, in))
+		},
 		// secrets have no autofix
 	},
 	"pentest": {
-		apiTypes:     []string{"Pentest"},
-		get:          (*api.Client).GetDastPentestFindingsFindingId,
-		triage:       (*api.Client).ListDastPentestFindingsFindingIdTriage,
-		ticket:       (*api.Client).CreateDastPentestFindingsFindingIdTicket,
-		allowlist:    (*api.Client).CreateDastPentestFindingsFindingIdAllowlist,
-		unallowlist:  (*api.Client).CreateDastPentestFindingsFindingIdUnallowlist,
-		autofixFix:   (*api.Client).CreateDastPentestFindingsFindingIdAutofixFix,
-		autofixState: (*api.Client).ListDastPentestFindingsFindingIdAutofixStatus,
-		autofixDiff:  (*api.Client).ListDastPentestFindingsFindingIdAutofixCacheDiff,
+		apiTypes: []string{"Pentest"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetDastPentestFindingsFindingId(ctx, api.GetDastPentestFindingsFindingIdInput{FindingID: id}))
+		},
+		triage: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListDastPentestFindingsFindingIdTriage(ctx, api.ListDastPentestFindingsFindingIdTriageInput{FindingID: id}))
+		},
+		ticket: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateDastPentestFindingsFindingIdTicketInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateDastPentestFindingsFindingIdTicket(ctx, in))
+		},
+		allowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateDastPentestFindingsFindingIdAllowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateDastPentestFindingsFindingIdAllowlist(ctx, in))
+		},
+		unallowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateDastPentestFindingsFindingIdUnallowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateDastPentestFindingsFindingIdUnallowlist(ctx, in))
+		},
+		autofixFix: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateDastPentestFindingsFindingIdAutofixFixInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateDastPentestFindingsFindingIdAutofixFix(ctx, in))
+		},
+		autofixState: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListDastPentestFindingsFindingIdAutofixStatus(ctx, api.ListDastPentestFindingsFindingIdAutofixStatusInput{FindingID: id}))
+		},
+		autofixDiff: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListDastPentestFindingsFindingIdAutofixCacheDiff(ctx, api.ListDastPentestFindingsFindingIdAutofixCacheDiffInput{FindingID: id}))
+		},
 	},
 	"bughunt": {
-		apiTypes:            []string{"BugHunt"},
-		get:                 (*api.Client).GetDastBughuntFindingsFindingId,
-		triage:              (*api.Client).ListDastBughuntFindingsFindingIdTriage,
-		allowlist:           (*api.Client).PatchDastBughuntFindingsFindingIdAllowlist,
+		apiTypes: []string{"BugHunt"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetDastBughuntFindingsFindingId(ctx, api.GetDastBughuntFindingsFindingIdInput{FindingID: id}))
+		},
+		triage: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListDastBughuntFindingsFindingIdTriage(ctx, api.ListDastBughuntFindingsFindingIdTriageInput{FindingID: id}))
+		},
+		allowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.PatchDastBughuntFindingsFindingIdAllowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.PatchDastBughuntFindingsFindingIdAllowlist(ctx, in))
+		},
 		allowlistPatchStyle: true,
 		// bughunt has no ticket/unallowlist/autofix; its PATCH allowlist takes
 		// {allow, reason} (see allowlistPatchStyle).
 	},
 	"cspm": {
-		apiTypes:     []string{"Cloud"},
-		get:          (*api.Client).GetCspmFindingsFindingId,
-		ticket:       (*api.Client).CreateCspmFindingsFindingIdTicket,
-		autofixFix:   (*api.Client).CreateCspmFindingsFindingIdAutofixFix,
-		autofixState: (*api.Client).ListCspmFindingsFindingIdAutofixStatus,
-		autofixDiff:  (*api.Client).ListCspmFindingsFindingIdAutofixCacheDiff,
+		apiTypes: []string{"Cloud"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetCspmFindingsFindingId(ctx, api.GetCspmFindingsFindingIdInput{FindingID: id}))
+		},
+		ticket: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateCspmFindingsFindingIdTicketInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateCspmFindingsFindingIdTicket(ctx, in))
+		},
+		autofixFix: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateCspmFindingsFindingIdAutofixFixInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateCspmFindingsFindingIdAutofixFix(ctx, in))
+		},
+		autofixState: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListCspmFindingsFindingIdAutofixStatus(ctx, api.ListCspmFindingsFindingIdAutofixStatusInput{FindingID: id}))
+		},
+		autofixDiff: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListCspmFindingsFindingIdAutofixCacheDiff(ctx, api.ListCspmFindingsFindingIdAutofixCacheDiffInput{FindingID: id}))
+		},
 		// cspm has no events/allowlist; triage endpoint not exposed
 	},
 	"scpm": {
-		apiTypes:        []string{"Platform"},
-		get:             (*api.Client).GetScpmFindingsFindingId,
-		triage:          (*api.Client).ListScpmFindingsFindingIdTriage,
-		allowlist:       (*api.Client).CreateScpmFindingsFindingIdAllowlist,
-		unallowlist:     (*api.Client).CreateScpmFindingsFindingIdUnallowlist,
-		autofixFix:      (*api.Client).CreateScpmFindingsFindingIdAutofixFix,
-		autofixState:    (*api.Client).ListScpmFindingsFindingIdAutofixStatus,
-		autofixDiff:     (*api.Client).ListScpmFindingsFindingIdAutofixCacheDiff,
-		autofixCreatePR: (*api.Client).CreateScpmFindingsFindingIdAutofixCacheCreatePr,
+		apiTypes: []string{"Platform"},
+		get: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.GetScpmFindingsFindingId(ctx, api.GetScpmFindingsFindingIdInput{FindingID: id}))
+		},
+		triage: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScpmFindingsFindingIdTriage(ctx, api.ListScpmFindingsFindingIdTriageInput{FindingID: id}))
+		},
+		allowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScpmFindingsFindingIdAllowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateScpmFindingsFindingIdAllowlist(ctx, in))
+		},
+		unallowlist: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScpmFindingsFindingIdUnallowlistInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return rawOut(c.CreateScpmFindingsFindingIdUnallowlist(ctx, in))
+		},
+		autofixFix: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScpmFindingsFindingIdAutofixFixInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateScpmFindingsFindingIdAutofixFix(ctx, in))
+		},
+		autofixState: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScpmFindingsFindingIdAutofixStatus(ctx, api.ListScpmFindingsFindingIdAutofixStatusInput{FindingID: id}))
+		},
+		autofixDiff: func(c *api.Client, ctx context.Context, id string) (json.RawMessage, error) {
+			return marshalOut(c.ListScpmFindingsFindingIdAutofixCacheDiff(ctx, api.ListScpmFindingsFindingIdAutofixCacheDiffInput{FindingID: id}))
+		},
+		autofixCreatePR: func(c *api.Client, ctx context.Context, id string, body []byte) (json.RawMessage, error) {
+			var in api.CreateScpmFindingsFindingIdAutofixCacheCreatePrInput
+			if err := decodeBody(body, &in); err != nil {
+				return nil, err
+			}
+			in.FindingID = id
+			return marshalOut(c.CreateScpmFindingsFindingIdAutofixCacheCreatePr(ctx, in))
+		},
 		// scpm has no ticket endpoint
 	},
 }
@@ -177,12 +444,11 @@ type findingSearchOpts struct {
 // filters are mapped to the API query, so every search/composite tool stays
 // consistent — in particular, `repository` and `severity` ride in the request
 // body here, whereas the per-scanner GET list endpoints silently ignore them.
+//
+// The endpoint accepts an open-ended Query field; we keep it as a typed
+// map[string]any to preserve the existing wire shape while taking advantage of
+// the typed Input/Output structs around it.
 func searchFindings(ctx context.Context, c *api.Client, opts findingSearchOpts) ([]json.RawMessage, int, error) {
-	type pageResp struct {
-		Findings    []json.RawMessage `json:"findings"`
-		Total       int               `json:"total"`
-		HasMoreData bool              `json:"hasMoreData"`
-	}
 	// pageSize is chosen once per call and held constant across pages:
 	// /admin/findings is page/offset paginated, so shrinking pageSize on the
 	// final page would corrupt offset (page*pageSize) and skip/duplicate
@@ -198,39 +464,48 @@ func searchFindings(ctx context.Context, c *api.Client, opts findingSearchOpts) 
 	all := make([]json.RawMessage, 0)
 	var lastTotal int
 	for page := 1; len(all) < opts.limit; page++ {
-		query := map[string]any{"pageSize": pageSize, "page": page}
+		p, ps := page, pageSize
+		query := models.ModelsUnifiedFindingsQuery{
+			Page:     &p,
+			PageSize: &ps,
+		}
 		if opts.repository != "" {
-			query["repository"] = []string{opts.repository}
+			query.Repository = []string{opts.repository}
 		}
 		if opts.severity != "" {
-			query["severity"] = []string{strings.ToUpper(opts.severity)}
+			query.Severity = []string{strings.ToUpper(opts.severity)}
 		}
 		if len(opts.apiTypes) > 0 {
-			query["type"] = opts.apiTypes
+			query.Type = opts.apiTypes
 		}
+		boolPtr := func(b bool) *bool { return &b }
 		switch opts.status {
 		case "open":
-			query["isResolved"] = false
+			query.IsResolved = boolPtr(false)
 		case "fixed":
-			query["isFixed"] = true
+			query.IsFixed = boolPtr(true)
 		case "false_positive":
-			query["isFalsePositive"] = true
+			query.IsFalsePositive = boolPtr(true)
 		case "accepted_risk":
-			query["isAllowlisted"] = true
+			query.IsAllowlisted = boolPtr(true)
 		}
 
-		body, _ := json.Marshal(map[string]any{"query": query})
-		data, err := c.CreateAdminFindings(ctx, url.Values{}, bytes.NewReader(body))
+		out, err := c.CreateAdminFindings(ctx, api.CreateAdminFindingsInput{Query: query})
 		if err != nil {
 			return nil, 0, err
 		}
-		var resp pageResp
-		if err := json.Unmarshal(data, &resp); err != nil {
-			return nil, 0, err
+		lastTotal = out.Total
+		// The Findings field is a typed slice of finding models; re-marshal each
+		// element so callers can keep treating them as opaque JSON. (We don't
+		// destructure individual finding fields here.)
+		for _, f := range out.Findings {
+			b, err := json.Marshal(f)
+			if err != nil {
+				return nil, 0, err
+			}
+			all = append(all, b)
 		}
-		lastTotal = resp.Total
-		all = append(all, resp.Findings...)
-		if !resp.HasMoreData || len(resp.Findings) == 0 {
+		if !out.HasMoreData || len(out.Findings) == 0 {
 			break
 		}
 	}
@@ -286,7 +561,7 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(allTypes...)),
 			mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
 		),
-		findingByIDHandler(c, func(ft findingType) methodNoBody { return ft.get }, "get"),
+		findingByIDHandler(c, func(ft findingType) findingMethodGet { return ft.get }, "get"),
 	)
 
 	// 3. event history via the unified /admin/events feed (filtered by finding).
@@ -299,11 +574,19 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := request.GetArguments()
-			body, _ := json.Marshal(map[string]any{
-				"findingIds": []string{getStringArg(args, "id")},
-				"limit":      getIntArg(args, "limit", 50),
+			limit := getIntArg(args, "limit", 50)
+			out, err := c.CreateAdminEvents(ctx, api.CreateAdminEventsInput{
+				FindingIds: []string{getStringArg(args, "id")},
+				Limit:      &limit,
 			})
-			return wrap(c.CreateAdminEvents(ctx, url.Values{}, bytes.NewReader(body)))
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, err := json.Marshal(out)
+			if err != nil {
+				return toolError(err), nil
+			}
+			return toolResult(string(b)), nil
 		},
 	)
 
@@ -315,7 +598,7 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(typesWith(func(ft findingType) bool { return ft.triage != nil })...)),
 			mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
 		),
-		findingByIDHandler(c, func(ft findingType) methodNoBody { return ft.triage }, "triage"),
+		findingByIDHandler(c, func(ft findingType) findingMethodGet { return ft.triage }, "triage"),
 	)
 
 	// 4. create a ticket.
@@ -335,9 +618,7 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			if ft.ticket == nil {
 				return toolError(fmt.Errorf("ticketing is not supported for type %q", getStringArg(args, "type"))), nil
 			}
-			params := url.Values{}
-			params.Set("findingId", getStringArg(args, "id"))
-			return wrap(ft.ticket(c, ctx, params, nil))
+			return wrapRaw(ft.ticket(c, ctx, getStringArg(args, "id"), nil))
 		},
 	)
 
@@ -360,10 +641,8 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			if ft.allowlist == nil {
 				return toolError(fmt.Errorf("allowlisting is not supported for type %q", getStringArg(args, "type"))), nil
 			}
-			params := url.Values{}
-			params.Set("findingId", getStringArg(args, "id"))
 			body := allowlistBody(ft, getStringArg(args, "reason"), getStringArg(args, "allowlist_type"))
-			return wrap(ft.allowlist(c, ctx, params, bytes.NewReader(body)))
+			return wrapRaw(ft.allowlist(c, ctx, getStringArg(args, "id"), body))
 		},
 	)
 
@@ -385,10 +664,8 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			if ft.unallowlist == nil {
 				return toolError(fmt.Errorf("unallowlisting is not supported for type %q", getStringArg(args, "type"))), nil
 			}
-			params := url.Values{}
-			params.Set("findingId", getStringArg(args, "id"))
 			body, _ := json.Marshal(map[string]string{"unallowlistReason": getStringArg(args, "reason")})
-			return wrap(ft.unallowlist(c, ctx, params, bytes.NewReader(body)))
+			return wrapRaw(ft.unallowlist(c, ctx, getStringArg(args, "id"), body))
 		},
 	)
 
@@ -411,10 +688,9 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			if ft.autofixFix == nil {
 				return toolError(fmt.Errorf("autofix is not supported for type %q", getStringArg(args, "type"))), nil
 			}
-			params := url.Values{}
-			params.Set("findingId", getStringArg(args, "id"))
+			findingID := getStringArg(args, "id")
 
-			if _, err := ft.autofixFix(c, ctx, params, nil); err != nil {
+			if _, err := ft.autofixFix(c, ctx, findingID, nil); err != nil {
 				return toolError(fmt.Errorf("trigger autofix: %w", err)), nil
 			}
 
@@ -425,7 +701,7 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			// state behind a "diff failed" error from the unfetched cache.
 			var parts []string
 			if ft.autofixState != nil {
-				if _, err := pollAutofix(ctx, c, ft, params, false); err != nil {
+				if _, err := pollAutofix(ctx, c, ft, findingID, false); err != nil {
 					if errors.Is(err, context.DeadlineExceeded) {
 						return toolResult("Autofix triggered but did not finish within the poll deadline; check the finding in the dashboard."), nil
 					}
@@ -434,7 +710,7 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 			}
 
 			if ft.autofixDiff != nil {
-				diff, err := ft.autofixDiff(c, ctx, params)
+				diff, err := ft.autofixDiff(c, ctx, findingID)
 				if err != nil {
 					return toolError(fmt.Errorf("get autofix diff: %w", err)), nil
 				}
@@ -446,12 +722,12 @@ func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
 				// fix run opens the PR itself. Either way, poll PR-creation status
 				// and surface the resulting URL for a complete experience.
 				if ft.autofixCreatePR != nil {
-					if _, err := ft.autofixCreatePR(c, ctx, params, nil); err != nil {
+					if _, err := ft.autofixCreatePR(c, ctx, findingID, nil); err != nil {
 						return toolError(fmt.Errorf("create PR: %w", err)), nil
 					}
 				}
 				if ft.autofixState != nil {
-					st, err := pollAutofix(ctx, c, ft, params, true)
+					st, err := pollAutofix(ctx, c, ft, findingID, true)
 					switch {
 					case errors.Is(err, context.DeadlineExceeded):
 						parts = append(parts, "--- pull request ---\nStill running after the poll deadline; check the finding in the dashboard.")
@@ -486,7 +762,7 @@ func formatPRResult(st autofixStatus) string {
 }
 
 // findingByIDHandler builds a handler for a no-body, by-ID finding method.
-func findingByIDHandler(c *api.Client, pick func(findingType) methodNoBody, capability string) server.ToolHandlerFunc {
+func findingByIDHandler(c *api.Client, pick func(findingType) findingMethodGet, capability string) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()
 		ft, err := resolveFindingType(getStringArg(args, "type"))
@@ -497,10 +773,18 @@ func findingByIDHandler(c *api.Client, pick func(findingType) methodNoBody, capa
 		if method == nil {
 			return toolError(fmt.Errorf("%s is not supported for type %q", capability, getStringArg(args, "type"))), nil
 		}
-		params := url.Values{}
-		params.Set("findingId", getStringArg(args, "id"))
-		return wrap(method(c, ctx, params))
+		return wrapRaw(method(c, ctx, getStringArg(args, "id")))
 	}
+}
+
+// wrapRaw converts a (json.RawMessage, error) from a typed-method closure into
+// an MCP tool result. The bytes are passed through verbatim as the tool's
+// textual output.
+func wrapRaw(data json.RawMessage, err error) (*mcp.CallToolResult, error) {
+	if err != nil {
+		return toolError(err), nil
+	}
+	return toolResult(string(data)), nil
 }
 
 // autofixStatus is the subset of the autofix/status payload we poll on. The
@@ -573,11 +857,11 @@ var autofixPollInterval = 3 * time.Second
 // terminal but has no PR). On deadline it returns context.DeadlineExceeded so
 // callers can render "still running, check the dashboard" instead of fake
 // empty-PR output.
-func pollAutofix(ctx context.Context, c *api.Client, ft findingType, params url.Values, watchPR bool) (autofixStatus, error) {
+func pollAutofix(ctx context.Context, c *api.Client, ft findingType, findingID string, watchPR bool) (autofixStatus, error) {
 	deadline := time.Now().Add(autofixPollDeadline)
 	var last autofixStatus
 	for {
-		data, err := ft.autofixState(c, ctx, params)
+		data, err := ft.autofixState(c, ctx, findingID)
 		if err != nil {
 			return last, fmt.Errorf("poll autofix status: %w", err)
 		}

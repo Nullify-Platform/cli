@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/api"
@@ -13,19 +12,68 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// scannerListers enumerates the per-scanner finding-list methods the
-// cross-scanner composite tools fan out over.
-var scannerListers = []struct {
+// scannerLister returns a tiny list response for a single scanner. The
+// composite tools fan out over these to assemble a multi-scanner overview;
+// each closure adapts a typed list-findings method onto a uniform shape.
+type scannerLister struct {
 	name string
-	list methodNoBody
-}{
-	{"sast", (*api.Client).ListSastFindings},
-	{"sca_dependencies", (*api.Client).ListScaDependenciesFindings},
-	{"sca_containers", (*api.Client).ListScaContainersFindings},
-	{"secrets", (*api.Client).ListSecretsFindings},
-	{"pentest", (*api.Client).ListDastPentestFindings},
-	{"bughunt", (*api.Client).ListDastBughuntFindings},
-	{"cspm", (*api.Client).ListCspmFindings},
+	// peek returns a JSON payload from the lister's list endpoint, limited to
+	// one finding (used for "is this scanner producing findings?" probes).
+	peek func(ctx context.Context, c *api.Client) (json.RawMessage, error)
+}
+
+// limitPtr returns a *int for the limit field on input structs.
+func limitPtr(n int) *int {
+	v := n
+	return &v
+}
+
+var scannerListers = []scannerLister{
+	{
+		name: "sast",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListSastFindings(ctx, api.ListSastFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
+	{
+		name: "sca_dependencies",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListScaDependenciesFindings(ctx, api.ListScaDependenciesFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
+	{
+		name: "sca_containers",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListScaContainersFindings(ctx, api.ListScaContainersFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
+	{
+		name: "secrets",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListSecretsFindings(ctx, api.ListSecretsFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
+	{
+		name: "pentest",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListDastPentestFindings(ctx, api.ListDastPentestFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
+	{
+		name: "bughunt",
+		// bughunt's list endpoint doesn't accept a limit parameter (the spec
+		// doesn't declare it); we just peek at whatever the default page
+		// returns.
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListDastBughuntFindings(ctx, api.ListDastBughuntFindingsInput{}))
+		},
+	},
+	{
+		name: "cspm",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListCspmFindings(ctx, api.ListCspmFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
 }
 
 func registerCompositeTools(s *server.MCPServer, c *api.Client) {
@@ -41,14 +89,12 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			}
 			var out []entry
 			for _, sc := range scannerListers {
-				p := url.Values{}
-				p.Set("limit", "1")
-				data, err := sc.list(c, ctx, p)
+				data, err := sc.peek(ctx, c)
 				if err != nil {
 					out = append(out, entry{Type: sc.name, Error: err.Error()})
 					continue
 				}
-				out = append(out, entry{Type: sc.name, Data: json.RawMessage(data)})
+				out = append(out, entry{Type: sc.name, Data: data})
 			}
 			b, _ := json.MarshalIndent(out, "", "  ")
 			return toolResult(string(b)), nil
@@ -129,15 +175,17 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			if period == "" {
 				period = "30d"
 			}
-			overview, err := c.CreateAdminMetricsOverview(ctx, nil, jsonReader(metricsOverviewBody()))
+			overview, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput())
 			if err != nil {
 				return toolError(err), nil
 			}
-			overTime, err := c.CreateAdminMetricsOverTime(ctx, nil, jsonReader(metricsOverTimeBody(period)))
+			overTime, err := c.CreateAdminMetricsOverTime(ctx, metricsOverTimeInput(period))
 			if err != nil {
 				return toolError(err), nil
 			}
-			return toolResult(fmt.Sprintf("--- Current Overview ---\n%s\n\n--- Trends (%s) ---\n%s", string(overview), period, string(overTime))), nil
+			ovBytes, _ := json.Marshal(overview)
+			otBytes, _ := json.Marshal(overTime)
+			return toolResult(fmt.Sprintf("--- Current Overview ---\n%s\n\n--- Trends (%s) ---\n%s", string(ovBytes), period, string(otBytes))), nil
 		},
 	)
 }

@@ -2,8 +2,8 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"net/url"
 
 	"github.com/nullify-platform/cli/internal/api"
 
@@ -11,13 +11,36 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// scanRunMethods maps a code-scanner type to its scan-runs list method. Code
-// scanners are push/webhook driven and have no start endpoint; scan-runs
-// exposes their history. (Cloud scans start here; pentest has its own tools.)
-var scanRunMethods = map[string]methodNoBody{
-	"sast":    (*api.Client).ListSastScanRuns,
-	"sca":     (*api.Client).ListScaScanRuns,
-	"secrets": (*api.Client).ListSecretsScanRuns,
+// scanRunLister adapts a typed scan-runs list method onto a uniform
+// "(ctx, client, repoID, limit) → JSON" shape so the cross-scanner
+// list-scan-runs tool can dispatch on the scanner type string.
+type scanRunLister = func(ctx context.Context, c *api.Client, repoID string, limit int) (json.RawMessage, error)
+
+var scanRunMethods = map[string]scanRunLister{
+	"sast": func(ctx context.Context, c *api.Client, repoID string, limit int) (json.RawMessage, error) {
+		in := api.ListSastScanRunsInput{}
+		if limit > 0 {
+			n := limit
+			in.Limit = &n
+		}
+		return marshalOut(c.ListSastScanRuns(ctx, in))
+	},
+	"sca": func(ctx context.Context, c *api.Client, repoID string, limit int) (json.RawMessage, error) {
+		in := api.ListScaScanRunsInput{}
+		if limit > 0 {
+			n := limit
+			in.Limit = &n
+		}
+		return marshalOut(c.ListScaScanRuns(ctx, in))
+	},
+	"secrets": func(ctx context.Context, c *api.Client, repoID string, limit int) (json.RawMessage, error) {
+		in := api.ListSecretsScanRunsInput{}
+		if limit > 0 {
+			n := limit
+			in.Limit = &n
+		}
+		return marshalOut(c.ListSecretsScanRuns(ctx, in))
+	},
 }
 
 func registerScanTools(s *server.MCPServer, c *api.Client) {
@@ -26,7 +49,12 @@ func registerScanTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithDescription("Start a cloud security scan (CSPM / cloud reconnaissance) for the authenticated installation. Returns a scanId; poll nullify_get_cloud_scan_status."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			return wrap(c.CreateContextCloudScanStart(ctx, nil))
+			out, err := c.CreateContextCloudScanStart(ctx, api.CreateContextCloudScanStartInput{})
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, _ := json.Marshal(out)
+			return toolResult(string(b)), nil
 		},
 	)
 
@@ -36,9 +64,14 @@ func registerScanTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("scan_id", mcp.Required(), mcp.Description("The scan ID")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			p := url.Values{}
-			p.Set("scanId", getStringArg(req.GetArguments(), "scan_id"))
-			return wrap(c.ListContextCloudScanScanIdStatus(ctx, p))
+			out, err := c.ListContextCloudScanScanIdStatus(ctx, api.ListContextCloudScanScanIdStatusInput{
+				ScanID: getStringArg(req.GetArguments(), "scan_id"),
+			})
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, _ := json.Marshal(out)
+			return toolResult(string(b)), nil
 		},
 	)
 
@@ -51,16 +84,15 @@ func registerScanTools(s *server.MCPServer, c *api.Client) {
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := req.GetArguments()
-			method, ok := scanRunMethods[getStringArg(args, "type")]
+			lister, ok := scanRunMethods[getStringArg(args, "type")]
 			if !ok {
 				return toolError(fmt.Errorf("unknown scanner type %q. Valid: sast, sca, secrets", getStringArg(args, "type"))), nil
 			}
-			p := url.Values{}
-			p.Set("repositoryId", getStringArg(args, "repository_id"))
-			if n := getIntArg(args, "limit", 0); n > 0 {
-				p.Set("limit", fmt.Sprintf("%d", n))
+			data, err := lister(ctx, c, getStringArg(args, "repository_id"), getIntArg(args, "limit", 0))
+			if err != nil {
+				return toolError(err), nil
 			}
-			return wrap(method(c, ctx, p))
+			return toolResult(string(data)), nil
 		},
 	)
 }
