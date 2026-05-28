@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
@@ -28,26 +29,32 @@ var sbomGetCmd = &cobra.Command{
 		repositoryID, _ := cmd.Flags().GetString("repository-id")
 		projectID, _ := cmd.Flags().GetString("project-id")
 
-		params := url.Values{}
-		params.Set("repositoryId", repositoryID)
-
 		apiClient := getAPIClient()
 
-		var result []byte
+		var result any
 		var err error
 		if projectID != "" {
-			params.Set("projectId", projectID)
-			result, err = apiClient.GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx, params)
+			result, err = apiClient.GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx, api.GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput{
+				RepositoryID: repositoryID,
+				ProjectID:    projectID,
+			})
 		} else {
-			result, err = apiClient.ListContextSbomsRepositoryRepositoryIdLatest(ctx, params)
+			result, err = apiClient.ListContextSbomsRepositoryRepositoryIdLatest(ctx, api.ListContextSbomsRepositoryRepositoryIdLatestInput{
+				RepositoryID: repositoryID,
+			})
 		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(os.Stderr, string(data))
 		}
 	},
 }

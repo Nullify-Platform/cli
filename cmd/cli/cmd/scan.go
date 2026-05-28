@@ -1,11 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
-	"strconv"
 
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
@@ -27,14 +27,19 @@ var scanStartCmd = &cobra.Command{
 
 		apiClient := getAPIClient()
 
-		result, err := apiClient.CreateContextCloudScanStart(ctx, url.Values{})
+		result, err := apiClient.CreateContextCloudScanStart(ctx, api.CreateContextCloudScanStartInput{})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(os.Stderr, string(data))
 		}
 	},
 }
@@ -50,17 +55,21 @@ var scanStatusCmd = &cobra.Command{
 
 		apiClient := getAPIClient()
 
-		params := url.Values{}
-		params.Set("scanId", args[0])
-
-		result, err := apiClient.ListContextCloudScanScanIdStatus(ctx, params)
+		result, err := apiClient.ListContextCloudScanScanIdStatus(ctx, api.ListContextCloudScanScanIdStatusInput{
+			ScanID: args[0],
+		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(os.Stderr, string(data))
 		}
 	},
 }
@@ -79,23 +88,35 @@ var scanRunsCmd = &cobra.Command{
 		repositoryID, _ := cmd.Flags().GetString("repository-id")
 		limit, _ := cmd.Flags().GetInt("limit")
 
-		params := url.Values{}
-		params.Set("repositoryId", repositoryID)
-		if limit > 0 {
-			params.Set("limit", strconv.Itoa(limit))
-		}
-
 		apiClient := getAPIClient()
 
-		var result []byte
-		var err error
+		var (
+			result any
+			err    error
+		)
+
+		repoPtr := &repositoryID
+		var limitPtr *int
+		if limit > 0 {
+			limitPtr = &limit
+		}
+
 		switch scanType {
 		case "sast":
-			result, err = apiClient.ListSastScanRuns(ctx, params)
+			result, err = apiClient.ListSastScanRuns(ctx, api.ListSastScanRunsInput{
+				RepositoryID: repoPtr,
+				Limit:        limitPtr,
+			})
 		case "sca":
-			result, err = apiClient.ListScaScanRuns(ctx, params)
+			result, err = apiClient.ListScaScanRuns(ctx, api.ListScaScanRunsInput{
+				RepositoryID: repoPtr,
+				Limit:        limitPtr,
+			})
 		case "secrets":
-			result, err = apiClient.ListSecretsScanRuns(ctx, params)
+			result, err = apiClient.ListSecretsScanRuns(ctx, api.ListSecretsScanRunsInput{
+				RepositoryID: repoPtr,
+				Limit:        limitPtr,
+			})
 		default:
 			fmt.Fprintf(os.Stderr, "Error: invalid --type %q (must be one of: sast, sca, secrets)\n", scanType)
 			os.Exit(1)
@@ -105,8 +126,13 @@ var scanRunsCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(os.Stderr, string(data))
 		}
 	},
 }

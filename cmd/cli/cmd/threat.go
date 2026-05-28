@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
@@ -29,14 +29,19 @@ var threatListCmd = &cobra.Command{
 
 		apiClient := getAPIClient()
 
-		result, err := apiClient.ListManagerThreatInvestigations(ctx, url.Values{})
+		result, err := apiClient.ListManagerThreatInvestigations(ctx, api.ListManagerThreatInvestigationsInput{})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(os.Stderr, string(data))
 		}
 	},
 }
@@ -52,17 +57,21 @@ var threatGetCmd = &cobra.Command{
 
 		apiClient := getAPIClient()
 
-		params := url.Values{}
-		params.Set("threatInvestigationId", args[0])
-
-		result, err := apiClient.GetManagerThreatInvestigationsThreatInvestigationId(ctx, params)
+		result, err := apiClient.GetManagerThreatInvestigationsThreatInvestigationId(ctx, api.GetManagerThreatInvestigationsThreatInvestigationIdInput{
+			ThreatInvestigationID: args[0],
+		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(os.Stderr, string(data))
 		}
 	},
 }
@@ -86,50 +95,54 @@ var threatCreateCmd = &cobra.Command{
 		cveIDs, _ := cmd.Flags().GetString("cve-ids")
 		articleLinks, _ := cmd.Flags().GetString("article-links")
 
-		body := map[string]any{
-			"title": title,
+		in := api.CreateManagerThreatInvestigationsInput{
+			Title: title,
 		}
 		if description != "" {
-			body["description"] = description
+			in.Description = &description
 		}
 		if severity != "" {
-			body["severity"] = severity
+			in.Severity = &severity
 		}
 		if advice != "" {
-			body["advice"] = advice
+			in.Advice = &advice
 		}
 		if ecosystem != "" {
-			body["ecosystem"] = ecosystem
+			in.Ecosystem = &ecosystem
 		}
 		if keywords != "" {
-			body["keywords"] = keywords
+			in.Keywords = &keywords
 		}
 		if cvss != "" {
-			body["cvss"] = cvss
+			cvssFloat, err := strconv.ParseFloat(cvss, 64)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: invalid --cvss %q: %v\n", cvss, err)
+				os.Exit(1)
+			}
+			in.Cvss = &cvssFloat
 		}
 		if cveIDs != "" {
-			body["cveIds"] = splitCSV(cveIDs)
+			in.CveIds = splitCSV(cveIDs)
 		}
 		if articleLinks != "" {
-			body["articleLinks"] = splitCSV(articleLinks)
-		}
-
-		bodyBytes, err := json.Marshal(body)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			in.ArticleLinks = splitCSV(articleLinks)
 		}
 
 		apiClient := getAPIClient()
 
-		result, err := apiClient.CreateManagerThreatInvestigations(ctx, url.Values{}, bytes.NewReader(bodyBytes))
+		result, err := apiClient.CreateManagerThreatInvestigations(ctx, in)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(os.Stderr, string(data))
 		}
 	},
 }
