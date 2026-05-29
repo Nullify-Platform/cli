@@ -1,7 +1,9 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -100,11 +102,65 @@ func (t *refreshingAuthTransport) getToken(ctx context.Context) string {
 	return t.cachedToken
 }
 
-func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	token := t.getToken(req.Context())
+// forceRefresh fetches a new token regardless of the cache TTL. It is storm-safe:
+// if another goroutine already replaced staleToken (e.g. several concurrent
+// requests hit a 401 at once), the already-refreshed token is reused instead of
+// fetching again.
+func (t *refreshingAuthTransport) forceRefresh(ctx context.Context, staleToken string) string {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.cachedToken != staleToken {
+		return t.cachedToken
+	}
+	newToken, err := t.tokenProvider()
+	if err != nil {
+		logger.L(ctx).Warn("forced token refresh failed after 401", logger.Err(err))
+		return ""
+	}
+	t.cachedToken = newToken
+	t.cachedAt = time.Now()
+	return newToken
+}
 
-	r := req.Clone(req.Context())
-	r.Header.Set("Authorization", "Bearer "+token)
-	r.Header.Set("User-Agent", "Nullify-CLI/mcp")
-	return t.transport.RoundTrip(r)
+func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Buffer the body so the request can be replayed if the first attempt 401s.
+	var bodyBytes []byte
+	if req.Body != nil {
+		b, err := io.ReadAll(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		req.Body.Close()
+		bodyBytes = b
+	}
+
+	attempt := func(token string) (*http.Response, error) {
+		r := req.Clone(req.Context())
+		if bodyBytes != nil {
+			r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+			r.ContentLength = int64(len(bodyBytes))
+		}
+		r.Header.Set("Authorization", "Bearer "+token)
+		r.Header.Set("User-Agent", "Nullify-CLI/mcp")
+		return t.transport.RoundTrip(r)
+	}
+
+	token := t.getToken(req.Context())
+	resp, err := attempt(token)
+	if err != nil {
+		return nil, err
+	}
+
+	// The cached token can be invalid before its TTL elapses (revocation, server
+	// session kill, clock skew). On a 401, force a refresh and retry once before
+	// surfacing the failure.
+	if resp.StatusCode == http.StatusUnauthorized {
+		if newToken := t.forceRefresh(req.Context(), token); newToken != "" && newToken != token {
+			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4<<10))
+			resp.Body.Close()
+			return attempt(newToken)
+		}
+	}
+
+	return resp, nil
 }

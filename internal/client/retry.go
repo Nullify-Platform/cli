@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"io"
 	"math"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
 // retryTransport wraps an http.RoundTripper and retries on 429 and 5xx errors
-// with exponential backoff.
+// with exponential backoff. 5xx is only retried for idempotent methods so a
+// POST/PATCH that may have committed server-side is never replayed.
 type retryTransport struct {
 	transport    http.RoundTripper
 	maxRetries   int
@@ -54,14 +57,17 @@ func (t *retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return nil, err
 		}
 
-		if !t.shouldRetry(resp.StatusCode) || attempt == t.maxRetries {
+		if !shouldRetry(req.Method, resp.StatusCode) || attempt == t.maxRetries {
 			return resp, nil
 		}
 
-		// Drain and close the response body before retrying
+		delay := t.retryDelay(resp, attempt)
+
+		// Drain and close the response body before retrying so the underlying
+		// connection can be reused.
+		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4<<10))
 		resp.Body.Close()
 
-		delay := t.backoffDelay(attempt)
 		select {
 		case <-time.After(delay):
 		case <-req.Context().Done():
@@ -72,8 +78,59 @@ func (t *retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-func (t *retryTransport) shouldRetry(statusCode int) bool {
-	return statusCode == http.StatusTooManyRequests || statusCode >= 500
+// shouldRetry decides whether a response is worth retrying. 429 is always safe to
+// retry (the server rejected the request without processing it). 5xx is retried
+// only for idempotent methods; replaying a POST/PATCH risks duplicating work that
+// may have already committed before the server errored.
+func shouldRetry(method string, statusCode int) bool {
+	if statusCode == http.StatusTooManyRequests {
+		return true
+	}
+	if statusCode >= 500 {
+		return isIdempotent(method)
+	}
+	return false
+}
+
+func isIdempotent(method string) bool {
+	switch strings.ToUpper(method) {
+	case http.MethodGet, http.MethodHead, http.MethodPut, http.MethodDelete, http.MethodOptions, http.MethodTrace:
+		return true
+	}
+	return false
+}
+
+// retryDelay honors a Retry-After header when the server provides one (capped at
+// maxDelay), otherwise falls back to jittered exponential backoff.
+func (t *retryTransport) retryDelay(resp *http.Response, attempt int) time.Duration {
+	if d := parseRetryAfter(resp.Header.Get("Retry-After"), time.Now()); d > 0 {
+		if d > t.maxDelay {
+			return t.maxDelay
+		}
+		return d
+	}
+	return t.backoffDelay(attempt)
+}
+
+// parseRetryAfter parses a Retry-After header value, which may be either an
+// integer number of seconds or an HTTP-date. Returns 0 if absent/invalid.
+func parseRetryAfter(v string, now time.Time) time.Duration {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return 0
+	}
+	if secs, err := strconv.Atoi(v); err == nil {
+		if secs <= 0 {
+			return 0
+		}
+		return time.Duration(secs) * time.Second
+	}
+	if when, err := http.ParseTime(v); err == nil {
+		if d := when.Sub(now); d > 0 {
+			return d
+		}
+	}
+	return 0
 }
 
 func (t *retryTransport) backoffDelay(attempt int) time.Duration {
