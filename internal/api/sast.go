@@ -2,1135 +2,1075 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListSastEventsInput is the input for ListSastEvents — Get SAST Events.
+type ListSastEventsInput struct {
+	EventType []string `url:"eventType,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FindingID *string `url:"findingId,omitempty" json:"-"`
+	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	models.RequestScope
+}
 
 // ListSastEvents - Get SAST Events
 // GET /sast/events
-func (c *Client) ListSastEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastEvents(ctx context.Context, in ListSastEventsInput) (*models.EndpointsGetSASTEventsOutput, error) {
 	path := "/sast/events"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("fromTime"); v != "" {
-		query.Set("fromTime", v)
+	if in.FromTime != nil {
+		query.Set("fromTime", string(*in.FromTime))
 	}
-	if v := params.Get("eventType"); v != "" {
-		query.Set("eventType", v)
+	for _, v := range in.EventType {
+		query.Add("eventType", string(v))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.FindingID != nil {
+		query.Set("findingId", string(*in.FindingID))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSastFindingsInput is the input for ListSastFindings — Get SAST Findings.
+type ListSastFindingsInput struct {
+	AiGenerated *bool `url:"aiGenerated,omitempty" json:"-"`
+	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSastFindings - Get SAST Findings
 // GET /sast/findings
-func (c *Client) ListSastFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastFindings(ctx context.Context, in ListSastFindingsInput) (*models.EndpointsGetSASTFindingsOutput, error) {
 	path := "/sast/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("priorityLabel"); v != "" {
-		query.Set("priorityLabel", v)
+	if in.PriorityLabel != nil {
+		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("hasPullRequest"); v != "" {
-		query.Set("hasPullRequest", v)
+	if in.HasPullRequest != nil {
+		query.Set("hasPullRequest", strconv.FormatBool(*in.HasPullRequest))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("repositoryIds"); v != "" {
-		query.Set("repositoryIds", v)
+	for _, v := range in.RepositoryIds {
+		query.Add("repositoryIds", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isArchived"); v != "" {
-		query.Set("isArchived", v)
+	if in.IsArchived != nil {
+		query.Set("isArchived", strconv.FormatBool(*in.IsArchived))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.AiGenerated != nil {
+		query.Set("aiGenerated", strconv.FormatBool(*in.AiGenerated))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.IsLatest != nil {
+		query.Set("isLatest", strconv.FormatBool(*in.IsLatest))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.AutoFixState != nil {
+		query.Set("autoFixState", string(*in.AutoFixState))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSastFindingsAllowlistInput is the input for CreateSastFindingsAllowlist — Allowlist Batch of SAST Findings.
+type CreateSastFindingsAllowlistInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateSastFindingsAllowlist - Allowlist Batch of SAST Findings
 // POST /sast/findings/allowlist
-func (c *Client) CreateSastFindingsAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSastFindingsAllowlist(ctx context.Context, in CreateSastFindingsAllowlistInput) ([]byte, error) {
 	path := "/sast/findings/allowlist"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
 }
 
-// CreateSastFindingsAutofixCache - Post Cache AutoFix
-// POST /sast/findings/autofix/cache
-func (c *Client) CreateSastFindingsAutofixCache(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/autofix/cache"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
+// ListSastFindingsDetailedInput is the input for ListSastFindingsDetailed — Get Findings Detailed.
+type ListSastFindingsDetailedInput struct {
+	AiGenerated *bool `url:"aiGenerated,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Language *string `url:"language,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSastFindingsDetailed - Get Findings Detailed
 // GET /sast/findings/detailed
-func (c *Client) ListSastFindingsDetailed(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastFindingsDetailed(ctx context.Context, in ListSastFindingsDetailedInput) (*models.EndpointsGetSASTFindingsDetailedOutput, error) {
 	path := "/sast/findings/detailed"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("priorityLabel"); v != "" {
-		query.Set("priorityLabel", v)
+	if in.PriorityLabel != nil {
+		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
 	}
-	if v := params.Get("language"); v != "" {
-		query.Set("language", v)
+	if in.Language != nil {
+		query.Set("language", string(*in.Language))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("hasPullRequest"); v != "" {
-		query.Set("hasPullRequest", v)
+	if in.HasPullRequest != nil {
+		query.Set("hasPullRequest", strconv.FormatBool(*in.HasPullRequest))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isArchived"); v != "" {
-		query.Set("isArchived", v)
+	if in.IsArchived != nil {
+		query.Set("isArchived", strconv.FormatBool(*in.IsArchived))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.AiGenerated != nil {
+		query.Set("aiGenerated", strconv.FormatBool(*in.AiGenerated))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingsDetailedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateSastFindingsFix - Post Finding Fix
-// POST /sast/findings/fix
-func (c *Client) CreateSastFindingsFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/fix"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
+// ListSastFindingsPreviewInput is the input for ListSastFindingsPreview — Get SAST Findings.
+type ListSastFindingsPreviewInput struct {
+	AiGenerated *bool `url:"aiGenerated,omitempty" json:"-"`
+	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
+	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	Workflow *string `url:"workflow,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSastFindingsPreview - Get SAST Findings
 // GET /sast/findings/preview
-func (c *Client) ListSastFindingsPreview(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastFindingsPreview(ctx context.Context, in ListSastFindingsPreviewInput) (*models.EndpointsGetSASTFindingsOutput, error) {
 	path := "/sast/findings/preview"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("priorityLabel"); v != "" {
-		query.Set("priorityLabel", v)
+	if in.PriorityLabel != nil {
+		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
-	if v := params.Get("severity"); v != "" {
-		query.Set("severity", v)
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("hasPullRequest"); v != "" {
-		query.Set("hasPullRequest", v)
+	if in.HasPullRequest != nil {
+		query.Set("hasPullRequest", strconv.FormatBool(*in.HasPullRequest))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("workflow"); v != "" {
-		query.Set("workflow", v)
+	if in.Workflow != nil {
+		query.Set("workflow", string(*in.Workflow))
 	}
-	if v := params.Get("repositoryIds"); v != "" {
-		query.Set("repositoryIds", v)
+	for _, v := range in.RepositoryIds {
+		query.Add("repositoryIds", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isFixed"); v != "" {
-		query.Set("isFixed", v)
+	if in.IsFixed != nil {
+		query.Set("isFixed", strconv.FormatBool(*in.IsFixed))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isArchived"); v != "" {
-		query.Set("isArchived", v)
+	if in.IsArchived != nil {
+		query.Set("isArchived", strconv.FormatBool(*in.IsArchived))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.AiGenerated != nil {
+		query.Set("aiGenerated", strconv.FormatBool(*in.AiGenerated))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.IsLatest != nil {
+		query.Set("isLatest", strconv.FormatBool(*in.IsLatest))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.AutoFixState != nil {
+		query.Set("autoFixState", string(*in.AutoFixState))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetSastFindingsFindingIdInput is the input for GetSastFindingsFindingId — Get Finding.
+type GetSastFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetSastFindingsFindingId - Get Finding
 // GET /sast/findings/{findingId}
-func (c *Client) GetSastFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetSastFindingsFindingId(ctx context.Context, in GetSastFindingsFindingIdInput) (*models.EndpointsGetSASTFindingOutput, error) {
 	path := "/sast/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchSastFindingsFindingIdInput is the input for PatchSastFindingsFindingId — Update Finding.
+type PatchSastFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	models.RequestScope
 }
 
 // PatchSastFindingsFindingId - Update Finding
 // PATCH /sast/findings/{findingId}
-func (c *Client) PatchSastFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchSastFindingsFindingId(ctx context.Context, in PatchSastFindingsFindingIdInput) (*models.EndpointsPatchSASTFindingOutput, error) {
 	path := "/sast/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+		SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	}{
+		PriorityOverride: in.PriorityOverride,
+		SeverityOverride: in.SeverityOverride,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSASTFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSastFindingsFindingIdAllowlistInput is the input for CreateSastFindingsFindingIdAllowlist — Allowlist Finding.
+type CreateSastFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateSastFindingsFindingIdAllowlist - Allowlist Finding
 // POST /sast/findings/{findingId}/allowlist
-func (c *Client) CreateSastFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSastFindingsFindingIdAllowlist(ctx context.Context, in CreateSastFindingsFindingIdAllowlistInput) (*models.EndpointsPostAllowlistSASTFindingOutput, error) {
 	path := "/sast/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowlistSASTFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateSastFindingsFindingIdAutofixCache - Post Cache AutoFix
-// POST /sast/findings/{findingId}/autofix/cache
-func (c *Client) CreateSastFindingsFindingIdAutofixCache(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/{findingId}/autofix/cache"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
+// ListSastFindingsFindingIdAutofixActivityInput is the input for ListSastFindingsFindingIdAutofixActivity — Get SAST Finding Autofix Activity.
+type ListSastFindingsFindingIdAutofixActivityInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	SinceID *string `url:"since_id,omitempty" json:"-"`
+	models.RequestScope
 }
 
-// CreateSastFindingsFindingIdAutofixCacheCreatePr - Post Finding AutoFix
-// POST /sast/findings/{findingId}/autofix/cache/create_pr
-func (c *Client) CreateSastFindingsFindingIdAutofixCacheCreatePr(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/sast/findings/{findingId}/autofix/cache/create_pr"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+// ListSastFindingsFindingIdAutofixActivity - Get SAST Finding Autofix Activity
+// GET /sast/findings/{findingId}/autofix/activity
+func (c *Client) ListSastFindingsFindingIdAutofixActivity(ctx context.Context, in ListSastFindingsFindingIdAutofixActivityInput) (*models.EndpointsGetAutofixActivityLogOutput, error) {
+	path := "/sast/findings/{findingId}/autofix/activity"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.SinceID != nil {
+		query.Set("since_id", string(*in.SinceID))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAutofixActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSastFindingsFindingIdAutofixCacheDiffInput is the input for ListSastFindingsFindingIdAutofixCacheDiff — Get Finding Autofix Diff.
+type ListSastFindingsFindingIdAutofixCacheDiffInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSastFindingsFindingIdAutofixCacheDiff - Get Finding Autofix Diff
 // GET /sast/findings/{findingId}/autofix/cache/diff
-func (c *Client) ListSastFindingsFindingIdAutofixCacheDiff(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastFindingsFindingIdAutofixCacheDiff(ctx context.Context, in ListSastFindingsFindingIdAutofixCacheDiffInput) (*models.EndpointsGetSASTFindingFixOutput, error) {
 	path := "/sast/findings/{findingId}/autofix/cache/diff"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingFixOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSastFindingsFindingIdAutofixFixInput is the input for CreateSastFindingsFindingIdAutofixFix — Post Finding AutoFix.
+type CreateSastFindingsFindingIdAutofixFixInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	Message *string `json:"message,omitempty"`
+	OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	models.RequestScope
 }
 
 // CreateSastFindingsFindingIdAutofixFix - Post Finding AutoFix
 // POST /sast/findings/{findingId}/autofix/fix
-func (c *Client) CreateSastFindingsFindingIdAutofixFix(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSastFindingsFindingIdAutofixFix(ctx context.Context, in CreateSastFindingsFindingIdAutofixFixInput) (*models.EndpointsPostAutofixSASTFindingOutput, error) {
 	path := "/sast/findings/{findingId}/autofix/fix"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		Force *bool `json:"force,omitempty"`
+		Message *string `json:"message,omitempty"`
+		OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		Force: in.Force,
+		Message: in.Message,
+		OriginCampaignID: in.OriginCampaignID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAutofixSASTFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSastFindingsFindingIdAutofixStateInput is the input for ListSastFindingsFindingIdAutofixState — Get SAST Finding Autofix State.
+type ListSastFindingsFindingIdAutofixStateInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
+}
+
+// ListSastFindingsFindingIdAutofixState - Get SAST Finding Autofix State
+// GET /sast/findings/{findingId}/autofix/state
+func (c *Client) ListSastFindingsFindingIdAutofixState(ctx context.Context, in ListSastFindingsFindingIdAutofixStateInput) (*models.EndpointsGetSASTFindingAutofixStateOutput, error) {
+	path := "/sast/findings/{findingId}/autofix/state"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingAutofixStateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSastFindingsFindingIdAutofixStatusInput is the input for ListSastFindingsFindingIdAutofixStatus — Get SAST Finding Autofix Status.
+type ListSastFindingsFindingIdAutofixStatusInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
+}
+
+// ListSastFindingsFindingIdAutofixStatus - Get SAST Finding Autofix Status
+// GET /sast/findings/{findingId}/autofix/status
+func (c *Client) ListSastFindingsFindingIdAutofixStatus(ctx context.Context, in ListSastFindingsFindingIdAutofixStatusInput) (*models.EndpointsGetSASTFindingAutofixStatusOutput, error) {
+	path := "/sast/findings/{findingId}/autofix/status"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingAutofixStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSastFindingsFindingIdEventsInput is the input for ListSastFindingsFindingIdEvents — Get Finding Events.
+type ListSastFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSastFindingsFindingIdEvents - Get Finding Events
 // GET /sast/findings/{findingId}/events
-func (c *Client) ListSastFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastFindingsFindingIdEvents(ctx context.Context, in ListSastFindingsFindingIdEventsInput) (*models.EndpointsGetSASTFindingEventsOutput, error) {
 	path := "/sast/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSastFindingsFindingIdTicketInput is the input for CreateSastFindingsFindingIdTicket — Create Ticket.
+type CreateSastFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	models.RequestScope
 }
 
 // CreateSastFindingsFindingIdTicket - Create Ticket
 // POST /sast/findings/{findingId}/ticket
-func (c *Client) CreateSastFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSastFindingsFindingIdTicket(ctx context.Context, in CreateSastFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketSASTFindingOutput, error) {
 	path := "/sast/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketSASTFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSastFindingsFindingIdTriageInput is the input for ListSastFindingsFindingIdTriage — Get Triaged Finding.
+type ListSastFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSastFindingsFindingIdTriage - Get Triaged Finding
 // GET /sast/findings/{findingId}/triage
-func (c *Client) ListSastFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastFindingsFindingIdTriage(ctx context.Context, in ListSastFindingsFindingIdTriageInput) (*models.EndpointsGetSASTFindingTriageOutput, error) {
 	path := "/sast/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSastFindingsFindingIdUnallowlistInput is the input for CreateSastFindingsFindingIdUnallowlist — Unallowlist Finding.
+type CreateSastFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	models.RequestScope
 }
 
 // CreateSastFindingsFindingIdUnallowlist - Unallowlist Finding
 // POST /sast/findings/{findingId}/unallowlist
-func (c *Client) CreateSastFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSastFindingsFindingIdUnallowlist(ctx context.Context, in CreateSastFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/sast/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSastFindingsFindingIdUsersInput is the input for ListSastFindingsFindingIdUsers — Get Finding Users.
+type ListSastFindingsFindingIdUsersInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSastFindingsFindingIdUsers - Get Finding Users
 // GET /sast/findings/{findingId}/users
-func (c *Client) ListSastFindingsFindingIdUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastFindingsFindingIdUsers(ctx context.Context, in ListSastFindingsFindingIdUsersInput) (*models.EndpointsGetSASTFindingUsersOutput, error) {
 	path := "/sast/findings/{findingId}/users"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTFindingUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSastRepositoriesInput is the input for ListSastRepositories — Get Repositories.
+type ListSastRepositoriesInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSastRepositories - Get Repositories
 // GET /sast/repositories
-func (c *Client) ListSastRepositories(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSastRepositories(ctx context.Context, in ListSastRepositoriesInput) (*models.EndpointsGetSASTRepositoriesOutput, error) {
 	path := "/sast/repositories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTRepositoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetSastRepositoriesRepositoryIdInput is the input for GetSastRepositoriesRepositoryId — Get Repository Stats.
+type GetSastRepositoriesRepositoryIdInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	models.RequestScope
 }
 
 // GetSastRepositoriesRepositoryId - Get Repository Stats
 // GET /sast/repositories/{repositoryId}
-func (c *Client) GetSastRepositoriesRepositoryId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetSastRepositoriesRepositoryId(ctx context.Context, in GetSastRepositoriesRepositoryIdInput) (*models.EndpointsGetSASTRepositoryOutput, error) {
 	path := "/sast/repositories/{repositoryId}"
-	path = strings.Replace(path, "{repositoryId}", params.Get("repositoryId"), 1)
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSASTRepositoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+
+// ListSastScanRunsInput is the input for ListSastScanRuns — List Scan Runs.
+type ListSastScanRunsInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListSastScanRuns - List Scan Runs
+// GET /sast/scan-runs
+func (c *Client) ListSastScanRuns(ctx context.Context, in ListSastScanRunsInput) (*models.EndpointsGetScanRunsOutput, error) {
+	path := "/sast/scan-runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetScanRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+

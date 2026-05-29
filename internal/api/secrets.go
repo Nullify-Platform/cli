@@ -2,1721 +2,1607 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListSecretsCredentialsFindingsInput is the input for ListSecretsCredentialsFindings — Get Secrets Credential Findings.
+type ListSecretsCredentialsFindingsInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	SecretType *string `url:"secretType,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
+}
 
 // ListSecretsCredentialsFindings - Get Secrets Credential Findings
 // GET /secrets/credentials/findings
-func (c *Client) ListSecretsCredentialsFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsCredentialsFindings(ctx context.Context, in ListSecretsCredentialsFindingsInput) (*models.EndpointsGetSecretsFindingsOutput, error) {
 	path := "/secrets/credentials/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("secretType"); v != "" {
-		query.Set("secretType", v)
+	if in.SecretType != nil {
+		query.Set("secretType", string(*in.SecretType))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsCredentialsFindingsAllowlistBatchInput is the input for CreateSecretsCredentialsFindingsAllowlistBatch — Allowlist Batch of Credential Findings.
+type CreateSecretsCredentialsFindingsAllowlistBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateSecretsCredentialsFindingsAllowlistBatch - Allowlist Batch of Credential Findings
 // POST /secrets/credentials/findings/allowlist/batch
-func (c *Client) CreateSecretsCredentialsFindingsAllowlistBatch(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsCredentialsFindingsAllowlistBatch(ctx context.Context, in CreateSecretsCredentialsFindingsAllowlistBatchInput) ([]byte, error) {
 	path := "/secrets/credentials/findings/allowlist/batch"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSecretsCredentialsFindingsDetailedInput is the input for ListSecretsCredentialsFindingsDetailed — Get Secrets Credential Findings Detailed.
+type ListSecretsCredentialsFindingsDetailedInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	SecretType *string `url:"secretType,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsCredentialsFindingsDetailed - Get Secrets Credential Findings Detailed
 // GET /secrets/credentials/findings/detailed
-func (c *Client) ListSecretsCredentialsFindingsDetailed(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsCredentialsFindingsDetailed(ctx context.Context, in ListSecretsCredentialsFindingsDetailedInput) (*models.EndpointsGetSecretsFindingsDetailedOutput, error) {
 	path := "/secrets/credentials/findings/detailed"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("secretType"); v != "" {
-		query.Set("secretType", v)
+	if in.SecretType != nil {
+		query.Set("secretType", string(*in.SecretType))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingsDetailedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// PatchSecretsCredentialsFindingsFindingId - Update Credential Finding
-// PATCH /secrets/credentials/findings/{findingId}
-func (c *Client) PatchSecretsCredentialsFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/secrets/credentials/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
+// GetSecretsCredentialsFindingsFindingIdInput is the input for GetSecretsCredentialsFindingsFindingId — Get Credential Finding.
+type GetSecretsCredentialsFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetSecretsCredentialsFindingsFindingId - Get Credential Finding
 // GET /secrets/credentials/findings/{findingId}
-func (c *Client) GetSecretsCredentialsFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetSecretsCredentialsFindingsFindingId(ctx context.Context, in GetSecretsCredentialsFindingsFindingIdInput) (*models.EndpointsGetSecretsFindingOutput, error) {
 	path := "/secrets/credentials/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchSecretsCredentialsFindingsFindingIdInput is the input for PatchSecretsCredentialsFindingsFindingId — Update Credential Finding.
+type PatchSecretsCredentialsFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	UserNotes *string `json:"userNotes,omitempty"`
+	models.RequestScope
+}
+
+// PatchSecretsCredentialsFindingsFindingId - Update Credential Finding
+// PATCH /secrets/credentials/findings/{findingId}
+func (c *Client) PatchSecretsCredentialsFindingsFindingId(ctx context.Context, in PatchSecretsCredentialsFindingsFindingIdInput) (*models.EndpointsPatchSecretsFindingOutput, error) {
+	path := "/secrets/credentials/findings/{findingId}"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+		SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+		UserNotes *string `json:"userNotes,omitempty"`
+	}{
+		PriorityOverride: in.PriorityOverride,
+		SeverityOverride: in.SeverityOverride,
+		UserNotes: in.UserNotes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsCredentialsFindingsFindingIdAllowlistInput is the input for CreateSecretsCredentialsFindingsFindingIdAllowlist — Allowlist Credential Finding.
+type CreateSecretsCredentialsFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateSecretsCredentialsFindingsFindingIdAllowlist - Allowlist Credential Finding
 // POST /secrets/credentials/findings/{findingId}/allowlist
-func (c *Client) CreateSecretsCredentialsFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsCredentialsFindingsFindingIdAllowlist(ctx context.Context, in CreateSecretsCredentialsFindingsFindingIdAllowlistInput) ([]byte, error) {
 	path := "/secrets/credentials/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSecretsCredentialsFindingsFindingIdEventsInput is the input for ListSecretsCredentialsFindingsFindingIdEvents — Get Finding Events.
+type ListSecretsCredentialsFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsCredentialsFindingsFindingIdEvents - Get Finding Events
 // GET /secrets/credentials/findings/{findingId}/events
-func (c *Client) ListSecretsCredentialsFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsCredentialsFindingsFindingIdEvents(ctx context.Context, in ListSecretsCredentialsFindingsFindingIdEventsInput) (*models.EndpointsGetSecretsFindingEventsOutput, error) {
 	path := "/secrets/credentials/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsCredentialsFindingsFindingIdTicketInput is the input for CreateSecretsCredentialsFindingsFindingIdTicket — Create Ticket for Credential Finding.
+type CreateSecretsCredentialsFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	models.RequestScope
 }
 
 // CreateSecretsCredentialsFindingsFindingIdTicket - Create Ticket for Credential Finding
 // POST /secrets/credentials/findings/{findingId}/ticket
-func (c *Client) CreateSecretsCredentialsFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsCredentialsFindingsFindingIdTicket(ctx context.Context, in CreateSecretsCredentialsFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketSecretsFindingOutput, error) {
 	path := "/secrets/credentials/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsCredentialsFindingsFindingIdTriageInput is the input for ListSecretsCredentialsFindingsFindingIdTriage — Get Triaged Credential Finding.
+type ListSecretsCredentialsFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsCredentialsFindingsFindingIdTriage - Get Triaged Credential Finding
 // GET /secrets/credentials/findings/{findingId}/triage
-func (c *Client) ListSecretsCredentialsFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsCredentialsFindingsFindingIdTriage(ctx context.Context, in ListSecretsCredentialsFindingsFindingIdTriageInput) (*models.EndpointsGetSecretsFindingTriageOutput, error) {
 	path := "/secrets/credentials/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsCredentialsFindingsFindingIdUnallowlistInput is the input for CreateSecretsCredentialsFindingsFindingIdUnallowlist — Unallowlist Credential Finding.
+type CreateSecretsCredentialsFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	models.RequestScope
 }
 
 // CreateSecretsCredentialsFindingsFindingIdUnallowlist - Unallowlist Credential Finding
 // POST /secrets/credentials/findings/{findingId}/unallowlist
-func (c *Client) CreateSecretsCredentialsFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsCredentialsFindingsFindingIdUnallowlist(ctx context.Context, in CreateSecretsCredentialsFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/secrets/credentials/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+		UnallowlistType: in.UnallowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSecretsCredentialsFindingsFindingIdUsersInput is the input for ListSecretsCredentialsFindingsFindingIdUsers — Get Credential Finding Related Users.
+type ListSecretsCredentialsFindingsFindingIdUsersInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsCredentialsFindingsFindingIdUsers - Get Credential Finding Related Users
 // GET /secrets/credentials/findings/{findingId}/users
-func (c *Client) ListSecretsCredentialsFindingsFindingIdUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsCredentialsFindingsFindingIdUsers(ctx context.Context, in ListSecretsCredentialsFindingsFindingIdUsersInput) (*models.EndpointsGetSecretsFindingUsersOutput, error) {
 	path := "/secrets/credentials/findings/{findingId}/users"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsEventsInput is the input for ListSecretsEvents — Get Secret Events.
+type ListSecretsEventsInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	EventType []string `url:"eventType,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FindingID *string `url:"findingId,omitempty" json:"-"`
+	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	NumItems *int `url:"numItems,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsEvents - Get Secret Events
 // GET /secrets/events
-func (c *Client) ListSecretsEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsEvents(ctx context.Context, in ListSecretsEventsInput) (*models.EndpointsGetSecretsEventsOutput, error) {
 	path := "/secrets/events"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("fromTime"); v != "" {
-		query.Set("fromTime", v)
+	if in.FromTime != nil {
+		query.Set("fromTime", string(*in.FromTime))
 	}
-	if v := params.Get("numItems"); v != "" {
-		query.Set("numItems", v)
+	if in.NumItems != nil {
+		query.Set("numItems", strconv.Itoa(int(*in.NumItems)))
 	}
-	if v := params.Get("eventType"); v != "" {
-		query.Set("eventType", v)
+	for _, v := range in.EventType {
+		query.Add("eventType", string(v))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.FindingID != nil {
+		query.Set("findingId", string(*in.FindingID))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsFindingsInput is the input for ListSecretsFindings — Get Secrets Credential Findings.
+type ListSecretsFindingsInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	SecretType *string `url:"secretType,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsFindings - Get Secrets Credential Findings
 // GET /secrets/findings
-func (c *Client) ListSecretsFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsFindings(ctx context.Context, in ListSecretsFindingsInput) (*models.EndpointsGetSecretsFindingsOutput, error) {
 	path := "/secrets/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("secretType"); v != "" {
-		query.Set("secretType", v)
+	if in.SecretType != nil {
+		query.Set("secretType", string(*in.SecretType))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsFindingsAllowlistBatchInput is the input for CreateSecretsFindingsAllowlistBatch — Allowlist Batch of Credential Findings.
+type CreateSecretsFindingsAllowlistBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateSecretsFindingsAllowlistBatch - Allowlist Batch of Credential Findings
 // POST /secrets/findings/allowlist/batch
-func (c *Client) CreateSecretsFindingsAllowlistBatch(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsFindingsAllowlistBatch(ctx context.Context, in CreateSecretsFindingsAllowlistBatchInput) ([]byte, error) {
 	path := "/secrets/findings/allowlist/batch"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSecretsFindingsDetailedInput is the input for ListSecretsFindingsDetailed — Get Secrets Credential Findings Detailed - [DEPRECATED - TO BE REMOVED BY 2025].
+type ListSecretsFindingsDetailedInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	SecretType *string `url:"secretType,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsFindingsDetailed - Get Secrets Credential Findings Detailed - [DEPRECATED - TO BE REMOVED BY 2025]
 // GET /secrets/findings/detailed
-func (c *Client) ListSecretsFindingsDetailed(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsFindingsDetailed(ctx context.Context, in ListSecretsFindingsDetailedInput) (*models.EndpointsGetSecretsFindingsDetailedOutput, error) {
 	path := "/secrets/findings/detailed"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("secretType"); v != "" {
-		query.Set("secretType", v)
+	if in.SecretType != nil {
+		query.Set("secretType", string(*in.SecretType))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingsDetailedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsFindingsPreviewInput is the input for ListSecretsFindingsPreview — Get Secrets Credential Findings.
+type ListSecretsFindingsPreviewInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	SecretType *string `url:"secretType,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsFindingsPreview - Get Secrets Credential Findings
 // GET /secrets/findings/preview
-func (c *Client) ListSecretsFindingsPreview(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsFindingsPreview(ctx context.Context, in ListSecretsFindingsPreviewInput) (*models.EndpointsGetSecretsFindingsOutput, error) {
 	path := "/secrets/findings/preview"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("secretType"); v != "" {
-		query.Set("secretType", v)
+	if in.SecretType != nil {
+		query.Set("secretType", string(*in.SecretType))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// PatchSecretsFindingsFindingId - Update Credential Finding
-// PATCH /secrets/findings/{findingId}
-func (c *Client) PatchSecretsFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/secrets/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
+// GetSecretsFindingsFindingIdInput is the input for GetSecretsFindingsFindingId — Get Credential Finding.
+type GetSecretsFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetSecretsFindingsFindingId - Get Credential Finding
 // GET /secrets/findings/{findingId}
-func (c *Client) GetSecretsFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetSecretsFindingsFindingId(ctx context.Context, in GetSecretsFindingsFindingIdInput) (*models.EndpointsGetSecretsFindingOutput, error) {
 	path := "/secrets/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchSecretsFindingsFindingIdInput is the input for PatchSecretsFindingsFindingId — Update Credential Finding.
+type PatchSecretsFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	UserNotes *string `json:"userNotes,omitempty"`
+	models.RequestScope
+}
+
+// PatchSecretsFindingsFindingId - Update Credential Finding
+// PATCH /secrets/findings/{findingId}
+func (c *Client) PatchSecretsFindingsFindingId(ctx context.Context, in PatchSecretsFindingsFindingIdInput) (*models.EndpointsPatchSecretsFindingOutput, error) {
+	path := "/secrets/findings/{findingId}"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+		SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+		UserNotes *string `json:"userNotes,omitempty"`
+	}{
+		PriorityOverride: in.PriorityOverride,
+		SeverityOverride: in.SeverityOverride,
+		UserNotes: in.UserNotes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsFindingsFindingIdAllowlistInput is the input for CreateSecretsFindingsFindingIdAllowlist — Allowlist Credential Finding.
+type CreateSecretsFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateSecretsFindingsFindingIdAllowlist - Allowlist Credential Finding
 // POST /secrets/findings/{findingId}/allowlist
-func (c *Client) CreateSecretsFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsFindingsFindingIdAllowlist(ctx context.Context, in CreateSecretsFindingsFindingIdAllowlistInput) ([]byte, error) {
 	path := "/secrets/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSecretsFindingsFindingIdEventsInput is the input for ListSecretsFindingsFindingIdEvents — Get Finding Events.
+type ListSecretsFindingsFindingIdEventsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsFindingsFindingIdEvents - Get Finding Events
 // GET /secrets/findings/{findingId}/events
-func (c *Client) ListSecretsFindingsFindingIdEvents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsFindingsFindingIdEvents(ctx context.Context, in ListSecretsFindingsFindingIdEventsInput) (*models.EndpointsGetSecretsFindingEventsOutput, error) {
 	path := "/secrets/findings/{findingId}/events"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsFindingsFindingIdTicketInput is the input for CreateSecretsFindingsFindingIdTicket — Create Ticket for Credential Finding.
+type CreateSecretsFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	models.RequestScope
 }
 
 // CreateSecretsFindingsFindingIdTicket - Create Ticket for Credential Finding
 // POST /secrets/findings/{findingId}/ticket
-func (c *Client) CreateSecretsFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsFindingsFindingIdTicket(ctx context.Context, in CreateSecretsFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketSecretsFindingOutput, error) {
 	path := "/secrets/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsFindingsFindingIdTriageInput is the input for ListSecretsFindingsFindingIdTriage — Get Triaged Credential Finding.
+type ListSecretsFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsFindingsFindingIdTriage - Get Triaged Credential Finding
 // GET /secrets/findings/{findingId}/triage
-func (c *Client) ListSecretsFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsFindingsFindingIdTriage(ctx context.Context, in ListSecretsFindingsFindingIdTriageInput) (*models.EndpointsGetSecretsFindingTriageOutput, error) {
 	path := "/secrets/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsFindingsFindingIdUnallowlistInput is the input for CreateSecretsFindingsFindingIdUnallowlist — Unallowlist Credential Finding.
+type CreateSecretsFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	models.RequestScope
 }
 
 // CreateSecretsFindingsFindingIdUnallowlist - Unallowlist Credential Finding
 // POST /secrets/findings/{findingId}/unallowlist
-func (c *Client) CreateSecretsFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsFindingsFindingIdUnallowlist(ctx context.Context, in CreateSecretsFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/secrets/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+		UnallowlistType: in.UnallowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSecretsFindingsFindingIdUsersInput is the input for ListSecretsFindingsFindingIdUsers — Get Credential Finding Related Users.
+type ListSecretsFindingsFindingIdUsersInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsFindingsFindingIdUsers - Get Credential Finding Related Users
 // GET /secrets/findings/{findingId}/users
-func (c *Client) ListSecretsFindingsFindingIdUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsFindingsFindingIdUsers(ctx context.Context, in ListSecretsFindingsFindingIdUsersInput) (*models.EndpointsGetSecretsFindingUsersOutput, error) {
 	path := "/secrets/findings/{findingId}/users"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsFindingUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsScanRunsInput is the input for ListSecretsScanRuns — List Scan Runs.
+type ListSecretsScanRunsInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListSecretsScanRuns - List Scan Runs
+// GET /secrets/scan-runs
+func (c *Client) ListSecretsScanRuns(ctx context.Context, in ListSecretsScanRunsInput) (*models.EndpointsGetScanRunsOutput, error) {
+	path := "/secrets/scan-runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetScanRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsSensitivedataFindingsInput is the input for ListSecretsSensitivedataFindings — Get Sensitive Data Findings.
+type ListSecretsSensitivedataFindingsInput struct {
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
+	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	SecretType *string `url:"secretType,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsSensitivedataFindings - Get Sensitive Data Findings
 // GET /secrets/sensitivedata/findings
-func (c *Client) ListSecretsSensitivedataFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsSensitivedataFindings(ctx context.Context, in ListSecretsSensitivedataFindingsInput) (*models.EndpointsGetSecretsSensitiveDataFindingsOutput, error) {
 	path := "/secrets/sensitivedata/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("branch"); v != "" {
-		query.Set("branch", v)
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
 	}
-	if v := params.Get("secretType"); v != "" {
-		query.Set("secretType", v)
+	if in.SecretType != nil {
+		query.Set("secretType", string(*in.SecretType))
 	}
-	if v := params.Get("fileOwnerName"); v != "" {
-		query.Set("fileOwnerName", v)
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
 	}
-	if v := params.Get("isResolved"); v != "" {
-		query.Set("isResolved", v)
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
-	if v := params.Get("isAllowlisted"); v != "" {
-		query.Set("isAllowlisted", v)
+	if in.IsAllowlisted != nil {
+		query.Set("isAllowlisted", strconv.FormatBool(*in.IsAllowlisted))
 	}
-	if v := params.Get("isFalsePositive"); v != "" {
-		query.Set("isFalsePositive", v)
+	if in.IsFalsePositive != nil {
+		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
-	if v := params.Get("sortBy"); v != "" {
-		query.Set("sortBy", v)
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
 	}
-	if v := params.Get("sort"); v != "" {
-		query.Set("sort", v)
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsSensitiveDataFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsSensitivedataFindingsAllowlistBatchInput is the input for CreateSecretsSensitivedataFindingsAllowlistBatch — Allowlist Batch of Sensitive Data Findings.
+type CreateSecretsSensitivedataFindingsAllowlistBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateSecretsSensitivedataFindingsAllowlistBatch - Allowlist Batch of Sensitive Data Findings
 // POST /secrets/sensitivedata/findings/allowlist/batch
-func (c *Client) CreateSecretsSensitivedataFindingsAllowlistBatch(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsSensitivedataFindingsAllowlistBatch(ctx context.Context, in CreateSecretsSensitivedataFindingsAllowlistBatchInput) ([]byte, error) {
 	path := "/secrets/sensitivedata/findings/allowlist/batch"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
 }
 
-// PatchSecretsSensitivedataFindingsFindingId - Update Sensitive Data Finding
-// PATCH /secrets/sensitivedata/findings/{findingId}
-func (c *Client) PatchSecretsSensitivedataFindingsFindingId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/secrets/sensitivedata/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "PATCH", fullURL, body)
+// GetSecretsSensitivedataFindingsFindingIdInput is the input for GetSecretsSensitivedataFindingsFindingId — Get Sensitive Data Finding.
+type GetSecretsSensitivedataFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // GetSecretsSensitivedataFindingsFindingId - Get Sensitive Data Finding
 // GET /secrets/sensitivedata/findings/{findingId}
-func (c *Client) GetSecretsSensitivedataFindingsFindingId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetSecretsSensitivedataFindingsFindingId(ctx context.Context, in GetSecretsSensitivedataFindingsFindingIdInput) (*models.EndpointsGetSecretsSensitiveDataFindingOutput, error) {
 	path := "/secrets/sensitivedata/findings/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsSensitiveDataFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchSecretsSensitivedataFindingsFindingIdInput is the input for PatchSecretsSensitivedataFindingsFindingId — Update Sensitive Data Finding.
+type PatchSecretsSensitivedataFindingsFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	UserNotes *string `json:"userNotes,omitempty"`
+	models.RequestScope
+}
+
+// PatchSecretsSensitivedataFindingsFindingId - Update Sensitive Data Finding
+// PATCH /secrets/sensitivedata/findings/{findingId}
+func (c *Client) PatchSecretsSensitivedataFindingsFindingId(ctx context.Context, in PatchSecretsSensitivedataFindingsFindingIdInput) (*models.EndpointsPatchSecretsSensitiveDataFindingOutput, error) {
+	path := "/secrets/sensitivedata/findings/{findingId}"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+		UserNotes *string `json:"userNotes,omitempty"`
+	}{
+		PriorityOverride: in.PriorityOverride,
+		UserNotes: in.UserNotes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSecretsSensitiveDataFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsSensitivedataFindingsFindingIdAllowlistInput is the input for CreateSecretsSensitivedataFindingsFindingIdAllowlist — Allowlist Sensitive Data Finding.
+type CreateSecretsSensitivedataFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	models.RequestScope
 }
 
 // CreateSecretsSensitivedataFindingsFindingIdAllowlist - Allowlist Sensitive Data Finding
 // POST /secrets/sensitivedata/findings/{findingId}/allowlist
-func (c *Client) CreateSecretsSensitivedataFindingsFindingIdAllowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsSensitivedataFindingsFindingIdAllowlist(ctx context.Context, in CreateSecretsSensitivedataFindingsFindingIdAllowlistInput) ([]byte, error) {
 	path := "/secrets/sensitivedata/findings/{findingId}/allowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// CreateSecretsSensitivedataFindingsFindingIdTicketInput is the input for CreateSecretsSensitivedataFindingsFindingIdTicket — Create Ticket for Sensitive Data Finding.
+type CreateSecretsSensitivedataFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	models.RequestScope
 }
 
 // CreateSecretsSensitivedataFindingsFindingIdTicket - Create Ticket for Sensitive Data Finding
 // POST /secrets/sensitivedata/findings/{findingId}/ticket
-func (c *Client) CreateSecretsSensitivedataFindingsFindingIdTicket(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsSensitivedataFindingsFindingIdTicket(ctx context.Context, in CreateSecretsSensitivedataFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketSecretsSensitiveDataFindingOutput, error) {
 	path := "/secrets/sensitivedata/findings/{findingId}/ticket"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketSecretsSensitiveDataFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListSecretsSensitivedataFindingsFindingIdTriageInput is the input for ListSecretsSensitivedataFindingsFindingIdTriage — Get Triaged Sensitive Data Finding.
+type ListSecretsSensitivedataFindingsFindingIdTriageInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsSensitivedataFindingsFindingIdTriage - Get Triaged Sensitive Data Finding
 // GET /secrets/sensitivedata/findings/{findingId}/triage
-func (c *Client) ListSecretsSensitivedataFindingsFindingIdTriage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsSensitivedataFindingsFindingIdTriage(ctx context.Context, in ListSecretsSensitivedataFindingsFindingIdTriageInput) (*models.EndpointsGetSecretsSensitiveDataFindingTriageOutput, error) {
 	path := "/secrets/sensitivedata/findings/{findingId}/triage"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsSensitiveDataFindingTriageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput is the input for CreateSecretsSensitivedataFindingsFindingIdUnallowlist — Unallowlist Sensitive Data Finding.
+type CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	models.RequestScope
 }
 
 // CreateSecretsSensitivedataFindingsFindingIdUnallowlist - Unallowlist Sensitive Data Finding
 // POST /secrets/sensitivedata/findings/{findingId}/unallowlist
-func (c *Client) CreateSecretsSensitivedataFindingsFindingIdUnallowlist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateSecretsSensitivedataFindingsFindingIdUnallowlist(ctx context.Context, in CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput) ([]byte, error) {
 	path := "/secrets/sensitivedata/findings/{findingId}/unallowlist"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+		UnallowlistType: in.UnallowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListSecretsSensitivedataFindingsFindingIdUsersInput is the input for ListSecretsSensitivedataFindingsFindingIdUsers — Get Sensitive Data Finding Related Users.
+type ListSecretsSensitivedataFindingsFindingIdUsersInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
 }
 
 // ListSecretsSensitivedataFindingsFindingIdUsers - Get Sensitive Data Finding Related Users
 // GET /secrets/sensitivedata/findings/{findingId}/users
-func (c *Client) ListSecretsSensitivedataFindingsFindingIdUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListSecretsSensitivedataFindingsFindingIdUsers(ctx context.Context, in ListSecretsSensitivedataFindingsFindingIdUsersInput) (*models.EndpointsGetSecretsSensitiveDataFindingUsersOutput, error) {
 	path := "/secrets/sensitivedata/findings/{findingId}/users"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecretsSensitiveDataFindingUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+

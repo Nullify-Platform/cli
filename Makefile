@@ -1,4 +1,4 @@
-.PHONY: build clean lint lint-go lint-docker
+.PHONY: build clean lint lint-go lint-docker fetch-spec generate-api unit cov
 
 # set the version as the latest commit sha if it's not already defined
 ifndef VERSION
@@ -34,8 +34,25 @@ lint-docker:
 	docker build --quiet --target hadolint -t hadolint:latest .
 	docker run --rm -v $(shell pwd):/app -w /app hadolint hadolint Dockerfile demo_server/Dockerfile
 
+# OpenAPI bundle sourcing. The spec is published in the (private) nullify
+# monorepo; we pin a commit and vendor the bundle into spec/ so generation is
+# reproducible and offline. To update: bump SPEC_REF, run `make fetch-spec`,
+# then `make generate-api`, and commit both spec/ and the regenerated code.
+SPEC_REF ?= 7b34970bbbeeabf665cd71fa0eb0e07eaac534a3
+SPEC_REPO ?= nullify-platform/nullify
+SPEC_PATH_IN_REPO ?= public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml
+SPEC_LOCAL ?= spec/nullify-openapi-bundle.yaml
+
+# fetch-spec downloads the pinned OpenAPI bundle from the monorepo. Requires
+# GitHub auth (`gh auth login`) with access to the private monorepo.
+fetch-spec:
+	@mkdir -p $(dir $(SPEC_LOCAL))
+	gh api "repos/$(SPEC_REPO)/contents/$(SPEC_PATH_IN_REPO)?ref=$(SPEC_REF)" \
+		-H "Accept: application/vnd.github.raw" > $(SPEC_LOCAL)
+	@echo "fetched $(SPEC_LOCAL) from $(SPEC_REPO)@$(SPEC_REF)"
+
 generate-api:
-	go run ./scripts/generate/main.go --spec ../public-docs/specs/merged-openapi.yml --output internal/api --cmd-output internal/commands
+	go run ./scripts/generate/main.go --spec $(SPEC_LOCAL) --output internal/api --cmd-output internal/commands
 
 unit:
 	go test -v -skip TestIntegration ./...

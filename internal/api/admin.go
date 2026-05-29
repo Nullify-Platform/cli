@@ -2,175 +2,168 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/api/models"
 )
+
+var _ = bytes.NewReader
+var _ = json.Marshal
+var _ = strconv.FormatInt
+var _ = strings.Replace
+var _ = fmt.Sprintf
+var _ = url.PathEscape
+var _ = models.RequestScope{}
+
+// ListAdminAssessmentsScanCoverageInput is the input for ListAdminAssessmentsScanCoverage — Get Scan Coverage.
+type ListAdminAssessmentsScanCoverageInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	Type *string `url:"type,omitempty" json:"-"`
+	models.RequestScope
+}
 
 // ListAdminAssessmentsScanCoverage - Get Scan Coverage
 // GET /admin/assessments/scan-coverage
-func (c *Client) ListAdminAssessmentsScanCoverage(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminAssessmentsScanCoverage(ctx context.Context, in ListAdminAssessmentsScanCoverageInput) (*models.EndpointsGetScanCoverageOutput, error) {
 	path := "/admin/assessments/scan-coverage"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("type"); v != "" {
-		query.Set("type", v)
+	if in.Type != nil {
+		query.Set("type", string(*in.Type))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("offset"); v != "" {
-		query.Set("offset", v)
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
-	if v := params.Get("search"); v != "" {
-		query.Set("search", v)
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetScanCoverageOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminAssessmentsScanCoverageFindingsInput is the input for ListAdminAssessmentsScanCoverageFindings — Get Scan Coverage Findings.
+type ListAdminAssessmentsScanCoverageFindingsInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Type *string `url:"type,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminAssessmentsScanCoverageFindings - Get Scan Coverage Findings
 // GET /admin/assessments/scan-coverage/findings
-func (c *Client) ListAdminAssessmentsScanCoverageFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminAssessmentsScanCoverageFindings(ctx context.Context, in ListAdminAssessmentsScanCoverageFindingsInput) (*models.EndpointsGetScanCoverageFindingsOutput, error) {
 	path := "/admin/assessments/scan-coverage/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("type"); v != "" {
-		query.Set("type", v)
+	if in.Type != nil {
+		query.Set("type", string(*in.Type))
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("offset"); v != "" {
-		query.Set("offset", v)
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetScanCoverageFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminChecklistInput is the input for ListAdminChecklist — Get Checklist.
+type ListAdminChecklistInput struct {
+	models.RequestScope
 }
 
 // ListAdminChecklist - Get Checklist
 // GET /admin/checklist
-func (c *Client) ListAdminChecklist(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminChecklist(ctx context.Context, in ListAdminChecklistInput) (*models.EndpointsAdminChecklistOutput, error) {
 	path := "/admin/checklist"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminChecklistOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminContextIngestInput is the input for CreateAdminContextIngest — Get Context Upload Credentials.
+type CreateAdminContextIngestInput struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitSha *string `json:"commitSha,omitempty"`
+	ContextType string `json:"contextType"`
+	Environment *models.EndpointsContextEnvironment `json:"environment,omitempty"`
+	FromPR *int `json:"fromPR,omitempty"`
+	Name string `json:"name"`
+	PrNumber *int `json:"prNumber,omitempty"`
+	Repository string `json:"repository"`
 }
 
 // CreateAdminContextIngest - Get Context Upload Credentials
 // POST /admin/context/ingest
-func (c *Client) CreateAdminContextIngest(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminContextIngest(ctx context.Context, in CreateAdminContextIngestInput) (*models.EndpointsContextIngestOutput, error) {
 	path := "/admin/context/ingest"
 
 	query := url.Values{}
@@ -183,3821 +176,4316 @@ func (c *Client) CreateAdminContextIngest(ctx context.Context, params url.Values
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+		CommitSha *string `json:"commitSha,omitempty"`
+		ContextType string `json:"contextType"`
+		Environment *models.EndpointsContextEnvironment `json:"environment,omitempty"`
+		FromPR *int `json:"fromPR,omitempty"`
+		Name string `json:"name"`
+		PrNumber *int `json:"prNumber,omitempty"`
+		Repository string `json:"repository"`
+	}{
+		Branch: in.Branch,
+		CommitSha: in.CommitSha,
+		ContextType: in.ContextType,
+		Environment: in.Environment,
+		FromPR: in.FromPR,
+		Name: in.Name,
+		PrNumber: in.PrNumber,
+		Repository: in.Repository,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextIngestOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// UpdateAdminFixEffort - Put Fix Effort Mapping
-// PUT /admin/fix-effort
-func (c *Client) UpdateAdminFixEffort(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/fix-effort"
+// CreateAdminEventsInput is the input for CreateAdminEvents — List Unified Events.
+type CreateAdminEventsInput struct {
+	AfterID *string `json:"afterId,omitempty"`
+	AfterTimeUnix *int `json:"afterTimeUnix,omitempty"`
+	AutofixID *string `json:"autofixId,omitempty"`
+	BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	EventTypes []string `json:"eventTypes,omitempty"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	Limit *int `json:"limit,omitempty"`
+	PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	Services []string `json:"services,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminEvents - List Unified Events
+// POST /admin/events
+func (c *Client) CreateAdminEvents(ctx context.Context, in CreateAdminEventsInput) (*models.EndpointsAdminListUnifiedEventsOutput, error) {
+	path := "/admin/events"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AfterID *string `json:"afterId,omitempty"`
+		AfterTimeUnix *int `json:"afterTimeUnix,omitempty"`
+		AutofixID *string `json:"autofixId,omitempty"`
+		BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		EventTypes []string `json:"eventTypes,omitempty"`
+		FindingIds []string `json:"findingIds,omitempty"`
+		Limit *int `json:"limit,omitempty"`
+		PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+		RunID *string `json:"runId,omitempty"`
+		Services []string `json:"services,omitempty"`
+	}{
+		AfterID: in.AfterID,
+		AfterTimeUnix: in.AfterTimeUnix,
+		AutofixID: in.AutofixID,
+		BeforeTimeUnix: in.BeforeTimeUnix,
+		CampaignID: in.CampaignID,
+		EventTypes: in.EventTypes,
+		FindingIds: in.FindingIds,
+		Limit: in.Limit,
+		PrCanonicalID: in.PrCanonicalID,
+		RunID: in.RunID,
+		Services: in.Services,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminListUnifiedEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminFindingFindingIdInput is the input for GetAdminFindingFindingId — Get Finding.
+type GetAdminFindingFindingIdInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	models.RequestScope
+}
+
+// GetAdminFindingFindingId - Get Finding
+// GET /admin/finding/{findingId}
+func (c *Client) GetAdminFindingFindingId(ctx context.Context, in GetAdminFindingFindingIdInput) (*models.EndpointsAdminGetFindingOutput, error) {
+	path := "/admin/finding/{findingId}"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminFindingsInput is the input for CreateAdminFindings — Query Findings.
+type CreateAdminFindingsInput struct {
+	Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
+}
+
+// CreateAdminFindings - Query Findings
+// POST /admin/findings
+func (c *Client) CreateAdminFindings(ctx context.Context, in CreateAdminFindingsInput) (*models.EndpointsAdminQueryFindingsOutput, error) {
+	path := "/admin/findings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminFindingsDownloadInput is the input for CreateAdminFindingsDownload — Download Findings.
+type CreateAdminFindingsDownloadInput struct {
+	Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
+}
+
+// CreateAdminFindingsDownload - Download Findings
+// POST /admin/findings/download
+func (c *Client) CreateAdminFindingsDownload(ctx context.Context, in CreateAdminFindingsDownloadInput) (*models.EndpointsAdminFindingsDownloadOutput, error) {
+	path := "/admin/findings/download"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminFindingsDownloadOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminFixEffortInput is the input for ListAdminFixEffort — Get Fix Effort Mapping.
+type ListAdminFixEffortInput struct {
+	models.RequestScope
 }
 
 // ListAdminFixEffort - Get Fix Effort Mapping
 // GET /admin/fix-effort
-func (c *Client) ListAdminFixEffort(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminFixEffort(ctx context.Context, in ListAdminFixEffortInput) (*models.EndpointsAdminGetFixEffortOutput, error) {
 	path := "/admin/fix-effort"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetFixEffortOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminFixEffortInput is the input for UpdateAdminFixEffort — Put Fix Effort Mapping.
+type UpdateAdminFixEffortInput struct {
+	FixEffort models.EndpointsAdminFixEffortMapInput `json:"fixEffort"`
+	models.RequestScope
+}
+
+// UpdateAdminFixEffort - Put Fix Effort Mapping
+// PUT /admin/fix-effort
+func (c *Client) UpdateAdminFixEffort(ctx context.Context, in UpdateAdminFixEffortInput) (*models.EndpointsAdminPutFixEffortOutput, error) {
+	path := "/admin/fix-effort"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FixEffort models.EndpointsAdminFixEffortMapInput `json:"fixEffort"`
+	}{
+		FixEffort: in.FixEffort,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPutFixEffortOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminGetFileContentsInput is the input for ListAdminGetFileContents — Get File Contents.
+type ListAdminGetFileContentsInput struct {
+	EndLine *int `url:"endLine,omitempty" json:"-"`
+	FilePath *string `url:"filePath,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	Reference *string `url:"reference,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	StartLine *int `url:"startLine,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminGetFileContents - Get File Contents
 // GET /admin/getFileContents
-func (c *Client) ListAdminGetFileContents(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminGetFileContents(ctx context.Context, in ListAdminGetFileContentsInput) (*models.EndpointsAdminFileContentsOutput, error) {
 	path := "/admin/getFileContents"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Reference != nil {
+		query.Set("reference", string(*in.Reference))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.FilePath != nil {
+		query.Set("filePath", string(*in.FilePath))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
 	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
+	if in.StartLine != nil {
+		query.Set("startLine", strconv.Itoa(int(*in.StartLine)))
 	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
+	if in.EndLine != nil {
+		query.Set("endLine", strconv.Itoa(int(*in.EndLine)))
 	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
-	}
-	if v := params.Get("reference"); v != "" {
-		query.Set("reference", v)
-	}
-	if v := params.Get("filePath"); v != "" {
-		query.Set("filePath", v)
-	}
-	if v := params.Get("projectId"); v != "" {
-		query.Set("projectId", v)
-	}
-	if v := params.Get("startLine"); v != "" {
-		query.Set("startLine", v)
-	}
-	if v := params.Get("endLine"); v != "" {
-		query.Set("endLine", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminFileContentsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminGetFileOwnersInput is the input for CreateAdminGetFileOwners — Get File Owners.
+type CreateAdminGetFileOwnersInput struct {
+	Files []models.EndpointsFileOwnersRequest `json:"files,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminGetFileOwners - Get File Owners
 // POST /admin/getFileOwners
-func (c *Client) CreateAdminGetFileOwners(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminGetFileOwners(ctx context.Context, in CreateAdminGetFileOwnersInput) (*models.EndpointsAdminFileOwnersOutput, error) {
 	path := "/admin/getFileOwners"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Files []models.EndpointsFileOwnersRequest `json:"files,omitempty"`
+	}{
+		Files: in.Files,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminFileOwnersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminGetPullRequestInput is the input for ListAdminGetPullRequest — Get PR State.
+type ListAdminGetPullRequestInput struct {
+	PrID *string `url:"prId,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminGetPullRequest - Get PR State
 // GET /admin/getPullRequest
-func (c *Client) ListAdminGetPullRequest(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminGetPullRequest(ctx context.Context, in ListAdminGetPullRequestInput) (*models.EndpointsGetPullRequestStateOutput, error) {
 	path := "/admin/getPullRequest"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("repositoryId"); v != "" {
-		query.Set("repositoryId", v)
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
-	if v := params.Get("prId"); v != "" {
-		query.Set("prId", v)
+	if in.PrID != nil {
+		query.Set("prId", string(*in.PrID))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPullRequestStateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminInstallationsInput is the input for ListAdminInstallations — Get App Installations.
+type ListAdminInstallationsInput struct {
+	models.RequestScope
 }
 
 // ListAdminInstallations - Get App Installations
 // GET /admin/installations
-func (c *Client) ListAdminInstallations(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminInstallations(ctx context.Context, in ListAdminInstallationsInput) (*models.EndpointsAdminGetUserInstallationsOutput, error) {
 	path := "/admin/installations"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetUserInstallationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsAzureInput is the input for ListAdminIntegrationsAzure — Get Azure Configuration.
+type ListAdminIntegrationsAzureInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsAzure - Get Azure Configuration
 // GET /admin/integrations/azure
-func (c *Client) ListAdminIntegrationsAzure(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsAzure(ctx context.Context, in ListAdminIntegrationsAzureInput) (*models.EndpointsAdminGetAzureConfigOutput, error) {
 	path := "/admin/integrations/azure"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetAzureConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureInput is the input for CreateAdminIntegrationsAzure — Install Azure DevOps Integration.
+type CreateAdminIntegrationsAzureInput struct {
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsAzure - Install Azure DevOps Integration
 // POST /admin/integrations/azure
-func (c *Client) CreateAdminIntegrationsAzure(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsAzure(ctx context.Context, in CreateAdminIntegrationsAzureInput) (*models.EndpointsAdminPostAzureInstallOutput, error) {
 	path := "/admin/integrations/azure"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, nil)
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostAzureInstallOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureCredentialsInput is the input for CreateAdminIntegrationsAzureCredentials — Set Azure Credentials.
+type CreateAdminIntegrationsAzureCredentialsInput struct {
+	ClientID string `json:"clientId"`
+	ClientSecret *string `json:"clientSecret,omitempty"`
+	TenantID string `json:"tenantId"`
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsAzureCredentials - Set Azure Credentials
 // POST /admin/integrations/azure/credentials
-func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, in CreateAdminIntegrationsAzureCredentialsInput) (*models.EndpointsAdminPostAzureCredentialsOutput, error) {
 	path := "/admin/integrations/azure/credentials"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		ClientID string `json:"clientId"`
+		ClientSecret *string `json:"clientSecret,omitempty"`
+		TenantID string `json:"tenantId"`
+	}{
+		ClientID: in.ClientID,
+		ClientSecret: in.ClientSecret,
+		TenantID: in.TenantID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostAzureCredentialsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateAdminIntegrationsCloudAwsSettings - Upsert Cloud AWS Settings
-// POST /admin/integrations/cloud/aws/settings
-func (c *Client) CreateAdminIntegrationsCloudAwsSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/integrations/cloud/aws/settings"
+// DeleteAdminIntegrationsBuildkiteInput is the input for DeleteAdminIntegrationsBuildkite — Delete Buildkite Integration.
+type DeleteAdminIntegrationsBuildkiteInput struct {
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsBuildkite - Delete Buildkite Integration
+// DELETE /admin/integrations/buildkite
+func (c *Client) DeleteAdminIntegrationsBuildkite(ctx context.Context, in DeleteAdminIntegrationsBuildkiteInput) (*models.EndpointsDeleteBuildkiteIntegrationOutput, error) {
+	path := "/admin/integrations/buildkite"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteBuildkiteIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// ListAdminIntegrationsCloudAwsSettings - Get Cloud AWS Settings
-// GET /admin/integrations/cloud/aws/settings
-func (c *Client) ListAdminIntegrationsCloudAwsSettings(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/admin/integrations/cloud/aws/settings"
+// ListAdminIntegrationsBuildkiteInput is the input for ListAdminIntegrationsBuildkite — Get Buildkite Integration Status.
+type ListAdminIntegrationsBuildkiteInput struct {
+	models.RequestScope
+}
+
+// ListAdminIntegrationsBuildkite - Get Buildkite Integration Status
+// GET /admin/integrations/buildkite
+func (c *Client) ListAdminIntegrationsBuildkite(ctx context.Context, in ListAdminIntegrationsBuildkiteInput) (*models.EndpointsGetBuildkiteIntegrationOutput, error) {
+	path := "/admin/integrations/buildkite"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBuildkiteIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsBuildkiteTokenInput is the input for CreateAdminIntegrationsBuildkiteToken — Set Buildkite API Token.
+type CreateAdminIntegrationsBuildkiteTokenInput struct {
+	ApiToken string `json:"apiToken"`
+	OrgSlug string `json:"orgSlug"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsBuildkiteToken - Set Buildkite API Token
+// POST /admin/integrations/buildkite/token
+func (c *Client) CreateAdminIntegrationsBuildkiteToken(ctx context.Context, in CreateAdminIntegrationsBuildkiteTokenInput) (*models.EndpointsPostBuildkiteTokenOutput, error) {
+	path := "/admin/integrations/buildkite/token"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ApiToken string `json:"apiToken"`
+		OrgSlug string `json:"orgSlug"`
+	}{
+		ApiToken: in.ApiToken,
+		OrgSlug: in.OrgSlug,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBuildkiteTokenOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsCircleciInput is the input for DeleteAdminIntegrationsCircleci — Delete CircleCI Integration.
+type DeleteAdminIntegrationsCircleciInput struct {
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsCircleci - Delete CircleCI Integration
+// DELETE /admin/integrations/circleci
+func (c *Client) DeleteAdminIntegrationsCircleci(ctx context.Context, in DeleteAdminIntegrationsCircleciInput) (*models.EndpointsDeleteCircleCIIntegrationOutput, error) {
+	path := "/admin/integrations/circleci"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteCircleCIIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsCircleciInput is the input for ListAdminIntegrationsCircleci — Get CircleCI Integration Status.
+type ListAdminIntegrationsCircleciInput struct {
+	models.RequestScope
+}
+
+// ListAdminIntegrationsCircleci - Get CircleCI Integration Status
+// GET /admin/integrations/circleci
+func (c *Client) ListAdminIntegrationsCircleci(ctx context.Context, in ListAdminIntegrationsCircleciInput) (*models.EndpointsGetCircleCIIntegrationOutput, error) {
+	path := "/admin/integrations/circleci"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCircleCIIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCircleciTokenInput is the input for CreateAdminIntegrationsCircleciToken — Set CircleCI API Token.
+type CreateAdminIntegrationsCircleciTokenInput struct {
+	ApiToken string `json:"apiToken"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsCircleciToken - Set CircleCI API Token
+// POST /admin/integrations/circleci/token
+func (c *Client) CreateAdminIntegrationsCircleciToken(ctx context.Context, in CreateAdminIntegrationsCircleciTokenInput) (*models.EndpointsPostCircleCITokenOutput, error) {
+	path := "/admin/integrations/circleci/token"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ApiToken string `json:"apiToken"`
+	}{
+		ApiToken: in.ApiToken,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCircleCITokenOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsCloudAwsSettingsInput is the input for DeleteAdminIntegrationsCloudAwsSettings — Delete Cloud AWS Settings.
+type DeleteAdminIntegrationsCloudAwsSettingsInput struct {
+	models.RequestScope
 }
 
 // DeleteAdminIntegrationsCloudAwsSettings - Delete Cloud AWS Settings
 // DELETE /admin/integrations/cloud/aws/settings
-func (c *Client) DeleteAdminIntegrationsCloudAwsSettings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteAdminIntegrationsCloudAwsSettings(ctx context.Context, in DeleteAdminIntegrationsCloudAwsSettingsInput) (*models.EndpointsAdminDeleteAWSSettingsOutput, error) {
 	path := "/admin/integrations/cloud/aws/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeleteAWSSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsCloudAwsSettingsInput is the input for ListAdminIntegrationsCloudAwsSettings — Get Cloud AWS Settings.
+type ListAdminIntegrationsCloudAwsSettingsInput struct {
+	models.RequestScope
+}
+
+// ListAdminIntegrationsCloudAwsSettings - Get Cloud AWS Settings
+// GET /admin/integrations/cloud/aws/settings
+func (c *Client) ListAdminIntegrationsCloudAwsSettings(ctx context.Context, in ListAdminIntegrationsCloudAwsSettingsInput) (*models.EndpointsAdminGetAWSSettingsOutput, error) {
+	path := "/admin/integrations/cloud/aws/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetAWSSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudAwsSettingsInput is the input for CreateAdminIntegrationsCloudAwsSettings — Upsert Cloud AWS Settings.
+type CreateAdminIntegrationsCloudAwsSettingsInput struct {
+	AwsAccounts []models.ModelsAWSAccount `json:"awsAccounts,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	IamRoleName string `json:"iamRoleName"`
+	PreferredDeployment string `json:"preferredDeployment"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsCloudAwsSettings - Upsert Cloud AWS Settings
+// POST /admin/integrations/cloud/aws/settings
+func (c *Client) CreateAdminIntegrationsCloudAwsSettings(ctx context.Context, in CreateAdminIntegrationsCloudAwsSettingsInput) (*models.EndpointsAdminUpsertAWSSettingsOutput, error) {
+	path := "/admin/integrations/cloud/aws/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AwsAccounts []models.ModelsAWSAccount `json:"awsAccounts,omitempty"`
+		ExternalID *string `json:"externalId,omitempty"`
+		IamRoleName string `json:"iamRoleName"`
+		PreferredDeployment string `json:"preferredDeployment"`
+	}{
+		AwsAccounts: in.AwsAccounts,
+		ExternalID: in.ExternalID,
+		IamRoleName: in.IamRoleName,
+		PreferredDeployment: in.PreferredDeployment,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUpsertAWSSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudAwsValidateRoleInput is the input for CreateAdminIntegrationsCloudAwsValidateRole — Validate AWS Role.
+type CreateAdminIntegrationsCloudAwsValidateRoleInput struct {
+	AccountIds []string `json:"accountIds,omitempty"`
+	Onboarding *bool `json:"onboarding,omitempty"`
+	RoleNameToAssume *string `json:"roleNameToAssume,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsCloudAwsValidateRole - Validate AWS Role
 // POST /admin/integrations/cloud/aws/validate-role
-func (c *Client) CreateAdminIntegrationsCloudAwsValidateRole(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsCloudAwsValidateRole(ctx context.Context, in CreateAdminIntegrationsCloudAwsValidateRoleInput) (*models.EndpointsAdminValidateAWSRoleOutput, error) {
 	path := "/admin/integrations/cloud/aws/validate-role"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AccountIds []string `json:"accountIds,omitempty"`
+		Onboarding *bool `json:"onboarding,omitempty"`
+		RoleNameToAssume *string `json:"roleNameToAssume,omitempty"`
+	}{
+		AccountIds: in.AccountIds,
+		Onboarding: in.Onboarding,
+		RoleNameToAssume: in.RoleNameToAssume,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminValidateAWSRoleOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsCloudAzureSettingsInput is the input for DeleteAdminIntegrationsCloudAzureSettings — Delete Cloud Azure Settings.
+type DeleteAdminIntegrationsCloudAzureSettingsInput struct {
+	models.RequestScope
 }
 
 // DeleteAdminIntegrationsCloudAzureSettings - Delete Cloud Azure Settings
 // DELETE /admin/integrations/cloud/azure/settings
-func (c *Client) DeleteAdminIntegrationsCloudAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteAdminIntegrationsCloudAzureSettings(ctx context.Context, in DeleteAdminIntegrationsCloudAzureSettingsInput) (*models.EndpointsAdminDeleteAzureSettingsOutput, error) {
 	path := "/admin/integrations/cloud/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeleteAzureSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsCloudAzureSettingsInput is the input for ListAdminIntegrationsCloudAzureSettings — Get Cloud Azure Settings.
+type ListAdminIntegrationsCloudAzureSettingsInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsCloudAzureSettings - Get Cloud Azure Settings
 // GET /admin/integrations/cloud/azure/settings
-func (c *Client) ListAdminIntegrationsCloudAzureSettings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsCloudAzureSettings(ctx context.Context, in ListAdminIntegrationsCloudAzureSettingsInput) (*models.EndpointsAdminGetAzureSettingsOutput, error) {
 	path := "/admin/integrations/cloud/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetAzureSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudAzureSettingsInput is the input for CreateAdminIntegrationsCloudAzureSettings — Upsert Cloud Azure Settings.
+type CreateAdminIntegrationsCloudAzureSettingsInput struct {
+	ClientID *string `json:"clientId,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+	Subscriptions []models.ModelsAzureSubscriptionInput `json:"subscriptions,omitempty"`
+	TenantID string `json:"tenantId"`
+	UseManagedIdentity *bool `json:"useManagedIdentity,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsCloudAzureSettings - Upsert Cloud Azure Settings
 // POST /admin/integrations/cloud/azure/settings
-func (c *Client) CreateAdminIntegrationsCloudAzureSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsCloudAzureSettings(ctx context.Context, in CreateAdminIntegrationsCloudAzureSettingsInput) (*models.EndpointsAdminUpsertAzureSettingsOutput, error) {
 	path := "/admin/integrations/cloud/azure/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		ClientID *string `json:"clientId,omitempty"`
+		ClientSecret *string `json:"clientSecret,omitempty"`
+		DisplayName *string `json:"displayName,omitempty"`
+		Subscriptions []models.ModelsAzureSubscriptionInput `json:"subscriptions,omitempty"`
+		TenantID string `json:"tenantId"`
+		UseManagedIdentity *bool `json:"useManagedIdentity,omitempty"`
+	}{
+		ClientID: in.ClientID,
+		ClientSecret: in.ClientSecret,
+		DisplayName: in.DisplayName,
+		Subscriptions: in.Subscriptions,
+		TenantID: in.TenantID,
+		UseManagedIdentity: in.UseManagedIdentity,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUpsertAzureSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsCloudGcpSettingsInput is the input for DeleteAdminIntegrationsCloudGcpSettings — Delete Cloud GCP Settings.
+type DeleteAdminIntegrationsCloudGcpSettingsInput struct {
+	models.RequestScope
 }
 
 // DeleteAdminIntegrationsCloudGcpSettings - Delete Cloud GCP Settings
 // DELETE /admin/integrations/cloud/gcp/settings
-func (c *Client) DeleteAdminIntegrationsCloudGcpSettings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteAdminIntegrationsCloudGcpSettings(ctx context.Context, in DeleteAdminIntegrationsCloudGcpSettingsInput) (*models.EndpointsAdminDeleteGCPSettingsOutput, error) {
 	path := "/admin/integrations/cloud/gcp/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeleteGCPSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsCloudGcpSettingsInput is the input for ListAdminIntegrationsCloudGcpSettings — Get Cloud GCP Settings.
+type ListAdminIntegrationsCloudGcpSettingsInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsCloudGcpSettings - Get Cloud GCP Settings
 // GET /admin/integrations/cloud/gcp/settings
-func (c *Client) ListAdminIntegrationsCloudGcpSettings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsCloudGcpSettings(ctx context.Context, in ListAdminIntegrationsCloudGcpSettingsInput) (*models.EndpointsAdminGetGCPSettingsOutput, error) {
 	path := "/admin/integrations/cloud/gcp/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetGCPSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudGcpSettingsInput is the input for CreateAdminIntegrationsCloudGcpSettings — Upsert Cloud GCP Settings.
+type CreateAdminIntegrationsCloudGcpSettingsInput struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	GkeClusterOidcIssuerUrls []string `json:"gkeClusterOidcIssuerUrls,omitempty"`
+	GkeServiceAccountUniqueID *string `json:"gkeServiceAccountUniqueId,omitempty"`
+	Projects []models.ModelsGCPProjectInput `json:"projects,omitempty"`
+	WorkloadIdentityProvider string `json:"workloadIdentityProvider"`
+	WorkloadIdentityServiceAccountEmail string `json:"workloadIdentityServiceAccountEmail"`
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsCloudGcpSettings - Upsert Cloud GCP Settings
 // POST /admin/integrations/cloud/gcp/settings
-func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, in CreateAdminIntegrationsCloudGcpSettingsInput) (*models.EndpointsAdminUpsertGCPSettingsOutput, error) {
 	path := "/admin/integrations/cloud/gcp/settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		DisplayName *string `json:"displayName,omitempty"`
+		GkeClusterOidcIssuerUrls []string `json:"gkeClusterOidcIssuerUrls,omitempty"`
+		GkeServiceAccountUniqueID *string `json:"gkeServiceAccountUniqueId,omitempty"`
+		Projects []models.ModelsGCPProjectInput `json:"projects,omitempty"`
+		WorkloadIdentityProvider string `json:"workloadIdentityProvider"`
+		WorkloadIdentityServiceAccountEmail string `json:"workloadIdentityServiceAccountEmail"`
+	}{
+		DisplayName: in.DisplayName,
+		GkeClusterOidcIssuerUrls: in.GkeClusterOidcIssuerUrls,
+		GkeServiceAccountUniqueID: in.GkeServiceAccountUniqueID,
+		Projects: in.Projects,
+		WorkloadIdentityProvider: in.WorkloadIdentityProvider,
+		WorkloadIdentityServiceAccountEmail: in.WorkloadIdentityServiceAccountEmail,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUpsertGCPSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudGcpValidateInput is the input for CreateAdminIntegrationsCloudGcpValidate — Validate GCP Credentials.
+type CreateAdminIntegrationsCloudGcpValidateInput struct {
+	ProjectIds []string `json:"projectIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsCloudGcpValidate - Validate GCP Credentials
 // POST /admin/integrations/cloud/gcp/validate
-func (c *Client) CreateAdminIntegrationsCloudGcpValidate(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsCloudGcpValidate(ctx context.Context, in CreateAdminIntegrationsCloudGcpValidateInput) (*models.EndpointsAdminValidateGCPOutput, error) {
 	path := "/admin/integrations/cloud/gcp/validate"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		ProjectIds []string `json:"projectIds,omitempty"`
+	}{
+		ProjectIds: in.ProjectIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminValidateGCPOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudK8sWhitelistInput is the input for CreateAdminIntegrationsCloudK8sWhitelist — Whitelist K8s Connector Accounts.
+type CreateAdminIntegrationsCloudK8sWhitelistInput struct {
+	AccountIds []string `json:"accountIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsCloudK8sWhitelist - Whitelist K8s Connector Accounts
 // POST /admin/integrations/cloud/k8s/whitelist
-func (c *Client) CreateAdminIntegrationsCloudK8sWhitelist(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsCloudK8sWhitelist(ctx context.Context, in CreateAdminIntegrationsCloudK8sWhitelistInput) (*models.EndpointsAdminK8SConnectorWhitelistOutput, error) {
 	path := "/admin/integrations/cloud/k8s/whitelist"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AccountIds []string `json:"accountIds,omitempty"`
+	}{
+		AccountIds: in.AccountIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminK8SConnectorWhitelistOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsGithubAppSettingsInput is the input for ListAdminIntegrationsGithubAppSettings — Get GitHub App Settings.
+type ListAdminIntegrationsGithubAppSettingsInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsGithubAppSettings - Get GitHub App Settings
 // GET /admin/integrations/github/app-settings
-func (c *Client) ListAdminIntegrationsGithubAppSettings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsGithubAppSettings(ctx context.Context, in ListAdminIntegrationsGithubAppSettingsInput) (*models.EndpointsAdminGetGitHubAppSettingsOutput, error) {
 	path := "/admin/integrations/github/app-settings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetGitHubAppSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateAdminIntegrationsJira - Update Jira Configuration
-// POST /admin/integrations/jira
-func (c *Client) CreateAdminIntegrationsJira(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/integrations/jira"
+// DeleteAdminIntegrationsJenkinsInput is the input for DeleteAdminIntegrationsJenkins — Delete Jenkins Integration.
+type DeleteAdminIntegrationsJenkinsInput struct {
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsJenkins - Delete Jenkins Integration
+// DELETE /admin/integrations/jenkins
+func (c *Client) DeleteAdminIntegrationsJenkins(ctx context.Context, in DeleteAdminIntegrationsJenkinsInput) (*models.EndpointsDeleteJenkinsIntegrationOutput, error) {
+	path := "/admin/integrations/jenkins"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteJenkinsIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsJenkinsInput is the input for ListAdminIntegrationsJenkins — Get Jenkins Integration Status.
+type ListAdminIntegrationsJenkinsInput struct {
+	models.RequestScope
+}
+
+// ListAdminIntegrationsJenkins - Get Jenkins Integration Status
+// GET /admin/integrations/jenkins
+func (c *Client) ListAdminIntegrationsJenkins(ctx context.Context, in ListAdminIntegrationsJenkinsInput) (*models.EndpointsGetJenkinsIntegrationOutput, error) {
+	path := "/admin/integrations/jenkins"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetJenkinsIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsJenkinsTokenInput is the input for CreateAdminIntegrationsJenkinsToken — Set Jenkins API Token.
+type CreateAdminIntegrationsJenkinsTokenInput struct {
+	ApiToken string `json:"apiToken"`
+	URL string `json:"url"`
+	Username string `json:"username"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsJenkinsToken - Set Jenkins API Token
+// POST /admin/integrations/jenkins/token
+func (c *Client) CreateAdminIntegrationsJenkinsToken(ctx context.Context, in CreateAdminIntegrationsJenkinsTokenInput) (*models.EndpointsPostJenkinsTokenOutput, error) {
+	path := "/admin/integrations/jenkins/token"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ApiToken string `json:"apiToken"`
+		URL string `json:"url"`
+		Username string `json:"username"`
+	}{
+		ApiToken: in.ApiToken,
+		URL: in.URL,
+		Username: in.Username,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostJenkinsTokenOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsJiraInput is the input for ListAdminIntegrationsJira — Get Jira Configuration.
+type ListAdminIntegrationsJiraInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsJira - Get Jira Configuration
 // GET /admin/integrations/jira
-func (c *Client) ListAdminIntegrationsJira(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsJira(ctx context.Context, in ListAdminIntegrationsJiraInput) (*models.EndpointsAdminGetJiraConfigOutput, error) {
 	path := "/admin/integrations/jira"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetJiraConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsJiraInput is the input for CreateAdminIntegrationsJira — Update Jira Configuration.
+type CreateAdminIntegrationsJiraInput struct {
+	AutoCreate bool `json:"autoCreate"`
+	IssueType string `json:"issueType"`
+	ProjectKey string `json:"projectKey"`
+	SeverityThreshold string `json:"severityThreshold"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsJira - Update Jira Configuration
+// POST /admin/integrations/jira
+func (c *Client) CreateAdminIntegrationsJira(ctx context.Context, in CreateAdminIntegrationsJiraInput) (*models.EndpointsUpdateJiraConfigOutput, error) {
+	path := "/admin/integrations/jira"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AutoCreate bool `json:"autoCreate"`
+		IssueType string `json:"issueType"`
+		ProjectKey string `json:"projectKey"`
+		SeverityThreshold string `json:"severityThreshold"`
+	}{
+		AutoCreate: in.AutoCreate,
+		IssueType: in.IssueType,
+		ProjectKey: in.ProjectKey,
+		SeverityThreshold: in.SeverityThreshold,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsUpdateJiraConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsLinearInstallInput is the input for ListAdminIntegrationsLinearInstall — Start Linear OAuth install.
+type ListAdminIntegrationsLinearInstallInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsLinearInstall - Start Linear OAuth install
 // GET /admin/integrations/linear/install
-func (c *Client) ListAdminIntegrationsLinearInstall(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsLinearInstall(ctx context.Context, in ListAdminIntegrationsLinearInstallInput) (*models.EndpointsGetLinearInstallOutput, error) {
 	path := "/admin/integrations/linear/install"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetLinearInstallOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsLinearOauthInput is the input for ListAdminIntegrationsLinearOauth — Get Linear OAuth install status.
+type ListAdminIntegrationsLinearOauthInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsLinearOauth - Get Linear OAuth install status
 // GET /admin/integrations/linear/oauth
-func (c *Client) ListAdminIntegrationsLinearOauth(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsLinearOauth(ctx context.Context, in ListAdminIntegrationsLinearOauthInput) (*models.EndpointsGetLinearOAuthStatusOutput, error) {
 	path := "/admin/integrations/linear/oauth"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetLinearOAuthStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsNotificationsInput is the input for ListAdminIntegrationsNotifications — Get Notification Config.
+type ListAdminIntegrationsNotificationsInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsNotifications - Get Notification Config
 // GET /admin/integrations/notifications
-func (c *Client) ListAdminIntegrationsNotifications(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsNotifications(ctx context.Context, in ListAdminIntegrationsNotificationsInput) (*models.EndpointsGetAdminNotificationConfigOutput, error) {
 	path := "/admin/integrations/notifications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAdminNotificationConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminIntegrationsNotificationsInput is the input for UpdateAdminIntegrationsNotifications — Put Notification Config.
+type UpdateAdminIntegrationsNotificationsInput struct {
+	Notifications []models.ModelsNotification `json:"notifications,omitempty"`
+	models.RequestScope
 }
 
 // UpdateAdminIntegrationsNotifications - Put Notification Config
 // PUT /admin/integrations/notifications
-func (c *Client) UpdateAdminIntegrationsNotifications(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) UpdateAdminIntegrationsNotifications(ctx context.Context, in UpdateAdminIntegrationsNotificationsInput) (*models.EndpointsPutAdminNotificationConfigOutput, error) {
 	path := "/admin/integrations/notifications"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Notifications []models.ModelsNotification `json:"notifications,omitempty"`
+	}{
+		Notifications: in.Notifications,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutAdminNotificationConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsSlackInput is the input for ListAdminIntegrationsSlack — Get Slack Configuration.
+type ListAdminIntegrationsSlackInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsSlack - Get Slack Configuration
 // GET /admin/integrations/slack
-func (c *Client) ListAdminIntegrationsSlack(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsSlack(ctx context.Context, in ListAdminIntegrationsSlackInput) (*models.EndpointsGetSlackConfigOutput, error) {
 	path := "/admin/integrations/slack"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSlackConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsSlackInstallInput is the input for ListAdminIntegrationsSlackInstall — Start Slack distributed install.
+type ListAdminIntegrationsSlackInstallInput struct {
+	models.RequestScope
 }
 
 // ListAdminIntegrationsSlackInstall - Start Slack distributed install
 // GET /admin/integrations/slack/install
-func (c *Client) ListAdminIntegrationsSlackInstall(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsSlackInstall(ctx context.Context, in ListAdminIntegrationsSlackInstallInput) (*models.EndpointsGetSlackDistributedInstallOutput, error) {
 	path := "/admin/integrations/slack/install"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSlackDistributedInstallOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsSlackKeyInput is the input for CreateAdminIntegrationsSlackKey — Set Slack API Key.
+type CreateAdminIntegrationsSlackKeyInput struct {
+	ApiKey string `json:"apiKey"`
+	models.RequestScope
 }
 
 // CreateAdminIntegrationsSlackKey - Set Slack API Key
 // POST /admin/integrations/slack/key
-func (c *Client) CreateAdminIntegrationsSlackKey(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminIntegrationsSlackKey(ctx context.Context, in CreateAdminIntegrationsSlackKeyInput) (*models.EndpointsPostSlackAPIKeyOutput, error) {
 	path := "/admin/integrations/slack/key"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		ApiKey string `json:"apiKey"`
+	}{
+		ApiKey: in.ApiKey,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSlackAPIKeyOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsTeamsInput is the input for ListAdminIntegrationsTeams — Get Integration Teams.
+type ListAdminIntegrationsTeamsInput struct {
+	Provider *string `url:"provider,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminIntegrationsTeams - Get Integration Teams
 // GET /admin/integrations/teams
-func (c *Client) ListAdminIntegrationsTeams(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsTeams(ctx context.Context, in ListAdminIntegrationsTeamsInput) (*models.EndpointsAdminGetIntegrationTeamsOutput, error) {
 	path := "/admin/integrations/teams"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("provider"); v != "" {
-		query.Set("provider", v)
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetIntegrationTeamsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsUsersInput is the input for ListAdminIntegrationsUsers — Get Integration Users.
+type ListAdminIntegrationsUsersInput struct {
+	Provider *string `url:"provider,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminIntegrationsUsers - Get Integration Users
 // GET /admin/integrations/users
-func (c *Client) ListAdminIntegrationsUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminIntegrationsUsers(ctx context.Context, in ListAdminIntegrationsUsersInput) (*models.EndpointsAdminGetIntegrationUsersOutput, error) {
 	path := "/admin/integrations/users"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("provider"); v != "" {
-		query.Set("provider", v)
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetIntegrationUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// GetAdminMetricsFindingFindingId - Get Finding
-// GET /admin/metrics/finding/{findingId}
-func (c *Client) GetAdminMetricsFindingFindingId(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/admin/metrics/finding/{findingId}"
-	path = strings.Replace(path, "{findingId}", params.Get("findingId"), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "GET", fullURL, nil)
+// CreateAdminMetricsFindingsInput is the input for CreateAdminMetricsFindings — Post Findings Metrics.
+type CreateAdminMetricsFindingsInput struct {
+	Query models.ModelsLimitedUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
 }
 
-// CreateAdminMetricsFindings - Query Findings
+// CreateAdminMetricsFindings - Post Findings Metrics
 // POST /admin/metrics/findings
-func (c *Client) CreateAdminMetricsFindings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminMetricsFindings(ctx context.Context, in CreateAdminMetricsFindingsInput) (*models.EndpointsAdminQueryFindingsMetricsOutput, error) {
 	path := "/admin/metrics/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsLimitedUnifiedFindingsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryFindingsMetricsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateAdminMetricsFindingsAnalysis - Post Findings Metrics
-// POST /admin/metrics/findings/analysis
-func (c *Client) CreateAdminMetricsFindingsAnalysis(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/metrics/findings/analysis"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
-}
-
-// CreateAdminMetricsFindingsDownload - Download Findings
-// POST /admin/metrics/findings/download
-func (c *Client) CreateAdminMetricsFindingsDownload(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/metrics/findings/download"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
+// ListAdminMetricsInteractionsInput is the input for ListAdminMetricsInteractions — Get Interactions.
+type ListAdminMetricsInteractionsInput struct {
+	models.RequestScope
 }
 
 // ListAdminMetricsInteractions - Get Interactions
 // GET /admin/metrics/interactions
-func (c *Client) ListAdminMetricsInteractions(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminMetricsInteractions(ctx context.Context, in ListAdminMetricsInteractionsInput) (*models.EndpointsAdminBotInteractionsOutput, error) {
 	path := "/admin/metrics/interactions"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminBotInteractionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminMetricsOverTimeInput is the input for CreateAdminMetricsOverTime — Get Metrics Over Time.
+type CreateAdminMetricsOverTimeInput struct {
+	Resolution *string `url:"resolution,omitempty" json:"-"`
+	Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
 }
 
 // CreateAdminMetricsOverTime - Get Metrics Over Time
 // POST /admin/metrics/over-time
-func (c *Client) CreateAdminMetricsOverTime(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminMetricsOverTime(ctx context.Context, in CreateAdminMetricsOverTimeInput) (*models.EndpointsQueryMetricsOverTimeOutput, error) {
 	path := "/admin/metrics/over-time"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("resolution"); v != "" {
-		query.Set("resolution", v)
+	if in.Resolution != nil {
+		query.Set("resolution", string(*in.Resolution))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsQueryMetricsOverTimeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminMetricsOverviewInput is the input for CreateAdminMetricsOverview — Query Overview.
+type CreateAdminMetricsOverviewInput struct {
+	Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
 }
 
 // CreateAdminMetricsOverview - Query Overview
 // POST /admin/metrics/overview
-func (c *Client) CreateAdminMetricsOverview(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminMetricsOverview(ctx context.Context, in CreateAdminMetricsOverviewInput) (*models.EndpointsQueryOverviewOutput, error) {
 	path := "/admin/metrics/overview"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsQueryOverviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminMetricsRawInput is the input for CreateAdminMetricsRaw — Query Raw Metrics.
+type CreateAdminMetricsRawInput struct {
+	Query models.ModelsUnifiedFindingsMetricsQuery `json:"query"`
+	models.RequestScope
 }
 
 // CreateAdminMetricsRaw - Query Raw Metrics
 // POST /admin/metrics/raw
-func (c *Client) CreateAdminMetricsRaw(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminMetricsRaw(ctx context.Context, in CreateAdminMetricsRawInput) (*models.EndpointsQueryMetricsRawOutput, error) {
 	path := "/admin/metrics/raw"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsUnifiedFindingsMetricsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsQueryMetricsRawOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminMetricsUsageAggregateInput is the input for ListAdminMetricsUsageAggregate — Usage Aggregate.
+type ListAdminMetricsUsageAggregateInput struct {
+	Agent *string `url:"agent,omitempty" json:"-"`
+	BranchType *string `url:"branchType,omitempty" json:"-"`
+	Class *string `url:"class,omitempty" json:"-"`
+	From *string `url:"from,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
+	Window *string `url:"window,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminMetricsUsageAggregate - Usage Aggregate
+// GET /admin/metrics/usage/aggregate
+func (c *Client) ListAdminMetricsUsageAggregate(ctx context.Context, in ListAdminMetricsUsageAggregateInput) (*models.EndpointsAdminUsageMetricsAggregateOutput, error) {
+	path := "/admin/metrics/usage/aggregate"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Window != nil {
+		query.Set("window", string(*in.Window))
+	}
+	if in.Class != nil {
+		query.Set("class", string(*in.Class))
+	}
+	if in.Agent != nil {
+		query.Set("agent", string(*in.Agent))
+	}
+	if in.BranchType != nil {
+		query.Set("branchType", string(*in.BranchType))
+	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUsageMetricsAggregateOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminMetricsUsageLedgerInput is the input for ListAdminMetricsUsageLedger — Usage Ledger.
+type ListAdminMetricsUsageLedgerInput struct {
+	Agent *string `url:"agent,omitempty" json:"-"`
+	BranchType *string `url:"branchType,omitempty" json:"-"`
+	Class *string `url:"class,omitempty" json:"-"`
+	Cursor *string `url:"cursor,omitempty" json:"-"`
+	FindingID []string `url:"findingId,omitempty" json:"-"`
+	From *string `url:"from,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	RunID *string `url:"runId,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminMetricsUsageLedger - Usage Ledger
+// GET /admin/metrics/usage/ledger
+func (c *Client) ListAdminMetricsUsageLedger(ctx context.Context, in ListAdminMetricsUsageLedgerInput) (*models.EndpointsAdminUsageLedgerResponse, error) {
+	path := "/admin/metrics/usage/ledger"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Class != nil {
+		query.Set("class", string(*in.Class))
+	}
+	if in.Agent != nil {
+		query.Set("agent", string(*in.Agent))
+	}
+	if in.BranchType != nil {
+		query.Set("branchType", string(*in.BranchType))
+	}
+	if in.RunID != nil {
+		query.Set("runId", string(*in.RunID))
+	}
+	for _, v := range in.FindingID {
+		query.Add("findingId", string(v))
+	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUsageLedgerResponse
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminMetricsUsageTimeseriesInput is the input for ListAdminMetricsUsageTimeseries — Usage Timeseries.
+type ListAdminMetricsUsageTimeseriesInput struct {
+	Agent *string `url:"agent,omitempty" json:"-"`
+	Class *string `url:"class,omitempty" json:"-"`
+	From *string `url:"from,omitempty" json:"-"`
+	Granularity *string `url:"granularity,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminMetricsUsageTimeseries - Usage Timeseries
+// GET /admin/metrics/usage/timeseries
+func (c *Client) ListAdminMetricsUsageTimeseries(ctx context.Context, in ListAdminMetricsUsageTimeseriesInput) (*models.EndpointsAdminUsageMetricsTimeseriesOutput, error) {
+	path := "/admin/metrics/usage/timeseries"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Granularity != nil {
+		query.Set("granularity", string(*in.Granularity))
+	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	if in.Class != nil {
+		query.Set("class", string(*in.Class))
+	}
+	if in.Agent != nil {
+		query.Set("agent", string(*in.Agent))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUsageMetricsTimeseriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminOrganizationInput is the input for ListAdminOrganization — Get Organization.
+type ListAdminOrganizationInput struct {
+	models.RequestScope
 }
 
 // ListAdminOrganization - Get Organization
 // GET /admin/organization
-func (c *Client) ListAdminOrganization(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminOrganization(ctx context.Context, in ListAdminOrganizationInput) (*models.EndpointsAdminGetOrganizationOutput, error) {
 	path := "/admin/organization"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetOrganizationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminPrivacyAcknowledgmentInput is the input for ListAdminPrivacyAcknowledgment — Get Privacy Acknowledgment.
+type ListAdminPrivacyAcknowledgmentInput struct {
+	PolicyVersion *string `url:"policyVersion,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminPrivacyAcknowledgment - Get Privacy Acknowledgment
 // GET /admin/privacy/acknowledgment
-func (c *Client) ListAdminPrivacyAcknowledgment(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminPrivacyAcknowledgment(ctx context.Context, in ListAdminPrivacyAcknowledgmentInput) (*models.EndpointsGetPrivacyAcknowledgmentOutput, error) {
 	path := "/admin/privacy/acknowledgment"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("policyVersion"); v != "" {
-		query.Set("policyVersion", v)
+	if in.PolicyVersion != nil {
+		query.Set("policyVersion", string(*in.PolicyVersion))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPrivacyAcknowledgmentOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminPrivacyAcknowledgmentInput is the input for CreateAdminPrivacyAcknowledgment — Post Privacy Acknowledgment.
+type CreateAdminPrivacyAcknowledgmentInput struct {
+	PolicyVersion string `json:"policyVersion"`
+	models.RequestScope
 }
 
 // CreateAdminPrivacyAcknowledgment - Post Privacy Acknowledgment
 // POST /admin/privacy/acknowledgment
-func (c *Client) CreateAdminPrivacyAcknowledgment(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminPrivacyAcknowledgment(ctx context.Context, in CreateAdminPrivacyAcknowledgmentInput) (*models.EndpointsPostPrivacyAcknowledgmentOutput, error) {
 	path := "/admin/privacy/acknowledgment"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		PolicyVersion string `json:"policyVersion"`
+	}{
+		PolicyVersion: in.PolicyVersion,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostPrivacyAcknowledgmentOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminRepositoriesInput is the input for ListAdminRepositories — Get Repositories.
+type ListAdminRepositoriesInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	TeamIDs []string `url:"teamIDs,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminRepositories - Get Repositories
 // GET /admin/repositories
-func (c *Client) ListAdminRepositories(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminRepositories(ctx context.Context, in ListAdminRepositoriesInput) (*models.EndpointsAdminGetRepositoriesOutput, error) {
 	path := "/admin/repositories"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("search"); v != "" {
-		query.Set("search", v)
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	for _, v := range in.TeamIDs {
+		query.Add("teamIDs", string(v))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetRepositoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminRepositoriesInitializeInput is the input for CreateAdminRepositoriesInitialize — Initialize Repositories.
+type CreateAdminRepositoriesInitializeInput struct {
+	Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminRepositoriesInitialize - Initialize Repositories
 // POST /admin/repositories/initialize
-func (c *Client) CreateAdminRepositoriesInitialize(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminRepositoriesInitialize(ctx context.Context, in CreateAdminRepositoriesInitializeInput) (*models.EndpointsPostInitializeRepositoriesOutput, error) {
 	path := "/admin/repositories/initialize"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
+	}{
+		Repositories: in.Repositories,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostInitializeRepositoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminRepositoriesUninitializeInput is the input for CreateAdminRepositoriesUninitialize — Uninitialize Repositories.
+type CreateAdminRepositoriesUninitializeInput struct {
+	Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminRepositoriesUninitialize - Uninitialize Repositories
 // POST /admin/repositories/uninitialize
-func (c *Client) CreateAdminRepositoriesUninitialize(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminRepositoriesUninitialize(ctx context.Context, in CreateAdminRepositoriesUninitializeInput) (*models.EndpointsPostUninitializeRepositoriesOutput, error) {
 	path := "/admin/repositories/uninitialize"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
+	}{
+		Repositories: in.Repositories,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUninitializeRepositoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateAdminServiceAccounts - Create Service Account
-// POST /admin/service_accounts
-func (c *Client) CreateAdminServiceAccounts(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/service_accounts"
+// DeleteAdminRepositoryPropertyTeamKeysInput is the input for DeleteAdminRepositoryPropertyTeamKeys — Delete Repository Property Team Key.
+type DeleteAdminRepositoryPropertyTeamKeysInput struct {
+	KeyID *string `url:"keyId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminRepositoryPropertyTeamKeys - Delete Repository Property Team Key
+// DELETE /admin/repository-property-team-keys
+func (c *Client) DeleteAdminRepositoryPropertyTeamKeys(ctx context.Context, in DeleteAdminRepositoryPropertyTeamKeysInput) (*models.EndpointsDeleteRepositoryPropertyTeamKeyOutput, error) {
+	path := "/admin/repository-property-team-keys"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.KeyID != nil {
+		query.Set("keyId", string(*in.KeyID))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteRepositoryPropertyTeamKeyOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// ListAdminServiceAccounts - Get Service Accounts
-// GET /admin/service_accounts
-func (c *Client) ListAdminServiceAccounts(ctx context.Context, params url.Values) ([]byte, error) {
-	path := "/admin/service_accounts"
+// ListAdminRepositoryPropertyTeamKeysInput is the input for ListAdminRepositoryPropertyTeamKeys — List Repository Property Team Keys.
+type ListAdminRepositoryPropertyTeamKeysInput struct {
+	models.RequestScope
+}
+
+// ListAdminRepositoryPropertyTeamKeys - List Repository Property Team Keys
+// GET /admin/repository-property-team-keys
+func (c *Client) ListAdminRepositoryPropertyTeamKeys(ctx context.Context, in ListAdminRepositoryPropertyTeamKeysInput) (*models.EndpointsGetRepositoryPropertyTeamKeysOutput, error) {
+	path := "/admin/repository-property-team-keys"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetRepositoryPropertyTeamKeysOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminRepositoryPropertyTeamKeysInput is the input for CreateAdminRepositoryPropertyTeamKeys — Create Repository Property Team Key.
+type CreateAdminRepositoryPropertyTeamKeysInput struct {
+	PropertyKey string `json:"propertyKey"`
+	ProviderID models.ModelsProviderID `json:"providerId"`
+	models.RequestScope
+}
+
+// CreateAdminRepositoryPropertyTeamKeys - Create Repository Property Team Key
+// POST /admin/repository-property-team-keys
+func (c *Client) CreateAdminRepositoryPropertyTeamKeys(ctx context.Context, in CreateAdminRepositoryPropertyTeamKeysInput) (*models.EndpointsPostRepositoryPropertyTeamKeyOutput, error) {
+	path := "/admin/repository-property-team-keys"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		PropertyKey string `json:"propertyKey"`
+		ProviderID models.ModelsProviderID `json:"providerId"`
+	}{
+		PropertyKey: in.PropertyKey,
+		ProviderID: in.ProviderID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostRepositoryPropertyTeamKeyOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminServiceAccountsInput is the input for DeleteAdminServiceAccounts — Delete Service Account.
+type DeleteAdminServiceAccountsInput struct {
+	ServiceAccountID *string `url:"serviceAccountId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // DeleteAdminServiceAccounts - Delete Service Account
 // DELETE /admin/service_accounts
-func (c *Client) DeleteAdminServiceAccounts(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteAdminServiceAccounts(ctx context.Context, in DeleteAdminServiceAccountsInput) (*models.EndpointsDeleteServiceAccountOutput, error) {
 	path := "/admin/service_accounts"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("serviceAccountId"); v != "" {
-		query.Set("serviceAccountId", v)
+	if in.ServiceAccountID != nil {
+		query.Set("serviceAccountId", string(*in.ServiceAccountID))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteServiceAccountOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminServiceAccountsInput is the input for ListAdminServiceAccounts — Get Service Accounts.
+type ListAdminServiceAccountsInput struct {
+	models.RequestScope
+}
+
+// ListAdminServiceAccounts - Get Service Accounts
+// GET /admin/service_accounts
+func (c *Client) ListAdminServiceAccounts(ctx context.Context, in ListAdminServiceAccountsInput) (*models.EndpointsGetServiceAccountsOutput, error) {
+	path := "/admin/service_accounts"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetServiceAccountsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminServiceAccountsInput is the input for CreateAdminServiceAccounts — Create Service Account.
+type CreateAdminServiceAccountsInput struct {
+	Name string `json:"name"`
+	Platform models.ModelsProviderID `json:"platform"`
+	models.RequestScope
+}
+
+// CreateAdminServiceAccounts - Create Service Account
+// POST /admin/service_accounts
+func (c *Client) CreateAdminServiceAccounts(ctx context.Context, in CreateAdminServiceAccountsInput) (*models.EndpointsPostServiceAccountOutput, error) {
+	path := "/admin/service_accounts"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Name string `json:"name"`
+		Platform models.ModelsProviderID `json:"platform"`
+	}{
+		Name: in.Name,
+		Platform: in.Platform,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostServiceAccountOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminSlaInput is the input for ListAdminSla — Get SLAs.
+type ListAdminSlaInput struct {
+	models.RequestScope
 }
 
 // ListAdminSla - Get SLAs
 // GET /admin/sla
-func (c *Client) ListAdminSla(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminSla(ctx context.Context, in ListAdminSlaInput) (*models.EndpointsGetSLAsOutput, error) {
 	path := "/admin/sla"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSLAsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminSlaInput is the input for CreateAdminSla — Post SLA.
+type CreateAdminSlaInput struct {
+	AllowExtensions bool `json:"allowExtensions"`
+	MaxDaysToFix int `json:"maxDaysToFix"`
+	Priority models.ModelsPriorityLabel `json:"priority"`
+	Severity models.ModelsSeverity `json:"severity"`
+	models.RequestScope
 }
 
 // CreateAdminSla - Post SLA
 // POST /admin/sla
-func (c *Client) CreateAdminSla(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminSla(ctx context.Context, in CreateAdminSlaInput) (*models.EndpointsPostSLAOutput, error) {
 	path := "/admin/sla"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowExtensions bool `json:"allowExtensions"`
+		MaxDaysToFix int `json:"maxDaysToFix"`
+		Priority models.ModelsPriorityLabel `json:"priority"`
+		Severity models.ModelsSeverity `json:"severity"`
+	}{
+		AllowExtensions: in.AllowExtensions,
+		MaxDaysToFix: in.MaxDaysToFix,
+		Priority: in.Priority,
+		Severity: in.Severity,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSLAOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminSlaBulkInput is the input for UpdateAdminSlaBulk — Put Bulk SLA.
+type UpdateAdminSlaBulkInput struct {
+	Slas []models.ModelsSLA `json:"slas,omitempty"`
+	models.RequestScope
 }
 
 // UpdateAdminSlaBulk - Put Bulk SLA
 // PUT /admin/sla/bulk
-func (c *Client) UpdateAdminSlaBulk(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) UpdateAdminSlaBulk(ctx context.Context, in UpdateAdminSlaBulkInput) (*models.EndpointsPutBulkSLAOutput, error) {
 	path := "/admin/sla/bulk"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Slas []models.ModelsSLA `json:"slas,omitempty"`
+	}{
+		Slas: in.Slas,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutBulkSLAOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchAdminSlaSlaIdInput is the input for PatchAdminSlaSlaId — Patch SLA.
+type PatchAdminSlaSlaIdInput struct {
+	SlaID string `path:"slaId" json:"-"`
+	AllowExtensions *bool `json:"allowExtensions,omitempty"`
+	MaxDaysToFix *int `json:"maxDaysToFix,omitempty"`
+	Priority *models.ModelsPriorityLabel `json:"priority,omitempty"`
+	Severity *models.ModelsSeverity `json:"severity,omitempty"`
+	models.RequestScope
 }
 
 // PatchAdminSlaSlaId - Patch SLA
 // PATCH /admin/sla/{slaId}
-func (c *Client) PatchAdminSlaSlaId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchAdminSlaSlaId(ctx context.Context, in PatchAdminSlaSlaIdInput) (*models.EndpointsPatchSLAOutput, error) {
 	path := "/admin/sla/{slaId}"
-	path = strings.Replace(path, "{slaId}", params.Get("slaId"), 1)
+	path = strings.Replace(path, "{slaId}", url.PathEscape(in.SlaID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		AllowExtensions *bool `json:"allowExtensions,omitempty"`
+		MaxDaysToFix *int `json:"maxDaysToFix,omitempty"`
+		Priority *models.ModelsPriorityLabel `json:"priority,omitempty"`
+		Severity *models.ModelsSeverity `json:"severity,omitempty"`
+	}{
+		AllowExtensions: in.AllowExtensions,
+		MaxDaysToFix: in.MaxDaysToFix,
+		Priority: in.Priority,
+		Severity: in.Severity,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSLAOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTeamSourcePreferencesInput is the input for ListAdminTeamSourcePreferences — Get Team Source Preferences.
+type ListAdminTeamSourcePreferencesInput struct {
+	models.RequestScope
+}
+
+// ListAdminTeamSourcePreferences - Get Team Source Preferences
+// GET /admin/team-source-preferences
+func (c *Client) ListAdminTeamSourcePreferences(ctx context.Context, in ListAdminTeamSourcePreferencesInput) (*models.EndpointsGetTeamSourcePreferencesOutput, error) {
+	path := "/admin/team-source-preferences"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTeamSourcePreferencesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminTeamSourcePreferencesInput is the input for UpdateAdminTeamSourcePreferences — Update Team Source Preferences.
+type UpdateAdminTeamSourcePreferencesInput struct {
+	GithubTeamsEnabled bool `json:"githubTeamsEnabled"`
+	RepositoryPropertyEnabled bool `json:"repositoryPropertyEnabled"`
+	models.RequestScope
+}
+
+// UpdateAdminTeamSourcePreferences - Update Team Source Preferences
+// PUT /admin/team-source-preferences
+func (c *Client) UpdateAdminTeamSourcePreferences(ctx context.Context, in UpdateAdminTeamSourcePreferencesInput) (*models.EndpointsPutTeamSourcePreferencesOutput, error) {
+	path := "/admin/team-source-preferences"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		GithubTeamsEnabled bool `json:"githubTeamsEnabled"`
+		RepositoryPropertyEnabled bool `json:"repositoryPropertyEnabled"`
+	}{
+		GithubTeamsEnabled: in.GithubTeamsEnabled,
+		RepositoryPropertyEnabled: in.RepositoryPropertyEnabled,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutTeamSourcePreferencesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTeamSyncRunsInput is the input for ListAdminTeamSyncRuns — List Team Sync Runs.
+type ListAdminTeamSyncRunsInput struct {
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	Source *string `url:"source,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminTeamSyncRuns - List Team Sync Runs
+// GET /admin/team-sync-runs
+func (c *Client) ListAdminTeamSyncRuns(ctx context.Context, in ListAdminTeamSyncRunsInput) (*models.EndpointsGetTeamSyncRunsOutput, error) {
+	path := "/admin/team-sync-runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Source != nil {
+		query.Set("source", string(*in.Source))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTeamSyncRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTeamSyncRunsInput is the input for CreateAdminTeamSyncRuns — Trigger Team Sync.
+type CreateAdminTeamSyncRunsInput struct {
+	Source *string `json:"source,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTeamSyncRuns - Trigger Team Sync
+// POST /admin/team-sync-runs
+func (c *Client) CreateAdminTeamSyncRuns(ctx context.Context, in CreateAdminTeamSyncRunsInput) (*models.EndpointsPostTeamSyncRunOutput, error) {
+	path := "/admin/team-sync-runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Source *string `json:"source,omitempty"`
+	}{
+		Source: in.Source,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTeamSyncRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminTeamTeamIDInput is the input for GetAdminTeamTeamID — Get Team.
+type GetAdminTeamTeamIDInput struct {
+	TeamID string `path:"teamID" json:"-"`
+	models.RequestScope
 }
 
 // GetAdminTeamTeamID - Get Team
 // GET /admin/team/{teamID}
-func (c *Client) GetAdminTeamTeamID(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetAdminTeamTeamID(ctx context.Context, in GetAdminTeamTeamIDInput) (*models.EndpointsGetTeamOutput, error) {
 	path := "/admin/team/{teamID}"
-	path = strings.Replace(path, "{teamID}", params.Get("teamID"), 1)
+	path = strings.Replace(path, "{teamID}", url.PathEscape(in.TeamID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTeamOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateAdminTeams - Post Team
-// POST /admin/teams
-func (c *Client) CreateAdminTeams(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/teams"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
+// ListAdminTeamsInput is the input for ListAdminTeams — Get All Teams.
+type ListAdminTeamsInput struct {
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminTeams - Get All Teams
 // GET /admin/teams
-func (c *Client) ListAdminTeams(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminTeams(ctx context.Context, in ListAdminTeamsInput) (*models.EndpointsGetTeamsOutput, error) {
 	path := "/admin/teams"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("nextToken"); v != "" {
-		query.Set("nextToken", v)
-	}
-	if v := params.Get("limit"); v != "" {
-		query.Set("limit", v)
-	}
-	if v := params.Get("search"); v != "" {
-		query.Set("search", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTeamsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTeamsInput is the input for CreateAdminTeams — Post Team.
+type CreateAdminTeamsInput struct {
+	CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
+	Github *models.ModelsTeamProviderGitHub `json:"github,omitempty"`
+	Gitlab *models.ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
+	GroundRules []models.ModelsGroundRule `json:"groundRules,omitempty"`
+	Jira *models.ModelsTeamProviderJira `json:"jira,omitempty"`
+	LeadID *string `json:"leadId,omitempty"`
+	MemberIds []string `json:"memberIds,omitempty"`
+	MessageChannelProvider models.ModelsMessageChannelProvider `json:"messageChannelProvider"`
+	Name string `json:"name"`
+	Privacy models.ModelsTeamPrivacy `json:"privacy"`
+	Slug string `json:"slug"`
+	TicketProjectProvider models.ModelsTicketProjectProvider `json:"ticketProjectProvider"`
+	models.RequestScope
+}
+
+// CreateAdminTeams - Post Team
+// POST /admin/teams
+func (c *Client) CreateAdminTeams(ctx context.Context, in CreateAdminTeamsInput) (*models.EndpointsPostTeamOutput, error) {
+	path := "/admin/teams"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
+		Github *models.ModelsTeamProviderGitHub `json:"github,omitempty"`
+		Gitlab *models.ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
+		GroundRules []models.ModelsGroundRule `json:"groundRules,omitempty"`
+		Jira *models.ModelsTeamProviderJira `json:"jira,omitempty"`
+		LeadID *string `json:"leadId,omitempty"`
+		MemberIds []string `json:"memberIds,omitempty"`
+		MessageChannelProvider models.ModelsMessageChannelProvider `json:"messageChannelProvider"`
+		Name string `json:"name"`
+		Privacy models.ModelsTeamPrivacy `json:"privacy"`
+		Slug string `json:"slug"`
+		TicketProjectProvider models.ModelsTicketProjectProvider `json:"ticketProjectProvider"`
+	}{
+		CodeOwnerships: in.CodeOwnerships,
+		Github: in.Github,
+		Gitlab: in.Gitlab,
+		GroundRules: in.GroundRules,
+		Jira: in.Jira,
+		LeadID: in.LeadID,
+		MemberIds: in.MemberIds,
+		MessageChannelProvider: in.MessageChannelProvider,
+		Name: in.Name,
+		Privacy: in.Privacy,
+		Slug: in.Slug,
+		TicketProjectProvider: in.TicketProjectProvider,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTeamOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTeamsAppzipInput is the input for ListAdminTeamsAppzip — Get Teams App Zip.
+type ListAdminTeamsAppzipInput struct {
+	models.RequestScope
 }
 
 // ListAdminTeamsAppzip - Get Teams App Zip
 // GET /admin/teams/appzip
-func (c *Client) ListAdminTeamsAppzip(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminTeamsAppzip(ctx context.Context, in ListAdminTeamsAppzipInput) (*models.EndpointsGetTeamsAppZipOutput, error) {
 	path := "/admin/teams/appzip"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTeamsAppZipOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTeamsCompassInput is the input for CreateAdminTeamsCompass — Post Compass/Atlassian Team.
+type CreateAdminTeamsCompassInput struct {
+	DisplayName string `json:"displayName"`
+	Lead string `json:"lead"`
+	Members []string `json:"members,omitempty"`
+	ProviderID *models.ModelsProviderID `json:"providerId,omitempty"`
+	Repositories []string `json:"repositories,omitempty"`
+	TeamKey *string `json:"teamKey,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminTeamsCompass - Post Compass/Atlassian Team
 // POST /admin/teams/compass
-func (c *Client) CreateAdminTeamsCompass(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminTeamsCompass(ctx context.Context, in CreateAdminTeamsCompassInput) (*models.EndpointsPostCompassTeamOutput, error) {
 	path := "/admin/teams/compass"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		DisplayName string `json:"displayName"`
+		Lead string `json:"lead"`
+		Members []string `json:"members,omitempty"`
+		ProviderID *models.ModelsProviderID `json:"providerId,omitempty"`
+		Repositories []string `json:"repositories,omitempty"`
+		TeamKey *string `json:"teamKey,omitempty"`
+	}{
+		DisplayName: in.DisplayName,
+		Lead: in.Lead,
+		Members: in.Members,
+		ProviderID: in.ProviderID,
+		Repositories: in.Repositories,
+		TeamKey: in.TeamKey,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCompassTeamOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTeamsFindingsInput is the input for ListAdminTeamsFindings — Get All Team Findings mapping.
+type ListAdminTeamsFindingsInput struct {
+	models.RequestScope
 }
 
 // ListAdminTeamsFindings - Get All Team Findings mapping
 // GET /admin/teams/findings
-func (c *Client) ListAdminTeamsFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminTeamsFindings(ctx context.Context, in ListAdminTeamsFindingsInput) (*models.EndpointsListTeamFindingsOutput, error) {
 	path := "/admin/teams/findings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListTeamFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTeamsFindingsInput is the input for CreateAdminTeamsFindings — Manual Team Findings Assignment.
+type CreateAdminTeamsFindingsInput struct {
+	Mappings []models.EndpointsPostTeamFindingsMapping `json:"mappings,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTeamsFindings - Manual Team Findings Assignment
+// POST /admin/teams/findings
+func (c *Client) CreateAdminTeamsFindings(ctx context.Context, in CreateAdminTeamsFindingsInput) (*models.EndpointsPostTeamFindingsOutput, error) {
+	path := "/admin/teams/findings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Mappings []models.EndpointsPostTeamFindingsMapping `json:"mappings,omitempty"`
+	}{
+		Mappings: in.Mappings,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTeamFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTeamsFindingsSyncInput is the input for CreateAdminTeamsFindingsSync — Sync Team Findings.
+type CreateAdminTeamsFindingsSyncInput struct {
+	Async *bool `json:"async,omitempty"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	FindingTypes []string `json:"findingTypes,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	RepositoryNames []string `json:"repositoryNames,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminTeamsFindingsSync - Sync Team Findings
 // POST /admin/teams/findings/sync
-func (c *Client) CreateAdminTeamsFindingsSync(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) CreateAdminTeamsFindingsSync(ctx context.Context, in CreateAdminTeamsFindingsSyncInput) (*models.EndpointsPostTeamFindingsSyncOutput, error) {
 	path := "/admin/teams/findings/sync"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, nil)
+	bodyBytes, err := json.Marshal(struct {
+		Async *bool `json:"async,omitempty"`
+		FindingIds []string `json:"findingIds,omitempty"`
+		FindingTypes []string `json:"findingTypes,omitempty"`
+		RepositoryIds []string `json:"repositoryIds,omitempty"`
+		RepositoryNames []string `json:"repositoryNames,omitempty"`
+	}{
+		Async: in.Async,
+		FindingIds: in.FindingIds,
+		FindingTypes: in.FindingTypes,
+		RepositoryIds: in.RepositoryIds,
+		RepositoryNames: in.RepositoryNames,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTeamFindingsSyncOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTeamsMergeInput is the input for CreateAdminTeamsMerge — Merge Teams.
+type CreateAdminTeamsMergeInput struct {
+	Sources []models.EndpointsTeamMergeSource `json:"sources,omitempty"`
+	TargetTeamID *string `json:"targetTeamId,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminTeamsMerge - Merge Teams
 // POST /admin/teams/merge
-func (c *Client) CreateAdminTeamsMerge(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminTeamsMerge(ctx context.Context, in CreateAdminTeamsMergeInput) (*models.EndpointsPostTeamMergeOutput, error) {
 	path := "/admin/teams/merge"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Sources []models.EndpointsTeamMergeSource `json:"sources,omitempty"`
+		TargetTeamID *string `json:"targetTeamId,omitempty"`
+	}{
+		Sources: in.Sources,
+		TargetTeamID: in.TargetTeamID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTeamMergeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminTeamsTeamIDInput is the input for DeleteAdminTeamsTeamID — Delete Manual Team.
+type DeleteAdminTeamsTeamIDInput struct {
+	TeamID string `path:"teamID" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminTeamsTeamID - Delete Manual Team
+// DELETE /admin/teams/{teamID}
+func (c *Client) DeleteAdminTeamsTeamID(ctx context.Context, in DeleteAdminTeamsTeamIDInput) (*models.EndpointsDeleteTeamOutput, error) {
+	path := "/admin/teams/{teamID}"
+	path = strings.Replace(path, "{teamID}", url.PathEscape(in.TeamID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTeamOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchAdminTeamsTeamIDInput is the input for PatchAdminTeamsTeamID — Patch Team.
+type PatchAdminTeamsTeamIDInput struct {
+	TeamID string `path:"teamID" json:"-"`
+	CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
+	Github *models.ModelsTeamProviderGitHub `json:"github,omitempty"`
+	Gitlab *models.ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
+	GroundRules []models.ModelsGroundRule `json:"groundRules,omitempty"`
+	Jira *models.ModelsTeamProviderJira `json:"jira,omitempty"`
+	LeadID *string `json:"leadId,omitempty"`
+	MemberIds []string `json:"memberIds,omitempty"`
+	MessageChannelProvider *models.ModelsMessageChannelProvider `json:"messageChannelProvider,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Privacy *models.ModelsTeamPrivacy `json:"privacy,omitempty"`
+	Slug *string `json:"slug,omitempty"`
+	TicketProjectProvider *models.ModelsTicketProjectProvider `json:"ticketProjectProvider,omitempty"`
+	models.RequestScope
 }
 
 // PatchAdminTeamsTeamID - Patch Team
 // PATCH /admin/teams/{teamID}
-func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTeamIDInput) (*models.EndpointsPatchTeamOutput, error) {
 	path := "/admin/teams/{teamID}"
-	path = strings.Replace(path, "{teamID}", params.Get("teamID"), 1)
+	path = strings.Replace(path, "{teamID}", url.PathEscape(in.TeamID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
+		Github *models.ModelsTeamProviderGitHub `json:"github,omitempty"`
+		Gitlab *models.ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
+		GroundRules []models.ModelsGroundRule `json:"groundRules,omitempty"`
+		Jira *models.ModelsTeamProviderJira `json:"jira,omitempty"`
+		LeadID *string `json:"leadId,omitempty"`
+		MemberIds []string `json:"memberIds,omitempty"`
+		MessageChannelProvider *models.ModelsMessageChannelProvider `json:"messageChannelProvider,omitempty"`
+		Name *string `json:"name,omitempty"`
+		Privacy *models.ModelsTeamPrivacy `json:"privacy,omitempty"`
+		Slug *string `json:"slug,omitempty"`
+		TicketProjectProvider *models.ModelsTicketProjectProvider `json:"ticketProjectProvider,omitempty"`
+	}{
+		CodeOwnerships: in.CodeOwnerships,
+		Github: in.Github,
+		Gitlab: in.Gitlab,
+		GroundRules: in.GroundRules,
+		Jira: in.Jira,
+		LeadID: in.LeadID,
+		MemberIds: in.MemberIds,
+		MessageChannelProvider: in.MessageChannelProvider,
+		Name: in.Name,
+		Privacy: in.Privacy,
+		Slug: in.Slug,
+		TicketProjectProvider: in.TicketProjectProvider,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchTeamOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTeamsTeamIDEventsInput is the input for CreateAdminTeamsTeamIDEvents — List Team Unified Events.
+type CreateAdminTeamsTeamIDEventsInput struct {
+	TeamID string `path:"teamID" json:"-"`
+	AfterID *string `json:"afterId,omitempty"`
+	AfterTimeUnix *int `json:"afterTimeUnix,omitempty"`
+	AutofixID *string `json:"autofixId,omitempty"`
+	BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	EventTypes []string `json:"eventTypes,omitempty"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	Limit *int `json:"limit,omitempty"`
+	PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	Services []string `json:"services,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTeamsTeamIDEvents - List Team Unified Events
+// POST /admin/teams/{teamID}/events
+func (c *Client) CreateAdminTeamsTeamIDEvents(ctx context.Context, in CreateAdminTeamsTeamIDEventsInput) (*models.EndpointsAdminListUnifiedEventsOutput, error) {
+	path := "/admin/teams/{teamID}/events"
+	path = strings.Replace(path, "{teamID}", url.PathEscape(in.TeamID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AfterID *string `json:"afterId,omitempty"`
+		AfterTimeUnix *int `json:"afterTimeUnix,omitempty"`
+		AutofixID *string `json:"autofixId,omitempty"`
+		BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		EventTypes []string `json:"eventTypes,omitempty"`
+		FindingIds []string `json:"findingIds,omitempty"`
+		Limit *int `json:"limit,omitempty"`
+		PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+		RunID *string `json:"runId,omitempty"`
+		Services []string `json:"services,omitempty"`
+	}{
+		AfterID: in.AfterID,
+		AfterTimeUnix: in.AfterTimeUnix,
+		AutofixID: in.AutofixID,
+		BeforeTimeUnix: in.BeforeTimeUnix,
+		CampaignID: in.CampaignID,
+		EventTypes: in.EventTypes,
+		FindingIds: in.FindingIds,
+		Limit: in.Limit,
+		PrCanonicalID: in.PrCanonicalID,
+		RunID: in.RunID,
+		Services: in.Services,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminListUnifiedEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTeamsTeamIDFindingsInput is the input for ListAdminTeamsTeamIDFindings — Get Team Findings mapping.
+type ListAdminTeamsTeamIDFindingsInput struct {
+	TeamID string `path:"teamID" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminTeamsTeamIDFindings - Get Team Findings mapping
 // GET /admin/teams/{teamID}/findings
-func (c *Client) ListAdminTeamsTeamIDFindings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminTeamsTeamIDFindings(ctx context.Context, in ListAdminTeamsTeamIDFindingsInput) (*models.EndpointsGetTeamFindingsOutput, error) {
 	path := "/admin/teams/{teamID}/findings"
-	path = strings.Replace(path, "{teamID}", params.Get("teamID"), 1)
+	path = strings.Replace(path, "{teamID}", url.PathEscape(in.TeamID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTeamFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateAdminUiSavedViews - Post UI Saved View
-// POST /admin/ui/savedViews
-func (c *Client) CreateAdminUiSavedViews(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/ui/savedViews"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
+// ListAdminUiSavedViewsInput is the input for ListAdminUiSavedViews — Get UI Saved Views.
+type ListAdminUiSavedViewsInput struct {
+	models.RequestScope
 }
 
 // ListAdminUiSavedViews - Get UI Saved Views
 // GET /admin/ui/savedViews
-func (c *Client) ListAdminUiSavedViews(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminUiSavedViews(ctx context.Context, in ListAdminUiSavedViewsInput) (*models.EndpointsGetUISavedViewsOutput, error) {
 	path := "/admin/ui/savedViews"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUISavedViewsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// PatchAdminUiSavedViewsSavedViewId - Patch UI Saved View
-// PATCH /admin/ui/savedViews/{savedViewId}
-func (c *Client) PatchAdminUiSavedViewsSavedViewId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/ui/savedViews/{savedViewId}"
-	path = strings.Replace(path, "{savedViewId}", params.Get("savedViewId"), 1)
+// CreateAdminUiSavedViewsInput is the input for CreateAdminUiSavedViews — Post UI Saved View.
+type CreateAdminUiSavedViewsInput struct {
+	SavedView models.ModelsUISavedViewAPIInput `json:"savedView"`
+	models.RequestScope
+}
+
+// CreateAdminUiSavedViews - Post UI Saved View
+// POST /admin/ui/savedViews
+func (c *Client) CreateAdminUiSavedViews(ctx context.Context, in CreateAdminUiSavedViewsInput) (*models.EndpointsPostUISavedViewOutput, error) {
+	path := "/admin/ui/savedViews"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PATCH", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		SavedView models.ModelsUISavedViewAPIInput `json:"savedView"`
+	}{
+		SavedView: in.SavedView,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUISavedViewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminUiSavedViewsSavedViewIdInput is the input for DeleteAdminUiSavedViewsSavedViewId — Delete UI Saved View.
+type DeleteAdminUiSavedViewsSavedViewIdInput struct {
+	SavedViewID string `path:"savedViewId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteAdminUiSavedViewsSavedViewId - Delete UI Saved View
 // DELETE /admin/ui/savedViews/{savedViewId}
-func (c *Client) DeleteAdminUiSavedViewsSavedViewId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteAdminUiSavedViewsSavedViewId(ctx context.Context, in DeleteAdminUiSavedViewsSavedViewIdInput) (*models.EndpointsDeleteUISavedViewOutput, error) {
 	path := "/admin/ui/savedViews/{savedViewId}"
-	path = strings.Replace(path, "{savedViewId}", params.Get("savedViewId"), 1)
+	path = strings.Replace(path, "{savedViewId}", url.PathEscape(in.SavedViewID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteUISavedViewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchAdminUiSavedViewsSavedViewIdInput is the input for PatchAdminUiSavedViewsSavedViewId — Patch UI Saved View.
+type PatchAdminUiSavedViewsSavedViewIdInput struct {
+	SavedViewID string `path:"savedViewId" json:"-"`
+	SavedView models.ModelsUISavedViewAPIInput `json:"savedView"`
+	models.RequestScope
+}
+
+// PatchAdminUiSavedViewsSavedViewId - Patch UI Saved View
+// PATCH /admin/ui/savedViews/{savedViewId}
+func (c *Client) PatchAdminUiSavedViewsSavedViewId(ctx context.Context, in PatchAdminUiSavedViewsSavedViewIdInput) (*models.EndpointsPatchUISavedViewOutput, error) {
+	path := "/admin/ui/savedViews/{savedViewId}"
+	path = strings.Replace(path, "{savedViewId}", url.PathEscape(in.SavedViewID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		SavedView models.ModelsUISavedViewAPIInput `json:"savedView"`
+	}{
+		SavedView: in.SavedView,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchUISavedViewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminUserCurrentInput is the input for ListAdminUserCurrent — Get Current User.
+type ListAdminUserCurrentInput struct {
+	models.RequestScope
 }
 
 // ListAdminUserCurrent - Get Current User
 // GET /admin/user/current
-func (c *Client) ListAdminUserCurrent(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminUserCurrent(ctx context.Context, in ListAdminUserCurrentInput) (*models.EndpointsGetCurrentUserOutput, error) {
 	path := "/admin/user/current"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCurrentUserOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
-// CreateAdminUserMapping - Post Add User Mappings
-// POST /admin/user/mapping
-func (c *Client) CreateAdminUserMapping(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
-	path := "/admin/user/mapping"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	return c.do(ctx, "POST", fullURL, body)
+// ListAdminUserMappingInput is the input for ListAdminUserMapping — Get User Mapping.
+type ListAdminUserMappingInput struct {
+	ProviderID *string `url:"providerId,omitempty" json:"-"`
+	UserID *string `url:"userId,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminUserMapping - Get User Mapping
 // GET /admin/user/mapping
-func (c *Client) ListAdminUserMapping(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminUserMapping(ctx context.Context, in ListAdminUserMappingInput) (*models.EndpointsGetUserMappingOutput, error) {
 	path := "/admin/user/mapping"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
+	if in.ProviderID != nil {
+		query.Set("providerId", string(*in.ProviderID))
 	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
+	if in.UserID != nil {
+		query.Set("userId", string(*in.UserID))
 	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
-	if v := params.Get("providerId"); v != "" {
-		query.Set("providerId", v)
-	}
-	if v := params.Get("userId"); v != "" {
-		query.Set("userId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUserMappingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminUserMappingInput is the input for CreateAdminUserMapping — Post Add User Mappings.
+type CreateAdminUserMappingInput struct {
+	UseSuggestions bool `json:"useSuggestions"`
+	UserMappings []models.EndpointsUserMappingInput `json:"userMappings,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminUserMapping - Post Add User Mappings
+// POST /admin/user/mapping
+func (c *Client) CreateAdminUserMapping(ctx context.Context, in CreateAdminUserMappingInput) (*models.EndpointsPostUserMappingOutput, error) {
+	path := "/admin/user/mapping"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		UseSuggestions bool `json:"useSuggestions"`
+		UserMappings []models.EndpointsUserMappingInput `json:"userMappings,omitempty"`
+	}{
+		UseSuggestions: in.UseSuggestions,
+		UserMappings: in.UserMappings,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUserMappingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminUserMappingSuggestionsInput is the input for ListAdminUserMappingSuggestions — Get User Mapping Suggestions.
+type ListAdminUserMappingSuggestionsInput struct {
+	models.RequestScope
 }
 
 // ListAdminUserMappingSuggestions - Get User Mapping Suggestions
 // GET /admin/user/mapping/suggestions
-func (c *Client) ListAdminUserMappingSuggestions(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminUserMappingSuggestions(ctx context.Context, in ListAdminUserMappingSuggestionsInput) (*models.EndpointsGetSuggestedUserMappingsOutput, error) {
 	path := "/admin/user/mapping/suggestions"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSuggestedUserMappingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminUserMappingUserIdInput is the input for DeleteAdminUserMappingUserId — Delete User Mapping.
+type DeleteAdminUserMappingUserIdInput struct {
+	UserID string `path:"userId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteAdminUserMappingUserId - Delete User Mapping
 // DELETE /admin/user/mapping/{userId}
-func (c *Client) DeleteAdminUserMappingUserId(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteAdminUserMappingUserId(ctx context.Context, in DeleteAdminUserMappingUserIdInput) ([]byte, error) {
 	path := "/admin/user/mapping/{userId}"
-	path = strings.Replace(path, "{userId}", params.Get("userId"), 1)
+	path = strings.Replace(path, "{userId}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	return data, err
+}
+
+// UpdateAdminUserMappingUserIdInput is the input for UpdateAdminUserMappingUserId — Edit User Mapping.
+type UpdateAdminUserMappingUserIdInput struct {
+	UserID string `path:"userId" json:"-"`
+	Azure *models.ModelsAzureUserProvider `json:"azure,omitempty"`
+	Bitbucket *models.ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
+	Github *models.ModelsGitHubUserProvider `json:"github,omitempty"`
+	Gitlab *models.ModelsGitLabUserProvider `json:"gitlab,omitempty"`
+	Jira *models.ModelsJiraUserProvider `json:"jira,omitempty"`
+	Linear *models.ModelsLinearUserProvider `json:"linear,omitempty"`
+	Slack *models.ModelsSlackUserProvider `json:"slack,omitempty"`
+	Teams *models.ModelsTeamsUserProvider `json:"teams,omitempty"`
+	models.RequestScope
 }
 
 // UpdateAdminUserMappingUserId - Edit User Mapping
 // PUT /admin/user/mapping/{userId}
-func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdminUserMappingUserIdInput) ([]byte, error) {
 	path := "/admin/user/mapping/{userId}"
-	path = strings.Replace(path, "{userId}", params.Get("userId"), 1)
+	path = strings.Replace(path, "{userId}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "PUT", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		Azure *models.ModelsAzureUserProvider `json:"azure,omitempty"`
+		Bitbucket *models.ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
+		Github *models.ModelsGitHubUserProvider `json:"github,omitempty"`
+		Gitlab *models.ModelsGitLabUserProvider `json:"gitlab,omitempty"`
+		Jira *models.ModelsJiraUserProvider `json:"jira,omitempty"`
+		Linear *models.ModelsLinearUserProvider `json:"linear,omitempty"`
+		Slack *models.ModelsSlackUserProvider `json:"slack,omitempty"`
+		Teams *models.ModelsTeamsUserProvider `json:"teams,omitempty"`
+	}{
+		Azure: in.Azure,
+		Bitbucket: in.Bitbucket,
+		Github: in.Github,
+		Gitlab: in.Gitlab,
+		Jira: in.Jira,
+		Linear: in.Linear,
+		Slack: in.Slack,
+		Teams: in.Teams,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// ListAdminUserMappingsInput is the input for ListAdminUserMappings — Get User Mappings.
+type ListAdminUserMappingsInput struct {
+	models.RequestScope
 }
 
 // ListAdminUserMappings - Get User Mappings
 // GET /admin/user/mappings
-func (c *Client) ListAdminUserMappings(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminUserMappings(ctx context.Context, in ListAdminUserMappingsInput) (*models.EndpointsGetUserMappingsOutput, error) {
 	path := "/admin/user/mappings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUserMappingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminUserUserIDInput is the input for GetAdminUserUserID — Get User.
+type GetAdminUserUserIDInput struct {
+	UserID string `path:"userID" json:"-"`
+	models.RequestScope
 }
 
 // GetAdminUserUserID - Get User
 // GET /admin/user/{userID}
-func (c *Client) GetAdminUserUserID(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetAdminUserUserID(ctx context.Context, in GetAdminUserUserIDInput) (*models.EndpointsGetUserOutput, error) {
 	path := "/admin/user/{userID}"
-	path = strings.Replace(path, "{userID}", params.Get("userID"), 1)
+	path = strings.Replace(path, "{userID}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUserOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminUsersInput is the input for ListAdminUsers — Get All Users.
+type ListAdminUsersInput struct {
+	models.RequestScope
 }
 
 // ListAdminUsers - Get All Users
 // GET /admin/users
-func (c *Client) ListAdminUsers(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminUsers(ctx context.Context, in ListAdminUsersInput) (*models.EndpointsAdminGetUsersOutput, error) {
 	path := "/admin/users"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminUsersInput is the input for CreateAdminUsers — Post User.
+type CreateAdminUsersInput struct {
+	User models.EndpointsUserInput `json:"user"`
+	models.RequestScope
 }
 
 // CreateAdminUsers - Post User
 // POST /admin/users
-func (c *Client) CreateAdminUsers(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminUsers(ctx context.Context, in CreateAdminUsersInput) (*models.EndpointsPostUserOutput, error) {
 	path := "/admin/users"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		User models.EndpointsUserInput `json:"user"`
+	}{
+		User: in.User,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUserOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminUsersBulkSearchMappingsInput is the input for CreateAdminUsersBulkSearchMappings — Post Bulk Get User Mappings.
+type CreateAdminUsersBulkSearchMappingsInput struct {
+	GitCanonicalUserIds []string `json:"gitCanonicalUserIds,omitempty"`
+	GithubCanonicalUserIds []string `json:"githubCanonicalUserIds,omitempty"`
+	models.RequestScope
 }
 
 // CreateAdminUsersBulkSearchMappings - Post Bulk Get User Mappings
 // POST /admin/users/bulkSearchMappings
-func (c *Client) CreateAdminUsersBulkSearchMappings(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {
+func (c *Client) CreateAdminUsersBulkSearchMappings(ctx context.Context, in CreateAdminUsersBulkSearchMappingsInput) (*models.EndpointsPostBulkGetUserMappingsOutput, error) {
 	path := "/admin/users/bulkSearchMappings"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "POST", fullURL, body)
+	bodyBytes, err := json.Marshal(struct {
+		GitCanonicalUserIds []string `json:"gitCanonicalUserIds,omitempty"`
+		GithubCanonicalUserIds []string `json:"githubCanonicalUserIds,omitempty"`
+	}{
+		GitCanonicalUserIds: in.GitCanonicalUserIds,
+		GithubCanonicalUserIds: in.GithubCanonicalUserIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkGetUserMappingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminUsersProviderIDInput is the input for GetAdminUsersProviderID — Get Provider Users.
+type GetAdminUsersProviderIDInput struct {
+	ProviderID string `path:"providerID" json:"-"`
+	models.RequestScope
 }
 
 // GetAdminUsersProviderID - Get Provider Users
 // GET /admin/users/{providerID}
-func (c *Client) GetAdminUsersProviderID(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetAdminUsersProviderID(ctx context.Context, in GetAdminUsersProviderIDInput) (*models.EndpointsGetProviderUsersOutput, error) {
 	path := "/admin/users/{providerID}"
-	path = strings.Replace(path, "{providerID}", params.Get("providerID"), 1)
+	path = strings.Replace(path, "{providerID}", url.PathEscape(in.ProviderID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProviderUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminUsersProviderIDUserIDInput is the input for GetAdminUsersProviderIDUserID — Get User By Provider.
+type GetAdminUsersProviderIDUserIDInput struct {
+	ProviderID string `path:"providerID" json:"-"`
+	UserID string `path:"userID" json:"-"`
+	models.RequestScope
 }
 
 // GetAdminUsersProviderIDUserID - Get User By Provider
 // GET /admin/users/{providerID}/{userID}
-func (c *Client) GetAdminUsersProviderIDUserID(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) GetAdminUsersProviderIDUserID(ctx context.Context, in GetAdminUsersProviderIDUserIDInput) (*models.EndpointsGetUserOutput, error) {
 	path := "/admin/users/{providerID}/{userID}"
-	path = strings.Replace(path, "{providerID}", params.Get("providerID"), 1)
-	path = strings.Replace(path, "{userID}", params.Get("userID"), 1)
+	path = strings.Replace(path, "{providerID}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{userID}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUserOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminUsersUserIdErasureInput is the input for DeleteAdminUsersUserIdErasure — Delete User Erasure (GDPR Art. 17).
+type DeleteAdminUsersUserIdErasureInput struct {
+	UserID string `path:"userId" json:"-"`
+	models.RequestScope
 }
 
 // DeleteAdminUsersUserIdErasure - Delete User Erasure (GDPR Art. 17)
 // DELETE /admin/users/{userId}/erasure
-func (c *Client) DeleteAdminUsersUserIdErasure(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) DeleteAdminUsersUserIdErasure(ctx context.Context, in DeleteAdminUsersUserIdErasureInput) (*models.EndpointsDeleteUserErasureOutput, error) {
 	path := "/admin/users/{userId}/erasure"
-	path = strings.Replace(path, "{userId}", params.Get("userId"), 1)
+	path = strings.Replace(path, "{userId}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "DELETE", fullURL, nil)
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteUserErasureOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminUsersUserIdExportInput is the input for ListAdminUsersUserIdExport — Get User Data Export (GDPR Art. 15, 20).
+type ListAdminUsersUserIdExportInput struct {
+	UserID string `path:"userId" json:"-"`
+	Format *string `url:"format,omitempty" json:"-"`
+	models.RequestScope
 }
 
 // ListAdminUsersUserIdExport - Get User Data Export (GDPR Art. 15, 20)
 // GET /admin/users/{userId}/export
-func (c *Client) ListAdminUsersUserIdExport(ctx context.Context, params url.Values) ([]byte, error) {
+func (c *Client) ListAdminUsersUserIdExport(ctx context.Context, in ListAdminUsersUserIdExportInput) (*models.EndpointsGetUserDataExportOutput, error) {
 	path := "/admin/users/{userId}/export"
-	path = strings.Replace(path, "{userId}", params.Get("userId"), 1)
+	path = strings.Replace(path, "{userId}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if v := params.Get("format"); v != "" {
-		query.Set("format", v)
+	if in.Format != nil {
+		query.Set("format", string(*in.Format))
 	}
-	if v := params.Get("azureOrganizationId"); v != "" {
-		query.Set("azureOrganizationId", v)
-	}
-	if v := params.Get("bitbucketWorkspaceId"); v != "" {
-		query.Set("bitbucketWorkspaceId", v)
-	}
-	if v := params.Get("githubOwnerId"); v != "" {
-		query.Set("githubOwnerId", v)
-	}
-	if v := params.Get("gitlabGroupId"); v != "" {
-		query.Set("gitlabGroupId", v)
-	}
-	if v := params.Get("installationId"); v != "" {
-		query.Set("installationId", v)
-	}
-	if v := params.Get("azureRepositoryId"); v != "" {
-		query.Set("azureRepositoryId", v)
-	}
-	if v := params.Get("githubRepositoryId"); v != "" {
-		query.Set("githubRepositoryId", v)
-	}
-	if v := params.Get("githubTeamId"); v != "" {
-		query.Set("githubTeamId", v)
-	}
-	if v := params.Get("bitbucketRepositoryId"); v != "" {
-		query.Set("bitbucketRepositoryId", v)
-	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
 
-	return c.do(ctx, "GET", fullURL, nil)
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUserDataExportOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
+

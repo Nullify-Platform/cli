@@ -1,7 +1,8 @@
-// generate reads the merged OpenAPI spec and produces a typed Go API client
-// and cobra command files for the CLI.
+// generate reads the OpenAPI bundle and produces a typed Go API client and
+// cobra command files for the CLI. The bundle is vendored at spec/ from a
+// pinned monorepo commit (see `make fetch-spec`).
 //
-// Usage: go run ./scripts/generate/main.go --spec ../public-docs/specs/merged-openapi.yml
+// Usage: go run ./scripts/generate/main.go --spec spec/nullify-openapi-bundle.yaml
 package main
 
 import (
@@ -49,50 +50,88 @@ type Parameter struct {
 }
 
 type SchemaRef struct {
-	Ref    string `yaml:"$ref"`
-	Type   string `yaml:"type"`
-	Format string `yaml:"format"`
-	Items  *struct {
-		Type   string `yaml:"type"`
-		Format string `yaml:"format"`
-	} `yaml:"items"`
+	Ref                  string     `yaml:"$ref"`
+	Type                 string     `yaml:"type"`
+	Format               string     `yaml:"format"`
+	Description          string     `yaml:"description"`
+	Nullable             bool       `yaml:"nullable"`
+	Enum                 []string   `yaml:"enum"`
+	Items                *SchemaRef `yaml:"items"`
+	AdditionalProperties *SchemaRef `yaml:"additionalProperties"`
 }
 
 type Schema struct {
-	Type       string               `yaml:"type"`
-	Properties map[string]SchemaRef `yaml:"properties"`
-	Required   []string             `yaml:"required"`
+	Type                 string               `yaml:"type"`
+	Description          string               `yaml:"description"`
+	Properties           map[string]SchemaRef `yaml:"properties"`
+	Required             []string             `yaml:"required"`
+	Enum                 []string             `yaml:"enum"`
+	Nullable             bool                 `yaml:"nullable"`
+	Format               string               `yaml:"format"`
+	Items                *SchemaRef           `yaml:"items"`
+	AdditionalProperties *SchemaRef           `yaml:"additionalProperties"`
+	// Polymorphism keywords — none used by the current bundle. Parsed only so
+	// generator-time assertions can fail loudly if a future spec drift introduces
+	// them, preventing silent fallback to weak typing.
+	OneOf         []SchemaRef `yaml:"oneOf"`
+	AnyOf         []SchemaRef `yaml:"anyOf"`
+	AllOf         []SchemaRef `yaml:"allOf"`
+	Discriminator *struct {
+		PropertyName string `yaml:"propertyName"`
+	} `yaml:"discriminator"`
 }
 
-// Service grouping based on path prefix
+// Service grouping based on path prefix.
+//
+// NOTE: prefixes are matched against the full request path, so any path whose
+// prefix is absent here is silently dropped from the generated CLI. Keep this in
+// sync with the services published in the OpenAPI bundle.
 var serviceMapping = map[string]string{
-	"/sast/":    "sast",
-	"/sca/":     "sca",
-	"/secrets/": "secrets",
-	"/dast/":    "dast",
-	"/admin/":   "admin",
-	"/manager/": "manager",
-	"/context/": "context",
-	"/cspm/":    "cspm",
-	"/ticket/":  "ticket",
+	"/sast/":           "sast",
+	"/sca/":            "sca",
+	"/secrets/":        "secrets",
+	"/dast/":           "dast",
+	"/admin/":          "admin",
+	"/manager/":        "manager",
+	"/context/":        "context",
+	"/cspm/":           "cspm",
+	"/scpm/":           "scpm",
+	"/orchestrator/":   "orchestrator",
+	"/asset-graph/":    "asset-graph",
+	"/infrastructure/": "infrastructure",
+	"/ticket/":         "ticket",
 }
 
 // serviceDescriptions maps service names to human-readable descriptions.
 var serviceDescriptions = map[string]string{
-	"sast":    "Static Application Security Testing (SAST)",
-	"sca":     "Software Composition Analysis (SCA)",
-	"secrets": "Secrets Detection",
-	"dast":    "Dynamic Application Security Testing (DAST)",
-	"admin":   "Administration and Metrics",
-	"manager": "Finding Lifecycle Management",
-	"context": "Repository and Code Classification",
-	"cspm":    "Cloud Security Posture Management (CSPM)",
-	"ticket":  "Ticket Integration",
+	"sast":           "Static Application Security Testing (SAST)",
+	"sca":            "Software Composition Analysis (SCA)",
+	"secrets":        "Secrets Detection",
+	"dast":           "Dynamic Application Security Testing (DAST)",
+	"admin":          "Administration and Metrics",
+	"manager":        "Finding Lifecycle Management",
+	"context":        "Repository and Code Classification",
+	"cspm":           "Cloud Security Posture Management (CSPM)",
+	"scpm":           "SaaS Security Posture Management (SCPM)",
+	"orchestrator":   "Scan Orchestration (autofix batches, code reviews, retriage, onboarding)",
+	"asset-graph":    "Asset Graph (reachability, search, subgraph, summary)",
+	"infrastructure": "Infrastructure Graphs",
+	"ticket":         "Ticket Integration",
 }
 
-// Paths to exclude from CLI generation
+// Paths to exclude from CLI generation.
+//
+// Prefer this list over silent absence from serviceMapping: a path whose prefix
+// is in neither map is dropped anyway, but listing it here records the intent
+// so a future spec audit doesn't rediscover it as a "missing service".
+// These are all paths the published bundle does carry but that aren't useful
+// CLI commands: /auth/* are the auth handshake endpoints (access/refresh/github
+// tokens, logout) the CLI drives through internal/auth, and /core/{bitbucket,jira}/*
+// are integration webhooks/descriptors. Genuinely internal endpoints are kept
+// out of the published bundle at the source (each service's openapi-public.yml),
+// so they never reach here.
 var excludePrefixes = []string{
-	"/internal/",
+	"/auth/",
 	"/core/bitbucket/",
 	"/core/jira/",
 }
@@ -110,10 +149,11 @@ type Endpoint struct {
 	FuncName     string
 	CobraCmd     string
 	CobraPath    string
+	CobraUse     string // unique command name within its service (collision-disambiguated)
 }
 
 func main() {
-	specPath := "../public-docs/specs/merged-openapi.yml"
+	specPath := "spec/nullify-openapi-bundle.yaml"
 	outputDir := "internal/api"
 	cmdOutputDir := "internal/commands"
 
@@ -142,8 +182,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := assertSpecCompatible(spec); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
 	endpoints := extractEndpoints(spec)
 	grouped := groupByService(endpoints)
+	assignCobraUses(grouped)
+
+	registry := buildModelRegistry(spec, endpoints)
 
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output dir: %v\n", err)
@@ -154,8 +202,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	generateClient(outputDir, grouped)
-	generateCommands(cmdOutputDir, grouped)
+	generateModelsPackage(outputDir, registry)
+	generateClient(outputDir, grouped, registry)
+	generateCommands(cmdOutputDir, grouped, registry)
 
 	fmt.Printf("Generated %d endpoints across %d services\n", len(endpoints), len(grouped))
 	for svc, eps := range grouped {
@@ -216,11 +265,18 @@ func extractEndpoints(spec OpenAPISpec) []Endpoint {
 		}
 	}
 
+	// Sort fully deterministically. The spec's paths/methods are decoded from YAML
+	// maps (random iteration order), so we must tie-break all the way down to the
+	// method; otherwise two operations on the same path can swap order between runs
+	// and produce spurious regeneration diffs (flaky drift checks).
 	sort.Slice(endpoints, func(i, j int) bool {
 		if endpoints[i].Service != endpoints[j].Service {
 			return endpoints[i].Service < endpoints[j].Service
 		}
-		return endpoints[i].Path < endpoints[j].Path
+		if endpoints[i].Path != endpoints[j].Path {
+			return endpoints[i].Path < endpoints[j].Path
+		}
+		return endpoints[i].Method < endpoints[j].Method
 	})
 
 	return endpoints
@@ -358,84 +414,13 @@ func extractSchemaName(ref string) string {
 	return parts[len(parts)-1]
 }
 
-func generateClientFile(outputDir string, service string, endpoints []Endpoint) {
-	filePath := filepath.Join(outputDir, service+".go")
-
-	// Determine which imports are needed
-	needsStrings := false
-	needsIO := false
-	for _, ep := range endpoints {
-		for _, p := range ep.Parameters {
-			if p.In == "path" {
-				needsStrings = true
-			}
-		}
-		if ep.HasBody {
-			needsIO = true
-		}
-	}
-
-	var sb strings.Builder
-	sb.WriteString("// Code generated by scripts/generate/main.go. DO NOT EDIT.\npackage api\n\nimport (\n\t\"context\"\n\t\"fmt\"\n")
-	if needsIO {
-		sb.WriteString("\t\"io\"\n")
-	}
-	sb.WriteString("\t\"net/url\"\n")
-	if needsStrings {
-		sb.WriteString("\t\"strings\"\n")
-	}
-	sb.WriteString(")\n")
-
-	for _, ep := range endpoints {
-		fmt.Fprintf(&sb, "\n// %s - %s\n// %s %s\n", ep.FuncName, ep.Summary, ep.Method, ep.Path)
-
-		if ep.HasBody {
-			fmt.Fprintf(&sb, "func (c *Client) %s(ctx context.Context, params url.Values, body io.Reader) ([]byte, error) {\n", ep.FuncName)
-		} else {
-			fmt.Fprintf(&sb, "func (c *Client) %s(ctx context.Context, params url.Values) ([]byte, error) {\n", ep.FuncName)
-		}
-
-		fmt.Fprintf(&sb, "\tpath := %q\n", ep.Path)
-
-		// Path parameter substitution
-		for _, p := range ep.Parameters {
-			if p.In == "path" {
-				fmt.Fprintf(&sb, "\tpath = strings.Replace(path, \"{%s}\", params.Get(%q), 1)\n", p.Name, p.Name)
-			}
-		}
-
-		sb.WriteString("\n\tquery := url.Values{}\n\tfor k, v := range c.DefaultParams {\n\t\tquery.Set(k, v)\n\t}\n")
-
-		for _, p := range ep.Parameters {
-			if p.In == "query" {
-				fmt.Fprintf(&sb, "\tif v := params.Get(%q); v != \"\" {\n\t\tquery.Set(%q, v)\n\t}\n", p.Name, p.Name)
-			}
-		}
-
-		sb.WriteString("\n\tfullURL := fmt.Sprintf(\"%s%s\", c.BaseURL, path)\n\tif len(query) > 0 {\n\t\tfullURL += \"?\" + query.Encode()\n\t}\n\n")
-
-		if ep.HasBody {
-			fmt.Fprintf(&sb, "\treturn c.do(ctx, %q, fullURL, body)\n", ep.Method)
-		} else {
-			fmt.Fprintf(&sb, "\treturn c.do(ctx, %q, fullURL, nil)\n", ep.Method)
-		}
-
-		sb.WriteString("}\n")
-	}
-
-	if err := os.WriteFile(filePath, []byte(sb.String()), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
-		os.Exit(1)
-	}
-}
-
-func generateClient(outputDir string, grouped map[string][]Endpoint) {
+func generateClient(outputDir string, grouped map[string][]Endpoint, registry *modelRegistry) {
 	// Write base client
 	writeBaseClient(outputDir)
 
-	// Write per-service files
+	// Write per-service typed client files
 	for service, endpoints := range grouped {
-		generateClientFile(outputDir, service, endpoints)
+		emitTypedClient(outputDir, service, endpoints, registry)
 	}
 }
 
@@ -446,15 +431,34 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/nullify-platform/cli/internal/apierror"
+	"github.com/nullify-platform/cli/internal/client"
 )
 
 // Version is set at build time via ldflags.
 var Version = "dev"
+
+// defaultTimeout is the request timeout used when NULLIFY_HTTP_TIMEOUT is unset
+// or invalid. 30s is too short for long-running calls (scan-start, autofix), so
+// callers can raise it via the env var (e.g. "120s").
+const defaultTimeout = 30 * time.Second
+
+// httpTimeout returns the request timeout, overridable via the
+// NULLIFY_HTTP_TIMEOUT env var (a Go duration string such as "120s").
+func httpTimeout() time.Duration {
+	if v := os.Getenv("NULLIFY_HTTP_TIMEOUT"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil && d > 0 {
+			return d
+		}
+	}
+	return defaultTimeout
+}
 
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
@@ -467,12 +471,14 @@ type Client struct {
 // ClientOption configures a Client.
 type ClientOption func(*Client)
 
-// WithHTTPClient sets a custom HTTP client on the API client.
+// WithHTTPClient sets a custom HTTP client on the API client, overriding the
+// default retrying client.
 func WithHTTPClient(hc *http.Client) ClientOption {
 	return func(c *Client) { c.HTTPClient = hc }
 }
 
-// NewClient creates a new Nullify API client.
+// NewClient creates a new Nullify API client. By default it retries on 429 and
+// 5xx responses (callers get retries without passing WithHTTPClient).
 func NewClient(host string, token string, defaultParams map[string]string, opts ...ClientOption) *Client {
 	apiHost := host
 	if !strings.HasPrefix(host, "api.") {
@@ -482,7 +488,10 @@ func NewClient(host string, token string, defaultParams map[string]string, opts 
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
-		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
+		HTTPClient: &http.Client{
+			Timeout:   httpTimeout(),
+			Transport: client.NewRetryTransport(http.DefaultTransport),
+		},
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -508,13 +517,13 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, apierror.HandleError(resp)
+	}
+
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return nil, err
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("API returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	return respBody, nil
@@ -526,29 +535,29 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 }
 
-func generateCommands(outputDir string, grouped map[string][]Endpoint) {
+func generateCommands(outputDir string, grouped map[string][]Endpoint, registry *modelRegistry) {
 	for service, endpoints := range grouped {
-		generateCommandFile(outputDir, service, endpoints)
+		generateCommandFile(outputDir, service, endpoints, registry)
 	}
 }
 
-func generateCommandFile(outputDir string, service string, endpoints []Endpoint) {
+func generateCommandFile(outputDir string, service string, endpoints []Endpoint, registry *modelRegistry) {
 	filePath := filepath.Join(outputDir, service+".go")
 
-	needsIO := false
-	for _, ep := range endpoints {
-		if ep.HasBody {
-			needsIO = true
-			break
-		}
-	}
-
 	var sb strings.Builder
-	sb.WriteString("// Code generated by scripts/generate/main.go. DO NOT EDIT.\npackage commands\n\nimport (\n\t\"net/url\"\n")
-	if needsIO {
-		sb.WriteString("\t\"os\"\n")
-	}
-	sb.WriteString("\n\t\"github.com/nullify-platform/cli/internal/api\"\n\t\"github.com/nullify-platform/cli/internal/output\"\n\t\"github.com/spf13/cobra\"\n\t\"github.com/spf13/pflag\"\n)\n\n")
+	sb.WriteString("// Code generated by scripts/generate/main.go. DO NOT EDIT.\npackage commands\n\nimport (\n")
+	sb.WriteString("\t\"encoding/json\"\n")
+	sb.WriteString("\t\"fmt\"\n")
+	sb.WriteString("\t\"os\"\n")
+	sb.WriteString("\t\"strconv\"\n")
+	sb.WriteString("\t\"strings\"\n\n")
+	sb.WriteString("\t\"github.com/nullify-platform/cli/internal/api\"\n")
+	sb.WriteString("\t\"github.com/nullify-platform/cli/internal/api/models\"\n")
+	sb.WriteString("\t\"github.com/nullify-platform/cli/internal/output\"\n")
+	sb.WriteString("\t\"github.com/spf13/cobra\"\n)\n\n")
+	// Suppress unused import warnings when a particular service file
+	// happens not to need every import.
+	sb.WriteString("var _ = json.Marshal\nvar _ = fmt.Errorf\nvar _ = os.Stdin\nvar _ = strconv.Atoi\nvar _ = strings.Split\nvar _ = models.RequestScope{}\n\n")
 
 	svcPascal := toPascalCase(service)
 	svcDesc := serviceDescriptions[service]
@@ -559,80 +568,7 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 	fmt.Fprintf(&sb, "\tserviceCmd := &cobra.Command{\n\t\tUse:   %q,\n\t\tShort: %q,\n\t}\n\tparent.AddCommand(serviceCmd)\n\n", service, svcDesc)
 
 	for _, ep := range endpoints {
-		cobraUse := generateCobraUse(ep)
-		summary := strings.ReplaceAll(ep.Summary, `"`, `\"`)
-
-		// Collect path params in URL order (the OpenAPI parameters list is
-		// not guaranteed to be ordered, so we read names directly from the path)
-		// and query params separately.
-		pathParamNames := extractPathParamNames(ep.Path)
-		var queryParams []Parameter
-		for _, p := range ep.Parameters {
-			if p.In == "query" {
-				queryParams = append(queryParams, p)
-			}
-		}
-
-		sb.WriteString("\t{\n")
-		useStr := cobraUse
-		for _, name := range pathParamNames {
-			useStr += " <" + name + ">"
-		}
-		fmt.Fprintf(&sb, "\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", useStr, summary)
-
-		if len(pathParamNames) > 0 {
-			fmt.Fprintf(&sb, "\t\t\tArgs:  cobra.MaximumNArgs(%d),\n", len(pathParamNames))
-		}
-
-		sb.WriteString("\t\t\tRunE: func(cmd *cobra.Command, args []string) error {\n")
-		sb.WriteString("\t\t\t\tclient := getClient()\n")
-		sb.WriteString("\t\t\t\tparams := url.Values{}\n")
-
-		// Build a flag name → API param name mapping for kebab-case translation
-		hasKebabFlags := false
-		for _, p := range queryParams {
-			kebab := toKebabCase(p.Name)
-			if kebab != p.Name {
-				hasKebabFlags = true
-				break
-			}
-		}
-
-		if hasKebabFlags {
-			sb.WriteString("\t\t\t\tflagMap := map[string]string{\n")
-			for _, p := range queryParams {
-				kebab := toKebabCase(p.Name)
-				if kebab != p.Name {
-					fmt.Fprintf(&sb, "\t\t\t\t\t%q: %q,\n", kebab, p.Name)
-				}
-			}
-			sb.WriteString("\t\t\t\t}\n")
-			sb.WriteString("\t\t\t\tcmd.Flags().Visit(func(f *pflag.Flag) {\n\t\t\t\t\tif apiName, ok := flagMap[f.Name]; ok {\n\t\t\t\t\t\tparams.Set(apiName, f.Value.String())\n\t\t\t\t\t} else {\n\t\t\t\t\t\tparams.Set(f.Name, f.Value.String())\n\t\t\t\t\t}\n\t\t\t\t})\n")
-		} else {
-			sb.WriteString("\t\t\t\tcmd.Flags().Visit(func(f *pflag.Flag) {\n\t\t\t\t\tparams.Set(f.Name, f.Value.String())\n\t\t\t\t})\n")
-		}
-
-		for i, name := range pathParamNames {
-			fmt.Fprintf(&sb, "\t\t\t\tif len(args) > %d {\n\t\t\t\t\tparams.Set(%q, args[%d])\n\t\t\t\t}\n", i, name, i)
-		}
-
-		if ep.HasBody {
-			fmt.Fprintf(&sb, "\t\t\t\tresult, err := client.%s(cmd.Context(), params, os.Stdin)\n", ep.FuncName)
-		} else {
-			fmt.Fprintf(&sb, "\t\t\t\tresult, err := client.%s(cmd.Context(), params)\n", ep.FuncName)
-		}
-
-		sb.WriteString("\t\t\t\tif err != nil {\n\t\t\t\t\treturn err\n\t\t\t\t}\n")
-		sb.WriteString("\t\t\t\treturn output.Print(cmd, result)\n")
-		sb.WriteString("\t\t\t},\n\t\t}\n")
-
-		for _, p := range queryParams {
-			desc := strings.ReplaceAll(p.Description, `"`, `\"`)
-			flagName := toKebabCase(p.Name)
-			fmt.Fprintf(&sb, "\t\tcmd.Flags().String(%q, \"\", %q)\n", flagName, desc)
-		}
-
-		sb.WriteString("\t\tserviceCmd.AddCommand(cmd)\n\t}\n\n")
+		emitCobraCommand(&sb, ep, registry)
 	}
 
 	sb.WriteString("}\n")
@@ -643,54 +579,225 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint)
 	}
 }
 
-func generateCobraUse(ep Endpoint) string {
-	// Extract the last meaningful segment as the command name
-	parts := strings.Split(ep.Path, "/")
-	var lastNonParam string
-	for i := len(parts) - 1; i >= 0; i-- {
-		if parts[i] != "" && !strings.HasPrefix(parts[i], "{") {
-			lastNonParam = parts[i]
-			break
+// emitCobraCommand writes one cobra command block constructing a typed input,
+// invoking the typed client method, and printing the typed response.
+func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
+	cobraUse := ep.CobraUse
+	summary := strings.ReplaceAll(ep.Summary, `"`, `\"`)
+
+	pathNames := extractPathParamNames(ep.Path)
+	pathLookup := map[string]Parameter{}
+	for _, p := range ep.Parameters {
+		if p.In == "path" {
+			pathLookup[p.Name] = p
 		}
 	}
 
-	// Determine action from HTTP method
-	action := ""
-	hasID := false
-	for _, part := range parts {
-		if strings.HasPrefix(part, "{") {
-			hasID = true
+	var queryParams []Parameter
+	for _, p := range ep.Parameters {
+		if p.In == "query" {
+			if _, scope := requestScopeParams[p.Name]; scope {
+				continue
+			}
+			queryParams = append(queryParams, p)
+		}
+	}
+	sort.Slice(queryParams, func(i, j int) bool { return queryParams[i].Name < queryParams[j].Name })
+
+	sb.WriteString("\t{\n")
+	useStr := cobraUse
+	for _, name := range pathNames {
+		useStr += " <" + name + ">"
+	}
+	fmt.Fprintf(sb, "\t\tcmd := &cobra.Command{\n\t\t\tUse:   %q,\n\t\t\tShort: %q,\n", useStr, summary)
+	if len(pathNames) > 0 {
+		fmt.Fprintf(sb, "\t\t\tArgs:  cobra.ExactArgs(%d),\n", len(pathNames))
+	}
+	sb.WriteString("\t\t\tRunE: func(cmd *cobra.Command, args []string) error {\n")
+	sb.WriteString("\t\t\t\tclient := getClient()\n")
+	fmt.Fprintf(sb, "\t\t\t\tin := api.%s{}\n", inputStructName(ep))
+
+	// Body from stdin (before path/query overrides so the latter win).
+	if ep.HasBody && ep.BodySchema != "" {
+		sb.WriteString("\t\t\t\tif stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {\n")
+		sb.WriteString("\t\t\t\t\tdec := json.NewDecoder(os.Stdin)\n")
+		sb.WriteString("\t\t\t\t\tif err := dec.Decode(&in); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(\"decode body from stdin: %w\", err)\n\t\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\t}\n")
+	}
+
+	// Path params from positional args.
+	for i, name := range pathNames {
+		p := pathLookup[name]
+		f := fieldName(name)
+		switch pathParamGoType(p) {
+		case "int64":
+			fmt.Fprintf(sb, "\t\t\t\tif v, err := strconv.ParseInt(args[%d], 10, 64); err != nil {\n\t\t\t\t\treturn fmt.Errorf(%q+\": %%w\", err)\n\t\t\t\t} else {\n\t\t\t\t\tin.%s = v\n\t\t\t\t}\n", i, name, f)
+		case "int":
+			fmt.Fprintf(sb, "\t\t\t\tif v, err := strconv.Atoi(args[%d]); err != nil {\n\t\t\t\t\treturn fmt.Errorf(%q+\": %%w\", err)\n\t\t\t\t} else {\n\t\t\t\t\tin.%s = v\n\t\t\t\t}\n", i, name, f)
+		default:
+			fmt.Fprintf(sb, "\t\t\t\tin.%s = args[%d]\n", f, i)
 		}
 	}
 
+	// Query params from flags.
+	for _, p := range queryParams {
+		emitFlagToInput(sb, p, r)
+	}
+
+	if ep.OutputSchema != "" {
+		fmt.Fprintf(sb, "\t\t\t\tout, err := client.%s(cmd.Context(), in)\n", ep.FuncName)
+		sb.WriteString("\t\t\t\tif err != nil {\n\t\t\t\t\treturn err\n\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\tdata, err := json.Marshal(out)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn err\n\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\treturn output.Print(cmd, data)\n")
+	} else {
+		fmt.Fprintf(sb, "\t\t\t\tdata, err := client.%s(cmd.Context(), in)\n", ep.FuncName)
+		sb.WriteString("\t\t\t\tif err != nil {\n\t\t\t\t\treturn err\n\t\t\t\t}\n")
+		sb.WriteString("\t\t\t\treturn output.Print(cmd, data)\n")
+	}
+	sb.WriteString("\t\t\t},\n\t\t}\n")
+
+	// Flag declarations.
+	for _, p := range queryParams {
+		desc := strings.ReplaceAll(p.Description, `"`, `\"`)
+		flagName := toKebabCase(p.Name)
+		fmt.Fprintf(sb, "\t\tcmd.Flags().String(%q, \"\", %q)\n", flagName, desc)
+	}
+
+	sb.WriteString("\t\tserviceCmd.AddCommand(cmd)\n\t}\n\n")
+}
+
+// emitFlagToInput writes the code that copies one flag value into the typed
+// input struct, with type conversion. Errors during conversion abort the
+// command with a clear message.
+func emitFlagToInput(sb *strings.Builder, p Parameter, r *modelRegistry) {
+	f := fieldName(p.Name)
+	flagName := toKebabCase(p.Name)
+	typ := r.queryParamGoType(p, "models.")
+
+	switch {
+	case strings.HasPrefix(typ, "[]"):
+		// Slice flags arrive as a single comma-separated string for now (CLI
+		// commands historically pass a single value); split on comma.
+		inner := strings.TrimPrefix(typ, "[]")
+		switch inner {
+		case "int64":
+			fmt.Fprintf(sb, "\t\t\t\tif v, _ := cmd.Flags().GetString(%q); v != \"\" {\n\t\t\t\t\tfor _, s := range strings.Split(v, \",\") {\n\t\t\t\t\t\tif n, err := strconv.ParseInt(s, 10, 64); err == nil {\n\t\t\t\t\t\t\tin.%s = append(in.%s, n)\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n", flagName, f, f)
+		default:
+			fmt.Fprintf(sb, "\t\t\t\tif v, _ := cmd.Flags().GetString(%q); v != \"\" {\n\t\t\t\t\tfor _, s := range strings.Split(v, \",\") {\n\t\t\t\t\t\tin.%s = append(in.%s, %s(s))\n\t\t\t\t\t}\n\t\t\t\t}\n", flagName, f, f, inner)
+		}
+	case typ == "int64":
+		fmt.Fprintf(sb, "\t\t\t\tif v, _ := cmd.Flags().GetString(%q); v != \"\" {\n\t\t\t\t\tif n, err := strconv.ParseInt(v, 10, 64); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(%q+\": %%w\", err)\n\t\t\t\t\t} else {\n\t\t\t\t\t\tx := n\n\t\t\t\t\t\tin.%s = &x\n\t\t\t\t\t}\n\t\t\t\t}\n", flagName, p.Name, f)
+	case typ == "int" || typ == "int32":
+		fmt.Fprintf(sb, "\t\t\t\tif v, _ := cmd.Flags().GetString(%q); v != \"\" {\n\t\t\t\t\tif n, err := strconv.Atoi(v); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(%q+\": %%w\", err)\n\t\t\t\t\t} else {\n\t\t\t\t\t\tx := %s(n)\n\t\t\t\t\t\tin.%s = &x\n\t\t\t\t\t}\n\t\t\t\t}\n", flagName, p.Name, typ, f)
+	case typ == "bool":
+		fmt.Fprintf(sb, "\t\t\t\tif v, _ := cmd.Flags().GetString(%q); v != \"\" {\n\t\t\t\t\tb := v == \"true\"\n\t\t\t\t\tin.%s = &b\n\t\t\t\t}\n", flagName, f)
+	case typ == "float64":
+		fmt.Fprintf(sb, "\t\t\t\tif v, _ := cmd.Flags().GetString(%q); v != \"\" {\n\t\t\t\t\tif n, err := strconv.ParseFloat(v, 64); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf(%q+\": %%w\", err)\n\t\t\t\t\t} else {\n\t\t\t\t\t\tx := n\n\t\t\t\t\t\tin.%s = &x\n\t\t\t\t\t}\n\t\t\t\t}\n", flagName, p.Name, f)
+	default:
+		// String (incl. typed-string enums). The field is *T (optional), so
+		// dereference is needed; use a temp.
+		fmt.Fprintf(sb, "\t\t\t\tif v, _ := cmd.Flags().GetString(%q); v != \"\" {\n\t\t\t\t\tx := %s(v)\n\t\t\t\t\tin.%s = &x\n\t\t\t\t}\n", flagName, typ, f)
+	}
+}
+
+// pathSegments returns the non-empty, non-parameter segments of a path.
+func pathSegments(path string) []string {
+	var segs []string
+	for _, part := range strings.Split(path, "/") {
+		if part == "" || strings.HasPrefix(part, "{") {
+			continue
+		}
+		segs = append(segs, part)
+	}
+	return segs
+}
+
+// cobraAction maps an HTTP method (and whether the path has a path parameter) to
+// the verb prefix used in command names.
+func cobraAction(ep Endpoint) string {
+	hasID := len(extractPathParamNames(ep.Path)) > 0
 	switch ep.Method {
 	case "GET":
 		if hasID {
-			action = "get"
-		} else {
-			action = "list"
+			return "get"
 		}
+		return "list"
 	case "POST":
-		action = "create"
+		return "create"
 	case "PUT":
-		action = "update"
+		return "update"
 	case "PATCH":
-		action = "patch"
+		return "patch"
 	case "DELETE":
-		action = "delete"
+		return "delete"
 	}
+	return ""
+}
 
-	if lastNonParam == "" {
+// generateCobraUse builds the short command name from the action and the last
+// meaningful path segment (e.g. GET /sast/findings -> "list-findings"). It can
+// collide across endpoints that differ only by an intermediate segment
+// (e.g. /dast/pentest/scans and /dast/bughunt/scans both -> "list-scans");
+// assignCobraUses disambiguates those.
+func generateCobraUse(ep Endpoint) string {
+	segs := pathSegments(ep.Path)
+	action := cobraAction(ep)
+	if len(segs) == 0 {
 		return action
 	}
-
-	name := fmt.Sprintf("%s-%s", action, lastNonParam)
-
-	// When hasID is true and method is POST, append "-by-id" to avoid collisions
-	// with batch endpoints (e.g., POST /findings/allowlist vs POST /findings/{id}/allowlist)
-	if hasID && ep.Method == "POST" {
+	name := fmt.Sprintf("%s-%s", action, segs[len(segs)-1])
+	// When the path has a parameter and method is POST, append "-by-id" to avoid
+	// collisions with batch endpoints (e.g. POST /findings/allowlist vs
+	// POST /findings/{id}/allowlist).
+	if len(extractPathParamNames(ep.Path)) > 0 && ep.Method == "POST" {
 		name += "-by-id"
 	}
-
 	return name
+}
+
+// disambiguatedUse builds a fully-qualified command name from every non-service
+// path segment, used when the short name collides with another endpoint in the
+// same service (e.g. /dast/pentest/scans -> "list-pentest-scans").
+func disambiguatedUse(ep Endpoint) string {
+	segs := pathSegments(ep.Path)
+	// Drop the leading service segment; the service is already the cobra parent.
+	if len(segs) > 1 {
+		segs = segs[1:]
+	}
+	action := cobraAction(ep)
+	name := action + "-" + strings.Join(segs, "-")
+	if len(extractPathParamNames(ep.Path)) > 0 && ep.Method == "POST" {
+		name += "-by-id"
+	}
+	return name
+}
+
+// assignCobraUses sets a unique CobraUse on every endpoint within each service.
+// Non-colliding endpoints keep the short name; colliding ones are expanded to
+// include their distinguishing path segments, and any residual duplicates get a
+// numeric suffix as a last resort. This guarantees no two commands under one
+// service parent share a Use (which would silently shadow each other in cobra).
+func assignCobraUses(grouped map[string][]Endpoint) {
+	for _, endpoints := range grouped {
+		base := make([]string, len(endpoints))
+		counts := map[string]int{}
+		for i := range endpoints {
+			base[i] = generateCobraUse(endpoints[i])
+			counts[base[i]]++
+		}
+		seen := map[string]int{}
+		for i := range endpoints {
+			use := base[i]
+			if counts[use] > 1 {
+				use = disambiguatedUse(endpoints[i])
+			}
+			if n := seen[use]; n > 0 {
+				seen[use] = n + 1
+				use = fmt.Sprintf("%s-%d", use, n+1)
+			} else {
+				seen[use] = 1
+			}
+			endpoints[i].CobraUse = use
+		}
+	}
 }
