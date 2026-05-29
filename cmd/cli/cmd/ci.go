@@ -12,6 +12,7 @@ import (
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/logger"
+	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -100,7 +101,6 @@ Exit codes:
 
 		var totalFindings int64
 		var apiErrors int64
-		totalRequests := int64(len(endpoints) * len(severities))
 		var mu sync.Mutex
 		g, gctx := errgroup.WithContext(ctx)
 
@@ -123,7 +123,10 @@ Exit codes:
 						return nil
 					}
 
-					count := countFindings(body)
+					// limit=1 keeps the payload small; the accurate count
+					// comes from the response's "total" field, not the
+					// truncated items array.
+					count := totalFindingsCount(body)
 					if count > 0 {
 						atomic.AddInt64(&totalFindings, int64(count))
 						mu.Lock()
@@ -137,8 +140,10 @@ Exit codes:
 
 		_ = g.Wait()
 
-		if apiErrors > 0 && apiErrors == totalRequests {
-			fmt.Fprintf(os.Stderr, "Error: all API requests failed, cannot determine gate status\n")
+		// Fail-closed: any scanner request error means we cannot prove the
+		// gate is clean, so treat it as a failure rather than passing.
+		if apiErrors > 0 {
+			fmt.Fprintf(os.Stderr, "Error: %d scanner request(s) failed; failing the gate (cannot confirm a clean result)\n", apiErrors)
 			os.Exit(ExitNetworkError)
 		}
 
@@ -153,10 +158,13 @@ Exit codes:
 
 var ciReportCmd = &cobra.Command{
 	Use:   "report",
-	Short: "Generate a markdown summary for PR comments",
-	Long:  "Output a markdown summary of security findings suitable for PR comments. Shows counts by type and severity.",
+	Short: "Generate a findings report (markdown or SARIF)",
+	Long: `Output a report of security findings. The default markdown format produces a
+summary table suitable for PR comments (counts by type and severity). The sarif
+format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 	Example: `  nullify ci report
-  nullify ci report --repo my-org/my-repo`,
+  nullify ci report --repo my-org/my-repo
+  nullify ci report --format sarif > nullify.sarif`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
@@ -187,6 +195,14 @@ var ciReportCmd = &cobra.Command{
 			repo = lib.DetectRepoFromGit()
 		}
 
+		format, _ := cmd.Flags().GetString("format")
+		switch format {
+		case "markdown", "sarif":
+		default:
+			fmt.Fprintf(os.Stderr, "Error: invalid --format %q. Valid values: markdown, sarif\n", format)
+			os.Exit(1)
+		}
+
 		endpoints := allScannerEndpoints()
 		severities := []string{"critical", "high", "medium", "low"}
 
@@ -194,6 +210,7 @@ var ciReportCmd = &cobra.Command{
 			scanner  string
 			severity string
 			count    int
+			findings []json.RawMessage
 		}
 
 		rows := make([]reportRow, len(endpoints)*len(severities))
@@ -225,7 +242,8 @@ var ciReportCmd = &cobra.Command{
 					rows[i*len(severities)+j] = reportRow{
 						scanner:  ep.name,
 						severity: sev,
-						count:    countFindings(body),
+						count:    totalFindingsCount(body),
+						findings: extractFindings(body),
 					}
 					return nil
 				})
@@ -240,6 +258,21 @@ var ciReportCmd = &cobra.Command{
 		}
 		if apiErrors > 0 {
 			fmt.Fprintf(os.Stderr, "Warning: %d API requests failed while generating the report\n", apiErrors)
+		}
+
+		if format == "sarif" {
+			all := make([]json.RawMessage, 0)
+			for _, row := range rows {
+				all = append(all, row.findings...)
+			}
+			wrapped, _ := json.Marshal(map[string]any{"findings": all, "total": len(all)})
+			sarifBytes, err := output.SARIFBytes(wrapped)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: failed to build SARIF report: %v\n", err)
+				os.Exit(ExitNetworkError)
+			}
+			fmt.Println(string(sarifBytes))
+			return
 		}
 
 		fmt.Println("## Nullify Security Report")
@@ -268,6 +301,7 @@ func init() {
 	ciGateCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
 
 	ciReportCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
+	ciReportCmd.Flags().String("format", "markdown", "Report format (markdown, sarif)")
 }
 
 func severitiesAboveThreshold(threshold string) []string {
@@ -301,4 +335,57 @@ func countFindings(body string) int {
 	}
 
 	return 0
+}
+
+// totalFindingsCount extracts an accurate finding count from an API response.
+// It prefers the response's "total" field (which reflects the full result set
+// regardless of the request's limit) over the length of the truncated items
+// array. Falls back to array/items length when no total is present.
+func totalFindingsCount(body string) int {
+	var result any
+	if err := json.Unmarshal([]byte(body), &result); err != nil {
+		return 0
+	}
+
+	switch v := result.(type) {
+	case []any:
+		return len(v)
+	case map[string]any:
+		if total, ok := v["total"].(float64); ok {
+			return int(total)
+		}
+		if items, ok := v["items"].([]any); ok {
+			return len(items)
+		}
+		if findings, ok := v["findings"].([]any); ok {
+			return len(findings)
+		}
+	}
+
+	return 0
+}
+
+// extractFindings pulls the finding objects out of an API response body so they
+// can be rendered (e.g. as SARIF). It understands a top-level array as well as
+// the common {findings:[...]} and {items:[...]} envelopes.
+func extractFindings(body string) []json.RawMessage {
+	var arr []json.RawMessage
+	if err := json.Unmarshal([]byte(body), &arr); err == nil {
+		return arr
+	}
+
+	var obj struct {
+		Findings []json.RawMessage `json:"findings"`
+		Items    []json.RawMessage `json:"items"`
+	}
+	if err := json.Unmarshal([]byte(body), &obj); err == nil {
+		if obj.Findings != nil {
+			return obj.Findings
+		}
+		if obj.Items != nil {
+			return obj.Items
+		}
+	}
+
+	return nil
 }
