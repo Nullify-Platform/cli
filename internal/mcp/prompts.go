@@ -134,7 +134,7 @@ func registerPrompts(s *server.MCPServer) {
 			return promptResult(
 				"Repository investigation",
 				"Investigate the security posture of the "+repo+" repository. "+
-					"Call nullify_search_findings for each finding type (sast, sca_dependency, sca_container, secrets, pentest, bughunt, cspm) with repository="+repo+". "+
+					"Call nullify_search_findings for each finding type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm) with repository="+repo+". "+
 					"Summarize the findings by type and severity, identify the most critical issues, and recommend a prioritized remediation plan.",
 			), nil
 		},
@@ -190,7 +190,7 @@ func registerPrompts(s *server.MCPServer) {
 			return promptResult(
 				"Fix critical findings",
 				"Search for all critical severity findings using nullify_search_findings with severity=critical. "+
-					"For each finding that supports autofix (sast and sca_dependency types), call nullify_fix_finding to generate a fix and create a PR. "+
+					"For each finding that supports autofix (e.g. sast, sca_dependencies), call nullify_fix_finding to generate a fix. "+
 					"Report the results: which findings were fixed, which PRs were created, and which findings need manual attention.",
 			), nil
 		},

@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/url"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/spf13/cobra"
@@ -55,22 +53,9 @@ func ApplyContextCommandDefaults(parent *cobra.Command, getClient func() *api.Cl
 // (repository, project) by reading the SBOM key tree. The tree stores commits
 // in ascending order (oldest first), so the newest is the last element.
 func latestCommitForProject(cmd *cobra.Command, client *api.Client, repoID, projectID string) (string, error) {
-	raw, err := client.ListContextSbomsTree(cmd.Context(), url.Values{})
+	tree, err := client.ListContextSbomsTree(cmd.Context(), api.ListContextSbomsTreeInput{})
 	if err != nil {
 		return "", fmt.Errorf("list sbom tree: %w", err)
-	}
-
-	var tree struct {
-		Repositories []struct {
-			RepositoryID string `json:"repositoryId"`
-			Projects     []struct {
-				ProjectID string   `json:"projectId"`
-				Commits   []string `json:"commits"`
-			} `json:"projects"`
-		} `json:"repositories"`
-	}
-	if err := json.Unmarshal(raw, &tree); err != nil {
-		return "", fmt.Errorf("decode sbom tree: %w", err)
 	}
 
 	for _, r := range tree.Repositories {

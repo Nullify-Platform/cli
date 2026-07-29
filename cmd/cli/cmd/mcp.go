@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/logger"
@@ -54,16 +55,24 @@ var mcpServeCmd = &cobra.Command{
 			return fmt.Errorf("invalid --tools value %q. Valid values: %s", toolsFlag, strings.Join(validSets, ", "))
 		}
 
-		// Create a refreshing client for long-running MCP sessions
+		// Drive the generated API client through a refreshing+retrying transport
+		// so long-running MCP sessions keep working as the token rotates. Tenant
+		// scoping (owner/installation IDs, --repo) rides along as default params.
 		tokenProvider := func() (string, error) {
 			return lib.GetNullifyToken(ctx, authCtx.Host, nullifyToken, githubToken)
 		}
-		nullifyClient, clientErr := client.NewRefreshingNullifyClient(authCtx.Host, tokenProvider)
+		httpClient, clientErr := client.NewRefreshingHTTPClient(authCtx.Host, tokenProvider)
 		if clientErr != nil {
 			return fmt.Errorf("failed to create client: %w", clientErr)
 		}
+		// Empty token literal is intentional: the refreshing transport's
+		// RoundTrip injects (and rotates) the Authorization header after
+		// api.Client.do sets it, so the static value in api.Client is
+		// overridden on every request.
+		apiClient := api.NewClient(authCtx.Host, "", queryParams, api.WithHTTPClient(httpClient))
 
-		if err := mcp.ServeWithClient(ctx, nullifyClient, queryParams, toolSet); err != nil {
+		err = mcp.ServeWithClient(ctx, apiClient, toolSet)
+		if err != nil {
 			return fmt.Errorf("MCP server error: %w", err)
 		}
 		return nil

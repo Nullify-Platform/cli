@@ -3,9 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
-	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/auth"
@@ -59,7 +57,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&host, "host", "", "The base URL of your Nullify API instance (e.g., acme.nullify.ai)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug logging")
-	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (json, table, yaml)")
+	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (json, table, yaml, sarif)")
 	rootCmd.PersistentFlags().StringVar(&nullifyToken, "nullify-token", "", "Nullify API token")
 	rootCmd.PersistentFlags().StringVar(&githubToken, "github-token", "", "GitHub actions job token to exchange for a Nullify API token")
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Suppress informational output")
@@ -89,11 +87,9 @@ func init() {
 			}
 		}
 
-		retryHTTPClient := &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: client.NewRetryTransport(http.DefaultTransport),
-		}
-		return api.NewClient(nullifyHost, token, defaultParams, api.WithHTTPClient(retryHTTPClient))
+		// api.NewClient defaults to a retrying HTTP client, so no
+		// WithHTTPClient override is needed here.
+		return api.NewClient(nullifyHost, token, defaultParams)
 	}
 
 	// Register generated API commands under 'api' parent for cleaner top-level help
@@ -113,6 +109,11 @@ func init() {
 	commands.RegisterOrchestratorCommands(apiCmd, getAPIClient)
 	commands.RegisterAssetGraphCommands(apiCmd, getAPIClient)
 	commands.RegisterInfrastructureCommands(apiCmd, getAPIClient)
+
+	// Hand-written workflow — not generated from OpenAPI. Routes through
+	// scpm's /scpm/dependencies/analyze. Wired at top level (not under
+	// apiCmd) so `nullify deps analyze` reads naturally in CI scripts.
+	commands.RegisterDepsAnalyzeCommand(rootCmd, getAPIClient)
 }
 
 func setupLogger(ctx context.Context) context.Context {

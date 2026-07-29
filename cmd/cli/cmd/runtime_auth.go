@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
@@ -30,6 +31,10 @@ type commandAuthContext struct {
 // Client builds a NullifyClient for the resolved host and token.
 func (c *commandAuthContext) Client() *client.NullifyClient {
 	return client.NewNullifyClient(c.Host, c.Token)
+}
+
+func (c *commandAuthContext) APIClient() *api.Client {
+	return api.NewClient(c.Host, c.Token, c.QueryParams)
 }
 
 func resolveCommandAuth(ctx context.Context) (*commandAuthContext, error) {

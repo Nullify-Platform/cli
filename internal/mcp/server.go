@@ -6,23 +6,20 @@ import (
 	"io"
 	"os"
 
-	"github.com/nullify-platform/cli/internal/client"
-	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/logger"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func Serve(ctx context.Context, host string, token string, queryParams map[string]string, toolSet ToolSet) error {
-	return ServeWithClient(ctx, client.NewNullifyClient(host, token), queryParams, toolSet)
+// ServeWithClient runs the MCP server over stdio, driving the generated
+// api.Client. Tenant/owner scoping travels in the client's default query params.
+func ServeWithClient(ctx context.Context, apiClient *api.Client, toolSet ToolSet) error {
+	return serveWithClientIO(ctx, apiClient, toolSet, os.Stdin, os.Stdout)
 }
 
-func ServeWithClient(ctx context.Context, nullifyClient *client.NullifyClient, queryParams map[string]string, toolSet ToolSet) error {
-	return serveWithClientIO(ctx, nullifyClient, queryParams, toolSet, os.Stdin, os.Stdout)
-}
-
-func serveWithClientIO(ctx context.Context, nullifyClient *client.NullifyClient, queryParams map[string]string, toolSet ToolSet, stdin io.Reader, stdout io.Writer) error {
+func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolSet, stdin io.Reader, stdout io.Writer) error {
 	s := server.NewMCPServer(
 		"Nullify",
 		logger.Version,
@@ -31,8 +28,8 @@ func serveWithClientIO(ctx context.Context, nullifyClient *client.NullifyClient,
 		server.WithPromptCapabilities(true),
 	)
 
-	registerTools(s, nullifyClient, queryParams, toolSet)
-	registerResources(s, nullifyClient, queryParams)
+	registerTools(s, apiClient, toolSet)
+	registerResources(s, apiClient)
 	registerPrompts(s)
 
 	logger.L(ctx).Debug("starting MCP server over stdio", logger.String("toolSet", string(toolSet)))
@@ -41,50 +38,42 @@ func serveWithClientIO(ctx context.Context, nullifyClient *client.NullifyClient,
 	return stdioServer.Listen(ctx, stdin, stdout)
 }
 
-func registerTools(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string, toolSet ToolSet) {
+// registerTools selects which tools to expose. The default set is deliberately
+// lean (the core find→investigate→scan→threat→remediate workflow) to keep the
+// toolset small enough for reliable LLM selection; broader sets are opt-in.
+func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
 	switch toolSet {
 	case ToolSetMinimal:
-		// Composites only (5 tools)
-		registerCompositeTools(s, c, queryParams)
+		registerCompositeTools(s, c)
 
 	case ToolSetFindings:
-		// Unified + composites
-		registerUnifiedTools(s, c, queryParams)
-		registerCompositeTools(s, c, queryParams)
+		registerUnifiedTools(s, c)
+		registerCompositeTools(s, c)
 
 	case ToolSetAdmin:
-		// Admin + context + manager + composites
-		registerAdminTools(s, c, queryParams)
-		registerContextTools(s, c, queryParams)
-		registerManagerTools(s, c, queryParams)
-		registerCompositeTools(s, c, queryParams)
+		registerAdminTools(s, c)
+		registerContextTools(s, c)
+		registerManagerTools(s, c)
+		registerCompositeTools(s, c)
 
 	case ToolSetAll:
-		// Everything including all scanner-specific + unified
-		registerSASTTools(s, c, queryParams)
-		registerSCATools(s, c, queryParams)
-		registerSecretsTools(s, c, queryParams)
-		registerPentestTools(s, c, queryParams)
-		registerBughuntTools(s, c, queryParams)
-		registerCSPMTools(s, c, queryParams)
-		registerAdminTools(s, c, queryParams)
-		registerContextTools(s, c, queryParams)
-		registerManagerTools(s, c, queryParams)
-		registerCompositeTools(s, c, queryParams)
-		registerUnifiedTools(s, c, queryParams)
+		registerUnifiedTools(s, c)
+		registerCompositeTools(s, c)
+		registerContextTools(s, c)
+		registerManagerTools(s, c)
+		registerAdminTools(s, c)
+		registerScanTools(s, c)
+		registerThreatTools(s, c)
+		registerCSPMTools(s, c)
+		registerPentestTools(s, c)
 
-	default: // ToolSetDefault
-		// Unified + composites + context + manager
-		registerUnifiedTools(s, c, queryParams)
-		registerCompositeTools(s, c, queryParams)
-		registerContextTools(s, c, queryParams)
-		registerManagerTools(s, c, queryParams)
-		registerAdminTools(s, c, queryParams)
+	default: // ToolSetDefault — lean
+		registerUnifiedTools(s, c)
+		registerCompositeTools(s, c)
+		registerContextTools(s, c)
+		registerScanTools(s, c)
+		registerThreatTools(s, c)
 	}
-}
-
-func buildQueryString(queryParams map[string]string, extra ...string) string {
-	return lib.BuildQueryString(queryParams, extra...)
 }
 
 func getStringArg(args map[string]any, key string) string {
@@ -114,19 +103,26 @@ func getIntArg(args map[string]any, key string, defaultVal int) int {
 	}
 }
 
+func getFloatArg(args map[string]any, key string) float64 {
+	switch n := args[key].(type) {
+	case float64:
+		return n
+	case int:
+		return float64(n)
+	default:
+		return 0
+	}
+}
+
 func toolError(err error) *mcp.CallToolResult {
 	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
-		},
+		Content: []mcp.Content{mcp.NewTextContent(fmt.Sprintf("Error: %v", err))},
 		IsError: true,
 	}
 }
 
 func toolResult(data string) *mcp.CallToolResult {
 	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.NewTextContent(data),
-		},
+		Content: []mcp.Content{mcp.NewTextContent(data)},
 	}
 }

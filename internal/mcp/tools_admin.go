@@ -2,31 +2,44 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
-	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/api/models"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func metricsOverviewBody() map[string]any {
-	return map[string]any{
-		"query": map[string]any{
-			"sort": []any{
-				map[string]any{
-					"isFalsePositive": map[string]any{
-						"order":   "asc",
-						"missing": 0,
-					},
-				},
-			},
-			"isArchived": false,
+// boolPtr is shared with the other tool files; defined here once.
+func boolPtr(b bool) *bool { return &b }
+
+// metricsSort matches the historical sort the legacy MCP tools used: surface
+// non-false-positive findings first (missing=0 sorts nulls last). The
+// generated query type has Sort []map[string]map[string]json.RawMessage; we
+// build the equivalent payload by encoding the small sub-objects.
+func metricsSort() []map[string]map[string]json.RawMessage {
+	order, _ := json.Marshal("asc")
+	missing, _ := json.Marshal(0)
+	return []map[string]map[string]json.RawMessage{
+		{"isFalsePositive": {"order": order, "missing": missing}},
+	}
+}
+
+// metricsOverviewInput builds the typed input for CreateAdminMetricsOverview.
+func metricsOverviewInput() api.CreateAdminMetricsOverviewInput {
+	return api.CreateAdminMetricsOverviewInput{
+		Query: models.ModelsUnifiedFindingsQuery{
+			Sort:       metricsSort(),
+			IsArchived: boolPtr(false),
 		},
 	}
 }
 
-func metricsOverTimeBody(period string) map[string]any {
+// metricsOverTimeInput builds the typed input for CreateAdminMetricsOverTime
+// covering the requested rolling window.
+func metricsOverTimeInput(period string) api.CreateAdminMetricsOverTimeInput {
 	now := time.Now().UTC()
 	var from time.Time
 	switch period {
@@ -39,82 +52,96 @@ func metricsOverTimeBody(period string) map[string]any {
 	default: // 30d
 		from = now.AddDate(0, 0, -30)
 	}
-	return map[string]any{
-		"query": map[string]any{
-			"sort": []any{
-				map[string]any{
-					"isFalsePositive": map[string]any{
-						"order":   "asc",
-						"missing": 0,
-					},
-				},
-			},
-			"isArchived": false,
-			"fromDate":   from.Format(time.RFC3339),
-			"toDate":     now.Format(time.RFC3339),
+	fromStr := from.Format(time.RFC3339)
+	toStr := now.Format(time.RFC3339)
+	return api.CreateAdminMetricsOverTimeInput{
+		Query: models.ModelsUnifiedFindingsQuery{
+			Sort:       metricsSort(),
+			IsArchived: boolPtr(false),
+			FromDate:   &fromStr,
+			ToDate:     &toStr,
 		},
 	}
 }
 
-func registerAdminTools(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string) {
+func registerAdminTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool(
-			"get_metrics_overview",
-			mcp.WithDescription("Get a high-level security posture overview with counts of findings by severity and type. Use this to understand the overall security state."),
+		mcp.NewTool("get_metrics_overview",
+			mcp.WithDescription("Get a high-level security posture overview: counts of findings by severity and type."),
 		),
-		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			qs := buildQueryString(queryParams)
-			return doPost(ctx, c, "/admin/metrics/overview"+qs, metricsOverviewBody())
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			out, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput())
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, _ := json.Marshal(out)
+			return toolResult(string(b)), nil
 		},
 	)
 
 	s.AddTool(
-		mcp.NewTool(
-			"get_metrics_over_time",
-			mcp.WithDescription("Get security metrics trends over time. Shows how the number of findings has changed, useful for tracking security posture improvements."),
+		mcp.NewTool("get_metrics_over_time",
+			mcp.WithDescription("Get security metrics trends over time."),
 			mcp.WithString("period", mcp.Description("Time period"), mcp.Enum("7d", "30d", "90d", "365d")),
 		),
-		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			args := request.GetArguments()
-			period := getStringArg(args, "period")
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			period := getStringArg(req.GetArguments(), "period")
 			if period == "" {
 				period = "30d"
 			}
-			qs := buildQueryString(queryParams)
-			return doPost(ctx, c, "/admin/metrics/over-time"+qs, metricsOverTimeBody(period))
+			out, err := c.CreateAdminMetricsOverTime(ctx, metricsOverTimeInput(period))
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, _ := json.Marshal(out)
+			return toolResult(string(b)), nil
 		},
 	)
 
 	s.AddTool(
-		mcp.NewTool(
-			"get_global_config",
-			mcp.WithDescription("Get the organization's global Nullify configuration, including scanning settings and integration configuration."),
+		mcp.NewTool("list_teams",
+			mcp.WithDescription("List teams in the organization (used for assigning findings and access)."),
+			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
-		makeGetHandler(c, "/admin/globalConfig", queryParams),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			in := api.ListAdminTeamsInput{}
+			if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
+				in.Limit = &n
+			}
+			out, err := c.ListAdminTeams(ctx, in)
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, _ := json.Marshal(out)
+			return toolResult(string(b)), nil
+		},
 	)
 
 	s.AddTool(
-		mcp.NewTool(
-			"list_teams",
-			mcp.WithDescription("List teams in the organization. Teams are used for assigning findings and managing access."),
-			mcp.WithNumber("limit", mcp.Description("Max results (default 20)")),
+		mcp.NewTool("list_sla_policies",
+			mcp.WithDescription("List SLA policies defining expected remediation timeframes by severity."),
 		),
-		makeGetHandler(c, "/admin/teams", queryParams),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			out, err := c.ListAdminSla(ctx, api.ListAdminSlaInput{})
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, _ := json.Marshal(out)
+			return toolResult(string(b)), nil
+		},
 	)
 
 	s.AddTool(
-		mcp.NewTool(
-			"list_sla_policies",
-			mcp.WithDescription("List SLA (Service Level Agreement) policies that define expected remediation timeframes for findings by severity."),
+		mcp.NewTool("get_organization",
+			mcp.WithDescription("Get organization details including name and plan."),
 		),
-		makeGetHandler(c, "/admin/sla", queryParams),
-	)
-
-	s.AddTool(
-		mcp.NewTool(
-			"get_organization",
-			mcp.WithDescription("Get organization details including name, plan, and configuration."),
-		),
-		makeGetHandler(c, "/admin/organization", queryParams),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			out, err := c.ListAdminOrganization(ctx, api.ListAdminOrganizationInput{})
+			if err != nil {
+				return toolError(err), nil
+			}
+			b, _ := json.Marshal(out)
+			return toolResult(string(b)), nil
+		},
 	)
 }

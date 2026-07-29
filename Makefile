@@ -52,7 +52,7 @@ fetch-spec:
 	@echo "fetched $(SPEC_LOCAL) from $(SPEC_REPO)@$(SPEC_REF)"
 
 generate-api:
-	go run ./scripts/generate/main.go --spec $(SPEC_LOCAL) --output internal/api --cmd-output internal/commands
+	go run ./scripts/generate --spec $(SPEC_LOCAL) --output internal/api --cmd-output internal/commands
 
 unit:
 	go test -v -skip TestIntegration ./...

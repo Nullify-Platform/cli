@@ -3,24 +3,14 @@ package mcp
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
-	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/api"
 
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func resourceText(result *mcplib.CallToolResult) string {
-	if result != nil && len(result.Content) > 0 {
-		if tc, ok := result.Content[0].(mcplib.TextContent); ok {
-			return tc.Text
-		}
-	}
-	return ""
-}
-
-func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams map[string]string) {
+func registerResources(s *server.MCPServer, c *api.Client) {
 	s.AddResource(
 		mcplib.Resource{
 			URI:         "nullify://posture",
@@ -29,25 +19,16 @@ func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams
 			MIMEType:    "application/json",
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
-			qs := buildQueryString(queryParams)
-			result, err := doPost(ctx, c, "/admin/metrics/overview"+qs, metricsOverviewBody())
+			out, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput())
 			if err != nil {
 				return nil, err
 			}
-
-			var text string
-			if len(result.Content) > 0 {
-				if tc, ok := result.Content[0].(mcplib.TextContent); ok {
-					text = tc.Text
-				}
+			data, err := json.Marshal(out)
+			if err != nil {
+				return nil, err
 			}
-
 			return []mcplib.ResourceContents{
-				mcplib.TextResourceContents{
-					URI:      "nullify://posture",
-					MIMEType: "application/json",
-					Text:     text,
-				},
+				mcplib.TextResourceContents{URI: "nullify://posture", MIMEType: "application/json", Text: string(data)},
 			}, nil
 		},
 	)
@@ -60,25 +41,16 @@ func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams
 			MIMEType:    "application/json",
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
-			qs := buildQueryString(queryParams)
-			result, err := doGet(ctx, c, "/context/repositories"+qs)
+			out, err := c.ListContextRepositories(ctx, api.ListContextRepositoriesInput{})
 			if err != nil {
 				return nil, err
 			}
-
-			var text string
-			if len(result.Content) > 0 {
-				if tc, ok := result.Content[0].(mcplib.TextContent); ok {
-					text = tc.Text
-				}
+			data, err := json.Marshal(out)
+			if err != nil {
+				return nil, err
 			}
-
 			return []mcplib.ResourceContents{
-				mcplib.TextResourceContents{
-					URI:      "nullify://repos",
-					MIMEType: "application/json",
-					Text:     text,
-				},
+				mcplib.TextResourceContents{URI: "nullify://repos", MIMEType: "application/json", Text: string(data)},
 			}, nil
 		},
 	)
@@ -91,66 +63,37 @@ func registerResources(s *server.MCPServer, c *client.NullifyClient, queryParams
 			MIMEType:    "application/json",
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
-			type recentResult struct {
+			type entry struct {
 				Type  string          `json:"type"`
 				Error string          `json:"error,omitempty"`
 				Data  json.RawMessage `json:"data,omitempty"`
 			}
-
-			endpoints := []struct {
+			recent := []struct {
 				name string
-				path string
+				list func(ctx context.Context, c *api.Client) (json.RawMessage, error)
 			}{
-				{"sast", "/sast/findings"},
-				{"sca_dependencies", "/sca/dependencies/findings"},
-				{"secrets", "/secrets/findings"},
+				{"sast", func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+					return marshalOut(c.ListSastFindings(ctx, api.ListSastFindingsInput{Limit: limitPtr(5)}))
+				}},
+				{"sca_dependencies", func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+					return marshalOut(c.ListScaDependenciesFindings(ctx, api.ListScaDependenciesFindingsInput{Limit: limitPtr(5)}))
+				}},
+				{"secrets", func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+					return marshalOut(c.ListSecretsFindings(ctx, api.ListSecretsFindingsInput{Limit: limitPtr(5)}))
+				}},
 			}
-
-			var results []recentResult
-			epQS := buildQueryString(queryParams, "limit", "5")
-			for _, ep := range endpoints {
-				result, err := doGet(ctx, c, ep.path+epQS)
+			var out []entry
+			for _, r := range recent {
+				data, err := r.list(ctx, c)
 				if err != nil {
-					results = append(results, recentResult{Type: ep.name, Error: err.Error()})
+					out = append(out, entry{Type: r.name, Error: err.Error()})
 					continue
 				}
-				text := resourceText(result)
-				if text != "" {
-					results = append(results, recentResult{Type: ep.name, Data: json.RawMessage(text)})
-				}
+				out = append(out, entry{Type: r.name, Data: data})
 			}
-
-			out, _ := json.MarshalIndent(results, "", "  ")
+			b, _ := json.MarshalIndent(out, "", "  ")
 			return []mcplib.ResourceContents{
-				mcplib.TextResourceContents{
-					URI:      "nullify://recent-findings",
-					MIMEType: "application/json",
-					Text:     string(out),
-				},
-			}, nil
-		},
-	)
-
-	s.AddResource(
-		mcplib.Resource{
-			URI:         "nullify://config",
-			Name:        "Global Configuration",
-			Description: "Nullify global configuration settings",
-			MIMEType:    "application/json",
-		},
-		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
-			qs := buildQueryString(queryParams)
-			result, err := doGet(ctx, c, "/admin/globalConfig"+qs)
-			if err != nil {
-				return nil, fmt.Errorf("failed to fetch config: %w", err)
-			}
-
-			return []mcplib.ResourceContents{
-				mcplib.TextResourceContents{
-					URI:      "nullify://config",
-					MIMEType: "application/json",
-					Text:     resourceText(result),
-				},
+				mcplib.TextResourceContents{URI: "nullify://recent-findings", MIMEType: "application/json", Text: string(b)},
 			}, nil
 		},
 	)

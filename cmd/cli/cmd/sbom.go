@@ -1,0 +1,71 @@
+package cmd
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/logger"
+	"github.com/nullify-platform/cli/internal/output"
+	"github.com/spf13/cobra"
+)
+
+var sbomCmd = &cobra.Command{
+	Use:   "sbom",
+	Short: "Retrieve software bill of materials (SBOM) data",
+	Long:  "Retrieve SBOM data for a repository. Returns the latest SBOM by default, or a specific project's SBOM when --project-id is provided.",
+}
+
+var sbomGetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Get the SBOM for a repository",
+	Example: "  nullify sbom get --repository-id repo-123\n" +
+		"  nullify sbom get --repository-id repo-123 --project-id proj-456",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := setupLogger(cmd.Context())
+		defer logger.Close(ctx)
+
+		repositoryID, _ := cmd.Flags().GetString("repository-id")
+		projectID, _ := cmd.Flags().GetString("project-id")
+
+		authCtx, err := resolveCommandAuth(ctx)
+		if err != nil {
+			return err
+		}
+		apiClient := authCtx.APIClient()
+
+		var result any
+		var apiErr error
+		if projectID != "" {
+			result, apiErr = apiClient.GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx, api.GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput{
+				RepositoryID: repositoryID,
+				ProjectID:    projectID,
+			})
+		} else {
+			result, apiErr = apiClient.ListContextSbomsRepositoryRepositoryIdLatest(ctx, api.ListContextSbomsRepositoryRepositoryIdLatestInput{
+				RepositoryID: repositoryID,
+			})
+		}
+		if apiErr != nil {
+			return apiErr
+		}
+
+		data, err := json.Marshal(result)
+		if err != nil {
+			return err
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(cmd.ErrOrStderr(), string(data))
+		}
+		return nil
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(sbomCmd)
+	sbomCmd.AddCommand(sbomGetCmd)
+
+	sbomGetCmd.Flags().String("repository-id", "", "Repository ID to retrieve the SBOM for")
+	sbomGetCmd.Flags().String("project-id", "", "Project ID for a specific project SBOM (latest repository SBOM if omitted)")
+	_ = sbomGetCmd.MarkFlagRequired("repository-id")
+}

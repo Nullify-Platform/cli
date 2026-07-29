@@ -3,15 +3,34 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/nullify-platform/cli/internal/apierror"
+	"github.com/nullify-platform/cli/internal/client"
 )
 
 // Version is set at build time via ldflags.
 var Version = "dev"
+
+// defaultTimeout is the request timeout used when NULLIFY_HTTP_TIMEOUT is unset
+// or invalid. 30s is too short for long-running calls (scan-start, autofix), so
+// callers can raise it via the env var (e.g. "120s").
+const defaultTimeout = 30 * time.Second
+
+// httpTimeout returns the request timeout, overridable via the
+// NULLIFY_HTTP_TIMEOUT env var (a Go duration string such as "120s").
+func httpTimeout() time.Duration {
+	if v := os.Getenv("NULLIFY_HTTP_TIMEOUT"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil && d > 0 {
+			return d
+		}
+	}
+	return defaultTimeout
+}
 
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
@@ -24,12 +43,14 @@ type Client struct {
 // ClientOption configures a Client.
 type ClientOption func(*Client)
 
-// WithHTTPClient sets a custom HTTP client on the API client.
+// WithHTTPClient sets a custom HTTP client on the API client, overriding the
+// default retrying client.
 func WithHTTPClient(hc *http.Client) ClientOption {
 	return func(c *Client) { c.HTTPClient = hc }
 }
 
-// NewClient creates a new Nullify API client.
+// NewClient creates a new Nullify API client. By default it retries on 429 and
+// 5xx responses (callers get retries without passing WithHTTPClient).
 func NewClient(host string, token string, defaultParams map[string]string, opts ...ClientOption) *Client {
 	apiHost := host
 	if !strings.HasPrefix(host, "api.") {
@@ -39,7 +60,10 @@ func NewClient(host string, token string, defaultParams map[string]string, opts 
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
-		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
+		HTTPClient: &http.Client{
+			Timeout:   httpTimeout(),
+			Transport: client.NewRetryTransport(http.DefaultTransport),
+		},
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -65,13 +89,13 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, apierror.HandleError(resp)
+	}
+
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return nil, err
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("API returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	return respBody, nil

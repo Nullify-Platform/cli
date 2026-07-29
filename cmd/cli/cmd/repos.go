@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/url"
-	"os"
 
+	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
@@ -18,15 +18,23 @@ var reposCmd = &cobra.Command{
 		ctx := setupLogger(cmd.Context())
 		defer logger.Close(ctx)
 
-		apiClient := getAPIClient()
+		authCtx, err := resolveCommandAuth(ctx)
+		if err != nil {
+			return err
+		}
+		apiClient := authCtx.APIClient()
 
-		result, err := apiClient.ListContextRepositories(ctx, url.Values{})
+		result, err := apiClient.ListContextRepositories(ctx, api.ListContextRepositoriesInput{})
 		if err != nil {
 			return err
 		}
 
-		if err := output.Print(cmd, result); err != nil {
-			fmt.Fprintln(os.Stderr, string(result))
+		data, err := json.Marshal(result)
+		if err != nil {
+			return err
+		}
+		if err := output.Print(cmd, data); err != nil {
+			fmt.Fprintln(cmd.ErrOrStderr(), string(data))
 		}
 		return nil
 	},
