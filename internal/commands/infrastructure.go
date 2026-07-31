@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterInfrastructureCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "infrastructure",
 		Short: "Infrastructure Graphs",
@@ -33,7 +33,11 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 			Use:   "list-graphs",
 			Short: "List Infrastructure Graphs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListInfrastructureGraphsInput{}
 				out, err := client.ListInfrastructureGraphs(cmd.Context(), in)
 				if err != nil {
@@ -46,6 +50,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -54,7 +59,11 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 			Use:   "list-info",
 			Short: "Get Infrastructure Graph Info",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListInfrastructureGraphsInfoInput{}
 				out, err := client.ListInfrastructureGraphsInfo(cmd.Context(), in)
 				if err != nil {
@@ -67,6 +76,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -75,7 +85,11 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 			Use:   "list-summary",
 			Short: "Get Infrastructure Graph Summary",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListInfrastructureGraphsSummaryInput{}
 				out, err := client.ListInfrastructureGraphsSummary(cmd.Context(), in)
 				if err != nil {
@@ -88,6 +102,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -97,7 +112,11 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 			Short: "Get Infrastructure Graph",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetInfrastructureGraphsAccountIdInput{}
 				in.AccountID = args[0]
 				out, err := client.GetInfrastructureGraphsAccountId(cmd.Context(), in)
@@ -111,6 +130,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -120,7 +140,11 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 			Short: "Get Infrastructure Graph Download URL",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListInfrastructureGraphsAccountIdDownloadInput{}
 				in.AccountID = args[0]
 				out, err := client.ListInfrastructureGraphsAccountIdDownload(cmd.Context(), in)
@@ -134,6 +158,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -143,7 +168,11 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 			Short: "List Infrastructure Graph Versions",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListInfrastructureGraphsAccountIdVersionsInput{}
 				in.AccountID = args[0]
 				out, err := client.ListInfrastructureGraphsAccountIdVersions(cmd.Context(), in)
@@ -157,6 +186,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -166,7 +196,11 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 			Short: "Get Infrastructure Graph Version",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListInfrastructureGraphsAccountIdVersionsVersionInput{}
 				in.AccountID = args[0]
 				in.Version = args[1]
@@ -181,6 +215,7 @@ func RegisterInfrastructureCommands(parent *cobra.Command, getClient func() *api
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 

@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "admin",
 		Short: "Administration and Metrics",
@@ -33,7 +33,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-scan-coverage",
 			Short: "Get Scan Coverage",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminAssessmentsScanCoverageInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -70,6 +74,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "Max repos per page (default 50)")
 		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
 		cmd.Flags().String("search", "", "Case-insensitive substring filter on repository name or owner")
@@ -82,7 +87,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-assessments-scan-coverage-findings",
 			Short: "Get Scan Coverage Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminAssessmentsScanCoverageFindingsInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -119,6 +128,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "Max findings per page (default 50, max 500)")
 		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
 		cmd.Flags().String("repository-id", "", "Repository ID to drill into")
@@ -131,7 +141,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-checklist",
 			Short: "Get Checklist",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminChecklistInput{}
 				out, err := client.ListAdminChecklist(cmd.Context(), in)
 				if err != nil {
@@ -144,6 +158,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -153,7 +168,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get Context Upload Credentials",
 			Long: "Request body (JSON) fields: branch (string), commitSha (string), contextType (string, required), environment (object), fromPR (integer), name (string, required), prNumber (integer), repository (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminContextIngestInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -195,6 +214,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -206,7 +226,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "List Unified Events",
 			Long: "Request body (JSON) fields: afterId (string), afterTimeUnix (integer), autofixId (string), beforeTimeUnix (integer), campaignId (string), eventTypes (array), findingIds (array), limit (integer), prCanonicalId (string), runId (string), services (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminEventsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -248,6 +272,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -259,7 +284,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetAdminFindingFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetAdminFindingFindingId(cmd.Context(), in)
@@ -273,6 +302,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -282,7 +312,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Query Findings",
 			Long: "Request body (JSON) fields: query (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminFindingsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -324,6 +358,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -335,7 +370,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Download Findings",
 			Long: "Request body (JSON) fields: query (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminFindingsDownloadInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -377,6 +416,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -387,7 +427,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-fix-effort",
 			Short: "Get Fix Effort Mapping",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminFixEffortInput{}
 				out, err := client.ListAdminFixEffort(cmd.Context(), in)
 				if err != nil {
@@ -400,6 +444,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -409,7 +454,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Put Fix Effort Mapping",
 			Long: "Request body (JSON) fields: fixEffort (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateAdminFixEffortInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -451,6 +500,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -461,7 +511,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-getFileContents",
 			Short: "Get File Contents",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminGetFileContentsInput{}
 				if v, _ := cmd.Flags().GetString("end-line"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -506,6 +560,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("end-line", "", "")
 		cmd.Flags().String("file-path", "", "")
 		cmd.Flags().String("project-id", "", "")
@@ -521,7 +576,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get File Owners",
 			Long: "Request body (JSON) fields: files (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminGetFileOwnersInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -563,6 +622,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -573,7 +633,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-getPullRequest",
 			Short: "Get PR State",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminGetPullRequestInput{}
 				if v, _ := cmd.Flags().GetString("pr-id"); v != "" {
 					x := string(v)
@@ -594,6 +658,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("pr-id", "", "")
 		cmd.Flags().String("repository-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -604,7 +669,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-installations",
 			Short: "Get App Installations",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminInstallationsInput{}
 				out, err := client.ListAdminInstallations(cmd.Context(), in)
 				if err != nil {
@@ -617,6 +686,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -625,7 +695,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-azure",
 			Short: "Get Azure Configuration",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsAzureInput{}
 				out, err := client.ListAdminIntegrationsAzure(cmd.Context(), in)
 				if err != nil {
@@ -638,6 +712,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -646,7 +721,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "create-azure",
 			Short: "Install Azure DevOps Integration",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsAzureInput{}
 				out, err := client.CreateAdminIntegrationsAzure(cmd.Context(), in)
 				if err != nil {
@@ -659,6 +738,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -668,7 +748,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Set Azure Credentials",
 			Long: "Request body (JSON) fields: clientId (string, required), clientSecret (string), tenantId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsAzureCredentialsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -710,6 +794,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -720,7 +805,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-buildkite",
 			Short: "Delete Buildkite Integration",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminIntegrationsBuildkiteInput{}
 				out, err := client.DeleteAdminIntegrationsBuildkite(cmd.Context(), in)
 				if err != nil {
@@ -733,6 +822,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -741,7 +831,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-buildkite",
 			Short: "Get Buildkite Integration Status",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsBuildkiteInput{}
 				out, err := client.ListAdminIntegrationsBuildkite(cmd.Context(), in)
 				if err != nil {
@@ -754,6 +848,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -763,7 +858,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Set Buildkite API Token",
 			Long: "Request body (JSON) fields: apiToken (string, required), orgSlug (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsBuildkiteTokenInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -805,6 +904,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -815,7 +915,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-circleci",
 			Short: "Delete CircleCI Integration",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminIntegrationsCircleciInput{}
 				out, err := client.DeleteAdminIntegrationsCircleci(cmd.Context(), in)
 				if err != nil {
@@ -828,6 +932,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -836,7 +941,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-circleci",
 			Short: "Get CircleCI Integration Status",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsCircleciInput{}
 				out, err := client.ListAdminIntegrationsCircleci(cmd.Context(), in)
 				if err != nil {
@@ -849,6 +958,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -858,7 +968,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Set CircleCI API Token",
 			Long: "Request body (JSON) fields: apiToken (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsCircleciTokenInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -900,6 +1014,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -910,7 +1025,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-integrations-cloud-aws-settings",
 			Short: "Delete Cloud AWS Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminIntegrationsCloudAwsSettingsInput{}
 				out, err := client.DeleteAdminIntegrationsCloudAwsSettings(cmd.Context(), in)
 				if err != nil {
@@ -923,6 +1042,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -931,7 +1051,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-integrations-cloud-aws-settings",
 			Short: "Get Cloud AWS Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsCloudAwsSettingsInput{}
 				out, err := client.ListAdminIntegrationsCloudAwsSettings(cmd.Context(), in)
 				if err != nil {
@@ -944,6 +1068,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -953,7 +1078,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Upsert Cloud AWS Settings",
 			Long: "Request body (JSON) fields: awsAccounts (array, required), externalId (string), iamRoleName (string, required), preferredDeployment (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsCloudAwsSettingsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -995,6 +1124,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1006,7 +1136,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Validate AWS Role",
 			Long: "Request body (JSON) fields: accountIds (array, required), onboarding (boolean), roleNameToAssume (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsCloudAwsValidateRoleInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1048,6 +1182,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1058,7 +1193,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-integrations-cloud-azure-settings",
 			Short: "Delete Cloud Azure Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminIntegrationsCloudAzureSettingsInput{}
 				out, err := client.DeleteAdminIntegrationsCloudAzureSettings(cmd.Context(), in)
 				if err != nil {
@@ -1071,6 +1210,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1079,7 +1219,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-integrations-cloud-azure-settings",
 			Short: "Get Cloud Azure Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsCloudAzureSettingsInput{}
 				out, err := client.ListAdminIntegrationsCloudAzureSettings(cmd.Context(), in)
 				if err != nil {
@@ -1092,6 +1236,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1101,7 +1246,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Upsert Cloud Azure Settings",
 			Long: "Request body (JSON) fields: clientId (string), clientSecret (string), displayName (string), subscriptions (array), tenantId (string, required), useManagedIdentity (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsCloudAzureSettingsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1143,6 +1292,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1153,7 +1303,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-integrations-cloud-gcp-settings",
 			Short: "Delete Cloud GCP Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminIntegrationsCloudGcpSettingsInput{}
 				out, err := client.DeleteAdminIntegrationsCloudGcpSettings(cmd.Context(), in)
 				if err != nil {
@@ -1166,6 +1320,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1174,7 +1329,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-integrations-cloud-gcp-settings",
 			Short: "Get Cloud GCP Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsCloudGcpSettingsInput{}
 				out, err := client.ListAdminIntegrationsCloudGcpSettings(cmd.Context(), in)
 				if err != nil {
@@ -1187,6 +1346,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1196,7 +1356,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Upsert Cloud GCP Settings",
 			Long: "Request body (JSON) fields: displayName (string), gkeClusterOidcIssuerUrls (array), gkeServiceAccountUniqueId (string), projects (array), workloadIdentityProvider (string, required), workloadIdentityServiceAccountEmail (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsCloudGcpSettingsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1238,6 +1402,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1249,7 +1414,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Validate GCP Credentials",
 			Long: "Request body (JSON) fields: projectIds (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsCloudGcpValidateInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1291,6 +1460,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1302,7 +1472,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Whitelist K8s Connector Accounts",
 			Long: "Request body (JSON) fields: accountIds (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsCloudK8sWhitelistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1344,6 +1518,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1354,7 +1529,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-app-settings",
 			Short: "Get GitHub App Settings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsGithubAppSettingsInput{}
 				out, err := client.ListAdminIntegrationsGithubAppSettings(cmd.Context(), in)
 				if err != nil {
@@ -1367,6 +1546,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1375,7 +1555,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-jenkins",
 			Short: "Delete Jenkins Integration",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminIntegrationsJenkinsInput{}
 				out, err := client.DeleteAdminIntegrationsJenkins(cmd.Context(), in)
 				if err != nil {
@@ -1388,6 +1572,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1396,7 +1581,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-jenkins",
 			Short: "Get Jenkins Integration Status",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsJenkinsInput{}
 				out, err := client.ListAdminIntegrationsJenkins(cmd.Context(), in)
 				if err != nil {
@@ -1409,6 +1598,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1418,7 +1608,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Set Jenkins API Token",
 			Long: "Request body (JSON) fields: apiToken (string, required), url (string, required), username (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsJenkinsTokenInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1460,6 +1654,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1470,7 +1665,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-jira",
 			Short: "Get Jira Configuration",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsJiraInput{}
 				out, err := client.ListAdminIntegrationsJira(cmd.Context(), in)
 				if err != nil {
@@ -1483,6 +1682,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1492,7 +1692,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Update Jira Configuration",
 			Long: "Request body (JSON) fields: autoCreate (boolean, required), issueType (string, required), projectKey (string, required), severityThreshold (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsJiraInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1534,6 +1738,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1544,7 +1749,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-integrations-linear-install",
 			Short: "Start Linear OAuth install",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsLinearInstallInput{}
 				out, err := client.ListAdminIntegrationsLinearInstall(cmd.Context(), in)
 				if err != nil {
@@ -1557,6 +1766,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1565,7 +1775,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-oauth",
 			Short: "Get Linear OAuth install status",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsLinearOauthInput{}
 				out, err := client.ListAdminIntegrationsLinearOauth(cmd.Context(), in)
 				if err != nil {
@@ -1578,6 +1792,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1586,7 +1801,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-notifications",
 			Short: "Get Notification Config",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsNotificationsInput{}
 				out, err := client.ListAdminIntegrationsNotifications(cmd.Context(), in)
 				if err != nil {
@@ -1599,6 +1818,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1608,7 +1828,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Put Notification Config",
 			Long: "Request body (JSON) fields: notifications (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateAdminIntegrationsNotificationsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1650,6 +1874,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1660,7 +1885,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-slack",
 			Short: "Get Slack Configuration",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsSlackInput{}
 				out, err := client.ListAdminIntegrationsSlack(cmd.Context(), in)
 				if err != nil {
@@ -1673,6 +1902,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1681,7 +1911,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-integrations-slack-install",
 			Short: "Start Slack distributed install",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsSlackInstallInput{}
 				out, err := client.ListAdminIntegrationsSlackInstall(cmd.Context(), in)
 				if err != nil {
@@ -1694,6 +1928,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1703,7 +1938,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Set Slack API Key",
 			Long: "Request body (JSON) fields: apiKey (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminIntegrationsSlackKeyInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1745,6 +1984,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1755,7 +1995,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-integrations-teams",
 			Short: "Get Integration Teams",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsTeamsInput{}
 				if v, _ := cmd.Flags().GetString("provider"); v != "" {
 					x := string(v)
@@ -1772,6 +2016,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("provider", "", "The integration provider to query teams from")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -1781,7 +2026,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-integrations-users",
 			Short: "Get Integration Users",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminIntegrationsUsersInput{}
 				if v, _ := cmd.Flags().GetString("provider"); v != "" {
 					x := string(v)
@@ -1798,6 +2047,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("provider", "", "The integration provider to query users from")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -1808,7 +2058,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post Findings Metrics",
 			Long: "Request body (JSON) fields: query (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminMetricsFindingsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1850,6 +2104,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1860,7 +2115,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-interactions",
 			Short: "Get Interactions",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminMetricsInteractionsInput{}
 				out, err := client.ListAdminMetricsInteractions(cmd.Context(), in)
 				if err != nil {
@@ -1873,6 +2132,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1882,7 +2142,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get Metrics Over Time",
 			Long: "Request body (JSON) fields: query (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminMetricsOverTimeInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1928,6 +2192,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("resolution", "", "Time granularity for metrics aggregation (hour, day, week)")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
@@ -1940,7 +2205,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Query Overview",
 			Long: "Request body (JSON) fields: query (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminMetricsOverviewInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1982,6 +2251,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1993,7 +2263,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Query Raw Metrics",
 			Long: "Request body (JSON) fields: query (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminMetricsRawInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2035,6 +2309,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2045,7 +2320,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-aggregate",
 			Short: "Usage Aggregate",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminMetricsUsageAggregateInput{}
 				if v, _ := cmd.Flags().GetString("agent"); v != "" {
 					x := string(v)
@@ -2082,6 +2361,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("agent", "", "")
 		cmd.Flags().String("branch-type", "", "")
 		cmd.Flags().String("class", "", "")
@@ -2096,7 +2376,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-ledger",
 			Short: "Usage Ledger",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminMetricsUsageLedgerInput{}
 				if v, _ := cmd.Flags().GetString("agent"); v != "" {
 					x := string(v)
@@ -2150,6 +2434,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("agent", "", "")
 		cmd.Flags().String("branch-type", "", "")
 		cmd.Flags().String("class", "", "")
@@ -2167,7 +2452,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-timeseries",
 			Short: "Usage Timeseries",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminMetricsUsageTimeseriesInput{}
 				if v, _ := cmd.Flags().GetString("agent"); v != "" {
 					x := string(v)
@@ -2200,6 +2489,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("agent", "", "")
 		cmd.Flags().String("class", "", "")
 		cmd.Flags().String("from", "", "")
@@ -2213,7 +2503,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-organization",
 			Short: "Get Organization",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminOrganizationInput{}
 				out, err := client.ListAdminOrganization(cmd.Context(), in)
 				if err != nil {
@@ -2226,6 +2520,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2234,7 +2529,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-acknowledgment",
 			Short: "Get Privacy Acknowledgment",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminPrivacyAcknowledgmentInput{}
 				if v, _ := cmd.Flags().GetString("policy-version"); v != "" {
 					x := string(v)
@@ -2251,6 +2550,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("policy-version", "", "The version of the privacy policy to check")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -2261,7 +2561,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post Privacy Acknowledgment",
 			Long: "Request body (JSON) fields: policyVersion (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminPrivacyAcknowledgmentInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2303,6 +2607,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2313,7 +2618,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-repositories",
 			Short: "Get Repositories",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminRepositoriesInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -2347,6 +2656,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "Maximum number of repositories to return per page")
 		cmd.Flags().String("next-token", "", "Pagination token for the next page of results")
 		cmd.Flags().String("search", "", "Case-insensitive search filter for repository names")
@@ -2360,7 +2670,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Initialize Repositories",
 			Long: "Request body (JSON) fields: repositories (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminRepositoriesInitializeInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2402,6 +2716,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2413,7 +2728,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Uninitialize Repositories",
 			Long: "Request body (JSON) fields: repositories (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminRepositoriesUninitializeInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2455,6 +2774,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2465,7 +2785,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-repository-property-team-keys",
 			Short: "Delete Repository Property Team Key",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminRepositoryPropertyTeamKeysInput{}
 				if v, _ := cmd.Flags().GetString("key-id"); v != "" {
 					x := string(v)
@@ -2482,6 +2806,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("key-id", "", "The repository property team key ID")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -2491,7 +2816,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-repository-property-team-keys",
 			Short: "List Repository Property Team Keys",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminRepositoryPropertyTeamKeysInput{}
 				out, err := client.ListAdminRepositoryPropertyTeamKeys(cmd.Context(), in)
 				if err != nil {
@@ -2504,6 +2833,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2513,7 +2843,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Create Repository Property Team Key",
 			Long: "Request body (JSON) fields: propertyKey (string, required), providerId (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminRepositoryPropertyTeamKeysInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2555,6 +2889,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2565,7 +2900,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "delete-service_accounts",
 			Short: "Delete Service Account",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminServiceAccountsInput{}
 				if v, _ := cmd.Flags().GetString("service-account-id"); v != "" {
 					x := string(v)
@@ -2582,6 +2921,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("service-account-id", "", "The service account ID")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -2591,7 +2931,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-service_accounts",
 			Short: "Get Service Accounts",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminServiceAccountsInput{}
 				out, err := client.ListAdminServiceAccounts(cmd.Context(), in)
 				if err != nil {
@@ -2604,6 +2948,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2613,7 +2958,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Create Service Account",
 			Long: "Request body (JSON) fields: name (string, required), platform (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminServiceAccountsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2655,6 +3004,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2665,7 +3015,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-sla",
 			Short: "Get SLAs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminSlaInput{}
 				out, err := client.ListAdminSla(cmd.Context(), in)
 				if err != nil {
@@ -2678,6 +3032,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2687,7 +3042,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post SLA",
 			Long: "Request body (JSON) fields: allowExtensions (boolean, required), maxDaysToFix (integer, required), priority (object, required), severity (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminSlaInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2729,6 +3088,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2740,7 +3100,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Put Bulk SLA",
 			Long: "Request body (JSON) fields: slas (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateAdminSlaBulkInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2782,6 +3146,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2794,7 +3159,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Long: "Request body (JSON) fields: allowExtensions (boolean), maxDaysToFix (integer), priority (object), severity (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchAdminSlaSlaIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2837,6 +3206,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2847,7 +3217,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-team-source-preferences",
 			Short: "Get Team Source Preferences",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminTeamSourcePreferencesInput{}
 				out, err := client.ListAdminTeamSourcePreferences(cmd.Context(), in)
 				if err != nil {
@@ -2860,6 +3234,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2869,7 +3244,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Update Team Source Preferences",
 			Long: "Request body (JSON) fields: githubTeamsEnabled (boolean, required), repositoryPropertyEnabled (boolean, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateAdminTeamSourcePreferencesInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2911,6 +3290,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2921,7 +3301,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-team-sync-runs",
 			Short: "List Team Sync Runs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminTeamSyncRunsInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -2946,6 +3330,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("source", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -2957,7 +3342,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Trigger Team Sync",
 			Long: "Request body (JSON) fields: source (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminTeamSyncRunsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2999,6 +3388,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3010,7 +3400,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get Team",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetAdminTeamTeamIDInput{}
 				in.TeamID = args[0]
 				out, err := client.GetAdminTeamTeamID(cmd.Context(), in)
@@ -3024,6 +3418,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3032,7 +3427,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-teams",
 			Short: "Get All Teams",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminTeamsInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -3061,6 +3460,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "Maximum number of teams to return per page")
 		cmd.Flags().String("next-token", "", "Pagination token for the next page of results")
 		cmd.Flags().String("search", "", "Case-insensitive search filter for team names")
@@ -3073,7 +3473,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post Team",
 			Long: "Request body (JSON) fields: codeOwnerships (array), github (object), gitlab (object), groundRules (array), jira (object), leadId (string), memberIds (array), messageChannelProvider (object, required), name (string, required), privacy (object, required), slug (string, required), ticketProjectProvider (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminTeamsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3115,6 +3519,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3125,7 +3530,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-appzip",
 			Short: "Get Teams App Zip",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminTeamsAppzipInput{}
 				out, err := client.ListAdminTeamsAppzip(cmd.Context(), in)
 				if err != nil {
@@ -3138,6 +3547,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3147,7 +3557,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post Compass/Atlassian Team",
 			Long: "Request body (JSON) fields: displayName (string, required), lead (string, required), members (array, required), providerId (object), repositories (array, required), teamKey (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminTeamsCompassInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3189,6 +3603,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3199,7 +3614,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-teams-findings",
 			Short: "Get All Team Findings mapping",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminTeamsFindingsInput{}
 				out, err := client.ListAdminTeamsFindings(cmd.Context(), in)
 				if err != nil {
@@ -3212,6 +3631,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3221,7 +3641,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Manual Team Findings Assignment",
 			Long: "Request body (JSON) fields: mappings (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminTeamsFindingsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3263,6 +3687,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3274,7 +3699,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Sync Team Findings",
 			Long: "Request body (JSON) fields: async (boolean), findingIds (array), findingTypes (array), repositoryIds (array), repositoryNames (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminTeamsFindingsSyncInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3316,6 +3745,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3327,7 +3757,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Merge Teams",
 			Long: "Request body (JSON) fields: sources (array, required), targetTeamId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminTeamsMergeInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3369,6 +3803,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3380,7 +3815,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Delete Manual Team",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminTeamsTeamIDInput{}
 				in.TeamID = args[0]
 				out, err := client.DeleteAdminTeamsTeamID(cmd.Context(), in)
@@ -3394,6 +3833,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3404,7 +3844,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Long: "Request body (JSON) fields: codeOwnerships (array), github (object), gitlab (object), groundRules (array), jira (object), leadId (string), memberIds (array), messageChannelProvider (object), name (string), privacy (object), slug (string), ticketProjectProvider (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchAdminTeamsTeamIDInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3447,6 +3891,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3459,7 +3904,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Long: "Request body (JSON) fields: afterId (string), afterTimeUnix (integer), autofixId (string), beforeTimeUnix (integer), campaignId (string), eventTypes (array), findingIds (array), limit (integer), prCanonicalId (string), runId (string), services (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminTeamsTeamIDEventsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3502,6 +3951,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3513,7 +3963,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get Team Findings mapping",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminTeamsTeamIDFindingsInput{}
 				in.TeamID = args[0]
 				out, err := client.ListAdminTeamsTeamIDFindings(cmd.Context(), in)
@@ -3527,6 +3981,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3535,7 +3990,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-savedViews",
 			Short: "Get UI Saved Views",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminUiSavedViewsInput{}
 				out, err := client.ListAdminUiSavedViews(cmd.Context(), in)
 				if err != nil {
@@ -3548,6 +4007,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3557,7 +4017,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post UI Saved View",
 			Long: "Request body (JSON) fields: savedView (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminUiSavedViewsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3599,6 +4063,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3610,7 +4075,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Delete UI Saved View",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminUiSavedViewsSavedViewIdInput{}
 				in.SavedViewID = args[0]
 				out, err := client.DeleteAdminUiSavedViewsSavedViewId(cmd.Context(), in)
@@ -3624,6 +4093,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3634,7 +4104,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Long: "Request body (JSON) fields: savedView (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchAdminUiSavedViewsSavedViewIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3677,6 +4151,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3687,7 +4162,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-current",
 			Short: "Get Current User",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminUserCurrentInput{}
 				out, err := client.ListAdminUserCurrent(cmd.Context(), in)
 				if err != nil {
@@ -3700,6 +4179,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3708,7 +4188,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-mapping",
 			Short: "Get User Mapping",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminUserMappingInput{}
 				if v, _ := cmd.Flags().GetString("provider-id"); v != "" {
 					x := string(v)
@@ -3729,6 +4213,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("provider-id", "", "")
 		cmd.Flags().String("user-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -3740,7 +4225,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post Add User Mappings",
 			Long: "Request body (JSON) fields: useSuggestions (boolean, required), userMappings (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminUserMappingInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3782,6 +4271,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3792,7 +4282,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-suggestions",
 			Short: "Get User Mapping Suggestions",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminUserMappingSuggestionsInput{}
 				out, err := client.ListAdminUserMappingSuggestions(cmd.Context(), in)
 				if err != nil {
@@ -3805,6 +4299,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3814,7 +4309,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Delete User Mapping",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminUserMappingUserIdInput{}
 				in.UserID = args[0]
 				data, err := client.DeleteAdminUserMappingUserId(cmd.Context(), in)
@@ -3824,6 +4323,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3834,7 +4334,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Long: "Request body (JSON) fields: azure (object), bitbucket (object), github (object), gitlab (object), jira (object), linear (object), slack (object), teams (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateAdminUserMappingUserIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3873,6 +4377,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3883,7 +4388,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-mappings",
 			Short: "Get User Mappings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminUserMappingsInput{}
 				out, err := client.ListAdminUserMappings(cmd.Context(), in)
 				if err != nil {
@@ -3896,6 +4405,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3905,7 +4415,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get User",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetAdminUserUserIDInput{}
 				in.UserID = args[0]
 				out, err := client.GetAdminUserUserID(cmd.Context(), in)
@@ -3919,6 +4433,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3927,7 +4442,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Use:   "list-users",
 			Short: "Get All Users",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminUsersInput{}
 				out, err := client.ListAdminUsers(cmd.Context(), in)
 				if err != nil {
@@ -3940,6 +4459,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3949,7 +4469,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post User",
 			Long: "Request body (JSON) fields: user (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminUsersInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3991,6 +4515,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -4002,7 +4527,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Post Bulk Get User Mappings",
 			Long: "Request body (JSON) fields: gitCanonicalUserIds (array), githubCanonicalUserIds (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateAdminUsersBulkSearchMappingsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -4044,6 +4573,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -4055,7 +4585,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get Provider Users",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetAdminUsersProviderIDInput{}
 				in.ProviderID = args[0]
 				out, err := client.GetAdminUsersProviderID(cmd.Context(), in)
@@ -4069,6 +4603,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -4078,7 +4613,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get User By Provider",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetAdminUsersProviderIDUserIDInput{}
 				in.ProviderID = args[0]
 				in.UserID = args[1]
@@ -4093,6 +4632,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -4102,7 +4642,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Delete User Erasure (GDPR Art. 17)",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteAdminUsersUserIdErasureInput{}
 				in.UserID = args[0]
 				out, err := client.DeleteAdminUsersUserIdErasure(cmd.Context(), in)
@@ -4116,6 +4660,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -4125,7 +4670,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 			Short: "Get User Data Export (GDPR Art. 15, 20)",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAdminUsersUserIdExportInput{}
 				in.UserID = args[0]
 				if v, _ := cmd.Flags().GetString("format"); v != "" {
@@ -4143,6 +4692,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient func() *api.Client) 
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("format", "", "Export format (json)")
 		serviceCmd.AddCommand(cmd)
 	}

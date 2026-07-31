@@ -46,8 +46,8 @@ func TestCheckFailOn(t *testing.T) {
 			if (err != nil) != c.wantErr {
 				t.Fatalf("checkFailOn(%q, %q) err = %v, wantErr %v", c.failOn, c.verdict, err, c.wantErr)
 			}
-			if c.wantErr && ExitCodeFromError(err) != c.wantExit {
-				t.Errorf("exit code = %d, want %d", ExitCodeFromError(err), c.wantExit)
+			if c.wantErr {
+				assertExitCode(t, err, c.wantExit)
 			}
 		})
 	}
@@ -68,20 +68,22 @@ func TestClassifyVerdict_UnknownFailsClosed(t *testing.T) {
 	if err := checkFailOn("none", worst); err != nil {
 		t.Errorf("unknown verdict should NOT fail --fail-on=none, got %v", err)
 	}
-	if ExitCodeFromError(checkFailOn("malicious", worst)) != exitMaliciousFound {
-		t.Error("unknown verdict should exit with malicious code")
-	}
+	assertExitCode(
+		t,
+		checkFailOn("malicious", worst),
+		exitMaliciousFound,
+	)
 }
 
-func TestExitCodeFromError(t *testing.T) {
-	if got := ExitCodeFromError(nil); got != 0 {
-		t.Errorf("nil → %d, want 0", got)
+func assertExitCode(t *testing.T, err error, want int) {
+	t.Helper()
+
+	coded, ok := err.(interface{ ExitCode() int })
+	if !ok {
+		t.Fatalf("error %T does not provide an exit code", err)
 	}
-	if got := ExitCodeFromError(exitError(exitMaliciousFound, "boom")); got != exitMaliciousFound {
-		t.Errorf("exitErr → %d, want %d", got, exitMaliciousFound)
-	}
-	if got := ExitCodeFromError(context.Canceled); got != exitTransientFailure {
-		t.Errorf("plain error → %d, want %d", got, exitTransientFailure)
+	if got := coded.ExitCode(); got != want {
+		t.Errorf("exit code = %d, want %d", got, want)
 	}
 }
 

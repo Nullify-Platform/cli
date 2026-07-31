@@ -564,7 +564,11 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint,
 	if svcDesc == "" {
 		svcDesc = svcPascal + " commands"
 	}
-	fmt.Fprintf(&sb, "func Register%sCommands(parent *cobra.Command, getClient func() *api.Client) {\n", svcPascal)
+	fmt.Fprintf(
+		&sb,
+		"func Register%sCommands(parent *cobra.Command, getClient ClientFactory) {\n",
+		svcPascal,
+	)
 	fmt.Fprintf(&sb, "\tserviceCmd := &cobra.Command{\n\t\tUse:   %q,\n\t\tShort: %q,\n\t}\n\tparent.AddCommand(serviceCmd)\n\n", service, svcDesc)
 
 	for _, ep := range endpoints {
@@ -617,7 +621,8 @@ func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 		fmt.Fprintf(sb, "\t\t\tArgs:  cobra.ExactArgs(%d),\n", len(pathNames))
 	}
 	sb.WriteString("\t\t\tRunE: func(cmd *cobra.Command, args []string) error {\n")
-	sb.WriteString("\t\t\t\tclient := getClient()\n")
+	sb.WriteString("\t\t\t\tclient, err := getClient(cmd.Context())\n")
+	sb.WriteString("\t\t\t\tif err != nil {\n\t\t\t\t\tcmd.SilenceUsage = true\n\t\t\t\t\treturn err\n\t\t\t\t}\n")
 	fmt.Fprintf(sb, "\t\t\t\tin := api.%s{}\n", inputStructName(ep))
 
 	// Body resolution (before path/query overrides so the latter win):
@@ -674,6 +679,7 @@ func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 		sb.WriteString("\t\t\t\treturn output.Print(cmd, data)\n")
 	}
 	sb.WriteString("\t\t\t},\n\t\t}\n")
+	sb.WriteString("\t\tpreserveRuntimeUsage(cmd)\n")
 
 	// Flag declarations.
 	for _, p := range queryParams {

@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterContextCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "context",
 		Short: "Repository and Code Classification",
@@ -33,7 +33,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-applications",
 			Short: "Get Applications",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextApplicationsInput{}
 				out, err := client.ListContextApplications(cmd.Context(), in)
 				if err != nil {
@@ -46,6 +50,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -55,7 +60,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Create Application",
 			Long: "Request body (JSON) fields: application (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextApplicationsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -97,6 +106,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -108,7 +118,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Rebuild Applications",
 			Long: "Request body (JSON) fields: force (boolean, required), providerOwnerId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextApplicationsRebuildInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -150,6 +164,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -161,7 +176,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete Application",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextApplicationsApplicationIdInput{}
 				in.ApplicationID = args[0]
 				out, err := client.DeleteContextApplicationsApplicationId(cmd.Context(), in)
@@ -175,6 +194,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -184,7 +204,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Application",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextApplicationsApplicationIdInput{}
 				in.ApplicationID = args[0]
 				out, err := client.GetContextApplicationsApplicationId(cmd.Context(), in)
@@ -198,6 +222,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -208,7 +233,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: application (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchContextApplicationsApplicationIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -251,6 +280,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -262,7 +292,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Application Schema",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextApplicationsApplicationIdSchemaInput{}
 				in.ApplicationID = args[0]
 				out, err := client.ListContextApplicationsApplicationIdSchema(cmd.Context(), in)
@@ -276,6 +310,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -284,7 +319,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-artifact-deployments",
 			Short: "List Artifact Deployments",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextArtifactDeploymentsInput{}
 				if v, _ := cmd.Flags().GetString("artifact-id"); v != "" {
 					x := string(v)
@@ -329,6 +368,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("artifact-id", "", "")
 		cmd.Flags().String("cloud-resource-id", "", "")
 		cmd.Flags().String("compute-type", "", "")
@@ -345,7 +385,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Artifact Deployment",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextArtifactDeploymentsDeploymentIdInput{}
 				in.DeploymentID = args[0]
 				out, err := client.GetContextArtifactDeploymentsDeploymentId(cmd.Context(), in)
@@ -359,6 +403,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -367,7 +412,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-artifacts",
 			Short: "List Artifacts",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextArtifactsInput{}
 				if v, _ := cmd.Flags().GetString("include-deleted"); v != "" {
 					b := v == "true"
@@ -408,6 +457,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("include-deleted", "", "")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
@@ -423,7 +473,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete Artifact",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextArtifactsArtifactIdInput{}
 				in.ArtifactID = args[0]
 				out, err := client.DeleteContextArtifactsArtifactId(cmd.Context(), in)
@@ -437,6 +491,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -446,7 +501,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Artifact",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextArtifactsArtifactIdInput{}
 				in.ArtifactID = args[0]
 				out, err := client.GetContextArtifactsArtifactId(cmd.Context(), in)
@@ -460,6 +519,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -468,7 +528,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-cloud-accounts",
 			Short: "Get Asset Inventory Cloud Accounts",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextAssetInventoryCloudAccountsInput{}
 				if v, _ := cmd.Flags().GetString("active"); v != "" {
 					b := v == "true"
@@ -501,6 +565,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("active", "", "")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
@@ -513,7 +578,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-cloud-resources",
 			Short: "Get Asset Inventory Cloud Resources",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextAssetInventoryCloudResourcesInput{}
 				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
 					x := string(v)
@@ -558,6 +627,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("account-id", "", "")
 		cmd.Flags().String("active", "", "")
 		cmd.Flags().String("category", "", "")
@@ -573,7 +643,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-public-facing",
 			Short: "Get Public Facing Assets",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextAssetInventoryPublicFacingInput{}
 				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
 					x := string(v)
@@ -606,6 +680,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("account-id", "", "")
 		cmd.Flags().String("cloud-provider", "", "")
 		cmd.Flags().String("limit", "", "")
@@ -618,7 +693,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-resources",
 			Short: "Get Asset Inventory Resources",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextAssetInventoryResourcesInput{}
 				if v, _ := cmd.Flags().GetString("active"); v != "" {
 					b := v == "true"
@@ -655,6 +734,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("active", "", "")
 		cmd.Flags().String("category", "", "")
 		cmd.Flags().String("limit", "", "")
@@ -668,7 +748,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-cicd-pipelines",
 			Short: "List CI/CD Pipelines",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextCicdPipelinesInput{}
 				if v, _ := cmd.Flags().GetString("include-deleted"); v != "" {
 					b := v == "true"
@@ -709,6 +793,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("include-deleted", "", "")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
@@ -724,7 +809,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete CI/CD Pipeline",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextCicdPipelinesPipelineIdInput{}
 				in.PipelineID = args[0]
 				out, err := client.DeleteContextCicdPipelinesPipelineId(cmd.Context(), in)
@@ -738,6 +827,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -747,7 +837,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get CI/CD Pipeline",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextCicdPipelinesPipelineIdInput{}
 				in.PipelineID = args[0]
 				out, err := client.GetContextCicdPipelinesPipelineId(cmd.Context(), in)
@@ -761,6 +855,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -770,7 +865,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Cloud Recon Discovered Nodes",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextCloudReconAccountsAccountIdDiscoveredNodesInput{}
 				in.AccountID = args[0]
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
@@ -808,6 +907,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("object-type", "", "")
 		cmd.Flags().String("offset", "", "")
@@ -821,7 +921,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Cloud Recon Hotspots",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextCloudReconAccountsAccountIdHotspotsInput{}
 				in.AccountID = args[0]
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
@@ -855,6 +959,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("offset", "", "")
 		cmd.Flags().String("severity", "", "")
@@ -867,7 +972,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Latest Cloud Recon Scan",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextCloudReconAccountsAccountIdScansLatestInput{}
 				in.AccountID = args[0]
 				out, err := client.ListContextCloudReconAccountsAccountIdScansLatest(cmd.Context(), in)
@@ -881,6 +990,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -890,7 +1000,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Persist Cloud Recon Scan",
 			Long: "Request body (JSON) fields: accountId (string, required), completedAt (string), modelName (string), payload (string, required), provider (string, required), scanId (string), schemaVersion (string, required), startedAt (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextCloudReconScansInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -932,6 +1046,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -942,7 +1057,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-cross-account-trusts",
 			Short: "Get Tenant Cloud Recon Cross-Account Trusts",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextCloudReconTenantsCrossAccountTrustsInput{}
 				out, err := client.ListContextCloudReconTenantsCrossAccountTrusts(cmd.Context(), in)
 				if err != nil {
@@ -955,6 +1074,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -963,7 +1083,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "create-start",
 			Short: "Start Cloud Scan",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextCloudScanStartInput{}
 				out, err := client.CreateContextCloudScanStart(cmd.Context(), in)
 				if err != nil {
@@ -976,6 +1100,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -985,7 +1110,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Cloud Scan Status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextCloudScanScanIdStatusInput{}
 				in.ScanID = args[0]
 				out, err := client.ListContextCloudScanScanIdStatus(cmd.Context(), in)
@@ -999,6 +1128,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1007,7 +1137,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "delete-deps",
 			Short: "Delete dependency data",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextDepsInput{}
 				if v, _ := cmd.Flags().GetString("ecosystem"); v != "" {
 					x := string(v)
@@ -1048,6 +1182,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("ecosystem", "", "")
 		cmd.Flags().String("global", "", "")
 		cmd.Flags().String("introduced-at", "", "")
@@ -1063,7 +1198,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-deps",
 			Short: "List Tenant Wide Dependencies (Historical)",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsInput{}
 				if v, _ := cmd.Flags().GetString("cursor"); v != "" {
 					x := string(v)
@@ -1088,6 +1227,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().String("page-size", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1098,7 +1238,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-active",
 			Short: "List Tenant Wide Active Dependencies",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsActiveInput{}
 				if v, _ := cmd.Flags().GetString("cursor"); v != "" {
 					x := string(v)
@@ -1151,6 +1295,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().String("direct", "", "")
 		cmd.Flags().String("ecosystem", "", "")
@@ -1168,7 +1313,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-summary",
 			Short: "Tenant Wide Active Dependency Summary",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsActiveSummaryInput{}
 				if v, _ := cmd.Flags().GetString("direct"); v != "" {
 					b := v == "true"
@@ -1209,6 +1358,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("direct", "", "")
 		cmd.Flags().String("ecosystem", "", "")
 		cmd.Flags().String("name", "", "")
@@ -1225,7 +1375,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Dependencies by Bom Ref",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsByRefBomRefInput{}
 				in.BomRef = args[0]
 				if v, _ := cmd.Flags().GetString("cursor"); v != "" {
@@ -1251,6 +1405,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().String("page-size", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1262,7 +1417,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "List Dependents of a Bom Ref",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsDependentsBomRefInput{}
 				in.BomRef = args[0]
 				if v, _ := cmd.Flags().GetString("cursor"); v != "" {
@@ -1288,6 +1447,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().String("page-size", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1298,7 +1458,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-exposure",
 			Short: "Global package exposure by version filter (semver or hash)",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsExposureInput{}
 				if v, _ := cmd.Flags().GetString("ecosystem"); v != "" {
 					x := string(v)
@@ -1323,6 +1487,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("ecosystem", "", "")
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().String("range", "", "")
@@ -1335,7 +1500,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "List Active Dependencies",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsRepositoryRepositoryIdProjectProjectIdActiveInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -1362,6 +1531,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("direct", "", "")
 		cmd.Flags().String("ecosystem", "", "")
 		cmd.Flags().String("search", "", "")
@@ -1374,7 +1544,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Dependencies at commit",
 			Args:  cobra.ExactArgs(3),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommitInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -1390,6 +1564,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1399,7 +1574,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Dependency diff between two commits",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsRepositoryRepositoryIdProjectProjectIdDiffInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -1422,6 +1601,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("from-commit", "", "")
 		cmd.Flags().String("to-commit", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1433,7 +1613,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Project package exposure by version filter (semver or hash)",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsRepositoryRepositoryIdProjectProjectIdExposureInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -1460,6 +1644,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("ecosystem", "", "")
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().String("range", "", "")
@@ -1472,7 +1657,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Package exposure history (windows)",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsRepositoryRepositoryIdProjectProjectIdHistoryInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -1495,6 +1684,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("ecosystem", "", "")
 		cmd.Flags().String("name", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1505,7 +1695,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-without-lockfile",
 			Short: "List projects/repos without lockfiles",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextDepsWithoutLockfileInput{}
 				if v, _ := cmd.Flags().GetString("level"); v != "" {
 					x := string(v)
@@ -1522,6 +1716,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("level", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -1531,7 +1726,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-entrypoints",
 			Short: "List Entrypoints",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextEntrypointsInput{}
 				if v, _ := cmd.Flags().GetString("include-deleted"); v != "" {
 					b := v == "true"
@@ -1572,6 +1771,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("include-deleted", "", "")
 		cmd.Flags().String("kind", "", "")
 		cmd.Flags().String("limit", "", "")
@@ -1587,7 +1787,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete Entrypoint",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextEntrypointsEntrypointIdInput{}
 				in.EntrypointID = args[0]
 				out, err := client.DeleteContextEntrypointsEntrypointId(cmd.Context(), in)
@@ -1601,6 +1805,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1610,7 +1815,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Entrypoint",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextEntrypointsEntrypointIdInput{}
 				in.EntrypointID = args[0]
 				out, err := client.GetContextEntrypointsEntrypointId(cmd.Context(), in)
@@ -1624,6 +1833,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1632,7 +1842,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-memories",
 			Short: "Get Memories",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextMemoriesInput{}
 				if v, _ := cmd.Flags().GetString("is-latest"); v != "" {
 					b := v == "true"
@@ -1677,6 +1891,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("is-latest", "", "Filter for latest memories only")
 		cmd.Flags().String("limit", "", "Maximum number of results (default: 50, max: 1000)")
 		cmd.Flags().String("memory-type", "", "Filter by memory type")
@@ -1693,7 +1908,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Create Memory",
 			Long: "Request body (JSON) fields: citations (array), confidence (number), content (string, required), createdBy (string), crossReferences (array), isUserCreated (boolean), memoryType (object, required), metadata (object), parentNoteId (string), priority (object), resourceId (string), resourceType (object), tags (array), title (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextMemoriesInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1735,6 +1954,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1745,7 +1965,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-type",
 			Short: "Get Memories By Type",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextMemoriesTypeInput{}
 				if v, _ := cmd.Flags().GetString("is-latest"); v != "" {
 					b := v == "true"
@@ -1778,6 +2002,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("is-latest", "", "")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("memory-type", "", "")
@@ -1791,7 +2016,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete Memory",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextMemoriesMemoryIdInput{}
 				in.MemoryID = args[0]
 				out, err := client.DeleteContextMemoriesMemoryId(cmd.Context(), in)
@@ -1805,6 +2034,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1814,7 +2044,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Memory",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextMemoriesMemoryIdInput{}
 				in.MemoryID = args[0]
 				if v, _ := cmd.Flags().GetString("version"); v != "" {
@@ -1832,6 +2066,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("version", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -1843,7 +2078,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: citations (array), confidence (number), content (string), createNewVersion (boolean), crossReferences (array), metadata (object), parentNoteId (string), priority (object), tags (array), title (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchContextMemoriesMemoryIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1886,6 +2125,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1897,7 +2137,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Memory Versions",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextMemoriesMemoryIdVersionsInput{}
 				in.MemoryID = args[0]
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
@@ -1919,6 +2163,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "Maximum number of versions to return (default: 50)")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -1928,7 +2173,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-organization",
 			Short: "Get Organization Context",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextOrganizationInput{}
 				out, err := client.ListContextOrganization(cmd.Context(), in)
 				if err != nil {
@@ -1941,6 +2190,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1950,7 +2200,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Update Classification of the Organization",
 			Long: "Request body (JSON) fields: name (string), notes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchContextOrganizationInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1988,6 +2242,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1999,7 +2254,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Upsert Classification of the Organization",
 			Long: "Request body (JSON) fields: organization (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateContextOrganizationInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2041,6 +2300,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2051,7 +2311,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "create-resync",
 			Short: "Resync RAG Vector Store",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextRagResyncInput{}
 				out, err := client.CreateContextRagResync(cmd.Context(), in)
 				if err != nil {
@@ -2064,6 +2328,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2072,7 +2337,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-repo-scans",
 			Short: "List Repo Context Scans",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextRepoScansInput{}
 				if v, _ := cmd.Flags().GetString("commit-sha"); v != "" {
 					x := string(v)
@@ -2113,6 +2382,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("commit-sha", "", "")
 		cmd.Flags().String("page", "", "")
 		cmd.Flags().String("page-size", "", "")
@@ -2127,7 +2397,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Create Repo Context Scan",
 			Long: "Request body (JSON) fields: branch (string), commitSha (string, required), projectsTouched (array), repositoryId (string, required), sbomsGenerated (array), status (string), subagentsRun (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextRepoScansInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2169,6 +2443,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2180,7 +2455,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Repo Context Scan",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextRepoScansScanIdInput{}
 				in.ScanID = args[0]
 				out, err := client.GetContextRepoScansScanId(cmd.Context(), in)
@@ -2194,6 +2473,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2204,7 +2484,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: completedAt (string), errorMessage (string), projectsTouched (array), sbomsGenerated (array), status (string), subagentsRun (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchContextRepoScansScanIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2247,6 +2531,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2258,7 +2543,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Create Report Generation Job",
 			Long: "Request body (JSON) fields: packages (array, required), repositories (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextReportsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2300,6 +2589,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2311,7 +2601,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Report Status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextReportsJobIdInput{}
 				in.JobID = args[0]
 				out, err := client.GetContextReportsJobId(cmd.Context(), in)
@@ -2325,6 +2619,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2333,7 +2628,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-repositories",
 			Short: "Get Contexts of Repositories",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextRepositoriesInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -2366,6 +2665,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		cmd.Flags().String("sort", "", "")
@@ -2379,7 +2679,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete Repository",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextRepositoriesRepositoryIdInput{}
 				in.RepositoryID = args[0]
 				out, err := client.DeleteContextRepositoriesRepositoryId(cmd.Context(), in)
@@ -2393,6 +2697,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2402,7 +2707,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Repository",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextRepositoriesRepositoryIdInput{}
 				in.RepositoryID = args[0]
 				out, err := client.GetContextRepositoriesRepositoryId(cmd.Context(), in)
@@ -2416,6 +2725,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2426,7 +2736,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: name (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchContextRepositoriesRepositoryIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2465,6 +2779,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2476,7 +2791,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "List Projects",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextRepositoriesRepositoryIdProjectsInput{}
 				in.RepositoryID = args[0]
 				if v, _ := cmd.Flags().GetString("include-deleted"); v != "" {
@@ -2506,6 +2825,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("include-deleted", "", "")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
@@ -2518,7 +2838,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete Project",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextRepositoriesRepositoryIdProjectsProjectIdInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -2533,6 +2857,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2542,7 +2867,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Project",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextRepositoriesRepositoryIdProjectsProjectIdInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -2557,6 +2886,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2567,7 +2897,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: deletedAt (string), description (string), isDeleted (boolean), metadata (object), tags (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchContextRepositoriesRepositoryIdProjectsProjectIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2611,6 +2945,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2622,7 +2957,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Project Schema",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -2637,6 +2976,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2647,7 +2987,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: content (string, required), format (object, required), type (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2691,6 +3035,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2702,7 +3047,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Project Schema Metadata",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadataInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -2717,6 +3066,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2726,7 +3076,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Project Schema Raw File",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRawInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -2741,6 +3095,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2750,7 +3105,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Compute Dependencies Repository/Project SBOM Ingest Replay",
 			Long: "Request body (JSON) fields: globalReplay (boolean), projectID (string), repositoryID (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextSbomingestorReplayInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2792,6 +3151,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2802,7 +3162,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "delete-sboms",
 			Short: "Delete SBOMs for tenant",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextSbomsInput{}
 				if v, _ := cmd.Flags().GetString("dry-run"); v != "" {
 					b := v == "true"
@@ -2831,6 +3195,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("dry-run", "", "")
 		cmd.Flags().String("invalid-only", "", "")
 		cmd.Flags().String("project-id", "", "")
@@ -2844,7 +3209,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Generate SBOM",
 			Long: "Request body (JSON) fields: cloneUrl (string), commitSha (string), defaultBranch (string), repositoryId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextSbomsGenerateInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -2886,6 +3255,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -2897,7 +3267,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Latest SBOMs for Repository",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextSbomsRepositoryRepositoryIdLatestInput{}
 				in.RepositoryID = args[0]
 				out, err := client.ListContextSbomsRepositoryRepositoryIdLatest(cmd.Context(), in)
@@ -2911,6 +3285,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2920,7 +3295,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Repository/Project SBOMs",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput{}
 				in.RepositoryID = args[0]
 				in.ProjectID = args[1]
@@ -2967,6 +3346,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("from-commit", "", "")
 		cmd.Flags().String("from-time", "", "")
 		cmd.Flags().String("page", "", "")
@@ -2982,7 +3362,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get or generate SBOM",
 			Long: "Request body (JSON) fields: branch (string), cdxgenMajor (integer), cloneURL (string), commitSHA (string), isDefaultBranchPush (boolean), lockfileSetHash (string), ownerProvider (object), repositoryID (string), repositoryProvider (object), scannerVersion (string), tenantID (string), timestamp (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextSbomsResolveInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3024,6 +3408,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3035,7 +3420,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Scan SBOM (get-or-generate)",
 			Long: "Request body (JSON) fields: commitSha (string, required), forceRegenerate (boolean), projectId (string, required), repositoryId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextSbomsScanInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3077,6 +3466,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3087,7 +3477,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-tree",
 			Short: "Get SBOM key tree for tenant",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextSbomsTreeInput{}
 				if v, _ := cmd.Flags().GetString("verbose"); v != "" {
 					b := v == "true"
@@ -3104,6 +3498,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("verbose", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -3113,7 +3508,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-schemas",
 			Short: "List Schemas",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextSchemasInput{}
 				out, err := client.ListContextSchemas(cmd.Context(), in)
 				if err != nil {
@@ -3126,6 +3525,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3135,7 +3535,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Post Vault File",
 			Long: "Request body (JSON) fields: description (string), fileName (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextVaultFileInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3177,6 +3581,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3188,7 +3593,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Delete Vault File",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteContextVaultFileFileIdInput{}
 				in.FileID = args[0]
 				data, err := client.DeleteContextVaultFileFileId(cmd.Context(), in)
@@ -3198,6 +3607,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3207,7 +3617,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Vault File",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetContextVaultFileFileIdInput{}
 				in.FileID = args[0]
 				out, err := client.GetContextVaultFileFileId(cmd.Context(), in)
@@ -3221,6 +3635,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3231,7 +3646,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: documentId (string), metadata (object), processedAt (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchContextVaultFileFileNameInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3274,6 +3693,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -3284,7 +3704,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-files",
 			Short: "Get Vault Files",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextVaultFilesInput{}
 				out, err := client.ListContextVaultFiles(cmd.Context(), in)
 				if err != nil {
@@ -3297,6 +3721,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3305,7 +3730,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-list",
 			Short: "Get Vault Files List",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListContextVaultFilesListInput{}
 				out, err := client.ListContextVaultFilesList(cmd.Context(), in)
 				if err != nil {
@@ -3318,6 +3747,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -3327,7 +3757,11 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Trigger Vault Onboarding",
 			Long: "Request body (JSON) fields: fileIDs (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateContextVaultOnboardInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -3369,6 +3803,7 @@ func RegisterContextCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)

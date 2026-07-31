@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterOrchestratorCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "orchestrator",
 		Short: "Scan Orchestration (autofix batches, code reviews, retriage, onboarding)",
@@ -34,7 +34,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Short: "Start Batch Autofix",
 			Long: "Request body (JSON) fields: dastBugHuntFindingIDs (array), dastPentestFindingIDs (array), ownerProvider (object, required), sastFindingIDs (array), scaContainerFindingIDs (array), scaDependencyFindingIDs (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateOrchestratorAutofixBatchInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -76,6 +80,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -87,7 +92,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Short: "Get Batch Autofix Status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetOrchestratorAutofixBatchExecutionIdInput{}
 				in.ExecutionID = args[0]
 				out, err := client.GetOrchestratorAutofixBatchExecutionId(cmd.Context(), in)
@@ -101,6 +110,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -109,7 +119,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Use:   "list-codereviews",
 			Short: "Get Code Reviews",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListOrchestratorCodereviewsInput{}
 				out, err := client.ListOrchestratorCodereviews(cmd.Context(), in)
 				if err != nil {
@@ -122,6 +136,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -131,7 +146,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Short: "Get Code Review",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetOrchestratorCodereviewsIdInput{}
 				in.ID = args[0]
 				out, err := client.GetOrchestratorCodereviewsId(cmd.Context(), in)
@@ -145,6 +164,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -154,7 +174,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Short: "Retriage Findings",
 			Long: "Request body (JSON) fields: continueOnError (boolean), debounceBypass (boolean), filters (object), findingType (string, required), message (object), platformProvider (string), triggerSource (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateOrchestratorFindingsRetriageInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -196,6 +220,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -207,7 +232,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Short: "Get Finding Autofix Iterations",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListOrchestratorFindingsFindingIDAutofixIterationsInput{}
 				in.FindingID = args[0]
 				if v, _ := cmd.Flags().GetString("finding-type"); v != "" {
@@ -225,6 +254,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("finding-type", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -235,7 +265,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Short: "Complete Onboarding (Test Only)",
 			Long: "Request body (JSON) fields: tenantId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateOrchestratorOnboardingCompleteInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -277,6 +311,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -288,7 +323,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Short: "Start Onboarding",
 			Long: "Request body (JSON) fields: gitOwnerProvider (object, required), repositoryIds (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateOrchestratorOnboardingStartInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -330,6 +369,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -340,7 +380,11 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 			Use:   "list-status",
 			Short: "Get Onboarding Status",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListOrchestratorOnboardingStatusInput{}
 				out, err := client.ListOrchestratorOnboardingStatus(cmd.Context(), in)
 				if err != nil {
@@ -353,6 +397,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient func() *api.C
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 

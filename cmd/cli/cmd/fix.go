@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -28,8 +27,7 @@ Supports SAST and SCA dependency findings.`,
   nullify fix def456 --type sca`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		findingID := args[0]
 
@@ -62,14 +60,24 @@ Supports SAST and SCA dependency findings.`,
 		_, err = lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
 			fmt.Sprintf("%s/%s/autofix/fix%s", basePath, url.PathEscape(findingID), qs))
 		if err != nil {
-			return fmt.Errorf("generating fix: %w", err)
+			return reportError(
+				cmd,
+				fmt.Errorf("generating fix: %w", err),
+				"Error generating fix: %v\n",
+				err,
+			)
 		}
 
 		// Step 2: Get diff
 		diffBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
 			fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, url.PathEscape(findingID), qs))
 		if err != nil {
-			return fmt.Errorf("getting diff: %w", err)
+			return reportError(
+				cmd,
+				fmt.Errorf("getting diff: %w", err),
+				"Error getting diff: %v\n",
+				err,
+			)
 		}
 
 		result := map[string]any{
@@ -86,7 +94,12 @@ Supports SAST and SCA dependency findings.`,
 			prBody, err := lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
 				fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, url.PathEscape(findingID), qs))
 			if err != nil {
-				return fmt.Errorf("creating PR: %w", err)
+				return reportError(
+					cmd,
+					fmt.Errorf("creating PR: %w", err),
+					"Error creating PR: %v\n",
+					err,
+				)
 			}
 			result["pr"] = json.RawMessage(prBody)
 		}

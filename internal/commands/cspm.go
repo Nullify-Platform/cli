@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterCspmCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "cspm",
 		Short: "Cloud Security Posture Management (CSPM)",
@@ -33,7 +33,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-findings",
 			Short: "Get CSPM Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListCspmFindingsInput{}
 				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
 					x := string(v)
@@ -90,6 +94,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("account-id", "", "Filter by account ID")
 		cmd.Flags().String("limit", "", "Maximum number of findings to return")
 		cmd.Flags().String("next-token", "", "Token for pagination")
@@ -109,7 +114,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetCspmFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetCspmFindingsFindingId(cmd.Context(), in)
@@ -123,6 +132,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -132,7 +142,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Finding Autofix Activity",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListCspmFindingsFindingIdAutofixActivityInput{}
 				in.FindingID = args[0]
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
@@ -158,6 +172,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("since-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -169,7 +184,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Finding Autofix Diff",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListCspmFindingsFindingIdAutofixCacheDiffInput{}
 				in.FindingID = args[0]
 				out, err := client.ListCspmFindingsFindingIdAutofixCacheDiff(cmd.Context(), in)
@@ -183,6 +202,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -193,7 +213,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: force (boolean), message (string), originCampaignId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateCspmFindingsFindingIdAutofixFixInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -236,6 +260,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -247,7 +272,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Finding Autofix State",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListCspmFindingsFindingIdAutofixStateInput{}
 				in.FindingID = args[0]
 				out, err := client.ListCspmFindingsFindingIdAutofixState(cmd.Context(), in)
@@ -261,6 +290,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -270,7 +300,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Finding Autofix Status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListCspmFindingsFindingIdAutofixStatusInput{}
 				in.FindingID = args[0]
 				out, err := client.ListCspmFindingsFindingIdAutofixStatus(cmd.Context(), in)
@@ -284,6 +318,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -294,7 +329,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string), userCanonicalId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateCspmFindingsFindingIdTicketInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -337,6 +376,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -347,7 +387,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-scans",
 			Short: "Get CSPM Scans",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListCspmScansInput{}
 				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
 					x := string(v)
@@ -388,6 +432,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("account-id", "", "Filter by account ID")
 		cmd.Flags().String("limit", "", "Maximum number of scans to return")
 		cmd.Flags().String("next-token", "", "Token for pagination")
@@ -403,7 +448,11 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get CSPM Scan",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetCspmScansScanIdInput{}
 				in.ScanID = args[0]
 				out, err := client.GetCspmScansScanId(cmd.Context(), in)
@@ -417,6 +466,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 

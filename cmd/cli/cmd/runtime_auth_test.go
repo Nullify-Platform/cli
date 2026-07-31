@@ -26,7 +26,7 @@ func TestResolveCommandAuthUsesEnvTokenWithoutStoredCredentials(t *testing.T) {
 		githubToken = originalGithubToken
 	})
 
-	authCtx, err := resolveCommandAuth(setupLogger(context.Background()))
+	authCtx, err := resolveCommandAuth(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, "acme.nullify.ai", authCtx.Host)
 	require.Equal(t, "env-token", authCtx.Token)
@@ -60,7 +60,7 @@ func TestResolveCommandAuthClonesStoredQueryParams(t *testing.T) {
 		githubToken = originalGithubToken
 	})
 
-	authCtx, err := resolveCommandAuth(setupLogger(context.Background()))
+	authCtx, err := resolveCommandAuth(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, map[string]string{"githubOwnerId": "123"}, authCtx.QueryParams)
 

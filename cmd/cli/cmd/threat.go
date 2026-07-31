@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/api"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -23,8 +22,7 @@ var threatListCmd = &cobra.Command{
 	Short:   "List threat investigations",
 	Example: "  nullify threat list",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
@@ -54,8 +52,7 @@ var threatGetCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Example: "  nullify threat get ti-123",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
@@ -87,8 +84,7 @@ var threatCreateCmd = &cobra.Command{
 	Example: "  nullify threat create --title \"Log4Shell\" --severity critical\n" +
 		"  nullify threat create --title \"CVE sweep\" --cve-ids CVE-2021-44228,CVE-2021-45046",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		title, _ := cmd.Flags().GetString("title")
 		description, _ := cmd.Flags().GetString("description")

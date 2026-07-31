@@ -12,17 +12,11 @@ import (
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/logger"
+	"github.com/nullify-platform/cli/internal/terminal"
 )
 
-// stdinIsTTY reports whether stdin is connected to an interactive terminal.
-// Steps that prompt for input use this to fail fast in non-interactive
-// environments (CI, pipes) instead of blocking forever on a read.
 func stdinIsTTY() bool {
-	info, err := os.Stdin.Stat()
-	if err != nil {
-		return false
-	}
-	return info.Mode()&os.ModeCharDevice != 0
+	return terminal.IsInteractive(os.Stdin)
 }
 
 // DomainStep checks if a valid host is configured and prompts the user if not.

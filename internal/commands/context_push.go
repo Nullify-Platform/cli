@@ -16,7 +16,7 @@ const maxUploadSize = 50 << 20 // 50 MB
 
 // RegisterContextPushCommand adds the 'push' subcommand to the existing 'context' command.
 // Must be called after RegisterContextCommands.
-func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterContextPushCommand(parent *cobra.Command, getClient ClientFactory) {
 	// Find the existing 'context' command registered by the generated code
 	var contextCmd *cobra.Command
 	for _, cmd := range parent.Commands() {
@@ -120,7 +120,11 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 				return nil
 			}
 
-			client := getClient()
+			client, err := getClient(ctx)
+			if err != nil {
+				cmd.SilenceUsage = true
+				return err
+			}
 
 			logger.L(ctx).Info("requesting upload credentials",
 				logger.String("repository", repo),
@@ -164,6 +168,7 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient func() *api.Cli
 			return nil
 		},
 	}
+	preserveRuntimeUsage(pushCmd)
 
 	pushCmd.Flags().StringVar(&contextType, "type", "", "Context type (terraform, ci_logs, config, deploy, api_spec)")
 	pushCmd.Flags().StringVar(&repository, "repository", "", "Repository in org/repo format (auto-detected if omitted)")

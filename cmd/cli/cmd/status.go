@@ -9,7 +9,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -22,8 +21,7 @@ var securityStatusCmd = &cobra.Command{
 	Example: `  nullify status
   nullify status -o table`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
@@ -37,7 +35,12 @@ var securityStatusCmd = &cobra.Command{
 		overviewBody, err := lib.DoPostJSON(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL, "/admin/metrics/overview"+qs, strings.NewReader(`{"query":{}}`))
 
 		if err != nil {
-			return networkError("fetching metrics: %w", err)
+			return reportError(
+				cmd,
+				networkError("fetching metrics: %w", err),
+				"Error fetching metrics: %v\n",
+				err,
+			)
 		}
 
 		var overview any

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -14,8 +13,7 @@ var openCmd = &cobra.Command{
 	Use:   "open",
 	Short: "Open the Nullify dashboard in your browser",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		openHost, err := resolveHostE(ctx)
 		if err != nil {
@@ -30,7 +28,13 @@ var openCmd = &cobra.Command{
 		}
 
 		if err := auth.OpenBrowser(url); err != nil {
-			fmt.Fprintf(os.Stderr, "Visit %s manually.\n", url)
+			fmt.Fprintf(
+				cmd.ErrOrStderr(),
+				"Error: could not open browser: %v\nVisit %s manually.\n",
+				err,
+				url,
+			)
+			cmd.SilenceErrors = true
 			return fmt.Errorf("could not open browser: %w", err)
 		}
 		return nil

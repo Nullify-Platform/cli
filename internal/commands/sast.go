@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "sast",
 		Short: "Static Application Security Testing (SAST)",
@@ -33,7 +33,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-events",
 			Short: "Get SAST Events",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastEventsInput{}
 				if v, _ := cmd.Flags().GetString("event-type"); v != "" {
 					for _, s := range strings.Split(v, ",") {
@@ -80,6 +84,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("event-type", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("finding-id", "", "")
@@ -95,7 +100,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-findings",
 			Short: "Get SAST Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsInput{}
 				if v, _ := cmd.Flags().GetString("ai-generated"); v != "" {
 					b := v == "true"
@@ -190,6 +199,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("ai-generated", "", "true = AI code-review only, false = rule-only, omitted = both")
 		cmd.Flags().String("auto-fix-state", "", "filter by AutoFixState (e.g. 'none' for findings with no cached fix)")
 		cmd.Flags().String("branch", "", "")
@@ -218,7 +228,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Allowlist Batch of SAST Findings",
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSastFindingsAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -256,6 +270,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -266,7 +281,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-detailed",
 			Short: "Get Findings Detailed",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsDetailedInput{}
 				if v, _ := cmd.Flags().GetString("ai-generated"); v != "" {
 					b := v == "true"
@@ -352,6 +371,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("ai-generated", "", "true = AI code-review only, false = rule-only, omitted = both")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
@@ -377,7 +397,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-preview",
 			Short: "Get SAST Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsPreviewInput{}
 				if v, _ := cmd.Flags().GetString("ai-generated"); v != "" {
 					b := v == "true"
@@ -472,6 +496,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("ai-generated", "", "true = AI code-review only, false = rule-only, omitted = both")
 		cmd.Flags().String("auto-fix-state", "", "filter by AutoFixState (e.g. 'none' for findings with no cached fix)")
 		cmd.Flags().String("branch", "", "")
@@ -500,7 +525,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetSastFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetSastFindingsFindingId(cmd.Context(), in)
@@ -514,6 +543,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -524,7 +554,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: priorityOverride (object), severityOverride (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchSastFindingsFindingIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -567,6 +601,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -579,7 +614,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSastFindingsFindingIdAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -622,6 +661,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -633,7 +673,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get SAST Finding Autofix Activity",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsFindingIdAutofixActivityInput{}
 				in.FindingID = args[0]
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
@@ -659,6 +703,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("since-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -670,7 +715,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Finding Autofix Diff",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsFindingIdAutofixCacheDiffInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSastFindingsFindingIdAutofixCacheDiff(cmd.Context(), in)
@@ -684,6 +733,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -694,7 +744,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: assignees (array), force (boolean), message (string), originCampaignId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSastFindingsFindingIdAutofixFixInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -737,6 +791,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -748,7 +803,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get SAST Finding Autofix State",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsFindingIdAutofixStateInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSastFindingsFindingIdAutofixState(cmd.Context(), in)
@@ -762,6 +821,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -771,7 +831,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get SAST Finding Autofix Status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsFindingIdAutofixStatusInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSastFindingsFindingIdAutofixStatus(cmd.Context(), in)
@@ -785,6 +849,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -794,7 +859,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Finding Events",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSastFindingsFindingIdEvents(cmd.Context(), in)
@@ -808,6 +877,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -818,7 +888,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSastFindingsFindingIdTicketInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -861,6 +935,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -872,7 +947,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Triaged Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSastFindingsFindingIdTriage(cmd.Context(), in)
@@ -886,6 +965,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -896,7 +976,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: unallowlistReason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSastFindingsFindingIdUnallowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -935,6 +1019,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -946,7 +1031,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Finding Users",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSastFindingsFindingIdUsers(cmd.Context(), in)
@@ -960,6 +1049,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -968,7 +1058,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-repositories",
 			Short: "Get Repositories",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastRepositoriesInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -993,6 +1087,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1004,7 +1099,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Repository Stats",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetSastRepositoriesRepositoryIdInput{}
 				in.RepositoryID = args[0]
 				out, err := client.GetSastRepositoriesRepositoryId(cmd.Context(), in)
@@ -1018,6 +1117,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1026,7 +1126,11 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-scan-runs",
 			Short: "List Scan Runs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSastScanRunsInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -1063,6 +1167,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "Max scan runs per page (default 10, max 50)")
 		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
 		cmd.Flags().String("repository-id", "", "Repository ID to list scan runs for")

@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/wizard"
 	"github.com/spf13/cobra"
 )
@@ -13,8 +12,7 @@ var initCmd = &cobra.Command{
 	Short: "Set up Nullify CLI for the first time",
 	Long:  "Interactive setup wizard that configures your Nullify domain, authentication, repository detection, and MCP integration.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		fmt.Println("Welcome to Nullify CLI setup!")
 		fmt.Println("This wizard will help you get started.")

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/nullify-platform/cli/internal/api"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -21,8 +20,7 @@ var scanStartCmd = &cobra.Command{
 	Short:   "Start a cloud scan",
 	Example: "  nullify scan start",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
@@ -52,8 +50,7 @@ var scanStatusCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Example: "  nullify scan status abc123",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
@@ -86,8 +83,7 @@ var scanRunsCmd = &cobra.Command{
 	Example: "  nullify scan runs --type sast --repository-id repo-123\n" +
 		"  nullify scan runs --type sca --repository-id repo-123 --limit 10",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		scanType, _ := cmd.Flags().GetString("type")
 		repositoryID, _ := cmd.Flags().GetString("repository-id")

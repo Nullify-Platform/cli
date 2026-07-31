@@ -10,7 +10,7 @@ import (
 // ApplyContextCommandDefaults installs CLI-side opinionated defaults on top of
 // the generated 'context' subcommand tree. Must be called after
 // RegisterContextCommands.
-func ApplyContextCommandDefaults(parent *cobra.Command, getClient func() *api.Client) {
+func ApplyContextCommandDefaults(parent *cobra.Command, getClient ClientFactory) {
 	contextCmd := findChild(parent, "context")
 	if contextCmd == nil {
 		return
@@ -34,7 +34,17 @@ func ApplyContextCommandDefaults(parent *cobra.Command, getClient func() *api.Cl
 			if contextGetProjectHasSelector(c) || len(args) < 2 {
 				return orig(c, args)
 			}
-			latest, err := latestCommitForProject(c, getClient(), args[0], args[1])
+			client, err := getClient(c.Context())
+			if err != nil {
+				c.SilenceUsage = true
+				return err
+			}
+			latest, err := latestCommitForProject(
+				c,
+				client,
+				args[0],
+				args[1],
+			)
 			if err != nil {
 				return err
 			}

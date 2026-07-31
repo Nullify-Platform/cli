@@ -10,7 +10,6 @@ import (
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -25,10 +24,7 @@ var loginCmd = &cobra.Command{
 	Short: "Log in to Nullify",
 	Long:  "Authenticate with your Nullify instance. Opens your browser to log in with your identity provider.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
-
-		// Wrap context with signal handling so Ctrl+C triggers graceful cancellation
+		ctx := cmd.Context()
 		ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 		defer stop()
 
@@ -68,9 +64,6 @@ var logoutCmd = &cobra.Command{
 	Short: "Log out of Nullify",
 	Long:  "Clear stored credentials for the current or specified host.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
-
 		logoutHost, err := resolveHostForAuth()
 		if err != nil {
 			return err
@@ -134,8 +127,7 @@ var tokenCmd = &cobra.Command{
 	Short: "Print access token to stdout",
 	Long:  "Print the current access token. Useful for piping to other tools.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		hostForToken, err := resolveHostForAuth()
 		if err != nil {

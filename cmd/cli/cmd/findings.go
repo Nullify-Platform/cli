@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -32,8 +31,7 @@ Results are paginated automatically up to --limit total findings.`,
   # Fetch up to 500 findings
   nullify findings --limit 500`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
@@ -147,7 +145,12 @@ Results are paginated automatically up to --limit total findings.`,
 
 			var resp unifiedResponse
 			if err := json.Unmarshal([]byte(respBody), &resp); err != nil {
-				return networkError("parsing response: %w", err)
+				return reportError(
+					cmd,
+					networkError("parsing response: %w", err),
+					"Error parsing response: %v\n",
+					err,
+				)
 			}
 
 			allFindings = append(allFindings, resp.Findings...)

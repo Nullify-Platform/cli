@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/nullify-platform/cli/internal/api"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -22,8 +21,7 @@ var sbomGetCmd = &cobra.Command{
 	Example: "  nullify sbom get --repository-id repo-123\n" +
 		"  nullify sbom get --repository-id repo-123 --project-id proj-456",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		repositoryID, _ := cmd.Flags().GetString("repository-id")
 		projectID, _ := cmd.Flags().GetString("project-id")

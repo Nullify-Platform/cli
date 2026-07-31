@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/nullify-platform/cli/internal/auth"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -14,8 +13,7 @@ var whoamiCmd = &cobra.Command{
 	Use:   "whoami",
 	Short: "Show current authentication status",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		whoamiHost, err := resolveHostE(ctx)
 		if err != nil {

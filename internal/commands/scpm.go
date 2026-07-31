@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterScpmCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "scpm",
 		Short: "SaaS Security Posture Management (SCPM)",
@@ -34,7 +34,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Request malware analysis for an OCI container image",
 			Long: "Request body (JSON) fields: idempotencyKey (string), previousReference (string), reference (string, required), registry (string, required), repository (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmContainersAnalyzeInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -76,6 +80,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -86,7 +91,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-dependencies",
 			Short: "Get CI/CD Dependencies",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmDependenciesInput{}
 				if v, _ := cmd.Flags().GetString("name"); v != "" {
 					x := string(v)
@@ -115,6 +124,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("name", "", "Filter by dependency name (e.g., actions/checkout, tj-actions/changed-files)")
 		cmd.Flags().String("pinned", "", "Filter by pinned status")
 		cmd.Flags().String("platform", "", "Filter by CI/CD platform (github-actions, gitlab-ci, azure-pipelines)")
@@ -128,7 +138,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Request malware analysis for a dependency",
 			Long: "Request body (JSON) fields: ecosystem (string, required), idempotencyKey (string), name (string, required), previousVersion (string), version (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmDependenciesAnalyzeInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -170,6 +184,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -181,7 +196,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Batch query vulnerabilities + malware verdict for dependencies",
 			Long: "Request body (JSON) fields: packages (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmDependenciesQueryBatchInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -223,6 +242,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -233,7 +253,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-events",
 			Short: "Get SCPM Events",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmEventsInput{}
 				out, err := client.ListScpmEvents(cmd.Context(), in)
 				if err != nil {
@@ -246,6 +270,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -254,7 +279,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-findings",
 			Short: "Get SCPM Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -337,6 +366,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("has-pull-request", "", "")
@@ -362,7 +392,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Allowlist Batch of SCPM Findings",
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -400,6 +434,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -410,7 +445,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-detailed",
 			Short: "Get Findings Detailed",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsDetailedInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -488,6 +527,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("has-pull-request", "", "")
@@ -511,7 +551,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-preview",
 			Short: "Get SCPM Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsPreviewInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -594,6 +638,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("has-pull-request", "", "")
@@ -619,7 +664,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Retriage Findings",
 			Long: "Request body (JSON) fields: branch (string), continueOnError (boolean), findingIds (array, required), forceRetriage (boolean), priorityMinimum (string), repositoryIds (array, required), reprocessFailedTriages (boolean), reprocessFalsePositives (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsRetriageInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -661,6 +710,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -672,7 +722,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Presigned URL to Upload SCPM Findings",
 			Long: "Request body (JSON) fields: scanId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsUploadInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -714,6 +768,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -725,7 +780,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetScpmFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetScpmFindingsFindingId(cmd.Context(), in)
@@ -739,6 +798,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -749,7 +809,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: priorityOverride (object), severityOverride (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchScpmFindingsFindingIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -792,6 +856,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -804,7 +869,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsFindingIdAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -847,6 +916,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -858,7 +928,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get SCPM Finding Autofix Activity",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsFindingIdAutofixActivityInput{}
 				in.FindingID = args[0]
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
@@ -884,6 +958,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("since-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -896,7 +971,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: force (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsFindingIdAutofixCacheInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -935,6 +1014,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -947,7 +1027,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: message (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsFindingIdAutofixCacheCreatePrInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -990,6 +1074,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1001,7 +1086,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get SCPM Finding Autofix Diff",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsFindingIdAutofixCacheDiffInput{}
 				in.FindingID = args[0]
 				out, err := client.ListScpmFindingsFindingIdAutofixCacheDiff(cmd.Context(), in)
@@ -1015,6 +1104,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1025,7 +1115,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: assignees (array), force (boolean), message (string), originCampaignId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsFindingIdAutofixFixInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1068,6 +1162,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1079,7 +1174,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get SCPM Finding Autofix State",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsFindingIdAutofixStateInput{}
 				in.FindingID = args[0]
 				out, err := client.ListScpmFindingsFindingIdAutofixState(cmd.Context(), in)
@@ -1093,6 +1192,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1102,7 +1202,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get SCPM Finding Autofix Status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsFindingIdAutofixStatusInput{}
 				in.FindingID = args[0]
 				out, err := client.ListScpmFindingsFindingIdAutofixStatus(cmd.Context(), in)
@@ -1116,6 +1220,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1125,7 +1230,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Finding Events",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
 				out, err := client.ListScpmFindingsFindingIdEvents(cmd.Context(), in)
@@ -1139,6 +1248,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1148,7 +1258,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Triaged Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListScpmFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
 				out, err := client.ListScpmFindingsFindingIdTriage(cmd.Context(), in)
@@ -1162,6 +1276,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1172,7 +1287,11 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: unallowlistReason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateScpmFindingsFindingIdUnallowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1211,6 +1330,7 @@ func RegisterScpmCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)

@@ -2,42 +2,51 @@ package output
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/nullify-platform/cli/internal/terminal"
 )
 
 // Spinner displays a simple progress spinner on stderr.
 type Spinner struct {
 	msg  string
 	done chan struct{}
+	stop chan struct{}
 	once sync.Once
 }
 
-// stderrIsTTY reports whether stderr is connected to a terminal. When it is
-// not (e.g. CI logs, redirected output), the spinner stays silent to avoid
-// polluting logs with ANSI escape sequences and braille frames.
 func stderrIsTTY() bool {
-	info, err := os.Stderr.Stat()
-	if err != nil {
-		return false
-	}
-	return info.Mode()&os.ModeCharDevice != 0
+	return terminal.IsInteractive(os.Stderr)
 }
 
 // NewSpinner starts a spinner with the given message. Call Stop() when done.
 // If quiet is true, no spinner is displayed but Stop() is still safe to call.
 // The spinner is also suppressed when stderr is not a terminal.
 func NewSpinner(msg string, quiet bool) *Spinner {
+	return newSpinner(msg, quiet, stderrIsTTY(), os.Stderr)
+}
+
+func newSpinner(
+	msg string,
+	quiet bool,
+	interactive bool,
+	writer io.Writer,
+) *Spinner {
 	s := &Spinner{
 		msg:  msg,
 		done: make(chan struct{}),
+		stop: make(chan struct{}),
 	}
-	if quiet || !stderrIsTTY() {
+	if quiet || !interactive {
+		close(s.stop)
 		return s
 	}
 
 	go func() {
+		defer close(s.stop)
 		frames := []rune{'⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'}
 		i := 0
 		ticker := time.NewTicker(80 * time.Millisecond)
@@ -45,10 +54,10 @@ func NewSpinner(msg string, quiet bool) *Spinner {
 		for {
 			select {
 			case <-s.done:
-				fmt.Fprintf(os.Stderr, "\r\033[K")
+				fmt.Fprint(writer, "\r\033[K")
 				return
 			case <-ticker.C:
-				fmt.Fprintf(os.Stderr, "\r%c %s", frames[i%len(frames)], s.msg)
+				fmt.Fprintf(writer, "\r%c %s", frames[i%len(frames)], s.msg)
 				i++
 			}
 		}
@@ -62,4 +71,5 @@ func (s *Spinner) Stop() {
 	s.once.Do(func() {
 		close(s.done)
 	})
+	<-s.stop
 }

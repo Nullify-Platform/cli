@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/auth"
@@ -13,6 +14,14 @@ import (
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/spf13/cobra"
 )
+
+var wrapRuntimeCommands sync.Once
+var commandOutputDefaults map[*cobra.Command]commandOutput
+
+type commandOutput struct {
+	silenceErrors bool
+	silenceUsage  bool
+}
 
 var (
 	host      string
@@ -25,32 +34,89 @@ var (
 	nullifyToken string
 	githubToken  string
 
-	getAPIClient func() *api.Client
+	getAPIClient commands.ClientFactory
 )
 
 var rootCmd = &cobra.Command{
-	Use:     "nullify",
-	Short:   "Nullify CLI - autonomous AI workforce for product security",
-	Long:    "Nullify CLI provides access to the Nullify API for security scanning, findings management, and automation.",
-	Version: logger.Version,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		// Skip config loading for auth login and completion commands
-		if cmd.Name() == "login" || cmd.Name() == "completion" {
-			return
-		}
+	Use:               "nullify",
+	Short:             "Nullify CLI - autonomous AI workforce for product security",
+	Long:              "Nullify CLI provides access to the Nullify API for security scanning, findings management, and automation.",
+	Version:           logger.Version,
+	PersistentPreRunE: prepareCommand,
+}
 
-		if noColor || os.Getenv("NO_COLOR") != "" {
-			_ = os.Setenv("NO_COLOR", "1")
-		}
-	},
+func prepareCommand(cmd *cobra.Command, _ []string) error {
+	if noColor || os.Getenv("NO_COLOR") != "" {
+		_ = os.Setenv("NO_COLOR", "1")
+	}
+
+	ctx, err := setupLogger(cmd.Context())
+	if err != nil {
+		return fmt.Errorf("configure logger: %w", err)
+	}
+	cmd.Root().SetContext(ctx)
+	cmd.SetContext(ctx)
+	return nil
 }
 
 func Execute() error {
-	// Silence cobra's automatic usage dump on errors (it's noisy for runtime
-	// failures), but let cobra print the error message itself exactly once.
-	rootCmd.SilenceUsage = true
+	wrapRuntimeCommands.Do(func() {
+		commandOutputDefaults = captureCommandOutput(rootCmd)
+		setRuntimeErrorBehavior(rootCmd)
+	})
+	resetCommandOutput(rootCmd, commandOutputDefaults)
+	rootCmd.SetContext(context.Background())
+	defer func() {
+		logger.Close(rootCmd.Context())
+	}()
+
+	rootCmd.SilenceUsage = false
 	rootCmd.SilenceErrors = false
 	return rootCmd.Execute()
+}
+
+func setRuntimeErrorBehavior(cmd *cobra.Command) {
+	if cmd.RunE != nil && !commands.PreservesRuntimeUsage(cmd) {
+		run := cmd.RunE
+		cmd.RunE = func(cmd *cobra.Command, args []string) error {
+			err := run(cmd, args)
+			if err != nil {
+				cmd.SilenceUsage = true
+			}
+			return err
+		}
+	}
+	for _, child := range cmd.Commands() {
+		setRuntimeErrorBehavior(child)
+	}
+}
+
+func captureCommandOutput(cmd *cobra.Command) map[*cobra.Command]commandOutput {
+	defaults := map[*cobra.Command]commandOutput{
+		cmd: {
+			silenceErrors: cmd.SilenceErrors,
+			silenceUsage:  cmd.SilenceUsage,
+		},
+	}
+	for _, child := range cmd.Commands() {
+		for command, output := range captureCommandOutput(child) {
+			defaults[command] = output
+		}
+	}
+	return defaults
+}
+
+func resetCommandOutput(
+	cmd *cobra.Command,
+	defaults map[*cobra.Command]commandOutput,
+) {
+	if output, ok := defaults[cmd]; ok {
+		cmd.SilenceErrors = output.silenceErrors
+		cmd.SilenceUsage = output.silenceUsage
+	}
+	for _, child := range cmd.Commands() {
+		resetCommandOutput(child, defaults)
+	}
 }
 
 func init() {
@@ -68,28 +134,12 @@ func init() {
 		noColor = true
 	}
 
-	// Package-level getAPIClient for use by other command files
-	getAPIClient = func() *api.Client {
-		ctx := setupLogger(context.Background())
-		nullifyHost := resolveHost(ctx)
-		token, err := lib.GetNullifyToken(ctx, nullifyHost, nullifyToken, githubToken)
+	getAPIClient = func(ctx context.Context) (*api.Client, error) {
+		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
-			logger.L(ctx).Error("failed to get token", logger.Err(err))
-			os.Exit(ExitAuthError)
+			return nil, err
 		}
-
-		// Load default query parameters from stored credentials
-		defaultParams := map[string]string{}
-		creds, err := auth.LoadCredentials()
-		if err == nil {
-			if hostCreds, ok := creds[auth.CredentialKey(nullifyHost)]; ok {
-				defaultParams = hostCreds.QueryParameters
-			}
-		}
-
-		// api.NewClient defaults to a retrying HTTP client, so no
-		// WithHTTPClient override is needed here.
-		return api.NewClient(nullifyHost, token, defaultParams)
+		return authCtx.APIClient(), nil
 	}
 
 	// Register generated API commands under 'api' parent for cleaner top-level help
@@ -116,7 +166,7 @@ func init() {
 	commands.RegisterDepsAnalyzeCommand(rootCmd, getAPIClient)
 }
 
-func setupLogger(ctx context.Context) context.Context {
+func setupLogger(ctx context.Context) (context.Context, error) {
 	logLevel := "warn"
 	if verbose {
 		logLevel = "info"
@@ -125,12 +175,7 @@ func setupLogger(ctx context.Context) context.Context {
 		logLevel = "debug"
 	}
 
-	ctx, err := logger.ConfigureDevelopmentLogger(ctx, logLevel)
-	if err != nil {
-		panic(err)
-	}
-
-	return ctx
+	return logger.ConfigureDevelopmentLogger(ctx, logLevel)
 }
 
 func getLogLevel() string {
@@ -143,12 +188,7 @@ func getLogLevel() string {
 	return "warn"
 }
 
-// resolveHostE resolves the Nullify host from flag, env var, or config file.
-// It returns a coded error (exit code 1 for a malformed host, ExitAuthError
-// when no host is configured) instead of calling os.Exit, so callers in RunE
-// handlers can return it up the stack and let deferred cleanup run.
 func resolveHostE(ctx context.Context) (string, error) {
-	// 1. Flag takes priority
 	if host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(host)
 		if err != nil {
@@ -157,7 +197,6 @@ func resolveHostE(ctx context.Context) (string, error) {
 		return sanitized, nil
 	}
 
-	// 2. Env var (takes precedence over config file)
 	if envHost := os.Getenv("NULLIFY_HOST"); envHost != "" {
 		sanitized, err := lib.SanitizeNullifyHost(envHost)
 		if err == nil {
@@ -166,7 +205,6 @@ func resolveHostE(ctx context.Context) (string, error) {
 		logger.L(ctx).Warn("NULLIFY_HOST env var is invalid, falling through to config", logger.String("host", envHost), logger.Err(err))
 	}
 
-	// 3. Read from config file
 	cfg, err := auth.LoadConfig()
 	if err == nil && cfg.Host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(cfg.Host)
@@ -179,19 +217,6 @@ func resolveHostE(ctx context.Context) (string, error) {
 	return "", authError("no host configured. Run 'nullify init' to set up, or 'nullify auth login --host <your-instance>.nullify.ai' to configure.")
 }
 
-// resolveHost is the os.Exit-on-error variant retained for the generated API
-// commands' getAPIClient factory, which cannot easily thread errors back up.
-func resolveHost(ctx context.Context) string {
-	nullifyHost, err := resolveHostE(ctx)
-	if err != nil {
-		logger.L(ctx).Error("failed to resolve host", logger.Err(err))
-		os.Exit(ExitCodeForError(err))
-	}
-	return nullifyHost
-}
-
-// getNullifyClientE builds a NullifyClient, returning a coded error on auth
-// failure instead of calling os.Exit.
 func getNullifyClientE(ctx context.Context) (*client.NullifyClient, error) {
 	nullifyHost, err := resolveHostE(ctx)
 	if err != nil {

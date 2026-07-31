@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/nullify-platform/cli/internal/api"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -15,8 +14,7 @@ var reposCmd = &cobra.Command{
 	Short:   "List monitored repositories",
 	Example: "  nullify repos\n  nullify repos -o table",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {

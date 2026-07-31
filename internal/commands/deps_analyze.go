@@ -15,7 +15,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,7 +35,7 @@ import (
 // transient/retry, 2 = invalid invocation) and add the deps-specific
 // severity codes 10/20/30. They live here rather than in the cmd package
 // because cmd imports commands — referencing the cmd constants would be
-// an import cycle. main.go maps these onto os.Exit via ExitCodeFromError.
+// an import cycle.
 const (
 	exitVulnerableFound   = 10
 	exitSuspiciousFound   = 20
@@ -82,7 +81,7 @@ var terminalStatuses = map[string]bool{
 // even though the scpm calls aren't in the generated surface yet,
 // credentials and host come from the same source as every other
 // nullify command.
-func RegisterDepsAnalyzeCommand(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterDepsAnalyzeCommand(parent *cobra.Command, getClient ClientFactory) {
 	var depsCmd *cobra.Command
 	for _, c := range parent.Commands() {
 		if c.Name() == "deps" {
@@ -137,7 +136,11 @@ Exit codes:
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return runDepsAnalyze(ctx, getClient(), depsAnalyzeOpts{
+			client, err := getClient(ctx)
+			if err != nil {
+				return err
+			}
+			return runDepsAnalyze(ctx, client, depsAnalyzeOpts{
 				BaseRef:         baseRef,
 				HeadRef:         headRef,
 				RepoPath:        repoPath,
@@ -540,9 +543,6 @@ func short(sha string) string {
 	return sha
 }
 
-// exitErr wraps an error with an exit code so the top-level handler in
-// main.go can translate it to os.Exit(N). Declared locally so this
-// command doesn't drag in the cli's main-pkg exit-code wiring.
 type exitErr struct {
 	Code int
 	Msg  string
@@ -550,20 +550,8 @@ type exitErr struct {
 
 func (e exitErr) Error() string { return e.Msg }
 
+func (e exitErr) ExitCode() int { return e.Code }
+
 func exitError(code int, format string, args ...any) error {
 	return exitErr{Code: code, Msg: fmt.Sprintf(format, args...)}
-}
-
-// ExitCodeFromError returns the exit code an exitErr wants, or
-// exitTransientFailure (1) for any other non-nil error. main.go calls
-// this to translate the workflow's result into a process exit code.
-func ExitCodeFromError(err error) int {
-	if err == nil {
-		return 0
-	}
-	var ee exitErr
-	if errors.As(err, &ee) {
-		return ee.Code
-	}
-	return exitTransientFailure
 }

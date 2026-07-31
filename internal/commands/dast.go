@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterDastCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "dast",
 		Short: "Dynamic Application Security Testing (DAST)",
@@ -33,7 +33,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-config",
 			Short: "Get BugHunt Config",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntConfigInput{}
 				out, err := client.ListDastBughuntConfig(cmd.Context(), in)
 				if err != nil {
@@ -46,6 +50,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -55,7 +60,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Put BugHunt Config",
 			Long: "Request body (JSON) fields: config (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateDastBughuntConfigInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -97,6 +106,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -108,7 +118,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Validate BugHunt Config",
 			Long: "Request body (JSON) fields: config (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastBughuntConfigValidateInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -150,6 +164,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -160,7 +175,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-bughunt-findings",
 			Short: "Get BugHunt Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntFindingsInput{}
 				out, err := client.ListDastBughuntFindings(cmd.Context(), in)
 				if err != nil {
@@ -173,6 +192,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -182,7 +202,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get BugHunt Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetDastBughuntFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetDastBughuntFindingsFindingId(cmd.Context(), in)
@@ -196,6 +220,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -206,7 +231,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: allow (boolean, required), reason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchDastBughuntFindingsFindingIdAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -249,6 +278,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -260,7 +290,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get BugHunt Finding Events",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastBughuntFindingsFindingIdEvents(cmd.Context(), in)
@@ -274,6 +308,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -283,7 +318,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Create Interactor []",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastBughuntFindingsFindingIdTriage(cmd.Context(), in)
@@ -297,6 +336,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -305,7 +345,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-bughunt-scans",
 			Short: "Get BugHunt Scans",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntScansInput{}
 				out, err := client.ListDastBughuntScans(cmd.Context(), in)
 				if err != nil {
@@ -318,6 +362,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -327,7 +372,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Start BugHunt Scan",
 			Long: "Request body (JSON) fields: intensity (object, required), scope (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastBughuntScansInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -369,6 +418,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -380,7 +430,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get BugHunt Scan",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetDastBughuntScansScanIdInput{}
 				in.ScanID = args[0]
 				out, err := client.GetDastBughuntScansScanId(cmd.Context(), in)
@@ -394,6 +448,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -403,7 +458,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get BugHunt Scan Diff",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntScansScanIdDiffInput{}
 				in.ScanID = args[0]
 				if v, _ := cmd.Flags().GetString("against"); v != "" {
@@ -421,6 +480,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("against", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
@@ -431,7 +491,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get BugHunt Scan Findings",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntScansScanIdFindingsInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastBughuntScansScanIdFindings(cmd.Context(), in)
@@ -445,6 +509,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -454,7 +519,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get BugHunt Sub-Agent Network Log",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntScansScanIdLogsInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastBughuntScansScanIdLogs(cmd.Context(), in)
@@ -468,6 +537,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -477,7 +547,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Stop BugHunt Scan",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastBughuntScansScanIdStopInput{}
 				in.ScanID = args[0]
 				out, err := client.CreateDastBughuntScansScanIdStop(cmd.Context(), in)
@@ -491,6 +565,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -499,7 +574,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-suite-runs",
 			Short: "Get BugHunt Suite Runs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastBughuntSuiteRunsInput{}
 				out, err := client.ListDastBughuntSuiteRuns(cmd.Context(), in)
 				if err != nil {
@@ -512,6 +591,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -522,7 +602,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: intensity (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastBughuntSuitesSuiteRunNowInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -565,6 +649,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -575,7 +660,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-credentials",
 			Short: "Get All Credentials",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastCredentialsInput{}
 				out, err := client.ListDastCredentials(cmd.Context(), in)
 				if err != nil {
@@ -588,6 +677,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -597,7 +687,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Create Credential",
 			Long: "Request body (JSON) fields: config (object, required), description (string, required), name (string, required), type (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastCredentialsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -639,6 +733,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -650,7 +745,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Delete Credential",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteDastCredentialsCredentialIdInput{}
 				in.CredentialID = args[0]
 				out, err := client.DeleteDastCredentialsCredentialId(cmd.Context(), in)
@@ -664,6 +763,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -673,7 +773,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Credential",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetDastCredentialsCredentialIdInput{}
 				in.CredentialID = args[0]
 				out, err := client.GetDastCredentialsCredentialId(cmd.Context(), in)
@@ -687,6 +791,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -697,7 +802,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: config (object, required), description (string, required), name (string, required), type (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateDastCredentialsCredentialIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -740,6 +849,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -751,7 +861,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Validate Credential",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastCredentialsCredentialIdValidateInput{}
 				in.CredentialID = args[0]
 				out, err := client.CreateDastCredentialsCredentialIdValidate(cmd.Context(), in)
@@ -765,6 +879,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -773,7 +888,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-applications",
 			Short: "Get Pentest App Configs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestApplicationsInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -798,6 +917,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -809,7 +929,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Create Application",
 			Long: "Request body (JSON) fields: credentialIds (array, required), id (string), targets (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestApplicationsInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -851,6 +975,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -862,7 +987,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Delete Pentest App Config",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.DeleteDastPentestApplicationsApplicationIdInput{}
 				in.ApplicationID = args[0]
 				out, err := client.DeleteDastPentestApplicationsApplicationId(cmd.Context(), in)
@@ -876,6 +1005,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -885,7 +1015,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest App Config",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetDastPentestApplicationsApplicationIdInput{}
 				in.ApplicationID = args[0]
 				out, err := client.GetDastPentestApplicationsApplicationId(cmd.Context(), in)
@@ -899,6 +1033,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -909,7 +1044,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: credentialIds (array), targets (array).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.UpdateDastPentestApplicationsApplicationIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -952,6 +1091,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -964,7 +1104,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: triggeredByScan (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestApplicationsApplicationIdPreflightInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1007,6 +1151,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1018,7 +1163,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Latest Pentest Preflight for Application",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestApplicationsApplicationIdPreflightLatestInput{}
 				in.ApplicationID = args[0]
 				out, err := client.ListDastPentestApplicationsApplicationIdPreflightLatest(cmd.Context(), in)
@@ -1032,6 +1181,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1041,7 +1191,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Preflight Quota",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestApplicationsApplicationIdPreflightQuotaInput{}
 				in.ApplicationID = args[0]
 				out, err := client.ListDastPentestApplicationsApplicationIdPreflightQuota(cmd.Context(), in)
@@ -1055,6 +1209,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1063,7 +1218,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-pentest-findings",
 			Short: "Get Pentest Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsInput{}
 				if v, _ := cmd.Flags().GetString("is-allowlisted"); v != "" {
 					b := v == "true"
@@ -1120,6 +1279,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-false-positive", "", "")
 		cmd.Flags().String("is-latest", "", "")
@@ -1139,7 +1299,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetDastPentestFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetDastPentestFindingsFindingId(cmd.Context(), in)
@@ -1153,6 +1317,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1163,7 +1328,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestFindingsFindingIdAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1202,6 +1371,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1213,7 +1383,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get DAST Pentest Finding Autofix Activity",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsFindingIdAutofixActivityInput{}
 				in.FindingID = args[0]
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
@@ -1239,6 +1413,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("since-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1250,7 +1425,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Finding Autofix Diff",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsFindingIdAutofixCacheDiffInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastPentestFindingsFindingIdAutofixCacheDiff(cmd.Context(), in)
@@ -1264,6 +1443,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1274,7 +1454,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: assignees (array), force (boolean), message (string), originCampaignId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestFindingsFindingIdAutofixFixInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1317,6 +1501,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1328,7 +1513,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get DAST Pentest Finding Autofix State",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsFindingIdAutofixStateInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastPentestFindingsFindingIdAutofixState(cmd.Context(), in)
@@ -1342,6 +1531,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1351,7 +1541,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get DAST Pentest Finding Autofix Status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsFindingIdAutofixStatusInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastPentestFindingsFindingIdAutofixStatus(cmd.Context(), in)
@@ -1365,6 +1559,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1374,7 +1569,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Finding Events",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastPentestFindingsFindingIdEvents(cmd.Context(), in)
@@ -1388,6 +1587,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1397,7 +1597,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Finding Full",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsFindingIdFullInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastPentestFindingsFindingIdFull(cmd.Context(), in)
@@ -1411,6 +1615,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1421,7 +1626,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestFindingsFindingIdTicketInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1464,6 +1673,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1475,7 +1685,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Finding Full",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
 				out, err := client.ListDastPentestFindingsFindingIdTriage(cmd.Context(), in)
@@ -1489,6 +1703,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1499,7 +1714,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Long: "Request body (JSON) fields: unallowlistReason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestFindingsFindingIdUnallowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1538,6 +1757,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1549,7 +1769,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Preflight",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetDastPentestPreflightsPreflightIdInput{}
 				in.PreflightID = args[0]
 				out, err := client.GetDastPentestPreflightsPreflightId(cmd.Context(), in)
@@ -1563,6 +1787,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1572,7 +1797,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Preflight Events",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestPreflightsPreflightIdEventsInput{}
 				in.PreflightID = args[0]
 				if v, _ := cmd.Flags().GetString("after-seq"); v != "" {
@@ -1602,6 +1831,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("after-seq", "", "")
 		cmd.Flags().String("limit", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1612,7 +1842,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-pentest-scans",
 			Short: "Get Pentest Scans",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -1637,6 +1871,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1648,7 +1883,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Scan",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetDastPentestScansScanIdInput{}
 				in.ScanID = args[0]
 				out, err := client.GetDastPentestScansScanId(cmd.Context(), in)
@@ -1662,6 +1901,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1671,7 +1911,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Scan Findings",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansScanIdFindingsInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastPentestScansScanIdFindings(cmd.Context(), in)
@@ -1685,6 +1929,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1694,7 +1939,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Auth Matrix Hypotheses",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansScanIdHypothesesInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastPentestScansScanIdHypotheses(cmd.Context(), in)
@@ -1708,6 +1957,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1717,7 +1967,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Sub-Agent Network Log",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansScanIdLogsInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastPentestScansScanIdLogs(cmd.Context(), in)
@@ -1731,6 +1985,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1740,7 +1995,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Scan Report",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansScanIdReportInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastPentestScansScanIdReport(cmd.Context(), in)
@@ -1754,6 +2013,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1763,7 +2023,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Scan Report Download URL",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansScanIdReportDownloadInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastPentestScansScanIdReportDownload(cmd.Context(), in)
@@ -1777,6 +2041,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1786,7 +2051,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Scan External Report PDF",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansScanIdReportExternalPdfInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastPentestScansScanIdReportExternalPdf(cmd.Context(), in)
@@ -1800,6 +2069,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1809,7 +2079,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Get Pentest Scan Report PDF",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastPentestScansScanIdReportPdfInput{}
 				in.ScanID = args[0]
 				out, err := client.ListDastPentestScansScanIdReportPdf(cmd.Context(), in)
@@ -1823,6 +2097,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1832,7 +2107,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Stop Pentest Scan",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestScansScanIdStopInput{}
 				in.ScanID = args[0]
 				out, err := client.CreateDastPentestScansScanIdStop(cmd.Context(), in)
@@ -1846,6 +2125,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1855,7 +2135,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Short: "Start Pentest Scan from Application",
 			Long: "Request body (JSON) fields: applicationId (string, required), configOverrides (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateDastPentestStartInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1897,6 +2181,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1907,7 +2192,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-last",
 			Short: "Get Pentest Last Scan Status",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastScansStatusLastInput{}
 				out, err := client.ListDastScansStatusLast(cmd.Context(), in)
 				if err != nil {
@@ -1920,6 +2209,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1928,7 +2218,11 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 			Use:   "list-sourceips",
 			Short: "Get Source IPs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListDastSourceipsInput{}
 				out, err := client.ListDastSourceips(cmd.Context(), in)
 				if err != nil {
@@ -1941,6 +2235,7 @@ func RegisterDastCommands(parent *cobra.Command, getClient func() *api.Client) {
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 

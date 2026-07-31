@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterAssetGraphCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "asset-graph",
 		Short: "Asset Graph (reachability, search, subgraph, summary)",
@@ -33,7 +33,11 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Use:   "list-reachability",
 			Short: "Get Asset Graph Reachability",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAssetGraphReachabilityInput{}
 				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
 					x := string(v)
@@ -54,6 +58,7 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("account-id", "", "")
 		cmd.Flags().String("node-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -64,7 +69,11 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Use:   "list-search",
 			Short: "Search Asset Graph",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAssetGraphSearchInput{}
 				if v, _ := cmd.Flags().GetString("max-results"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -94,6 +103,7 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("max-results", "", "")
 		cmd.Flags().String("object-types", "", "")
 		cmd.Flags().String("q", "", "")
@@ -105,7 +115,11 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Use:   "list-subgraph",
 			Short: "Get Asset Graph Subgraph",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAssetGraphSubgraphInput{}
 				if v, _ := cmd.Flags().GetString("account-id"); v != "" {
 					x := string(v)
@@ -147,6 +161,7 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("account-id", "", "")
 		cmd.Flags().String("depth", "", "")
 		cmd.Flags().String("max-nodes", "", "")
@@ -160,7 +175,11 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 			Use:   "list-summary",
 			Short: "Get Asset Graph Summary",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListAssetGraphSummaryInput{}
 				out, err := client.ListAssetGraphSummary(cmd.Context(), in)
 				if err != nil {
@@ -173,6 +192,7 @@ func RegisterAssetGraphCommands(parent *cobra.Command, getClient func() *api.Cli
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 

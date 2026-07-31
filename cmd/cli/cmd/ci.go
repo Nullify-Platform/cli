@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -39,18 +38,11 @@ Exit codes:
 
   # Check a specific repo
   nullify ci gate --repo my-org/my-repo`,
-	// SilenceErrors: this command writes its own gate-failure summary to
-	// stdout and must not have cobra echo the sentinel error to stderr.
-	// Auth/network errors are printed explicitly below to preserve the
-	// original stderr output.
-	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			return err
 		}
 		nullifyClient := authCtx.Client()
@@ -70,7 +62,6 @@ Exit codes:
 		}
 		if !validThreshold {
 			err := fmt.Errorf("invalid --severity-threshold %q. Valid values: critical, high, medium, low", severityThreshold)
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			return withExitCode(1, err)
 		}
 
@@ -132,12 +123,12 @@ Exit codes:
 
 		if apiErrors > 0 {
 			err := fmt.Errorf("%d scanner request(s) failed; failing the gate (cannot confirm a clean result)", apiErrors)
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			return withExitCode(ExitNetworkError, err)
 		}
 
 		if totalFindings > 0 {
 			fmt.Printf("\nGate failed: %d findings at or above %s severity\n", totalFindings, severityThreshold)
+			cmd.SilenceErrors = true
 			return withExitCode(ExitFindings, fmt.Errorf("gate failed: %d findings at or above %s severity", totalFindings, severityThreshold))
 		}
 
@@ -151,13 +142,12 @@ var ciReportCmd = &cobra.Command{
 	Short: "Generate a findings report (markdown or SARIF)",
 	Long: `Output a report of security findings. The default markdown format produces a
 summary table suitable for PR comments (counts by type and severity). The sarif
-	format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
+format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 	Example: `  nullify ci report
   nullify ci report --repo my-org/my-repo
   nullify ci report --format sarif > nullify.sarif`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := setupLogger(cmd.Context())
-		defer logger.Close(ctx)
+		ctx := cmd.Context()
 
 		authCtx, err := resolveCommandAuth(ctx)
 		if err != nil {
@@ -242,7 +232,7 @@ summary table suitable for PR comments (counts by type and severity). The sarif
 			wrapped, _ := json.Marshal(map[string]any{"findings": all, "total": len(all)})
 			sarifBytes, err := output.SARIFBytes(wrapped)
 			if err != nil {
-				return networkError("failed to build SARIF report: %v", err)
+				return networkError("failed to build SARIF report: %w", err)
 			}
 			fmt.Println(string(sarifBytes))
 			return nil

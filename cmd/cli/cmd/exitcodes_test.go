@@ -8,6 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type externalExitError struct{}
+
+func (externalExitError) Error() string { return "external" }
+func (externalExitError) ExitCode() int { return 30 }
+
 func TestExitCodeForError(t *testing.T) {
 	tests := []struct {
 		name string
@@ -18,9 +23,10 @@ func TestExitCodeForError(t *testing.T) {
 		{"plain error", errors.New("boom"), 1},
 		{"auth error", authError("nope"), ExitAuthError},
 		{"network error", networkError("nope"), ExitNetworkError},
-		{"findings error", findingsError("nope"), ExitFindings},
+		{"findings error", withExitCode(ExitFindings, errors.New("nope")), ExitFindings},
 		{"explicit code 1", withExitCode(1, errors.New("x")), 1},
 		{"wrapped coded error", fmt.Errorf("ctx: %w", authError("nope")), ExitAuthError},
+		{"external coded error", externalExitError{}, 30},
 	}
 
 	for _, tt := range tests {

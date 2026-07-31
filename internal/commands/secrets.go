@@ -21,7 +21,7 @@ var _ = strconv.Atoi
 var _ = strings.Split
 var _ = models.RequestScope{}
 
-func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client) {
+func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 	serviceCmd := &cobra.Command{
 		Use:   "secrets",
 		Short: "Secrets Detection",
@@ -33,7 +33,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-credentials-findings",
 			Short: "Get Secrets Credential Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsCredentialsFindingsInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -91,6 +95,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
@@ -110,7 +115,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Allowlist Batch of Credential Findings",
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsCredentialsFindingsAllowlistBatchInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -148,6 +157,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -158,7 +168,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-credentials-findings-detailed",
 			Short: "Get Secrets Credential Findings Detailed",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsCredentialsFindingsDetailedInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -216,6 +230,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
@@ -235,7 +250,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Credential Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetSecretsCredentialsFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetSecretsCredentialsFindingsFindingId(cmd.Context(), in)
@@ -249,6 +268,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -259,7 +279,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: priorityOverride (object), severityOverride (object), userNotes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchSecretsCredentialsFindingsFindingIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -302,6 +326,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -314,7 +339,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsCredentialsFindingsFindingIdAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -353,6 +382,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -364,7 +394,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Finding Events",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsCredentialsFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsCredentialsFindingsFindingIdEvents(cmd.Context(), in)
@@ -378,6 +412,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -388,7 +423,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsCredentialsFindingsFindingIdTicketInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -431,6 +470,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -442,7 +482,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Triaged Credential Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsCredentialsFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsCredentialsFindingsFindingIdTriage(cmd.Context(), in)
@@ -456,6 +500,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -466,7 +511,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: unallowlistReason (string, required), unallowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsCredentialsFindingsFindingIdUnallowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -505,6 +554,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -516,7 +566,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Credential Finding Related Users",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsCredentialsFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsCredentialsFindingsFindingIdUsers(cmd.Context(), in)
@@ -530,6 +584,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -538,7 +593,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-events",
 			Short: "Get Secret Events",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsEventsInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -597,6 +656,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("event-type", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
@@ -614,7 +674,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-findings",
 			Short: "Get Secrets Credential Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsFindingsInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -672,6 +736,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
@@ -691,7 +756,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Allowlist Batch of Credential Findings",
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsFindingsAllowlistBatchInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -729,6 +798,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -739,7 +809,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-findings-detailed",
 			Short: "Get Secrets Credential Findings Detailed - [DEPRECATED - TO BE REMOVED BY 2025]",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsFindingsDetailedInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -797,6 +871,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
@@ -815,7 +890,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-preview",
 			Short: "Get Secrets Credential Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsFindingsPreviewInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -873,6 +952,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
@@ -892,7 +972,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Credential Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetSecretsFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetSecretsFindingsFindingId(cmd.Context(), in)
@@ -906,6 +990,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -916,7 +1001,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: priorityOverride (object), severityOverride (object), userNotes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchSecretsFindingsFindingIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -959,6 +1048,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -971,7 +1061,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsFindingsFindingIdAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1010,6 +1104,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1021,7 +1116,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Finding Events",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsFindingsFindingIdEvents(cmd.Context(), in)
@@ -1035,6 +1134,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1045,7 +1145,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsFindingsFindingIdTicketInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1088,6 +1192,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1099,7 +1204,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Triaged Credential Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsFindingsFindingIdTriage(cmd.Context(), in)
@@ -1113,6 +1222,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1123,7 +1233,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: unallowlistReason (string, required), unallowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsFindingsFindingIdUnallowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1162,6 +1276,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1173,7 +1288,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Credential Finding Related Users",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsFindingsFindingIdUsers(cmd.Context(), in)
@@ -1187,6 +1306,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1195,7 +1315,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-scan-runs",
 			Short: "List Scan Runs",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsScanRunsInput{}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -1232,6 +1356,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("limit", "", "Max scan runs per page (default 10, max 50)")
 		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
 		cmd.Flags().String("repository-id", "", "Repository ID to list scan runs for")
@@ -1244,7 +1369,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Use:   "list-sensitivedata-findings",
 			Short: "Get Sensitive Data Findings",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsSensitivedataFindingsInput{}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
 					x := string(v)
@@ -1302,6 +1431,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
@@ -1321,7 +1451,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Allowlist Batch of Sensitive Data Findings",
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsSensitivedataFindingsAllowlistBatchInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1359,6 +1493,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1370,7 +1505,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Sensitive Data Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.GetSecretsSensitivedataFindingsFindingIdInput{}
 				in.FindingID = args[0]
 				out, err := client.GetSecretsSensitivedataFindingsFindingId(cmd.Context(), in)
@@ -1384,6 +1523,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1394,7 +1534,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: priorityOverride (object), userNotes (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.PatchSecretsSensitivedataFindingsFindingIdInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1437,6 +1581,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1449,7 +1594,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsSensitivedataFindingsFindingIdAllowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1488,6 +1637,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1500,7 +1650,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: assignees (array), campaignId (string), campaignTitle (string), message (string), project (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsSensitivedataFindingsFindingIdTicketInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1543,6 +1697,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1554,7 +1709,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Triaged Sensitive Data Finding",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsSensitivedataFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsSensitivedataFindingsFindingIdTriage(cmd.Context(), in)
@@ -1568,6 +1727,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1578,7 +1738,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Long: "Request body (JSON) fields: unallowlistReason (string, required), unallowlistType (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput{}
 				dataFlag, _ := cmd.Flags().GetString("data")
 				dataFile, _ := cmd.Flags().GetString("data-file")
@@ -1617,6 +1781,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1628,7 +1793,11 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 			Short: "Get Sensitive Data Finding Related Users",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				client := getClient()
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
 				in := api.ListSecretsSensitivedataFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
 				out, err := client.ListSecretsSensitivedataFindingsFindingIdUsers(cmd.Context(), in)
@@ -1642,6 +1811,7 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient func() *api.Client
 				return output.Print(cmd, data)
 			},
 		}
+		preserveRuntimeUsage(cmd)
 		serviceCmd.AddCommand(cmd)
 	}
 
