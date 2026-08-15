@@ -26,6 +26,83 @@ func TestSeveritiesAboveThreshold(t *testing.T) {
 	}
 }
 
+// TestScannerQueryParamsMatchEndpointFilters pins the gate's query parameters to
+// the filters each endpoint actually implements. Severity must go out
+// upper-case: /cspm/findings casts it into the Postgres severity_level enum,
+// whose labels are upper-case, so "critical" is a 500 and not a filter.
+func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
+	byName := map[string]scannerEndpoint{}
+	for _, ep := range allScannerEndpoints() {
+		byName[ep.name] = ep
+	}
+
+	tests := []struct {
+		scanner  string
+		expected []string
+	}{
+		{
+			scanner:  "sast",
+			expected: []string{"limit", "1", "severity", "CRITICAL", "isResolved", "false", "repository", "org/repo"},
+		},
+		{
+			scanner:  "cspm",
+			expected: []string{"limit", "1", "severity", "CRITICAL", "repository", "org/repo"},
+		},
+		{
+			scanner:  "sca_dependencies",
+			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+		},
+		{
+			scanner:  "sca_containers",
+			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+		},
+		{
+			scanner:  "secrets",
+			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+		},
+		{
+			scanner:  "pentest",
+			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+		},
+		{
+			scanner:  "bughunt",
+			expected: []string{"limit", "1", "repository", "org/repo"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.scanner, func(t *testing.T) {
+			ep, ok := byName[tt.scanner]
+			require.True(t, ok)
+
+			severities := scannerSeverities(ep, []string{"critical", "high"})
+			params := scannerQueryParams(ep, severities[0], "org/repo", "1")
+			require.Equal(t, tt.expected, params)
+			require.NotContains(t, params, "status")
+		})
+	}
+}
+
+func TestScannerSeveritiesCollapseWithoutServerSideFilter(t *testing.T) {
+	byName := map[string]scannerEndpoint{}
+	for _, ep := range allScannerEndpoints() {
+		byName[ep.name] = ep
+	}
+
+	threshold := []string{"critical", "high"}
+
+	require.Equal(t, threshold, scannerSeverities(byName["sast"], threshold))
+	require.Equal(t, threshold, scannerSeverities(byName["cspm"], threshold))
+	require.Equal(t, []string{""}, scannerSeverities(byName["secrets"], threshold))
+	require.Equal(t, []string{""}, scannerSeverities(byName["bughunt"], threshold))
+
+	require.Equal(t,
+		"FAIL: secrets has open findings (no server-side severity filter, threshold not applied)",
+		gateFailLine(byName["secrets"], ""),
+	)
+	require.Equal(t, "FAIL: sast has open critical findings", gateFailLine(byName["sast"], "critical"))
+}
+
 func TestCountFindings(t *testing.T) {
 	tests := []struct {
 		name     string

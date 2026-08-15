@@ -111,16 +111,19 @@ func init() {
 	rootCmd.AddCommand(securityStatusCmd)
 }
 
-// summarizeFindingsResponse extracts a human-readable summary from a findings API response.
+// summarizeFindingsResponse extracts a human-readable summary from a findings
+// API response. The count is not reported: status requests limit=1, so
+// countFindings is capped at 1 and any number printed here would understate a
+// tenant's real backlog by orders of magnitude.
 func summarizeFindingsResponse(body string) string {
 	count, err := countFindings(body)
 	if err != nil {
 		return "unreadable response"
 	}
-	if count == 1 {
-		return "1 finding returned"
+	if count > 0 {
+		return "findings present"
 	}
-	return fmt.Sprintf("%d findings returned", count)
+	return "no findings"
 }
 
 type securityStatusOutput struct {

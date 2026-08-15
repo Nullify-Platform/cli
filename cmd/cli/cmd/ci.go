@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -88,19 +89,15 @@ Exit codes:
 		g, gctx := errgroup.WithContext(ctx)
 
 		for _, ep := range endpoints {
-			for _, sev := range severities {
+			for _, sev := range scannerSeverities(ep, severities) {
 				ep, sev := ep, sev
 				g.Go(func() error {
-					params := []string{"severity", sev, "status", "open", "limit", "1"}
-					if repo != "" {
-						params = append(params, "repository", repo)
-					}
-					qs := lib.BuildQueryString(queryParams, params...)
+					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1")...)
 
 					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 					if err != nil {
 						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
 						mu.Unlock()
 						atomic.AddInt64(&apiErrors, 1)
 						return nil
@@ -109,7 +106,7 @@ Exit codes:
 					count, err := countFindings(body)
 					if err != nil {
 						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Error: unreadable response from %s (%s): %v\n", ep.name, sev, err)
+						fmt.Fprintf(os.Stderr, "Error: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
 						mu.Unlock()
 						atomic.AddInt64(&unreadable, 1)
 						return nil
@@ -118,7 +115,7 @@ Exit codes:
 					if count > 0 {
 						atomic.AddInt64(&findingsFound, 1)
 						mu.Lock()
-						fmt.Printf("FAIL: %s has open %s findings\n", ep.name, sev)
+						fmt.Println(gateFailLine(ep, sev))
 						mu.Unlock()
 					}
 					return nil
@@ -200,17 +197,13 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 			for j, sev := range severities {
 				i, j, ep, sev := i, j, ep, sev
 				g.Go(func() error {
-					params := []string{"severity", sev, "status", "open", "limit", "1000"}
-					if repo != "" {
-						params = append(params, "repository", repo)
-					}
-					qs := lib.BuildQueryString(queryParams, params...)
+					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1000")...)
 
 					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 					if err != nil {
 						atomic.AddInt64(&apiErrors, 1)
 						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
 						mu.Unlock()
 						return nil
 					}
@@ -218,7 +211,7 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 					if err != nil {
 						atomic.AddInt64(&apiErrors, 1)
 						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: unreadable response from %s (%s): %v\n", ep.name, sev, err)
+						fmt.Fprintf(os.Stderr, "Warning: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
 						mu.Unlock()
 						return nil
 					}
@@ -296,6 +289,58 @@ func severitiesAboveThreshold(threshold string) []string {
 		}
 	}
 	return []string{"critical", "high"}
+}
+
+// scannerSeverities returns the severity values to query an endpoint with. An
+// endpoint with no server-side severity filter is queried once with an empty
+// severity: fanning out over the threshold list there would issue identical
+// requests and attribute the same findings to every severity.
+func scannerSeverities(ep scannerEndpoint, severities []string) []string {
+	if !ep.supportsSeverity {
+		return []string{""}
+	}
+	return severities
+}
+
+// scannerQueryParams builds the query string arguments for a findings request,
+// sending only the filters the endpoint implements.
+//
+// Severity is upper-cased because /cspm/findings binds it straight into
+// "severity_label = $N::severity_level" and the Postgres severity_level enum
+// labels are upper-case, so a lower-case value is a 500 rather than a filter.
+// /sast/findings case-folds via database.StringToNullSeverityLevel and accepts
+// either.
+func scannerQueryParams(ep scannerEndpoint, severity, repo, limit string) []string {
+	params := []string{"limit", limit}
+	if ep.supportsSeverity && severity != "" {
+		params = append(params, "severity", strings.ToUpper(severity))
+	}
+	if ep.supportsIsResolved {
+		params = append(params, "isResolved", "false")
+	}
+	if repo != "" {
+		params = append(params, "repository", repo)
+	}
+	return params
+}
+
+// scannerLabel names a scanner/severity pair in diagnostic output. A scanner
+// queried without a severity filter is named alone.
+func scannerLabel(ep scannerEndpoint, severity string) string {
+	if severity == "" {
+		return ep.name
+	}
+	return fmt.Sprintf("%s (%s)", ep.name, severity)
+}
+
+// gateFailLine reports a scanner that returned findings. Scanners with no
+// server-side severity filter say so rather than implying the threshold was
+// applied to their result.
+func gateFailLine(ep scannerEndpoint, severity string) string {
+	if severity == "" {
+		return fmt.Sprintf("FAIL: %s has open findings (no server-side severity filter, threshold not applied)", ep.name)
+	}
+	return fmt.Sprintf("FAIL: %s has open %s findings", ep.name, severity)
 }
 
 // errUnreadableFindings reports a findings response that does not carry the

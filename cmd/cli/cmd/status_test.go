@@ -16,22 +16,22 @@ func TestSummarizeFindingsResponse(t *testing.T) {
 		{
 			name:     "scanner envelope with findings",
 			body:     `{"findings":[{"id":"f1"},{"id":"f2"}],"numItems":2,"nextToken":""}`,
-			expected: "2 findings returned",
+			expected: "findings present",
 		},
 		{
 			name:     "scanner envelope with one finding",
 			body:     `{"findings":[{"id":"f1"}],"numItems":1,"nextToken":""}`,
-			expected: "1 finding returned",
+			expected: "findings present",
 		},
 		{
 			name:     "bughunt envelope omits numItems",
 			body:     `{"findings":[{"id":"f1"},{"id":"f2"},{"id":"f3"}]}`,
-			expected: "3 findings returned",
+			expected: "findings present",
 		},
 		{
 			name:     "empty scanner envelope",
 			body:     `{"findings":[],"numItems":0,"nextToken":""}`,
-			expected: "0 findings returned",
+			expected: "no findings",
 		},
 		{
 			name:     "empty object",
