@@ -14,29 +14,34 @@ func TestSummarizeFindingsResponse(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "array response",
-			body:     `[{"id":1},{"id":2}]`,
+			name:     "scanner envelope with findings",
+			body:     `{"findings":[{"id":"f1"},{"id":"f2"}],"numItems":2,"nextToken":""}`,
 			expected: "2 findings returned",
 		},
 		{
-			name:     "object with items",
-			body:     `{"items":[{"id":1}]}`,
+			name:     "scanner envelope with one finding",
+			body:     `{"findings":[{"id":"f1"}],"numItems":1,"nextToken":""}`,
 			expected: "1 finding returned",
 		},
 		{
-			name:     "object with total",
-			body:     `{"total":99}`,
-			expected: "99 total findings",
+			name:     "bughunt envelope omits numItems",
+			body:     `{"findings":[{"id":"f1"},{"id":"f2"},{"id":"f3"}]}`,
+			expected: "3 findings returned",
+		},
+		{
+			name:     "empty scanner envelope",
+			body:     `{"findings":[],"numItems":0,"nextToken":""}`,
+			expected: "0 findings returned",
 		},
 		{
 			name:     "empty object",
 			body:     `{}`,
-			expected: "data available",
+			expected: "unreadable response",
 		},
 		{
 			name:     "invalid json",
 			body:     `nope`,
-			expected: "data available",
+			expected: "unreadable response",
 		},
 	}
 
