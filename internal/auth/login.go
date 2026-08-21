@@ -296,6 +296,20 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 		return "", err
 	}
 
+	// The endpoint delivers the new access token as a Set-Cookie header
+	// rather than in the JSON body; fall back to it when the body has none.
+	if result.AccessToken == "" {
+		for _, c := range resp.Cookies() {
+			if c.Name == "access_token" {
+				result.AccessToken = c.Value
+				if result.ExpiresIn == 0 && c.MaxAge > 0 {
+					result.ExpiresIn = c.MaxAge
+				}
+				break
+			}
+		}
+	}
+
 	if result.AccessToken == "" {
 		return "", fmt.Errorf("refresh returned empty access token")
 	}
