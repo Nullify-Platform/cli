@@ -257,3 +257,80 @@ func TestFailingProviderIsBackedOff(t *testing.T) {
 		t.Errorf("tokenProvider calls = %d, want 1 across 5 requests inside the backoff window", providerCalls)
 	}
 }
+
+// A refresh provider that keeps failing must not be consulted again on every
+// subsequent 401 -- each call is a blocking round trip taken under the write
+// lock, and a session whose refresh token the server has rejected never recovers.
+func TestForceRefreshIsBackedOffAfterFailure(t *testing.T) {
+	refreshCalls := 0
+	rp := func() (string, error) { refreshCalls++; return "", io.ErrUnexpectedEOF }
+	inner, calls := bearerRouter(map[string]int{"revoked": 401})
+	tr := newRefreshingTransportWithRefresher("revoked", func() (string, error) { return "revoked", nil }, rp, inner)
+
+	for i := range 5 {
+		req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+		resp, err := tr.RoundTrip(req)
+		if err != nil {
+			t.Fatalf("RoundTrip %d: %v", i, err)
+		}
+		if resp.StatusCode != 401 {
+			t.Fatalf("RoundTrip %d: status = %d, want the original 401", i, resp.StatusCode)
+		}
+		resp.Body.Close()
+	}
+
+	if refreshCalls != 1 {
+		t.Errorf("refreshProvider calls = %d, want 1 across 5 requests inside the backoff window", refreshCalls)
+	}
+	if got := calls(); got != 5 {
+		t.Errorf("upstream requests = %d, want 5 (one per request, no retries)", got)
+	}
+}
+
+// A refresh that hands back the token the server just rejected is not progress:
+// RoundTrip cannot retry with it, so re-fetching it on the next 401 only costs
+// another round trip. The cache must also be left alone.
+func TestForceRefreshTreatsUnchangedTokenAsFailure(t *testing.T) {
+	refreshCalls := 0
+	rp := func() (string, error) { refreshCalls++; return "revoked", nil }
+	inner, calls := bearerRouter(map[string]int{"revoked": 401})
+	tr := newRefreshingTransportWithRefresher("revoked", func() (string, error) { return "revoked", nil }, rp, inner)
+
+	for i := range 2 {
+		req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+		resp, err := tr.RoundTrip(req)
+		if err != nil {
+			t.Fatalf("RoundTrip %d: %v", i, err)
+		}
+		if resp.StatusCode != 401 {
+			t.Fatalf("RoundTrip %d: status = %d, want the original 401", i, resp.StatusCode)
+		}
+		resp.Body.Close()
+	}
+
+	if refreshCalls != 1 {
+		t.Errorf("refreshProvider calls = %d, want 1 (the second request is inside the backoff window)", refreshCalls)
+	}
+	if got := calls(); got != 2 {
+		t.Errorf("upstream requests = %d, want 2 (no retry with the rejected token)", got)
+	}
+}
+
+// An empty token from a provider that reported no error must not replace a
+// cached one; the transport would then send "Bearer " on every later request.
+func TestForceRefreshKeepsCacheOnEmptyToken(t *testing.T) {
+	rp := func() (string, error) { return "", nil }
+	inner, _ := bearerRouter(map[string]int{"revoked": 401})
+	tr := newRefreshingTransportWithRefresher("revoked", func() (string, error) { return "revoked", nil }, rp, inner)
+
+	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	resp, err := tr.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	resp.Body.Close()
+
+	if tr.cachedToken != "revoked" {
+		t.Errorf("cachedToken = %q, want the previous token kept", tr.cachedToken)
+	}
+}

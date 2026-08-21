@@ -367,7 +367,10 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 
 // cookieLifetime returns a cookie's remaining lifetime in seconds, preferring
 // Max-Age and falling back to Expires. Returns 0 when the cookie carries
-// neither, so callers can tell "no expiry given" from "expires now".
+// neither, which refreshToken stores as an already-elapsed ExpiresAt: an
+// unknown lifetime forces a refresh on next use rather than being trusted.
+// Storing 0 instead would read as "never expires" in GetValidToken, which
+// only checks an expiry it was actually given.
 func cookieLifetime(c *http.Cookie) int {
 	if c.MaxAge > 0 {
 		return c.MaxAge

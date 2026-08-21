@@ -30,12 +30,16 @@ type refreshingAuthTransport struct {
 	refreshProvider TokenProvider
 	transport       http.RoundTripper
 
-	mu             sync.RWMutex
-	cachedToken    string
-	cachedAt       time.Time
-	retryAfter     time.Time
-	cacheTTL       time.Duration
-	failureBackoff time.Duration
+	mu          sync.RWMutex
+	cachedToken string
+	cachedAt    time.Time
+	// providerRetryAfter and refreshRetryAfter are separate clocks because
+	// tokenProvider and refreshProvider are separate functions: one failing
+	// says nothing about the other.
+	providerRetryAfter time.Time
+	refreshRetryAfter  time.Time
+	cacheTTL           time.Duration
+	failureBackoff     time.Duration
 }
 
 // NewRefreshingHTTPClient returns an *http.Client whose transport injects a
@@ -93,7 +97,7 @@ func NewRefreshingNullifyClient(nullifyHost string, tokenProvider, refreshProvid
 // provider: either it is still within its TTL, or a recent provider failure is
 // still inside its backoff window. Callers must hold t.mu.
 func (t *refreshingAuthTransport) fresh() bool {
-	return time.Since(t.cachedAt) < t.cacheTTL || time.Now().Before(t.retryAfter)
+	return time.Since(t.cachedAt) < t.cacheTTL || time.Now().Before(t.providerRetryAfter)
 }
 
 func (t *refreshingAuthTransport) getToken(ctx context.Context) string {
@@ -117,29 +121,37 @@ func (t *refreshingAuthTransport) getToken(ctx context.Context) string {
 		// Fall back to cached token; log so the user can diagnose 401s. Hold
 		// off on the next attempt so a persistently failing provider does not
 		// put a blocking refresh in front of every single request.
-		t.retryAfter = time.Now().Add(t.failureBackoff)
+		t.providerRetryAfter = time.Now().Add(t.failureBackoff)
 		logger.L(ctx).Warn("token refresh failed, using cached token", logger.Err(err))
 		return t.cachedToken
 	}
 
-	t.retryAfter = time.Time{}
+	t.providerRetryAfter = time.Time{}
 	t.cachedToken = newToken
 	t.cachedAt = time.Now()
 	return t.cachedToken
 }
 
-// forceRefresh fetches a new token regardless of the cache TTL. It is storm-safe:
-// if another goroutine already replaced staleToken (e.g. several concurrent
-// requests hit a 401 at once), the already-refreshed token is reused instead of
-// fetching again.
+// forceRefresh fetches a new token regardless of the cache TTL, returning "" when
+// it cannot produce one the caller has not already tried. It is storm-safe: if
+// another goroutine already replaced staleToken (e.g. several concurrent requests
+// hit a 401 at once), the already-refreshed token is reused instead of fetching
+// again. A refresh that makes no progress arms a backoff window, so a session
+// whose credentials the server keeps rejecting does not put a blocking refresh in
+// front of every request for the rest of its life.
 func (t *refreshingAuthTransport) forceRefresh(ctx context.Context, staleToken string) string {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if t.cachedToken != staleToken {
 		return t.cachedToken
 	}
+	if time.Now().Before(t.refreshRetryAfter) {
+		return ""
+	}
+
 	newToken, err := t.refreshProvider()
 	if err != nil {
+		t.refreshRetryAfter = time.Now().Add(t.failureBackoff)
 		// A fixed token source has nothing to re-fetch, so the 401 is final
 		// rather than a failure worth warning about.
 		if errors.Is(err, ErrTokenNotRefreshable) {
@@ -149,7 +161,17 @@ func (t *refreshingAuthTransport) forceRefresh(ctx context.Context, staleToken s
 		}
 		return ""
 	}
-	t.retryAfter = time.Time{}
+	// Neither an empty token nor the one the server just rejected is progress.
+	// Leave the cache alone rather than replacing a working token with junk or
+	// re-fetching the same rejected string on every subsequent request.
+	if newToken == "" || newToken == staleToken {
+		t.refreshRetryAfter = time.Now().Add(t.failureBackoff)
+		logger.L(ctx).Warn("forced token refresh returned no new token, surfacing 401")
+		return ""
+	}
+
+	t.providerRetryAfter = time.Time{}
+	t.refreshRetryAfter = time.Time{}
 	t.cachedToken = newToken
 	t.cachedAt = time.Now()
 	return newToken
