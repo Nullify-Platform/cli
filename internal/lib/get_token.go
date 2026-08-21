@@ -22,14 +22,42 @@ type githubToken struct {
 	Token string `json:"accessToken"`
 }
 
+// GetNullifyToken resolves a token from the first source that provides one:
+// the --nullify-token flag, NULLIFY_TOKEN, a GitHub Actions token exchange, or
+// the stored credentials.
 func GetNullifyToken(
 	ctx context.Context,
 	nullifyHost string,
 	nullifyTokenFlag string,
 	githubTokenFlag string,
 ) (string, error) {
+	return resolveNullifyToken(ctx, nullifyHost, nullifyTokenFlag, githubTokenFlag, false)
+}
+
+// RefreshNullifyToken resolves a token the same way as GetNullifyToken but
+// insists on a freshly minted one, bypassing the stored expiry. Sources that
+// yield a fixed string return ErrTokenNotRefreshable.
+func RefreshNullifyToken(
+	ctx context.Context,
+	nullifyHost string,
+	nullifyTokenFlag string,
+	githubTokenFlag string,
+) (string, error) {
+	return resolveNullifyToken(ctx, nullifyHost, nullifyTokenFlag, githubTokenFlag, true)
+}
+
+func resolveNullifyToken(
+	ctx context.Context,
+	nullifyHost string,
+	nullifyTokenFlag string,
+	githubTokenFlag string,
+	force bool,
+) (string, error) {
 	// 1. Command-line flag
 	if nullifyTokenFlag != "" {
+		if force {
+			return "", client.ErrTokenNotRefreshable
+		}
 		logger.L(ctx).Debug("using token from flag")
 		return nullifyTokenFlag, nil
 	}
@@ -37,6 +65,9 @@ func GetNullifyToken(
 	// 2. Environment variable
 	token := os.Getenv("NULLIFY_TOKEN")
 	if token != "" {
+		if force {
+			return "", client.ErrTokenNotRefreshable
+		}
 		logger.L(ctx).Debug("using token from env")
 		return token, nil
 	}
@@ -100,7 +131,14 @@ func GetNullifyToken(
 	}
 
 	// 4. Stored credentials from ~/.nullify/credentials.json
-	storedToken, err := auth.GetValidToken(ctx, nullifyHost)
+	getStored := auth.GetValidToken
+	if force {
+		getStored = auth.ForceRefreshToken
+	}
+	storedToken, err := getStored(ctx, nullifyHost)
+	if force && errors.Is(err, auth.ErrNotRefreshable) {
+		return "", client.ErrTokenNotRefreshable
+	}
 	if err == nil && storedToken != "" {
 		logger.L(ctx).Debug("using token from stored credentials")
 		return storedToken, nil

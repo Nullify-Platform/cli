@@ -59,7 +59,10 @@ var mcpServeCmd = &cobra.Command{
 		tokenProvider := func() (string, error) {
 			return lib.GetNullifyToken(ctx, authCtx.Host, nullifyToken, githubToken)
 		}
-		httpClient, clientErr := client.NewRefreshingHTTPClient(authCtx.Host, tokenProvider)
+		refreshProvider := func() (string, error) {
+			return lib.RefreshNullifyToken(ctx, authCtx.Host, nullifyToken, githubToken)
+		}
+		httpClient, clientErr := client.NewRefreshingHTTPClient(authCtx.Host, tokenProvider, refreshProvider)
 		if clientErr != nil {
 			return fmt.Errorf("failed to create client: %w", clientErr)
 		}

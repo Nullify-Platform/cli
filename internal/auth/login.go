@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -17,6 +18,10 @@ import (
 )
 
 var httpClient = &http.Client{Timeout: 30 * time.Second}
+
+// authBaseURL builds the API origin for the auth endpoints. It is a var so
+// tests can point the auth calls at an httptest server.
+var authBaseURL = func(host string) string { return "https://" + apiHost(host) }
 
 type cliSessionResponse struct {
 	SessionID string `json:"session_id"`
@@ -198,8 +203,35 @@ func GetValidToken(ctx context.Context, host string) (string, error) {
 	return hostCreds.AccessToken, nil
 }
 
+// ErrNotRefreshable reports that the stored credentials for a host carry no
+// refresh token, so no amount of retrying will produce a new access token.
+var ErrNotRefreshable = errors.New("no refresh token stored")
+
+// ForceRefreshToken exchanges the stored refresh token for a new access token
+// regardless of the recorded expiry. GetValidToken only refreshes once
+// ExpiresAt has elapsed, which leaves callers no way to recover from a token
+// the server rejects while the CLI still believes it is valid -- revocation, a
+// killed session, or a local clock running behind the server's.
+func ForceRefreshToken(ctx context.Context, host string) (string, error) {
+	creds, err := LoadCredentials()
+	if err != nil {
+		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
+	}
+
+	hostCreds, ok := creds[CredentialKey(host)]
+	if !ok {
+		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
+	}
+	if hostCreds.RefreshToken == "" {
+		return "", ErrNotRefreshable
+	}
+
+	logger.L(ctx).Debug("forcing access token refresh")
+	return refreshToken(ctx, host, hostCreds.RefreshToken)
+}
+
 func createCLISession(ctx context.Context, host string, port int) (*cliSessionResponse, error) {
-	url := fmt.Sprintf("https://%s/auth/cli/session", apiHost(host))
+	url := authBaseURL(host) + "/auth/cli/session"
 
 	bodyData, err := json.Marshal(map[string]int{"port": port})
 	if err != nil {
@@ -233,7 +265,7 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 }
 
 func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliTokenResponse, error) {
-	url := fmt.Sprintf("https://%s/auth/cli/token", apiHost(host))
+	url := authBaseURL(host) + "/auth/cli/token"
 
 	bodyData, err := json.Marshal(map[string]string{"session_id": sessionID})
 	if err != nil {
@@ -267,7 +299,7 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliToke
 }
 
 func refreshToken(ctx context.Context, host string, refreshTok string) (string, error) {
-	refreshURL := fmt.Sprintf("https://%s/auth/refresh_token", apiHost(host))
+	refreshURL := authBaseURL(host) + "/auth/refresh_token"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
 	if err != nil {
@@ -296,17 +328,21 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 		return "", err
 	}
 
-	// The endpoint delivers the new access token as a Set-Cookie header
-	// rather than in the JSON body; fall back to it when the body has none.
+	// GET /auth/refresh_token carries no token in its JSON body -- see
+	// RefreshTokenOutput in auth/pkg/endpoints/refresh_token.go, which has no
+	// token field at all. The access token arrives only as a Set-Cookie header,
+	// so this is the sole source on every refresh, not a fallback. The body
+	// check is kept in case the endpoint ever starts returning one.
 	if result.AccessToken == "" {
 		for _, c := range resp.Cookies() {
-			if c.Name == "access_token" {
-				result.AccessToken = c.Value
-				if result.ExpiresIn == 0 && c.MaxAge > 0 {
-					result.ExpiresIn = c.MaxAge
-				}
-				break
+			if c.Name != "access_token" || c.Value == "" {
+				continue
 			}
+			result.AccessToken = c.Value
+			if result.ExpiresIn == 0 {
+				result.ExpiresIn = cookieLifetime(c)
+			}
+			break
 		}
 	}
 
@@ -327,6 +363,21 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	}
 
 	return result.AccessToken, nil
+}
+
+// cookieLifetime returns a cookie's remaining lifetime in seconds, preferring
+// Max-Age and falling back to Expires. Returns 0 when the cookie carries
+// neither, so callers can tell "no expiry given" from "expires now".
+func cookieLifetime(c *http.Cookie) int {
+	if c.MaxAge > 0 {
+		return c.MaxAge
+	}
+	if !c.Expires.IsZero() {
+		if secs := int(time.Until(c.Expires).Seconds()); secs > 0 {
+			return secs
+		}
+	}
+	return 0
 }
 
 // apiHost returns the API hostname, prepending "api." if not already present.

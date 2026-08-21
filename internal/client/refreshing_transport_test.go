@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -11,13 +12,19 @@ import (
 )
 
 func newRefreshingTransport(initial string, tp TokenProvider, inner http.RoundTripper) *refreshingAuthTransport {
+	return newRefreshingTransportWithRefresher(initial, tp, tp, inner)
+}
+
+func newRefreshingTransportWithRefresher(initial string, tp, rp TokenProvider, inner http.RoundTripper) *refreshingAuthTransport {
 	return &refreshingAuthTransport{
-		nullifyHost:   "acme.nullify.ai",
-		tokenProvider: tp,
-		transport:     inner,
-		cachedToken:   initial,
-		cachedAt:      time.Now(),
-		cacheTTL:      time.Hour, // keep getToken from refreshing on TTL during 401 tests
+		nullifyHost:     "acme.nullify.ai",
+		tokenProvider:   tp,
+		refreshProvider: rp,
+		transport:       inner,
+		cachedToken:     initial,
+		cachedAt:        time.Now(),
+		cacheTTL:        time.Hour, // keep getToken from refreshing on TTL during 401 tests
+		failureBackoff:  30 * time.Second,
 	}
 }
 
@@ -176,5 +183,77 @@ func TestGetTokenRefreshesOnTTLExpiry(t *testing.T) {
 	}
 	if refreshCalls != 1 {
 		t.Errorf("refreshCalls = %d, want 1", refreshCalls)
+	}
+}
+
+// A token the server has revoked still looks valid to the CLI, so the plain
+// token provider hands back the same string. The 401 retry must consult the
+// refresh provider instead, or it can never recover.
+func TestRefreshOn401UsesRefreshProviderWhenTokenLooksValid(t *testing.T) {
+	tokenCalls, refreshCalls := 0, 0
+	tp := func() (string, error) { tokenCalls++; return "revoked", nil }
+	rp := func() (string, error) { refreshCalls++; return "fresh", nil }
+	inner, _ := bearerRouter(map[string]int{"revoked": 401, "fresh": 200})
+	tr := newRefreshingTransportWithRefresher("revoked", tp, rp, inner)
+
+	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	resp, err := tr.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Errorf("status = %d, want 200 after a forced refresh", resp.StatusCode)
+	}
+	if refreshCalls != 1 {
+		t.Errorf("refreshProvider calls = %d, want 1", refreshCalls)
+	}
+	if tokenCalls != 0 {
+		t.Errorf("tokenProvider calls = %d, want 0 (cache is within TTL)", tokenCalls)
+	}
+}
+
+// A fixed token source (--nullify-token / NULLIFY_TOKEN) has nothing to
+// re-fetch, so the 401 must surface instead of being retried.
+func TestRefreshOn401GivesUpWhenNotRefreshable(t *testing.T) {
+	rp := func() (string, error) { return "", ErrTokenNotRefreshable }
+	inner, calls := bearerRouter(map[string]int{"fixed": 401})
+	tr := newRefreshingTransportWithRefresher("fixed", func() (string, error) { return "fixed", nil }, rp, inner)
+
+	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	resp, err := tr.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if resp.StatusCode != 401 {
+		t.Errorf("status = %d, want the original 401", resp.StatusCode)
+	}
+	if got := calls(); got != 1 {
+		t.Errorf("upstream requests = %d, want 1 (no retry)", got)
+	}
+}
+
+// Once the TTL has elapsed and the provider is failing, the transport must not
+// put a fresh blocking refresh in front of every request.
+func TestFailingProviderIsBackedOff(t *testing.T) {
+	providerCalls := 0
+	tp := func() (string, error) { providerCalls++; return "", errors.New("provider down") }
+	inner, _ := bearerRouter(map[string]int{"cached": 200})
+	tr := newRefreshingTransportWithRefresher("cached", tp, tp, inner)
+	tr.cacheTTL = time.Millisecond
+	tr.cachedAt = time.Now().Add(-time.Hour)
+
+	for i := 0; i < 5; i++ {
+		req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+		resp, err := tr.RoundTrip(req)
+		if err != nil {
+			t.Fatalf("RoundTrip %d: %v", i, err)
+		}
+		if resp.StatusCode != 200 {
+			t.Fatalf("RoundTrip %d: status = %d, want 200 on the cached token", i, resp.StatusCode)
+		}
+	}
+
+	if providerCalls != 1 {
+		t.Errorf("tokenProvider calls = %d, want 1 across 5 requests inside the backoff window", providerCalls)
 	}
 }
