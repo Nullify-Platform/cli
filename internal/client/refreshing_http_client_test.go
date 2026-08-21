@@ -12,10 +12,11 @@ import (
 
 func TestNewRefreshingHTTPClientFetchesInitialToken(t *testing.T) {
 	calls := 0
-	hc, err := NewRefreshingHTTPClient("acme.nullify.ai", func() (string, error) {
+	provider := func() (string, error) {
 		calls++
 		return "tok", nil
-	})
+	}
+	hc, err := NewRefreshingHTTPClient("acme.nullify.ai", provider, provider)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
 	}
@@ -28,9 +29,10 @@ func TestNewRefreshingHTTPClientFetchesInitialToken(t *testing.T) {
 }
 
 func TestNewRefreshingHTTPClientFailsFastOnTokenError(t *testing.T) {
-	_, err := NewRefreshingHTTPClient("acme.nullify.ai", func() (string, error) {
+	provider := func() (string, error) {
 		return "", errors.New("no creds")
-	})
+	}
+	_, err := NewRefreshingHTTPClient("acme.nullify.ai", provider, provider)
 	if err == nil {
 		t.Fatal("expected error when initial token fetch fails")
 	}
@@ -65,12 +67,13 @@ func TestRefreshingAuthTransportRefreshesAfterTTL(t *testing.T) {
 	}
 	stub := &stubTransport{}
 	tr := &refreshingAuthTransport{
-		nullifyHost:   "acme.nullify.ai",
-		tokenProvider: provider,
-		transport:     stub,
-		cachedToken:   initialToken,
-		cachedAt:      time.Now(),
-		cacheTTL:      10 * time.Millisecond,
+		nullifyHost:     "acme.nullify.ai",
+		tokenProvider:   provider,
+		refreshProvider: provider,
+		transport:       stub,
+		cachedToken:     initialToken,
+		cachedAt:        time.Now(),
+		cacheTTL:        10 * time.Millisecond,
 	}
 
 	req1, _ := http.NewRequest("GET", "https://api.acme.nullify.ai/", nil)
@@ -110,12 +113,13 @@ func TestRefreshingAuthTransportFallsBackOnRefreshError(t *testing.T) {
 	}
 	stub := &stubTransport{}
 	tr := &refreshingAuthTransport{
-		nullifyHost:   "acme.nullify.ai",
-		tokenProvider: failing,
-		transport:     stub,
-		cachedToken:   "good-token",
-		cachedAt:      time.Now().Add(-time.Hour),
-		cacheTTL:      time.Second,
+		nullifyHost:     "acme.nullify.ai",
+		tokenProvider:   failing,
+		refreshProvider: failing,
+		transport:       stub,
+		cachedToken:     "good-token",
+		cachedAt:        time.Now().Add(-time.Hour),
+		cacheTTL:        time.Second,
 	}
 	req, _ := http.NewRequest("GET", "https://api.acme.nullify.ai/", nil)
 	if _, err := tr.RoundTrip(req); err != nil {
