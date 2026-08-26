@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -80,38 +82,40 @@ Exit codes:
 			}
 		}
 
-		var totalFindings int64
+		var findingsFound int64
 		var apiErrors int64
+		var unreadable int64
 		var mu sync.Mutex
 		g, gctx := errgroup.WithContext(ctx)
 
 		for _, ep := range endpoints {
-			for _, sev := range severities {
+			for _, sev := range scannerSeverities(ep, severities) {
 				ep, sev := ep, sev
 				g.Go(func() error {
-					params := []string{"severity", sev, "status", "open", "limit", "1"}
-					if repo != "" {
-						params = append(params, "repository", repo)
-					}
-					qs := lib.BuildQueryString(queryParams, params...)
+					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1")...)
 
 					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 					if err != nil {
 						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
 						mu.Unlock()
 						atomic.AddInt64(&apiErrors, 1)
 						return nil
 					}
 
-					// limit=1 keeps the payload small; the accurate count
-					// comes from the response's "total" field, not the
-					// truncated items array.
-					count := totalFindingsCount(body)
-					if count > 0 {
-						atomic.AddInt64(&totalFindings, int64(count))
+					count, err := countFindings(body)
+					if err != nil {
 						mu.Lock()
-						fmt.Printf("FAIL: %s has %d %s findings\n", ep.name, count, sev)
+						fmt.Fprintf(os.Stderr, "Error: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
+						mu.Unlock()
+						atomic.AddInt64(&unreadable, 1)
+						return nil
+					}
+
+					if count > 0 {
+						atomic.AddInt64(&findingsFound, 1)
+						mu.Lock()
+						fmt.Println(gateFailLine(ep, sev))
 						mu.Unlock()
 					}
 					return nil
@@ -126,10 +130,15 @@ Exit codes:
 			return withExitCode(ExitNetworkError, err)
 		}
 
-		if totalFindings > 0 {
-			fmt.Printf("\nGate failed: %d findings at or above %s severity\n", totalFindings, severityThreshold)
+		if unreadable > 0 {
+			err := fmt.Errorf("%d scanner response(s) could not be read; failing the gate (cannot confirm a clean result)", unreadable)
+			return withExitCode(ExitNetworkError, err)
+		}
+
+		if findingsFound > 0 {
+			fmt.Printf("\nGate failed: open findings at or above %s severity\n", severityThreshold)
 			cmd.SilenceErrors = true
-			return withExitCode(ExitFindings, fmt.Errorf("gate failed: %d findings at or above %s severity", totalFindings, severityThreshold))
+			return withExitCode(ExitFindings, fmt.Errorf("gate failed: open findings at or above %s severity", severityThreshold))
 		}
 
 		fmt.Println("Gate passed: no findings above threshold")
@@ -188,17 +197,21 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 			for j, sev := range severities {
 				i, j, ep, sev := i, j, ep, sev
 				g.Go(func() error {
-					params := []string{"severity", sev, "status", "open", "limit", "1000"}
-					if repo != "" {
-						params = append(params, "repository", repo)
-					}
-					qs := lib.BuildQueryString(queryParams, params...)
+					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1000")...)
 
 					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 					if err != nil {
 						atomic.AddInt64(&apiErrors, 1)
 						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
+						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
+						mu.Unlock()
+						return nil
+					}
+					count, err := countFindings(body)
+					if err != nil {
+						atomic.AddInt64(&apiErrors, 1)
+						mu.Lock()
+						fmt.Fprintf(os.Stderr, "Warning: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
 						mu.Unlock()
 						return nil
 					}
@@ -207,7 +220,7 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 					rows[i*len(severities)+j] = reportRow{
 						scanner:  ep.name,
 						severity: sev,
-						count:    totalFindingsCount(body),
+						count:    count,
 						findings: extractFindings(body),
 					}
 					return nil
@@ -278,55 +291,89 @@ func severitiesAboveThreshold(threshold string) []string {
 	return []string{"critical", "high"}
 }
 
-// countFindings extracts a count from API response JSON. When used with limit=1,
-// it returns 0 or 1 to indicate whether findings exist at a given severity.
-func countFindings(body string) int {
-	var result any
-	if err := json.Unmarshal([]byte(body), &result); err != nil {
-		return 0
+// scannerSeverities returns the severity values to query an endpoint with. An
+// endpoint with no server-side severity filter is queried once with an empty
+// severity: fanning out over the threshold list there would issue identical
+// requests and attribute the same findings to every severity.
+func scannerSeverities(ep scannerEndpoint, severities []string) []string {
+	if !ep.supportsSeverity {
+		return []string{""}
 	}
-
-	switch v := result.(type) {
-	case []any:
-		return len(v)
-	case map[string]any:
-		if items, ok := v["items"].([]any); ok {
-			return len(items)
-		}
-		if total, ok := v["total"].(float64); ok {
-			return int(total)
-		}
-	}
-
-	return 0
+	return severities
 }
 
-// totalFindingsCount extracts an accurate finding count from an API response.
-// It prefers the response's "total" field (which reflects the full result set
-// regardless of the request's limit) over the length of the truncated items
-// array. Falls back to array/items length when no total is present.
-func totalFindingsCount(body string) int {
-	var result any
-	if err := json.Unmarshal([]byte(body), &result); err != nil {
-		return 0
+// scannerQueryParams builds the query string arguments for a findings request,
+// sending only the filters the endpoint implements.
+//
+// Severity is upper-cased because /cspm/findings binds it straight into
+// "severity_label = $N::severity_level" and the Postgres severity_level enum
+// labels are upper-case, so a lower-case value is a 500 rather than a filter.
+// /sast/findings case-folds via database.StringToNullSeverityLevel and accepts
+// either.
+func scannerQueryParams(ep scannerEndpoint, severity, repo, limit string) []string {
+	params := []string{"limit", limit}
+	if ep.supportsSeverity && severity != "" {
+		params = append(params, "severity", strings.ToUpper(severity))
+	}
+	if ep.supportsIsResolved {
+		params = append(params, "isResolved", "false")
+	}
+	if repo != "" {
+		params = append(params, "repository", repo)
+	}
+	return params
+}
+
+// scannerLabel names a scanner/severity pair in diagnostic output. A scanner
+// queried without a severity filter is named alone.
+func scannerLabel(ep scannerEndpoint, severity string) string {
+	if severity == "" {
+		return ep.name
+	}
+	return fmt.Sprintf("%s (%s)", ep.name, severity)
+}
+
+// gateFailLine reports a scanner that returned findings. Scanners with no
+// server-side severity filter say so rather than implying the threshold was
+// applied to their result.
+func gateFailLine(ep scannerEndpoint, severity string) string {
+	if severity == "" {
+		return fmt.Sprintf("FAIL: %s has open findings (no server-side severity filter, threshold not applied)", ep.name)
+	}
+	return fmt.Sprintf("FAIL: %s has open %s findings", ep.name, severity)
+}
+
+// errUnreadableFindings reports a findings response that does not carry the
+// scanner envelope. It is never reported as a count of zero: a gate that cannot
+// read the response must block the build rather than declare the repo clean.
+var errUnreadableFindings = errors.New("unrecognised findings response envelope")
+
+// countFindings returns the number of findings in a scanner API response. Every
+// endpoint in allScannerEndpoints returns {"findings":[...],"numItems":N,
+// "nextToken":"..."}, except /dast/bughunt/findings which omits numItems. The
+// count is page-scoped and therefore bounded by the request's limit; the API
+// exposes no grand total.
+func countFindings(body string) (int, error) {
+	var envelope struct {
+		Findings json.RawMessage `json:"findings"`
+		NumItems *int            `json:"numItems"`
+	}
+	if err := json.Unmarshal([]byte(body), &envelope); err != nil {
+		return 0, fmt.Errorf("%w: %w", errUnreadableFindings, err)
+	}
+	if len(envelope.Findings) == 0 {
+		return 0, fmt.Errorf("%w: no \"findings\" field", errUnreadableFindings)
 	}
 
-	switch v := result.(type) {
-	case []any:
-		return len(v)
-	case map[string]any:
-		if total, ok := v["total"].(float64); ok {
-			return int(total)
-		}
-		if items, ok := v["items"].([]any); ok {
-			return len(items)
-		}
-		if findings, ok := v["findings"].([]any); ok {
-			return len(findings)
-		}
+	if envelope.NumItems != nil {
+		return *envelope.NumItems, nil
 	}
 
-	return 0
+	var findings []json.RawMessage
+	if err := json.Unmarshal(envelope.Findings, &findings); err != nil {
+		return 0, fmt.Errorf("%w: \"findings\" is not an array: %w", errUnreadableFindings, err)
+	}
+	return len(findings), nil
 }
 
 // extractFindings pulls the finding objects out of an API response body so they
