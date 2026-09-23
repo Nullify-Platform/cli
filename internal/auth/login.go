@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/logger"
@@ -36,66 +35,23 @@ type cliTokenResponse struct {
 	QueryParameters map[string]string `json:"query_parameters,omitempty"`
 }
 
-const successHTML = `<!DOCTYPE html>
-<html><head><title>Nullify CLI</title>
-<style>
-body{font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5}
-.card{text-align:center;padding:2rem;background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.1);max-width:400px}
-.check{width:48px;height:48px;margin:0 auto 1rem}
-h1{color:#16a34a;font-size:1.5rem;margin:0 0 0.5rem}
-p{color:#666;margin:0}
-</style></head>
-<body><div class="card">
-<svg class="check" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-<h1>Authenticated Successfully!</h1>
-<p>You can close this tab and return to your terminal.</p>
-</div></body></html>`
-
 func Login(ctx context.Context, host string) error {
-	// 1. Start localhost server on random port
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return fmt.Errorf("failed to start local server: %w", err)
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
 
-	// 2. Create session on backend first so we know the expected session ID
 	sessionResp, err := createCLISession(ctx, host, port)
 	if err != nil {
 		listener.Close()
 		return fmt.Errorf("failed to create auth session: %w", err)
 	}
 
-	// 3. Set up callback handler that validates session ID
-	sessionCh := make(chan string, 1)
+	sessionCh := make(chan cliCallback, 1)
 	errCh := make(chan error, 1)
-	var callbackOnce sync.Once
-
 	mux := http.NewServeMux()
-	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		receivedID := r.URL.Query().Get("session_id")
-
-		// Verify the session ID matches what we requested (CSRF protection)
-		if receivedID != sessionResp.SessionID {
-			http.Error(w, "invalid session", http.StatusForbidden)
-			return
-		}
-
-		// Only process the first valid callback (guard against duplicates)
-		processed := false
-		callbackOnce.Do(func() {
-			processed = true
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprint(w, successHTML)
-			sessionCh <- receivedID
-		})
-		if !processed {
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprint(w, successHTML)
-		}
-	})
+	mux.Handle("/callback", newLoginCallbackHandler(sessionResp.SessionID, sessionCh))
 
 	server := &http.Server{Handler: mux}
 	go func() {
@@ -105,7 +61,6 @@ func Login(ctx context.Context, host string) error {
 	}()
 	defer server.Close()
 
-	// 4. Open browser
 	fmt.Printf("\nOpening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", sessionResp.AuthURL)
 
@@ -116,17 +71,16 @@ func Login(ctx context.Context, host string) error {
 
 	fmt.Println("Waiting for authentication... (press Ctrl+C to cancel)")
 
-	// 5. Wait for callback with context cancellation support
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	timeout := time.After(10 * time.Minute)
 
-	var sessionID string
+	var callback cliCallback
 waitLoop:
 	for {
 		select {
-		case sessionID = <-sessionCh:
+		case callback = <-sessionCh:
 			break waitLoop
 		case err := <-errCh:
 			return fmt.Errorf("local server error: %w", err)
@@ -139,8 +93,7 @@ waitLoop:
 		}
 	}
 
-	// 6. Fetch tokens from backend
-	tokenResp, err := fetchCLIToken(ctx, host, sessionID)
+	tokenResp, err := fetchCLIToken(ctx, host, callback.SessionID, callback.RedemptionSecret)
 	if err != nil {
 		return fmt.Errorf("failed to fetch tokens: %w", err)
 	}
@@ -149,7 +102,6 @@ waitLoop:
 		return fmt.Errorf("authentication failed: %s", tokenResp.Error)
 	}
 
-	// 7. Store credentials
 	expiresAt := time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second).Unix()
 
 	err = SaveHostCredentials(host, HostCredentials{
@@ -187,7 +139,6 @@ func GetValidToken(ctx context.Context, host string) (string, error) {
 		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
 	}
 
-	// Check if token is expired and refresh if needed
 	if hostCreds.ExpiresAt > 0 && time.Now().Unix() > hostCreds.ExpiresAt {
 		if hostCreds.RefreshToken != "" {
 			logger.L(ctx).Debug("access token expired, attempting refresh")
@@ -264,10 +215,10 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 	return &sessionResp, nil
 }
 
-func fetchCLIToken(ctx context.Context, host string, sessionID string) (*cliTokenResponse, error) {
+func fetchCLIToken(ctx context.Context, host string, sessionID string, redemptionSecret string) (*cliTokenResponse, error) {
 	url := authBaseURL(host) + "/auth/cli/token"
 
-	bodyData, err := json.Marshal(map[string]string{"session_id": sessionID})
+	bodyData, err := json.Marshal(cliCallback{SessionID: sessionID, RedemptionSecret: redemptionSecret})
 	if err != nil {
 		return nil, err
 	}
@@ -328,11 +279,7 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 		return "", err
 	}
 
-	// GET /auth/refresh_token carries no token in its JSON body -- see
-	// RefreshTokenOutput in auth/pkg/endpoints/refresh_token.go, which has no
-	// token field at all. The access token arrives only as a Set-Cookie header,
-	// so this is the sole source on every refresh, not a fallback. The body
-	// check is kept in case the endpoint ever starts returning one.
+	// The refresh endpoint returns its token in Set-Cookie, not the JSON body.
 	if result.AccessToken == "" {
 		for _, c := range resp.Cookies() {
 			if c.Name != "access_token" || c.Value == "" {
