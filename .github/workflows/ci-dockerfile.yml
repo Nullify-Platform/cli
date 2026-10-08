@@ -7,7 +7,7 @@ on:
 run-name: CI Dockerfile by @${{ github.actor }} ${{ github.sha }}
 jobs:
   lint:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: office-ci-small
     steps:
       - uses: actions/checkout@v6
       - name: hadolint
