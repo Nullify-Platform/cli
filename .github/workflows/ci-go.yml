@@ -9,7 +9,7 @@ on:
 run-name: CI Go by @${{ github.actor }} ${{ github.sha }}
 jobs:
   build-test:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: office-ci-small
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6

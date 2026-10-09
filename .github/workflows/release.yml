@@ -16,7 +16,7 @@ permissions:
 jobs:
   get-version:
     name: Version
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: office-ci-small
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
@@ -30,7 +30,7 @@ jobs:
     if: ${{ needs.get-version.outputs.version != 'undefined' }}
     name: GoReleaser
     needs: [get-version]
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: office-ci-small
     steps:
       - uses: actions/checkout@v6
         with:
