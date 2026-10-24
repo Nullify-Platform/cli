@@ -11,7 +11,7 @@ permissions:
 jobs:
   require-labels:
     if: ${{ github.event_name == 'pull_request' }}
-    runs-on: office-ci-small
+    runs-on: ubuntu-24.04
     outputs:
       status: ${{ steps.require-labels.outputs.status }}
     steps:
