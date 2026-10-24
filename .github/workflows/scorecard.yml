@@ -13,7 +13,7 @@ run-name: OSSF Scorecard by @${{ github.actor }} ${{ github.sha }}
 jobs:
   analysis:
     name: Scorecard analysis
-    runs-on: office-ci-small
+    runs-on: ubuntu-24.04
     permissions:
       security-events: write
       id-token: write

@@ -7,7 +7,7 @@ on:
 run-name: CI Dockerfile by @${{ github.actor }} ${{ github.sha }}
 jobs:
   lint:
-    runs-on: office-ci-small
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - name: hadolint

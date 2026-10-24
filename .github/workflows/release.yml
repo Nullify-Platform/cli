@@ -16,21 +16,27 @@ permissions:
 jobs:
   get-version:
     name: Version
-    runs-on: office-ci-small
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Get Release Version
         id: get-version
         uses: nullify-platform/github-actions/actions/release-version@main
       - run: |
-          echo "**Version:** ${{ steps.get-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Short SHA:** $(git rev-parse --short HEAD)" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "**Version:** ${{ steps.get-version.outputs.version }}"
+            echo "**Short SHA:** $(git rev-parse --short HEAD)"
+          } >> "$GITHUB_STEP_SUMMARY"
   goreleaser:
     if: ${{ needs.get-version.outputs.version != 'undefined' }}
     name: GoReleaser
     needs: [get-version]
-    runs-on: office-ci-small
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
         with:
