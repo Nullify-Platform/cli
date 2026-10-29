@@ -195,9 +195,19 @@ func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, 
 			r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 			r.ContentLength = int64(len(bodyBytes))
 		}
-		r.Header.Set("Authorization", "Bearer "+token)
 		r.Header.Set("User-Agent", "Nullify-CLI/mcp")
+		if token == "" {
+			r.Header.Del("Authorization")
+		} else {
+			r.Header.Set("Authorization", "Bearer "+token)
+		}
 		return t.transport.RoundTrip(r)
+	}
+
+	// Off the API host, or on a redirect hop, the request goes out bare and a
+	// 401 there is not ours to refresh.
+	if !bearerAllowed(t.nullifyHost, req) {
+		return attempt("")
 	}
 
 	token := t.getToken(req.Context())

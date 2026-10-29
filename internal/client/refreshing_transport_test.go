@@ -52,7 +52,7 @@ func TestRefreshOn401RetriesWithNewToken(t *testing.T) {
 	inner, _ := bearerRouter(map[string]int{"stale": 401, "fresh": 200})
 	tr := newRefreshingTransport("stale", tp, inner)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -71,7 +71,7 @@ func TestNo401MeansNoRefresh(t *testing.T) {
 	inner, calls := bearerRouter(map[string]int{"good": 200})
 	tr := newRefreshingTransport("good", tp, inner)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -92,7 +92,7 @@ func TestRefreshFailureSurfaces401(t *testing.T) {
 	inner, _ := bearerRouter(map[string]int{"stale": 401})
 	tr := newRefreshingTransport("stale", tp, inner)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -118,7 +118,7 @@ func TestRefreshReplaysBodyOn401(t *testing.T) {
 	})
 	tr := newRefreshingTransport("stale", tp, inner)
 
-	req, _ := http.NewRequest(http.MethodPost, "http://x", strings.NewReader("payload"))
+	req, _ := http.NewRequest(http.MethodPost, "https://api.acme.nullify.ai/", strings.NewReader("payload"))
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -152,7 +152,7 @@ func TestForceRefreshIsStormSafe(t *testing.T) {
 	for range n {
 		go func() {
 			defer wg.Done()
-			req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+			req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 			resp, err := tr.RoundTrip(req)
 			if err == nil {
 				resp.Body.Close()
@@ -196,7 +196,7 @@ func TestRefreshOn401UsesRefreshProviderWhenTokenLooksValid(t *testing.T) {
 	inner, _ := bearerRouter(map[string]int{"revoked": 401, "fresh": 200})
 	tr := newRefreshingTransportWithRefresher("revoked", tp, rp, inner)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -219,7 +219,7 @@ func TestRefreshOn401GivesUpWhenNotRefreshable(t *testing.T) {
 	inner, calls := bearerRouter(map[string]int{"fixed": 401})
 	tr := newRefreshingTransportWithRefresher("fixed", func() (string, error) { return "fixed", nil }, rp, inner)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -243,7 +243,7 @@ func TestFailingProviderIsBackedOff(t *testing.T) {
 	tr.cachedAt = time.Now().Add(-time.Hour)
 
 	for i := 0; i < 5; i++ {
-		req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+		req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 		resp, err := tr.RoundTrip(req)
 		if err != nil {
 			t.Fatalf("RoundTrip %d: %v", i, err)
@@ -268,7 +268,7 @@ func TestForceRefreshIsBackedOffAfterFailure(t *testing.T) {
 	tr := newRefreshingTransportWithRefresher("revoked", func() (string, error) { return "revoked", nil }, rp, inner)
 
 	for i := range 5 {
-		req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+		req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 		resp, err := tr.RoundTrip(req)
 		if err != nil {
 			t.Fatalf("RoundTrip %d: %v", i, err)
@@ -297,7 +297,7 @@ func TestForceRefreshTreatsUnchangedTokenAsFailure(t *testing.T) {
 	tr := newRefreshingTransportWithRefresher("revoked", func() (string, error) { return "revoked", nil }, rp, inner)
 
 	for i := range 2 {
-		req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+		req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 		resp, err := tr.RoundTrip(req)
 		if err != nil {
 			t.Fatalf("RoundTrip %d: %v", i, err)
@@ -323,7 +323,7 @@ func TestForceRefreshKeepsCacheOnEmptyToken(t *testing.T) {
 	inner, _ := bearerRouter(map[string]int{"revoked": 401})
 	tr := newRefreshingTransportWithRefresher("revoked", func() (string, error) { return "revoked", nil }, rp, inner)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
