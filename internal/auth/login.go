@@ -22,6 +22,22 @@ var httpClient = &http.Client{Timeout: 30 * time.Second}
 // tests can point the auth calls at an httptest server.
 var authBaseURL = func(host string) string { return "https://" + apiHost(host) }
 
+// routerAuthHosts are the router API hosts a tenant may hand its CLI login
+// to. The CLI sends the user's login and refresh token wherever the tenant
+// says, so any other answer is refused rather than followed.
+var routerAuthHosts = map[string]bool{
+	"api.nullify.ai":            true,
+	"api.router.dev.nullify.ai": true,
+}
+
+// authClient is httpClient without redirects. Session, redeem and refresh
+// carry secrets, and a 307 would replay them to wherever it points.
+func authClient() *http.Client {
+	c := *httpClient
+	c.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	return &c
+}
+
 type cliSessionResponse struct {
 	SessionID string `json:"session_id"`
 	AuthURL   string `json:"auth_url"`
@@ -36,13 +52,21 @@ type cliTokenResponse struct {
 }
 
 func Login(ctx context.Context, host string) error {
+	authHost, err := DiscoverAuthHost(ctx, host)
+	if err != nil {
+		return fmt.Errorf("failed to find the login host: %w", err)
+	}
+	if authHost != apiHost(host) {
+		fmt.Printf("%s signs in through %s.\n", host, authHost)
+	}
+
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return fmt.Errorf("failed to start local server: %w", err)
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
 
-	sessionResp, err := createCLISession(ctx, host, port)
+	sessionResp, err := createCLISession(ctx, authHost, port)
 	if err != nil {
 		listener.Close()
 		return fmt.Errorf("failed to create auth session: %w", err)
@@ -64,7 +88,7 @@ func Login(ctx context.Context, host string) error {
 	fmt.Printf("\nOpening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", sessionResp.AuthURL)
 
-	if err := OpenBrowser(sessionResp.AuthURL); err != nil {
+	if err := openBrowser(sessionResp.AuthURL); err != nil {
 		logger.L(ctx).Debug("could not open browser automatically", logger.Err(err))
 		fmt.Println("(Could not open browser automatically. Please open the URL above manually.)")
 	}
@@ -93,7 +117,7 @@ waitLoop:
 		}
 	}
 
-	tokenResp, err := fetchCLIToken(ctx, host, callback.SessionID, callback.RedemptionSecret)
+	tokenResp, err := fetchCLIToken(ctx, authHost, callback.SessionID, callback.RedemptionSecret)
 	if err != nil {
 		return fmt.Errorf("failed to fetch tokens: %w", err)
 	}
@@ -104,7 +128,7 @@ waitLoop:
 
 	expiresAt := time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second).Unix()
 
-	err = SaveHostCredentials(host, HostCredentials{
+	err = SaveHostCredentials(authHost, HostCredentials{
 		AccessToken:     tokenResp.AccessToken,
 		RefreshToken:    tokenResp.RefreshToken,
 		ExpiresAt:       expiresAt,
@@ -112,6 +136,14 @@ waitLoop:
 	})
 	if err != nil {
 		return fmt.Errorf("failed to save credentials: %w", err)
+	}
+
+	err = UpdateHostConfig(host, func(hc HostConfig) HostConfig {
+		hc.AuthHost = authHost
+		return hc
+	})
+	if err != nil {
+		return fmt.Errorf("failed to save host config: %w", err)
 	}
 
 	err = SaveConfig(&Config{Host: host})
@@ -123,26 +155,43 @@ waitLoop:
 	return nil
 }
 
+// Logout removes the credentials that serve host. On a router tenant those
+// are the router login, shared with every other tenant signed in through it.
 func Logout(host string) error {
+	authHost, err := AuthHostFor(host)
+	if err != nil {
+		return err
+	}
+	if err := DeleteHostCredentials(authHost); err != nil {
+		return err
+	}
+	// A login from before the auth host was recorded sits under host itself.
 	return DeleteHostCredentials(host)
 }
 
-func GetValidToken(ctx context.Context, host string) (string, error) {
-	creds, err := LoadCredentials()
+// storedCredentials returns the credentials that serve the API host and the
+// auth host that issued them, which is where they must be refreshed.
+func storedCredentials(host string) (HostCredentials, string, error) {
+	hostCreds, authHost, ok, err := LookupCredentials(host)
 	if err != nil {
-		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
+		return HostCredentials{}, "", fmt.Errorf("not authenticated - run 'nullify auth login'")
 	}
-
-	key := CredentialKey(host)
-	hostCreds, ok := creds[key]
 	if !ok {
-		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
+		return HostCredentials{}, "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
+	}
+	return hostCreds, authHost, nil
+}
+
+func GetValidToken(ctx context.Context, host string) (string, error) {
+	hostCreds, authHost, err := storedCredentials(host)
+	if err != nil {
+		return "", err
 	}
 
 	if hostCreds.ExpiresAt > 0 && time.Now().Unix() > hostCreds.ExpiresAt {
 		if hostCreds.RefreshToken != "" {
-			logger.L(ctx).Debug("access token expired, attempting refresh")
-			refreshed, err := refreshToken(ctx, host, hostCreds.RefreshToken)
+			logger.L(ctx).Debug("access token expired, attempting refresh", logger.String("authHost", authHost))
+			refreshed, err := refreshToken(ctx, authHost, hostCreds)
 			if err != nil {
 				return "", fmt.Errorf("token expired and refresh failed - run 'nullify auth login': %w", err)
 			}
@@ -164,21 +213,62 @@ var ErrNotRefreshable = errors.New("no refresh token stored")
 // the server rejects while the CLI still believes it is valid -- revocation, a
 // killed session, or a local clock running behind the server's.
 func ForceRefreshToken(ctx context.Context, host string) (string, error) {
-	creds, err := LoadCredentials()
+	hostCreds, authHost, err := storedCredentials(host)
 	if err != nil {
-		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
-	}
-
-	hostCreds, ok := creds[CredentialKey(host)]
-	if !ok {
-		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
+		return "", err
 	}
 	if hostCreds.RefreshToken == "" {
 		return "", ErrNotRefreshable
 	}
 
-	logger.L(ctx).Debug("forcing access token refresh")
-	return refreshToken(ctx, host, hostCreds.RefreshToken)
+	logger.L(ctx).Debug("forcing access token refresh", logger.String("authHost", authHost))
+	return refreshToken(ctx, authHost, hostCreds)
+}
+
+// DiscoverAuthHost asks host where its CLI login runs (GET /auth/cli/config).
+// A stack that predates the endpoint answers 404 and logs in on its own host.
+// Any other failure, or an answer that is neither this tenant nor a known
+// router, is an error: credentials never go to a host the CLI did not expect,
+// and a failed discovery is never retried on another host.
+func DiscoverAuthHost(ctx context.Context, host string) (string, error) {
+	own := apiHost(host)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, authBaseURL(host)+"/auth/cli/config", nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := authClient().Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return own, nil
+	default:
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return "", fmt.Errorf("auth config request returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var config struct {
+		AuthHost string `json:"auth_host"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 4<<10)).Decode(&config); err != nil {
+		return "", fmt.Errorf("decode auth config: %w", err)
+	}
+
+	authHost := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(config.AuthHost)), ":443")
+	switch {
+	case strings.EqualFold(authHost, own):
+		return own, nil
+	case routerAuthHosts[authHost]:
+		return authHost, nil
+	default:
+		return "", fmt.Errorf("%s names %q as its login host, which is neither this tenant nor a Nullify router", own, config.AuthHost)
+	}
 }
 
 func createCLISession(ctx context.Context, host string, port int) (*cliSessionResponse, error) {
@@ -195,7 +285,7 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := authClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +319,7 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string, redemptio
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := authClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -249,16 +339,19 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string, redemptio
 	return &tokenResp, nil
 }
 
-func refreshToken(ctx context.Context, host string, refreshTok string) (string, error) {
-	refreshURL := authBaseURL(host) + "/auth/refresh_token"
+// refreshToken exchanges stored's refresh token at authHost and saves the new
+// access token over it. The org scope the server returns is not saved: it is
+// the server's default (the lowest org id), not a choice the user made.
+func refreshToken(ctx context.Context, authHost string, stored HostCredentials) (string, error) {
+	refreshURL := authBaseURL(authHost) + "/auth/refresh_token"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
 	if err != nil {
 		return "", err
 	}
-	req.AddCookie(&http.Cookie{Name: "refresh_token", Value: refreshTok})
+	req.AddCookie(&http.Cookie{Name: "refresh_token", Value: stored.RefreshToken})
 
-	resp, err := httpClient.Do(req)
+	resp, err := authClient().Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -269,9 +362,8 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	}
 
 	var result struct {
-		AccessToken     string            `json:"accessToken"`
-		ExpiresIn       int               `json:"expiresIn"`
-		QueryParameters map[string]string `json:"queryParameters"`
+		AccessToken string `json:"accessToken"`
+		ExpiresIn   int    `json:"expiresIn"`
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -297,14 +389,11 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 		return "", fmt.Errorf("refresh returned empty access token")
 	}
 
-	expiresAt := time.Now().Add(time.Duration(result.ExpiresIn) * time.Second).Unix()
+	refreshed := stored
+	refreshed.AccessToken = result.AccessToken
+	refreshed.ExpiresAt = time.Now().Add(time.Duration(result.ExpiresIn) * time.Second).Unix()
 
-	err = SaveHostCredentials(host, HostCredentials{
-		AccessToken:     result.AccessToken,
-		RefreshToken:    refreshTok,
-		ExpiresAt:       expiresAt,
-		QueryParameters: result.QueryParameters,
-	})
+	err = SaveHostCredentials(authHost, refreshed)
 	if err != nil {
 		logger.L(ctx).Warn("failed to save refreshed credentials", logger.Err(err))
 	}
@@ -337,6 +426,9 @@ func apiHost(host string) string {
 	}
 	return "api." + host
 }
+
+// openBrowser is OpenBrowser, a var so tests can stand in for the user.
+var openBrowser = OpenBrowser
 
 // OpenBrowser opens the given URL in the user's default browser.
 func OpenBrowser(url string) error {

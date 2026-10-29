@@ -69,11 +69,18 @@ var logoutCmd = &cobra.Command{
 			return err
 		}
 
+		authHost, err := auth.AuthHostFor(logoutHost)
+		if err != nil {
+			return fmt.Errorf("logout failed: %w", err)
+		}
 		if err := auth.Logout(logoutHost); err != nil {
 			return fmt.Errorf("logout failed: %w", err)
 		}
 
 		fmt.Printf("Logged out from %s\n", logoutHost)
+		if auth.CredentialKey(authHost) != auth.CredentialKey(logoutHost) {
+			fmt.Printf("This removed the %s login, which other tenants signed in through it share.\n", authHost)
+		}
 		return nil
 	},
 }
@@ -96,14 +103,11 @@ var statusCmd = &cobra.Command{
 
 		fmt.Printf("Host: %s\n", cfg.Host)
 
-		creds, err := auth.LoadCredentials()
-		if err != nil {
-			fmt.Println("Status: not authenticated")
-			return nil
+		hostCreds, authHost, ok, err := auth.LookupCredentials(cfg.Host)
+		if authHost != "" {
+			fmt.Printf("Auth host: %s\n", authHost)
 		}
-
-		hostCreds, ok := creds[auth.CredentialKey(cfg.Host)]
-		if !ok {
+		if err != nil || !ok {
 			fmt.Println("Status: not authenticated")
 			return nil
 		}
@@ -156,15 +160,15 @@ var switchCmd = &cobra.Command{
 
 		if switchHost == "" {
 			// List available hosts
-			creds, err := auth.LoadCredentials()
-			if err != nil || len(creds) == 0 {
+			known, err := auth.KnownHosts()
+			if err != nil || len(known) == 0 {
 				fmt.Println("No configured hosts. Run 'nullify auth login --host <your-instance>.nullify.ai'")
 				return nil
 			}
 
 			cfg, _ := auth.LoadConfig()
 			fmt.Println("Configured hosts:")
-			for h := range creds {
+			for _, h := range known {
 				marker := "  "
 				if cfg != nil && auth.CredentialKey(cfg.Host) == h {
 					marker = "* "
@@ -206,7 +210,14 @@ var configShowCmd = &cobra.Command{
 			return nil
 		}
 
-		data, _ := json.MarshalIndent(cfg, "", "  ")
+		shown := map[string]any{"host": cfg.Host}
+		if cfg.Host != "" {
+			if authHost, err := auth.AuthHostFor(cfg.Host); err == nil {
+				shown["auth_host"] = authHost
+			}
+		}
+
+		data, _ := json.MarshalIndent(shown, "", "  ")
 		fmt.Println(string(data))
 		return nil
 	},

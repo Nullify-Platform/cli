@@ -46,7 +46,7 @@ func refreshHandler(w http.ResponseWriter, _ *http.Request) {
 func TestRefreshTokenReadsSetCookie(t *testing.T) {
 	newAuthServer(t, refreshHandler)
 
-	got, err := refreshToken(context.Background(), "example.nullify.ai", "stored-refresh")
+	got, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "stored-refresh"})
 	if err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
@@ -70,8 +70,29 @@ func TestRefreshTokenReadsSetCookie(t *testing.T) {
 	if d := saved.ExpiresAt - time.Now().Unix(); d < 3500 || d > 3600 {
 		t.Errorf("ExpiresAt delta = %ds, want ~3600", d)
 	}
-	if saved.QueryParameters["githubOwnerId"] != "42" {
-		t.Errorf("saved QueryParameters = %v, want githubOwnerId=42", saved.QueryParameters)
+}
+
+// The refresh response carries the server's default org (the lowest id). It
+// is not the user's pick, so it must not land in the store or replace the
+// scope already there.
+func TestRefreshTokenLeavesStoredOrgAlone(t *testing.T) {
+	newAuthServer(t, refreshHandler)
+	stored := HostCredentials{
+		AccessToken:     "old",
+		RefreshToken:    "rt",
+		QueryParameters: map[string]string{"githubOwnerId": "7"},
+	}
+
+	if _, err := refreshToken(context.Background(), "example.nullify.ai", stored); err != nil {
+		t.Fatalf("refreshToken: %v", err)
+	}
+
+	creds, err := LoadCredentials()
+	if err != nil {
+		t.Fatalf("LoadCredentials: %v", err)
+	}
+	if got := creds[CredentialKey("example.nullify.ai")].QueryParameters; got["githubOwnerId"] != "7" {
+		t.Errorf("saved QueryParameters = %v, want the stored githubOwnerId=7", got)
 	}
 }
 
@@ -81,7 +102,7 @@ func TestRefreshTokenBodyTokenWins(t *testing.T) {
 		_, _ = w.Write([]byte(`{"accessToken":"body-token","expiresIn":60}`))
 	})
 
-	got, err := refreshToken(context.Background(), "example.nullify.ai", "rt")
+	got, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
 	if err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
@@ -98,7 +119,7 @@ func TestRefreshTokenIgnoresEmptyCookie(t *testing.T) {
 		_, _ = w.Write([]byte(`{"expiresIn":3600}`))
 	})
 
-	got, err := refreshToken(context.Background(), "example.nullify.ai", "rt")
+	got, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
 	if err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
@@ -119,7 +140,7 @@ func TestRefreshTokenExpiresFallback(t *testing.T) {
 		_, _ = w.Write([]byte(`{}`))
 	})
 
-	if _, err := refreshToken(context.Background(), "example.nullify.ai", "rt"); err != nil {
+	if _, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"}); err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
 
@@ -137,7 +158,7 @@ func TestRefreshTokenNoTokenAnywhere(t *testing.T) {
 		_, _ = w.Write([]byte(`{"expiresIn":3600}`))
 	})
 
-	_, err := refreshToken(context.Background(), "example.nullify.ai", "rt")
+	_, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
 	if err == nil {
 		t.Fatal("want an error when neither body nor cookie carries a token")
 	}
@@ -148,7 +169,7 @@ func TestRefreshTokenNon200(t *testing.T) {
 		w.WriteHeader(http.StatusUnauthorized)
 	})
 
-	_, err := refreshToken(context.Background(), "example.nullify.ai", "rt")
+	_, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
 	if err == nil {
 		t.Fatal("want an error on a non-200 refresh")
 	}

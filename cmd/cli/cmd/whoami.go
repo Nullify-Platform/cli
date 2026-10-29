@@ -24,11 +24,14 @@ var whoamiCmd = &cobra.Command{
 			"host": whoamiHost,
 		}
 
-		creds, err := auth.LoadCredentials()
+		hostCreds, authHost, ok, err := auth.LookupCredentials(whoamiHost)
+		if authHost != "" {
+			info["auth_host"] = authHost
+		}
 		if err != nil {
 			info["authenticated"] = false
 			info["error"] = "no credentials found"
-		} else if hostCreds, ok := creds[auth.CredentialKey(whoamiHost)]; !ok {
+		} else if !ok {
 			info["authenticated"] = false
 			info["error"] = fmt.Sprintf("no credentials for host %s", whoamiHost)
 		} else {
