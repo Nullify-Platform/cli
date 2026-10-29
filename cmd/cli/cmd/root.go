@@ -25,6 +25,7 @@ type commandOutput struct {
 
 var (
 	host      string
+	orgFlag   string
 	verbose   bool
 	debug     bool
 	quiet     bool
@@ -121,6 +122,7 @@ func resetCommandOutput(
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&host, "host", "", "The base URL of your Nullify API instance (e.g., acme.nullify.ai)")
+	rootCmd.PersistentFlags().StringVar(&orgFlag, "org", "", "Organization to run as, by name or id, when your login covers several (see 'nullify org list')")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug logging")
 	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (json, table, yaml, sarif)")

@@ -33,10 +33,15 @@ func TestResolveCommandAuthUsesEnvTokenWithoutStoredCredentials(t *testing.T) {
 	require.Empty(t, authCtx.QueryParams)
 }
 
-func TestResolveCommandAuthClonesStoredQueryParams(t *testing.T) {
+// Logins before this CLI saved the server's default org (the lowest id) as
+// query_parameters. That was never the user's choice, so it must not scope
+// requests: an API token leaves the org to the server instead.
+func TestResolveCommandAuthIgnoresLegacySavedScope(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("NULLIFY_HOST", "acme.nullify.ai")
 	t.Setenv("NULLIFY_TOKEN", "env-token")
+	t.Setenv("NULLIFY_ORG", "")
+	t.Setenv("NULLIFY_GITHUB_OWNER_ID", "")
 
 	err := auth.SaveHostCredentials("acme.nullify.ai", auth.HostCredentials{
 		AccessToken:  "stored-token",
@@ -47,6 +52,10 @@ func TestResolveCommandAuthClonesStoredQueryParams(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+	stubOrgList(t, func(string) (auth.OrgList, error) {
+		t.Error("an API token with no explicit org must not list orgs")
+		return auth.OrgList{}, nil
+	})
 
 	originalHost := host
 	originalNullifyToken := nullifyToken
@@ -62,11 +71,5 @@ func TestResolveCommandAuthClonesStoredQueryParams(t *testing.T) {
 
 	authCtx, err := resolveCommandAuth(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, map[string]string{"githubOwnerId": "123"}, authCtx.QueryParams)
-
-	authCtx.QueryParams["githubOwnerId"] = "456"
-
-	creds, err := auth.LoadCredentials()
-	require.NoError(t, err)
-	require.Equal(t, "123", creds[auth.CredentialKey("acme.nullify.ai")].QueryParameters["githubOwnerId"])
+	require.Empty(t, authCtx.QueryParams)
 }

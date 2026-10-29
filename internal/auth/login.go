@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -146,6 +147,14 @@ waitLoop:
 		return fmt.Errorf("failed to save host config: %w", err)
 	}
 
+	// A login this tenant ran itself before it moved to the router is dead
+	// weight now; drop it so nothing mistakes it for the current one.
+	if CredentialKey(authHost) != CredentialKey(host) {
+		if err := DeleteHostCredentials(host); err != nil {
+			logger.L(ctx).Warn("failed to remove the tenant's previous login", logger.Err(err))
+		}
+	}
+
 	err = SaveConfig(&Config{Host: host})
 	if err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
@@ -173,8 +182,11 @@ func Logout(host string) error {
 // auth host that issued them, which is where they must be refreshed.
 func storedCredentials(host string) (HostCredentials, string, error) {
 	hostCreds, authHost, ok, err := LookupCredentials(host)
-	if err != nil {
+	if errors.Is(err, os.ErrNotExist) {
 		return HostCredentials{}, "", fmt.Errorf("not authenticated - run 'nullify auth login'")
+	}
+	if err != nil {
+		return HostCredentials{}, "", fmt.Errorf("read stored credentials: %w", err)
 	}
 	if !ok {
 		return HostCredentials{}, "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)

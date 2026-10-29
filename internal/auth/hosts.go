@@ -12,9 +12,11 @@ import (
 
 // HostConfig is what the CLI remembers about one API host. AuthHost is the
 // host that ran its login and serves its refresh, which on a router tenant is
-// the router rather than the tenant itself.
+// the router rather than the tenant itself. Org is the org the user picked
+// for this host, if any.
 type HostConfig struct {
-	AuthHost string `json:"auth_host,omitempty"`
+	AuthHost string   `json:"auth_host,omitempty"`
+	Org      *OrgPick `json:"org,omitempty"`
 }
 
 // Hosts maps an API host, in CredentialKey form, to its HostConfig. It lives
@@ -117,7 +119,7 @@ func LookupCredentials(host string) (hostCreds HostCredentials, authHost string,
 	return hostCreds, authHost, ok, nil
 }
 
-// KnownHosts lists the API hosts the user has signed in to, sorted. Router
+// KnownHosts lists the API hosts the user is signed in to, sorted. Router
 // credentials are shared by the tenants bound to them, so the router's own key
 // is listed only when no tenant is.
 func KnownHosts() ([]string, error) {
@@ -139,8 +141,12 @@ func KnownHosts() ([]string, error) {
 			delete(known, authKey)
 		}
 	}
-	for h := range hosts {
-		known[h] = true
+	// A bound host is known while the login behind it is: a logout removes
+	// that login and, with it, every host signed in through it.
+	for h, hc := range hosts {
+		if _, ok := creds[CredentialKey(hc.AuthHost)]; ok && hc.AuthHost != "" {
+			known[h] = true
+		}
 	}
 
 	return slices.Sorted(maps.Keys(known)), nil

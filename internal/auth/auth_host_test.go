@@ -148,24 +148,32 @@ func fakeRouterLogin(t *testing.T) func(w http.ResponseWriter, r *http.Request, 
 // that part by fetching the auth URL the session returned.
 func stubBrowser(t *testing.T) {
 	t.Helper()
+	var wg sync.WaitGroup
 	old := openBrowser
 	openBrowser = func(url string) error {
+		wg.Add(1)
 		go func() {
-			resp, err := http.Get(url)
-			if err != nil {
-				t.Errorf("callback: %v", err)
-				return
+			defer wg.Done()
+			// Login may close its callback server before this response is
+			// read; only a callback that never arrived fails the test, and
+			// it does so by Login timing out.
+			if resp, err := http.Get(url); err == nil {
+				resp.Body.Close()
 			}
-			resp.Body.Close()
 		}()
 		return nil
 	}
-	t.Cleanup(func() { openBrowser = old })
+	t.Cleanup(func() {
+		wg.Wait()
+		openBrowser = old
+	})
 }
 
 func TestLoginRunsSessionAndRedeemOnTheAuthHost(t *testing.T) {
 	calls := newRoutedAuthServer(t, fakeRouterLogin(t))
 	stubBrowser(t)
+	// A login the tenant ran itself before it moved to the router.
+	seed(t, tenantHost, "tenant-pool-token", "tenant-pool-refresh", time.Now().Add(time.Hour).Unix())
 
 	if err := Login(context.Background(), tenantHost); err != nil {
 		t.Fatalf("Login: %v", err)
@@ -190,7 +198,7 @@ func TestLoginRunsSessionAndRedeemOnTheAuthHost(t *testing.T) {
 		t.Fatalf("LoadCredentials: %v", err)
 	}
 	if _, ok := creds[CredentialKey(tenantHost)]; ok {
-		t.Error("router login was stored under the tenant's own key")
+		t.Error("the tenant-key login survived a router login")
 	}
 	if got := creds[CredentialKey(routerAPI)]; got.AccessToken != "router-access" || got.RefreshToken != "router-refresh" {
 		t.Errorf("router credentials = %+v, want the redeemed tokens", got)
@@ -342,6 +350,31 @@ func TestLogoutRemovesTheAuthHostLogin(t *testing.T) {
 	}
 }
 
+func TestKnownHostsDropsHostsAfterLogout(t *testing.T) {
+	newRoutedAuthServer(t, func(http.ResponseWriter, *http.Request, string, string) {})
+	bindRouter(t, "live", time.Now().Add(time.Hour).Unix())
+	if err := UpdateHostConfig("other.nullify.ai", func(hc HostConfig) HostConfig {
+		hc.AuthHost = routerAPI
+		return hc
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Logout(tenantHost); err != nil {
+		t.Fatalf("Logout: %v", err)
+	}
+	got, err := KnownHosts()
+	if err != nil {
+		t.Fatalf("KnownHosts: %v", err)
+	}
+	if len(got) != 0 {
+		t.Errorf("KnownHosts = %v after the shared router login was removed, want none", got)
+	}
+	if _, err := GetValidToken(context.Background(), "other.nullify.ai"); err == nil {
+		t.Error("the other tenant on the same router login is still authenticated")
+	}
+}
+
 func TestKnownHostsListsTenantsNotTheRouter(t *testing.T) {
 	newRoutedAuthServer(t, func(http.ResponseWriter, *http.Request, string, string) {})
 	bindRouter(t, "live", time.Now().Add(time.Hour).Unix())
@@ -354,5 +387,95 @@ func TestKnownHostsListsTenantsNotTheRouter(t *testing.T) {
 	want := []string{"acme.nullify.ai", "legacy.nullify.ai"}
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Errorf("KnownHosts = %v, want %v", got, want)
+	}
+}
+
+// Redeem and refresh carry the redemption secret and the refresh cookie, so
+// a redirect from the auth host must end the call, not be followed.
+func TestAuthCallsDoNotFollowRedirects(t *testing.T) {
+	redirect := func(w http.ResponseWriter, r *http.Request, host, path string) {
+		if host == "api.evil.example" {
+			t.Errorf("followed a redirect to %s%s", host, path)
+		}
+		w.Header().Set("Location", "https://api.evil.example"+path)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	}
+
+	t.Run("redeem", func(t *testing.T) {
+		calls := newRoutedAuthServer(t, redirect)
+		_, err := fetchCLIToken(context.Background(), routerAPI, "sid", strings.Repeat("ab", 32))
+		if err == nil || !strings.Contains(err.Error(), "status 307") {
+			t.Fatalf("err = %v, want the 307 surfaced", err)
+		}
+		if len(*calls) != 1 {
+			t.Errorf("calls = %v, want one", *calls)
+		}
+	})
+	t.Run("session", func(t *testing.T) {
+		calls := newRoutedAuthServer(t, redirect)
+		if _, err := createCLISession(context.Background(), routerAPI, 4242); err == nil {
+			t.Fatal("want an error on a redirected session")
+		}
+		if len(*calls) != 1 {
+			t.Errorf("calls = %v, want one", *calls)
+		}
+	})
+	t.Run("refresh", func(t *testing.T) {
+		calls := newRoutedAuthServer(t, redirect)
+		if _, err := refreshToken(context.Background(), routerAPI, HostCredentials{RefreshToken: "rt"}); err == nil {
+			t.Fatal("want an error on a redirected refresh")
+		}
+		if len(*calls) != 1 {
+			t.Errorf("calls = %v, want one", *calls)
+		}
+	})
+}
+
+func TestLoginOnALegacyStackStaysOnTheTenant(t *testing.T) {
+	calls := newRoutedAuthServer(t, func(w http.ResponseWriter, r *http.Request, host, path string) {
+		if host != tenantAPI {
+			t.Errorf("call left the tenant: %s%s", host, path)
+		}
+		switch path {
+		case "/auth/cli/config":
+			http.NotFound(w, r)
+		case "/auth/cli/session":
+			var body struct{ Port int }
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			_ = json.NewEncoder(w).Encode(cliSessionResponse{
+				SessionID: "sid",
+				AuthURL:   "http://127.0.0.1:" + strconv.Itoa(body.Port) + "/callback?session_id=sid&redemption_secret=" + strings.Repeat("ab", 32),
+			})
+		case "/auth/cli/token":
+			_ = json.NewEncoder(w).Encode(cliTokenResponse{AccessToken: "tenant-access", RefreshToken: "tenant-refresh", ExpiresIn: 3600})
+		}
+	})
+	stubBrowser(t)
+
+	if err := Login(context.Background(), tenantHost); err != nil {
+		t.Fatalf("Login: %v", err)
+	}
+	if len(*calls) != 3 {
+		t.Errorf("calls = %v, want config, session and redeem", *calls)
+	}
+	creds, _ := LoadCredentials()
+	if creds[CredentialKey(tenantHost)].AccessToken != "tenant-access" {
+		t.Errorf("credentials = %v, want the login under the tenant's own key", creds)
+	}
+	if authHost, _ := AuthHostFor(tenantHost); authHost != tenantAPI {
+		t.Errorf("auth host = %q, want the tenant", authHost)
+	}
+}
+
+func TestCorruptHostsFileIsReportedNotTreatedAsLoggedOut(t *testing.T) {
+	newRoutedAuthServer(t, func(http.ResponseWriter, *http.Request, string, string) {})
+	seed(t, tenantHost, "tok", "", time.Now().Add(time.Hour).Unix())
+	if err := os.WriteFile(filepath.Join(os.Getenv("HOME"), ".nullify", "hosts.json"), []byte("{not json"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := GetValidToken(context.Background(), tenantHost)
+	if err == nil || !strings.Contains(err.Error(), "hosts.json") {
+		t.Fatalf("err = %v, want the hosts.json problem named", err)
 	}
 }

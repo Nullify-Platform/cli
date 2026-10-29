@@ -36,9 +36,7 @@ var whoamiCmd = &cobra.Command{
 			info["error"] = fmt.Sprintf("no credentials for host %s", whoamiHost)
 		} else {
 			info["authenticated"] = true
-			if hostCreds.QueryParameters != nil {
-				info["query_parameters"] = hostCreds.QueryParameters
-			}
+			info["org"] = describeOrg(ctx, whoamiHost)
 			if hostCreds.ExpiresAt > 0 {
 				info["expires_at"] = hostCreds.ExpiresAt
 			}

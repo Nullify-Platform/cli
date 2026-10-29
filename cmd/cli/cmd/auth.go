@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -62,7 +63,8 @@ var loginCmd = &cobra.Command{
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
 	Short: "Log out of Nullify",
-	Long:  "Clear stored credentials for the current or specified host.",
+	Long: "Clear stored credentials for the current or specified host. On an instance that signs in through the " +
+		"Nullify router, this removes the router login, which every instance signed in through it shares.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logoutHost, err := resolveHostForAuth()
 		if err != nil {
@@ -88,8 +90,22 @@ var logoutCmd = &cobra.Command{
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show authentication status",
-	Long:  "Display the current authentication state including host, user, and token expiry.",
+	Long:  "Display the current authentication state including host, auth host, organization, and token expiry.",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+
+		if usesMachineToken() {
+			statusHost, err := resolveHostE(ctx)
+			if err != nil {
+				fmt.Println("No host configured. Pass --host or set NULLIFY_HOST.")
+				return nil
+			}
+			fmt.Printf("Host: %s\n", statusHost)
+			fmt.Println("Auth: API token")
+			fmt.Printf("Org: %s\n", describeOrg(ctx, statusHost))
+			return nil
+		}
+
 		cfg, err := auth.LoadConfig()
 		if err != nil {
 			fmt.Println("Not configured. Run 'nullify auth login --host <your-instance>.nullify.ai' to get started.")
@@ -122,6 +138,7 @@ var statusCmd = &cobra.Command{
 		} else {
 			fmt.Println("Status: authenticated")
 		}
+		fmt.Printf("Org: %s\n", describeOrg(ctx, cfg.Host))
 		return nil
 	},
 }
@@ -202,25 +219,50 @@ var switchCmd = &cobra.Command{
 var configShowCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Show current configuration",
-	Long:  "Display the current CLI configuration as JSON.",
+	Long:  "Display the effective host, how it authenticates (login and its auth host, or API token), and the organization commands run as, as JSON.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, err := auth.LoadConfig()
+		ctx := cmd.Context()
+		configHost, err := resolveHostE(ctx)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "No config found. Run 'nullify init' to set up.\n")
 			return nil
 		}
 
-		shown := map[string]any{"host": cfg.Host}
-		if cfg.Host != "" {
-			if authHost, err := auth.AuthHostFor(cfg.Host); err == nil {
+		shown := map[string]any{"host": configHost}
+		if usesMachineToken() {
+			shown["auth"] = "api_token"
+		} else {
+			shown["auth"] = "login"
+			if authHost, err := auth.AuthHostFor(configHost); err == nil {
 				shown["auth_host"] = authHost
 			}
 		}
+		shown["org"] = describeOrg(ctx, configHost)
 
 		data, _ := json.MarshalIndent(shown, "", "  ")
 		fmt.Println(string(data))
 		return nil
 	},
+}
+
+// describeOrg says which org commands on host run as right now, without
+// prompting.
+func describeOrg(ctx context.Context, host string) string {
+	token, err := lib.GetNullifyToken(ctx, host, nullifyToken, githubToken)
+	if err != nil {
+		return "unknown (not authenticated)"
+	}
+	scope, err := resolveOrgScope(ctx, host, token, orgInputsFor(host, orgFlag, "--org"), false)
+	switch {
+	case err != nil:
+		return "not chosen: " + err.Error()
+	case scope.Org != nil:
+		return scope.Org.String()
+	case scope.Query["githubOwnerId"] != "":
+		return "githubOwnerId " + scope.Query["githubOwnerId"] + " (NULLIFY_GITHUB_OWNER_ID)"
+	default:
+		return "the API token's own (the server derives it)"
+	}
 }
 
 func init() {

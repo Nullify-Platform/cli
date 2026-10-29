@@ -20,6 +20,9 @@ type commandAuthContext struct {
 	Host        string
 	Token       string
 	QueryParams map[string]string
+	// Org is the org the command runs as, nil when the server takes it from
+	// an API token or it was given only as an id.
+	Org *auth.Org
 }
 
 // Client builds a NullifyClient for the resolved host and token.
@@ -31,7 +34,27 @@ func (c *commandAuthContext) APIClient() *api.Client {
 	return api.NewClient(c.Host, c.Token, c.QueryParams)
 }
 
+// resolveCommandAuth resolves the host, token and org a command runs with.
+// Stored credentials no longer carry the org: a login's saved
+// query_parameters were the server's default, not the user's choice.
 func resolveCommandAuth(ctx context.Context) (*commandAuthContext, error) {
+	authCtx, err := resolveCommandToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	scope, err := resolveOrgScope(ctx, authCtx.Host, authCtx.Token, orgInputsFor(authCtx.Host, orgFlag, "--org"), stdinIsTTY())
+	if err != nil {
+		return nil, authError("%w", err)
+	}
+	authCtx.Org = scope.Org
+	authCtx.QueryParams = scope.Query
+	return authCtx, nil
+}
+
+// resolveCommandToken resolves the host and token only, for callers that
+// choose the org themselves.
+func resolveCommandToken(ctx context.Context) (*commandAuthContext, error) {
 	commandHost, err := resolveHostE(ctx)
 	if err != nil {
 		return nil, err
@@ -45,27 +68,9 @@ func resolveCommandAuth(ctx context.Context) (*commandAuthContext, error) {
 		return nil, authError("%w", err)
 	}
 
-	queryParams := map[string]string{}
-	creds, err := auth.LoadCredentials()
-	if err == nil {
-		if hostCreds, ok := creds[auth.CredentialKey(commandHost)]; ok && hostCreds.QueryParameters != nil {
-			for key, value := range hostCreds.QueryParameters {
-				queryParams[key] = value
-			}
-		}
-	}
-
-	// NULLIFY_GITHUB_OWNER_ID env var provides the githubOwnerId query param
-	// when using NULLIFY_TOKEN directly (no stored credentials).
-	if ownerID := os.Getenv("NULLIFY_GITHUB_OWNER_ID"); ownerID != "" {
-		if _, set := queryParams["githubOwnerId"]; !set {
-			queryParams["githubOwnerId"] = ownerID
-		}
-	}
-
 	return &commandAuthContext{
 		Host:        commandHost,
 		Token:       token,
-		QueryParams: queryParams,
+		QueryParams: map[string]string{},
 	}, nil
 }
