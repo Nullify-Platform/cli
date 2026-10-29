@@ -98,6 +98,34 @@ nullify auth login --host api.acme.nullify.ai
 
 Opens your browser for single sign-on. Tokens are stored locally and refreshed automatically.
 
+Before it signs in, the CLI asks your instance where its login runs (`GET /auth/cli/config`). An instance attached to the Nullify router answers with the router's host (`api.nullify.ai`), and the CLI signs in and refreshes there; one login then covers every instance that shares it. An instance without that endpoint signs in on its own host. The CLI only follows an answer naming your instance or a Nullify router, and fails otherwise.
+
+### Organizations
+
+One login can cover several organizations on the same instance. Each command runs as the first of these that applies:
+
+1. `--org <name|id>`
+2. `NULLIFY_ORG` (name or id)
+3. `NULLIFY_GITHUB_OWNER_ID`
+4. The organization you picked with `nullify org use`, if your login still covers it
+5. The owner of the current directory's git remote, if it names one of your organizations
+6. Your only organization on the instance
+
+When none applies, the CLI asks in a terminal and remembers the answer; elsewhere it fails and lists the choices.
+
+```sh
+# See your organizations on this instance and which one is in use
+nullify org list
+
+# Remember one for this instance
+nullify org use acme-web
+
+# Run one command as another
+nullify findings --org acme-payments
+```
+
+An API token (`NULLIFY_TOKEN`) belongs to one organization, and the server uses it when the command names none.
+
 ### Environment Variables
 
 ```sh
@@ -133,10 +161,12 @@ nullify auth switch
 |---------|-------------|
 | `nullify auth login` | Authenticate via browser SSO |
 | `nullify auth logout` | Clear stored credentials for a host |
-| `nullify auth status` | Show auth state, host, and token expiry |
+| `nullify auth status` | Show auth state, host, auth host, organization, and token expiry |
 | `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
 | `nullify auth switch` | Switch active instance or list configured instances |
-| `nullify auth config` | Print current CLI config as JSON |
+| `nullify auth config` | Print the effective host, auth host, and organization as JSON |
+| `nullify org list` | List the organizations you can use on this instance |
+| `nullify org use <name\|id>` | Remember the organization to use on this instance |
 
 ### Scanning
 
@@ -274,6 +304,29 @@ Add the following to your MCP config file:
 }
 ```
 
+When your login covers several organizations, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them. Without the argument a call uses `--org`, then the same order as the CLI; if that still leaves several, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization:
+
+```json
+{
+  "mcpServers": {
+    "nullify-acme-web": {
+      "command": "nullify",
+      "args": ["mcp", "serve", "--org", "acme-web"]
+    },
+    "nullify-acme-payments": {
+      "command": "nullify",
+      "args": ["mcp", "serve", "--org", "acme-payments"]
+    }
+  }
+}
+```
+
+With Claude Code:
+
+```sh
+claude mcp add nullify-acme-web -- nullify mcp serve --org acme-web
+```
+
 Scope findings to a specific repository with `--repo`:
 
 ```json
@@ -289,7 +342,15 @@ Scope findings to a specific repository with `--repo`:
 
 ## Configuration
 
-The CLI stores configuration at `~/.nullify/config.json`. Host resolution priority:
+The CLI stores configuration in `~/.nullify/`:
+
+| File | Holds |
+|------|-------|
+| `config.json` | The active instance |
+| `credentials.json` | Login tokens, one entry per login host (the router's login is shared by the instances that use it) |
+| `hosts.json` | Per instance: the host its login runs on, and the organization picked with `nullify org use` |
+
+Host resolution priority:
 
 1. `--host` flag
 2. Config file (`~/.nullify/config.json`)
@@ -300,6 +361,7 @@ The CLI stores configuration at `~/.nullify/config.json`. Host resolution priori
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--host` | Nullify API instance (e.g., `api.acme.nullify.ai`) | From config |
+| `--org` | Organization to run as, by name or id (see [Organizations](#organizations)) | |
 | `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
 | `--verbose, -v` | Enable verbose logging | `false` |
 | `--debug, -d` | Enable debug logging | `false` |
