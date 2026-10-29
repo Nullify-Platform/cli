@@ -98,7 +98,11 @@ func ListOrgs(ctx context.Context, host, listHost, token string) (OrgList, error
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return OrgList{}, fmt.Errorf("list organizations on %s: status %d: %s", apiHost(listHost), resp.StatusCode, string(body))
+		err := fmt.Errorf("list organizations on %s: status %d: %s", apiHost(listHost), resp.StatusCode, string(body))
+		if resp.StatusCode == http.StatusUnauthorized {
+			err = fmt.Errorf("%w: %w", ErrTokenRejected, err)
+		}
+		return OrgList{}, err
 	}
 
 	var out installationsResponse
@@ -219,6 +223,10 @@ func (e *ErrOrgNotChosen) Error() string {
 	return fmt.Sprintf("%s serves %d organizations; choose one with --org <name|id>, NULLIFY_ORG, or 'nullify org use': %s",
 		e.Host, len(e.Orgs), strings.Join(names, ", "))
 }
+
+// ErrTokenRejected reports that the org list refused the token, which can
+// happen before its stored expiry (revocation, clock skew).
+var ErrTokenRejected = errors.New("token rejected")
 
 // ErrNoOrgs reports that the user has no org routed to this host.
 var ErrNoOrgs = errors.New("no organization on this host is available to you")

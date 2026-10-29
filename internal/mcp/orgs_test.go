@@ -219,6 +219,25 @@ func TestUnknownOrgArgumentIsAToolError(t *testing.T) {
 	require.Empty(t, rec.seen())
 }
 
+// An org the caller named must never turn into the default org: a numeric
+// id is that id, and anything blank or of another type is refused.
+func TestOrgArgumentIsTakenAsGivenOrRefused(t *testing.T) {
+	orgs := orgsFor(map[string]string{"acme-web": "1001001", "1001001": "1001001", "acme-payments": "2002002"}, "acme-payments")
+
+	s, rec := newTestServer(t, orgs)
+	res := callTool(t, s, "list_repositories", map[string]any{"org": 1001001})
+	require.False(t, res.Result.IsError, res.Result.Content)
+	require.Equal(t, "1001001", rec.seen()[0].Get("githubOwnerId"), "a numeric id is that org, not the default")
+
+	for _, bad := range []any{"", "   ", true, 1.5, map[string]any{"name": "acme-web"}, []any{"acme-web"}} {
+		s, rec := newTestServer(t, orgs)
+		res := callTool(t, s, "list_repositories", map[string]any{"org": bad})
+		require.True(t, res.Result.IsError, "org %#v", bad)
+		require.Contains(t, res.Result.Content[0].Text, "org argument")
+		require.Empty(t, rec.seen(), "org %#v reached the API", bad)
+	}
+}
+
 func TestResourceReadFollowsTheSameRule(t *testing.T) {
 	ambiguous, rec := newTestServer(t, orgsFor(map[string]string{"acme-web": "1001001", "acme-payments": "2002002"}, ""))
 	res := call(t, ambiguous, "resources/read", map[string]any{"uri": "nullify://repos"})

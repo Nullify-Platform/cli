@@ -3,8 +3,12 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"maps"
+	"math"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -65,13 +69,43 @@ func orgMiddleware(orgs Orgs) server.ToolHandlerMiddleware {
 			if req.Params.Name == listOrganizationsTool {
 				return next(ctx, req)
 			}
-			scope, err := orgs.Resolve(ctx, getStringArg(req.GetArguments(), orgArg))
+			org, err := orgArgument(req.GetArguments())
+			if err != nil {
+				return toolError(err), nil
+			}
+			scope, err := orgs.Resolve(ctx, org)
 			if err != nil {
 				return toolError(err), nil
 			}
 			return next(withScope(ctx, scope), req)
 		}
 	}
+}
+
+// orgArgument returns the call's org argument, "" when it has none. An org
+// the caller did name but that is blank or not a name or id is an error: the
+// call must not quietly run as the default org instead.
+func orgArgument(args map[string]any) (string, error) {
+	v, ok := args[orgArg]
+	if !ok || v == nil {
+		return "", nil
+	}
+	var org string
+	switch t := v.(type) {
+	case string:
+		org = strings.TrimSpace(t)
+	case float64:
+		if t != math.Trunc(t) || t < 0 {
+			return "", fmt.Errorf("org argument %v is not an organization id", t)
+		}
+		org = strconv.FormatFloat(t, 'f', -1, 64)
+	default:
+		return "", fmt.Errorf("org argument must be an organization name or id, got %T", v)
+	}
+	if org == "" {
+		return "", fmt.Errorf("org argument is empty; omit it to use the default organization")
+	}
+	return org, nil
 }
 
 // resourceOrgMiddleware gives resource reads, which take no arguments, the

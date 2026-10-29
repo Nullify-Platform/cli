@@ -42,6 +42,9 @@ func (f *fakeNullify) RoundTrip(r *http.Request) (*http.Response, error) {
 		h.Add("Set-Cookie", "access_token=refreshed-token; Max-Age=3600; Path=/; Secure; HttpOnly")
 		return reply(200, `{"expiresIn":3600}`, h)
 	case r.URL.Host == "api.nullify.ai" && r.URL.Path == "/admin/installations":
+		if r.Header.Get("Authorization") != "Bearer "+f.live {
+			return reply(401, `{"message":"Unauthorized"}`, nil)
+		}
 		return reply(200, `{"installations": [
 		  {"name": "acme-web", "provider": {"id": "GitHub", "github": {}}, "nullifyBaseUrl": "https://api.acme.nullify.ai",
 		   "queryParameters": {"githubOwnerId": "1001001"}, "provisioningStatus": "ready"},
@@ -88,8 +91,9 @@ func TestMCPServeOnARouterLogin(t *testing.T) {
 	out = call(map[string]any{"org": "acme-payments"})
 	require.NotContains(t, out, `"isError":true`, out)
 
-	// The tenant stops accepting the token mid-session: the same process
-	// refreshes at the router, never the tenant, and retries.
+	// The token stops being accepted mid-session, before its stored expiry:
+	// the same process refreshes at the router, never the tenant, for the
+	// org list and for the API call, and both retry.
 	fake.mu.Lock()
 	fake.live = "only-a-refresh-gets-this"
 	fake.mu.Unlock()
@@ -98,7 +102,7 @@ func TestMCPServeOnARouterLogin(t *testing.T) {
 
 	fake.mu.Lock()
 	defer fake.mu.Unlock()
-	require.Equal(t, []string{"api.nullify.ai"}, fake.refreshes)
+	require.Equal(t, []string{"api.nullify.ai", "api.nullify.ai"}, fake.refreshes)
 	require.Equal(t, []string{
 		"Bearer router-token 2002002",
 		"Bearer router-token 1001001",
@@ -108,4 +112,34 @@ func TestMCPServeOnARouterLogin(t *testing.T) {
 	creds, err := auth.LoadCredentials()
 	require.NoError(t, err)
 	require.Equal(t, "refreshed-token", creds["nullify.ai"].AccessToken, "the refreshed router login is saved")
+}
+
+// serve --org is the default for calls that name no org; a call's own org
+// argument still wins.
+func TestMCPServeOrgFlagIsTheDefault(t *testing.T) {
+	loginEnv(t)
+	fake := &fakeNullify{live: "router-token"}
+	old := http.DefaultTransport
+	http.DefaultTransport = fake
+	t.Cleanup(func() { http.DefaultTransport = old })
+	orgFlag = "acme-payments"
+
+	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "error")
+	require.NoError(t, err)
+	apiClient, toolSet, orgs, err := mcpServeConfig(ctx, "", "default")
+	require.NoError(t, err)
+	s := mcp.NewServer(apiClient, toolSet, orgs)
+
+	for _, args := range []map[string]any{nil, {"org": "acme-web"}} {
+		msg, err := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+			"params": map[string]any{"name": "list_repositories", "arguments": args}})
+		require.NoError(t, err)
+		out, err := json.Marshal(s.HandleMessage(ctx, msg))
+		require.NoError(t, err)
+		require.NotContains(t, string(out), `"isError":true`, string(out))
+	}
+
+	fake.mu.Lock()
+	defer fake.mu.Unlock()
+	require.Equal(t, []string{"Bearer router-token 2002002", "Bearer router-token 1001001"}, fake.apiCalls)
 }

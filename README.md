@@ -124,13 +124,14 @@ nullify org use acme-web
 nullify findings --org acme-payments
 ```
 
-An API token (`NULLIFY_TOKEN`) belongs to one organization, and the server uses it when the command names none.
+An API token (`NULLIFY_TOKEN`) belongs to one organization, and the server uses it when the command names none. With a token, only `--org`, `NULLIFY_ORG` and `NULLIFY_GITHUB_OWNER_ID` apply (the first two are looked up on the instance itself); `nullify org use`, the git remote and the prompt are for browser logins.
 
 ### Environment Variables
 
 ```sh
 export NULLIFY_HOST=api.acme.nullify.ai
 export NULLIFY_TOKEN=your-token-here
+export NULLIFY_ORG=acme-web   # optional: organization to run as, by name or id
 ```
 
 ### Multiple Instances
@@ -353,8 +354,8 @@ The CLI stores configuration in `~/.nullify/`:
 Host resolution priority:
 
 1. `--host` flag
-2. Config file (`~/.nullify/config.json`)
-3. `NULLIFY_HOST` environment variable
+2. `NULLIFY_HOST` environment variable
+3. Config file (`~/.nullify/config.json`)
 
 ### Global Flags
 

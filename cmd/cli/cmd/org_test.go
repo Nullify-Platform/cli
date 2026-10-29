@@ -273,3 +273,35 @@ func TestAuthStatusShowsTheOrg(t *testing.T) {
 	require.Contains(t, out, "Org: not chosen")
 	require.Contains(t, out, "acme-payments")
 }
+
+// An --org that matches two orgs is settled at the prompt for this command
+// only; it must not replace the remembered pick.
+func TestAmbiguousExplicitOrgDoesNotChangeTheRememberedPick(t *testing.T) {
+	loginEnv(t)
+	dupGitHub := auth.Org{Name: "dup", Provider: "github", Key: "githubOwnerId", ID: "1", Host: "api.acme.nullify.ai"}
+	dupGitLab := auth.Org{Name: "dup", Provider: "gitlab", Key: "gitlabGroupId", ID: "2", Host: "api.acme.nullify.ai"}
+	stubOrgList(t, func(string) (auth.OrgList, error) {
+		return auth.OrgList{Orgs: []auth.Org{dupGitHub, dupGitLab, testOrgA}}, nil
+	})
+	require.NoError(t, rememberOrg("acme.nullify.ai", testOrgA))
+	oldIn, oldOut := promptIn, promptOut
+	promptIn, promptOut = strings.NewReader("2\n"), &bytes.Buffer{}
+	t.Cleanup(func() { promptIn, promptOut = oldIn, oldOut })
+
+	scope, err := resolveOrgScope(context.Background(), "acme.nullify.ai", "router-token", orgInputsFor("acme.nullify.ai", "dup", "--org"), true)
+	require.NoError(t, err)
+	require.Equal(t, dupGitLab, *scope.Org)
+	require.Equal(t, "acme-web", mustLoadHosts(t)["acme.nullify.ai"].Org.Name)
+}
+
+// A corrupt hosts.json must not break an API-token command, which never
+// reads it.
+func TestAPITokenIgnoresHostsFile(t *testing.T) {
+	loginEnv(t)
+	t.Setenv("NULLIFY_TOKEN", "api-token")
+	require.NoError(t, os.WriteFile(os.Getenv("HOME")+"/.nullify/hosts.json", []byte("{broken"), 0600))
+
+	authCtx, err := resolveCommandAuth(context.Background())
+	require.NoError(t, err)
+	require.Empty(t, authCtx.QueryParams)
+}
