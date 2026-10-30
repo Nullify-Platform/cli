@@ -34,6 +34,9 @@ func httpTimeout() time.Duration {
 
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
+	// host is the API host the client was built for, the only one its token
+	// is sent to.
+	host          string
 	BaseURL       string
 	Token         string
 	DefaultParams map[string]string
@@ -57,12 +60,14 @@ func NewClient(host string, token string, defaultParams map[string]string, opts 
 		apiHost = "api." + host
 	}
 	c := &Client{
+		host:          apiHost,
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
 		HTTPClient: &http.Client{
-			Timeout:   httpTimeout(),
-			Transport: client.NewRetryTransport(http.DefaultTransport),
+			Timeout:       httpTimeout(),
+			Transport:     client.NewRetryTransport(http.DefaultTransport),
+			CheckRedirect: client.StripBearerOnRedirect,
 		},
 	}
 	for _, opt := range opts {
@@ -77,7 +82,11 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+c.Token)
+	// The token goes only to the API host this client was built for, over
+	// https; a URL anywhere else is requested without it.
+	if client.BearerAllowed(c.host, req) {
+		req.Header.Set("Authorization", "Bearer "+c.Token)
+	}
 	req.Header.Set("User-Agent", "Nullify-CLI/"+Version)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")

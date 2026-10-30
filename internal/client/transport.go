@@ -25,6 +25,23 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.transport.RoundTrip(r)
 }
 
+// BearerAllowed reports whether req may carry the Nullify bearer for
+// nullifyHost; see bearerAllowed.
+func BearerAllowed(nullifyHost string, req *http.Request) bool {
+	return bearerAllowed(nullifyHost, req)
+}
+
+// StripBearerOnRedirect is an http.Client CheckRedirect that follows a
+// redirect without the Nullify bearer: the Location is the server's to choose
+// and the user's token must not go wherever it points.
+func StripBearerOnRedirect(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return http.ErrUseLastResponse
+	}
+	req.Header.Del("Authorization")
+	return nil
+}
+
 // bearerAllowed reports whether req may carry the Nullify bearer: an https
 // request to the API host the client was built for, made by the caller rather
 // than by following a redirect. Anything else goes out without it, so a

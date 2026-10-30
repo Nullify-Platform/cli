@@ -3,6 +3,10 @@ package lib
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -102,4 +106,29 @@ func TestGetNullifyTokenRefusesGitHubExchangeOnRouter(t *testing.T) {
 			require.ErrorIs(t, err, errRouterGitHubExchange)
 		})
 	}
+}
+
+// The GitHub token exchange carries the GitHub token in its body: a redirect
+// is returned as an error, never followed with that body.
+func TestGitHubTokenExchangeDoesNotFollowRedirects(t *testing.T) {
+	var followed atomic.Bool
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/elsewhere" {
+			followed.Store(true)
+			return
+		}
+		http.Redirect(w, r, "/elsewhere", http.StatusTemporaryRedirect)
+	}))
+	t.Cleanup(srv.Close)
+	old := http.DefaultTransport
+	http.DefaultTransport = srv.Client().Transport
+	t.Cleanup(func() { http.DefaultTransport = old })
+
+	t.Setenv("NULLIFY_TOKEN", "")
+	t.Setenv("GITHUB_ACTIONS", "true")
+	t.Setenv("GITHUB_REPOSITORY", "acme/repo")
+
+	_, err := GetNullifyToken(context.Background(), strings.TrimPrefix(srv.URL, "https://"), "", "gh-token")
+	require.Error(t, err)
+	require.False(t, followed.Load(), "the exchange followed a redirect")
 }
