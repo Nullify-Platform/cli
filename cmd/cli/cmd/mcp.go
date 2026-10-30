@@ -31,8 +31,8 @@ var mcpServeCmd = &cobra.Command{
 	Short: "Start the MCP server",
 	Long: "Start the Nullify MCP server over stdio. Configure your AI tool to run 'nullify mcp serve'. " +
 		"When your login covers several organizations on this instance, tools take an optional org argument. " +
-		"The default for calls that name none is fixed when the server starts: --org, NULLIFY_ORG, the git " +
-		"remote's owner, then your default ('nullify org use'). One server serves one instance.",
+		"The default for calls that name none is fixed when the server starts: --org, NULLIFY_ORG, " +
+		"NULLIFY_GITHUB_OWNER_ID, the git remote's owner, then your default ('nullify org use'). One server serves one instance.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 

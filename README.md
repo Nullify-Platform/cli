@@ -96,49 +96,54 @@ nullify findings
 nullify auth login
 ```
 
-Opens your browser to sign in through nullify.ai with your identity provider (for example Microsoft Entra ID or GitLab). After sign-in, the CLI selects the installation that holds your data: it uses the only one automatically, asks you to pick one in a terminal, or takes `--installation <name>` in scripts. Tokens are stored locally and refreshed automatically.
+Opens your browser to sign in with your identity provider (for example Microsoft Entra ID or GitLab). Tokens are stored locally and refreshed automatically.
 
-If you sign in through nullify.ai, do not set `--host` or `NULLIFY_HOST` to your instance; run `nullify auth login` and the CLI routes data requests to the selected installation. An explicit instance host uses only the credentials stored for that host.
-
-To sign in to your own Nullify instance instead, pass its host:
+With no host saved, the CLI signs in through nullify.ai, the Nullify router. With a host saved or passed, it first asks that instance where its login runs (`GET /auth/cli/config`): an instance on the router hands the login to the router, and an instance that signs in itself keeps its own login. The CLI only follows an answer naming your instance or a Nullify router, and fails otherwise.
 
 ```sh
+# Through the router, or wherever your saved instance says
+nullify auth login
+
+# Name your instance; on the router this still signs in at the router
 nullify auth login --host acme.nullify.ai
+
+# Choose the organization to start with
+nullify auth login --org acme-web
 ```
 
-Switch to another installation after signing in through nullify.ai:
-
-```sh
-nullify auth switch --installation other-org
-```
-
-Before it signs in, the CLI asks your instance where its login runs (`GET /auth/cli/config`). An instance attached to the Nullify router answers with the router's host (`api.nullify.ai`), and the CLI signs in and refreshes there; one login then covers every instance that shares it. An instance without that endpoint signs in on its own host. The CLI only follows an answer naming your instance or a Nullify router, and fails otherwise.
+One router login covers every instance the router lists for you, so `--host <instance>` works afterwards without another login, and an older login an instance ran itself is replaced. After signing in, the CLI selects the organization commands run as: the one you pass with `--org`, the one you used last, the only one, or the one you pick in a terminal.
 
 ### Organizations
 
-One login can cover several organizations on the same instance. Each command runs as the first of these that applies:
+One login can cover several organizations, on one instance or several. Each command runs as the first of these that applies:
 
 1. `--org <name|id>`
 2. `NULLIFY_ORG` (name or id)
 3. `NULLIFY_GITHUB_OWNER_ID`
-4. The organization you picked with `nullify org use`, if your login still covers it
-5. The owner of the current directory's git remote, if it names one of your organizations
+4. The owner of the current directory's git remote, if it names exactly one of your organizations on the instance (worktrees and submodules included)
+5. Your default, set by `nullify org use` or the last login
 6. Your only organization on the instance
 
-When none applies, the CLI asks in a terminal and remembers the answer; elsewhere it fails and lists the choices.
+If your default is no longer available, the command stops and says so rather than running as another organization; in a terminal it asks. When nothing applies and you have several organizations, the CLI asks in a terminal and remembers the answer; elsewhere it fails and lists the choices. `nullify org list` shows your organizations and which rule picked the one in use.
+
+Signed in through the router, `nullify org use` can name an organization on another instance: plain commands then run on that instance. `--org` does the same for one command when no `--host` is set.
 
 ```sh
 # See your organizations on this instance and which one is in use
 nullify org list
 
-# Remember one for this instance
+# Make one your default
 nullify org use acme-web
 
 # Run one command as another
 nullify findings --org acme-payments
 ```
 
-An API token (`NULLIFY_TOKEN`) belongs to one organization, and the server uses it when the command names none. With a token, only `--org`, `NULLIFY_ORG` and `NULLIFY_GITHUB_OWNER_ID` apply (the first two are looked up on the instance itself); `nullify org use`, the git remote and the prompt are for browser logins.
+An API token (`NULLIFY_TOKEN`) belongs to one organization, and the server uses it when the command names none. With a token, only `--org`, `NULLIFY_ORG` and `NULLIFY_GITHUB_OWNER_ID` apply (the first two are looked up on the instance itself); `nullify org use`, the git remote and the prompt are for browser logins. An API token always needs your instance as the host (`--host` or `NULLIFY_HOST`), never `nullify.ai`. When `NULLIFY_TOKEN` is set it wins over your browser login, and `nullify auth status` says so.
+
+### Upgrading from an earlier version
+
+Your login and your selected organization carry over. If you used an API token as a workaround for the router login, remove `NULLIFY_TOKEN` and `NULLIFY_GITHUB_OWNER_ID` from your shell and your MCP configuration, run `nullify auth login`, and restart your MCP servers. Upgrade every copy of the CLI your tools run: an older copy running alongside can overwrite the login file.
 
 ### Environment Variables
 
@@ -319,7 +324,7 @@ Add the following to your MCP config file:
 }
 ```
 
-When your login covers several organizations, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them. Without the argument a call uses `--org`, then the same order as the CLI; if that still leaves several, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization:
+One server serves one instance. When your login covers several organizations there, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them; every result says which organization it ran as. Without the argument a call uses the default the server settled when it started (`--org`, then the same order as the CLI); `nullify org use` in a terminal does not change a running server. If that leaves several organizations, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization:
 
 ```json
 {
