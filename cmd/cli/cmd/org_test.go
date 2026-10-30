@@ -274,8 +274,9 @@ func TestAuthStatusShowsTheOrg(t *testing.T) {
 	require.Contains(t, out, "acme-payments")
 }
 
-// A router login saves the router as the default host; status for a tenant
-// named by NULLIFY_HOST or --host must describe that tenant, not the default.
+// The saved host is only the default: status for a tenant named by
+// NULLIFY_HOST or --host must describe that tenant, and a mistyped --host is
+// an error rather than "no host configured".
 func TestAuthStatusUsesTheEffectiveHost(t *testing.T) {
 	loginEnv(t)
 	twoTestOrgs(t)
@@ -291,6 +292,9 @@ func TestAuthStatusUsesTheEffectiveHost(t *testing.T) {
 	out = captureStdout(t, func() { require.NoError(t, statusCmd.RunE(statusCmd, nil)) })
 	require.Contains(t, out, "Host: other.nullify.ai")
 	require.Contains(t, out, "Status: not authenticated")
+
+	host = "acme.example.com"
+	require.ErrorContains(t, statusCmd.RunE(statusCmd, nil), "invalid host")
 }
 
 // An --org that matches two orgs is settled at the prompt for this command

@@ -108,6 +108,9 @@ var statusCmd = &cobra.Command{
 
 		statusHost, err := resolveHostE(ctx)
 		if err != nil {
+			if host != "" {
+				return err
+			}
 			fmt.Println("No host configured. Run 'nullify auth login --host <your-instance>.nullify.ai'")
 			return nil
 		}
