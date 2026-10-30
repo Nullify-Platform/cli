@@ -106,20 +106,15 @@ var statusCmd = &cobra.Command{
 			return nil
 		}
 
-		cfg, err := auth.LoadConfig()
+		statusHost, err := resolveHostE(ctx)
 		if err != nil {
-			fmt.Println("Not configured. Run 'nullify auth login --host <your-instance>.nullify.ai' to get started.")
-			return nil
-		}
-
-		if cfg.Host == "" {
 			fmt.Println("No host configured. Run 'nullify auth login --host <your-instance>.nullify.ai'")
 			return nil
 		}
 
-		fmt.Printf("Host: %s\n", cfg.Host)
+		fmt.Printf("Host: %s\n", statusHost)
 
-		hostCreds, authHost, ok, err := auth.LookupCredentials(cfg.Host)
+		hostCreds, authHost, ok, err := auth.LookupCredentials(statusHost)
 		if authHost != "" {
 			fmt.Printf("Auth host: %s\n", authHost)
 		}
@@ -138,7 +133,7 @@ var statusCmd = &cobra.Command{
 		} else {
 			fmt.Println("Status: authenticated")
 		}
-		fmt.Printf("Org: %s\n", describeOrg(ctx, cfg.Host))
+		fmt.Printf("Org: %s\n", describeOrg(ctx, statusHost))
 		return nil
 	},
 }
