@@ -52,6 +52,12 @@ type cliTokenResponse struct {
 // the user, and picker chooses the org among those on host; any other
 // tenant signs in itself.
 func Login(ctx context.Context, host string, picker InstallationPicker) error {
+	// The login is saved across credentials and hosts; an unreadable hosts
+	// file would fail the second write after the first, so it fails first.
+	if _, err := LoadHosts(); err != nil {
+		return fmt.Errorf("%w - remove the file and log in again", err)
+	}
+
 	router, onRouter := RouterFor(host)
 	tenant := ""
 	authHost := router.AuthHost

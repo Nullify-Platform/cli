@@ -418,3 +418,72 @@ func TestAuthStatusNotesAnEnvTokenOverridingTheLogin(t *testing.T) {
 	require.Contains(t, out, "Auth: API token")
 	require.Contains(t, out, "overrides your 'nullify auth login' session")
 }
+
+// 'nullify org use' with an org on another tenant of the router moves plain
+// commands there: the router's selected data host, the default host and that
+// tenant's default all follow, as 'auth switch --installation' does.
+func TestOrgUseMovesToAnotherTenantOfTheRouter(t *testing.T) {
+	loginEnv(t)
+	beta := auth.Org{Name: "beta-org", Provider: "github", Key: "githubOwnerId", ID: "3003003", Host: "api.beta.nullify.ai"}
+	stubOrgList(t, func(string) (auth.OrgList, error) {
+		return auth.OrgList{Orgs: []auth.Org{testOrgA, testOrgB}, Elsewhere: []auth.Org{beta}}, nil
+	})
+
+	orgUseCmd.SetContext(context.Background())
+	captureStdout(t, func() { require.NoError(t, orgUseCmd.RunE(orgUseCmd, []string{"3003003"})) })
+
+	creds, err := auth.LoadCredentials()
+	require.NoError(t, err)
+	require.Equal(t, "beta.nullify.ai", creds["nullify.ai"].DataHost)
+	require.Equal(t, map[string]string{"githubOwnerId": "3003003"}, creds["nullify.ai"].QueryParameters)
+	cfg, err := auth.LoadConfig()
+	require.NoError(t, err)
+	require.Equal(t, "nullify.ai", cfg.Host)
+	authHost, err := auth.AuthHostFor("beta.nullify.ai")
+	require.NoError(t, err)
+	require.Equal(t, "api.nullify.ai", authHost)
+	require.Equal(t, "3003003", auth.StoredPick("beta.nullify.ai").ID)
+}
+
+// The hidden 'auth switch --installation' alias saves through the same writer
+// as 'nullify org use', and refuses a host that is not a router.
+func TestAuthSwitchInstallationAlias(t *testing.T) {
+	loginEnv(t)
+	require.NoError(t, switchCmd.Flags().Set("installation", "acme-payments"))
+	t.Cleanup(func() { _ = switchCmd.Flags().Set("installation", "") })
+
+	host = "acme.nullify.ai"
+	err := switchCmd.RunE(switchCmd, nil)
+	require.ErrorContains(t, err, "applies to a Nullify router host")
+	host = ""
+}
+
+// An invalid host saved in the config is an error, not a reason to use
+// another host.
+func TestInvalidConfigHostIsAnError(t *testing.T) {
+	loginEnv(t)
+	twoTestOrgs(t)
+	t.Setenv("NULLIFY_HOST", "")
+	require.NoError(t, auth.SaveConfig(&auth.Config{Host: "api.attacker.example#.nullify.ai"}))
+
+	_, err := resolveCommandAuth(context.Background())
+	require.ErrorContains(t, err, "in ~/.nullify/config.json")
+}
+
+// whoami on a router-bound tenant reports the router as its auth host, the
+// tenant as its data host and the org commands run as.
+func TestWhoamiReportsHostsAndOrg(t *testing.T) {
+	loginEnv(t)
+	twoTestOrgs(t)
+	require.NoError(t, auth.SelectOrg(testOrgB))
+
+	whoamiCmd.SetContext(context.Background())
+	out := captureStdout(t, func() { require.NoError(t, whoamiCmd.RunE(whoamiCmd, nil)) })
+	var info map[string]any
+	require.NoError(t, json.Unmarshal([]byte(out), &info), out)
+	require.Equal(t, "acme.nullify.ai", info["host"])
+	require.Equal(t, "api.nullify.ai", info["auth_host"])
+	require.Equal(t, "acme.nullify.ai", info["data_host"])
+	require.Equal(t, true, info["authenticated"])
+	require.Contains(t, info["org"], "acme-payments")
+}

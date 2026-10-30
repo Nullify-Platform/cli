@@ -98,3 +98,40 @@ func TestParseRepoFromGitConfigStillReadsOrigin(t *testing.T) {
 	require.Equal(t, "widgets", ParseRepoFromGitConfig(path))
 	require.Equal(t, "acme", ExtractRepoOwner(originURL(path)))
 }
+
+// A globex-web checkout picks globex-web whether it is a plain clone, a
+// linked worktree or a submodule: in the last two .git is a file naming the
+// real git dir, and a worktree's remote lives in its main repository's config.
+func TestDetectOwnerFromGitInWorktreesAndSubmodules(t *testing.T) {
+	root := t.TempDir()
+	writeConfig := func(dir, owner string) {
+		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, "config"),
+			[]byte("[remote \"origin\"]\n\turl = git@github.com:"+owner+"/app.git\n"), 0o600))
+	}
+
+	clone := filepath.Join(root, "clone")
+	writeConfig(filepath.Join(clone, ".git"), "globex-web")
+
+	main := filepath.Join(root, "main")
+	writeConfig(filepath.Join(main, ".git"), "globex-web")
+	wtGitDir := filepath.Join(main, ".git", "worktrees", "feature")
+	require.NoError(t, os.MkdirAll(wtGitDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(wtGitDir, "commondir"), []byte("../..\n"), 0o600))
+	worktree := filepath.Join(root, "feature")
+	require.NoError(t, os.MkdirAll(worktree, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(worktree, ".git"), []byte("gitdir: "+wtGitDir+"\n"), 0o600))
+
+	super := filepath.Join(root, "super")
+	writeConfig(filepath.Join(super, ".git"), "globex-ops")
+	writeConfig(filepath.Join(super, ".git", "modules", "sub"), "globex-web")
+	sub := filepath.Join(super, "sub")
+	require.NoError(t, os.MkdirAll(filepath.Join(sub, "pkg"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(sub, ".git"), []byte("gitdir: ../.git/modules/sub\n"), 0o600))
+
+	for _, dir := range []string{clone, worktree, filepath.Join(sub, "pkg")} {
+		t.Chdir(dir)
+		require.Equal(t, "globex-web", DetectOwnerFromGit(), dir)
+		require.Equal(t, "app", DetectRepoFromGit(), dir)
+	}
+}

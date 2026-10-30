@@ -494,3 +494,26 @@ func TestCorruptHostsFileIsReportedNotTreatedAsLoggedOut(t *testing.T) {
 		t.Fatalf("err = %v, want the hosts.json problem named", err)
 	}
 }
+
+// A login with an unreadable hosts file fails before it opens the browser or
+// saves anything, so it never leaves credentials the hosts file cannot bind.
+func TestLoginWithACorruptHostsFileSavesNothing(t *testing.T) {
+	calls := newRoutedAuthServer(t, func(http.ResponseWriter, *http.Request, string, string) {})
+	if err := os.MkdirAll(filepath.Join(os.Getenv("HOME"), ".nullify"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(os.Getenv("HOME"), ".nullify", "hosts.json"), []byte("{not json"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	err := Login(context.Background(), tenantHost, InstallationPicker{})
+	if err == nil || !strings.Contains(err.Error(), "hosts.json") {
+		t.Fatalf("err = %v, want the hosts.json problem named", err)
+	}
+	if len(*calls) != 0 {
+		t.Errorf("calls = %v, want none", *calls)
+	}
+	if _, err := LoadCredentials(); !os.IsNotExist(err) {
+		t.Errorf("credentials were written: %v", err)
+	}
+}

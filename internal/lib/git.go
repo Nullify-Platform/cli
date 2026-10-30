@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// DetectRepoFromGit reads the git remote origin URL from the nearest .git/config
-// and extracts the repository name.
+// DetectRepoFromGit reads the git remote origin URL of the repository around
+// the working directory and extracts the repository name.
 func DetectRepoFromGit() string {
 	if gitConfig := findGitConfig(); gitConfig != "" {
 		return ParseRepoFromGitConfig(gitConfig)
@@ -16,8 +16,8 @@ func DetectRepoFromGit() string {
 	return ""
 }
 
-// DetectOwnerFromGit reads the git remote origin URL from the nearest
-// .git/config and extracts the organization that owns the repository.
+// DetectOwnerFromGit reads the git remote origin URL of the repository around
+// the working directory and extracts the organization that owns it.
 func DetectOwnerFromGit() string {
 	if gitConfig := findGitConfig(); gitConfig != "" {
 		return ExtractRepoOwner(originURL(gitConfig))
@@ -32,8 +32,7 @@ func findGitConfig() string {
 	}
 
 	for {
-		gitConfig := filepath.Join(dir, ".git", "config")
-		if _, err := os.Stat(gitConfig); err == nil {
+		if gitConfig := gitConfigAt(filepath.Join(dir, ".git")); gitConfig != "" {
 			return gitConfig
 		}
 
@@ -43,6 +42,44 @@ func findGitConfig() string {
 		}
 		dir = parent
 	}
+}
+
+// gitConfigAt returns the config file of the repository whose .git is at
+// dotGit: a directory in a plain clone, or a file naming the real git dir in
+// a linked worktree or a submodule. A worktree shares its main repository's
+// config, which its git dir names in commondir.
+func gitConfigAt(dotGit string) string {
+	info, err := os.Stat(dotGit)
+	if err != nil {
+		return ""
+	}
+	gitDir := dotGit
+	if !info.IsDir() {
+		data, err := os.ReadFile(dotGit)
+		if err != nil {
+			return ""
+		}
+		target, ok := strings.CutPrefix(strings.TrimSpace(string(data)), "gitdir:")
+		if !ok {
+			return ""
+		}
+		gitDir = strings.TrimSpace(target)
+		if !filepath.IsAbs(gitDir) {
+			gitDir = filepath.Join(filepath.Dir(dotGit), gitDir)
+		}
+		if common, err := os.ReadFile(filepath.Join(gitDir, "commondir")); err == nil {
+			commonDir := strings.TrimSpace(string(common))
+			if !filepath.IsAbs(commonDir) {
+				commonDir = filepath.Join(gitDir, commonDir)
+			}
+			gitDir = commonDir
+		}
+	}
+	gitConfig := filepath.Join(gitDir, "config")
+	if _, err := os.Stat(gitConfig); err != nil {
+		return ""
+	}
+	return gitConfig
 }
 
 // ParseRepoFromGitConfig extracts the repo name from a .git/config file.

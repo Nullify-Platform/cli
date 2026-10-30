@@ -213,9 +213,16 @@ var orgUseCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		org, err := auth.ResolveOrg(authCtx.DataHost, list, auth.OrgInputs{Flag: args[0], FlagSource: "org", AnyHost: auth.IsRouterHost(listHost)})
+		router, onRouter := auth.RouterFor(listHost)
+		org, err := auth.ResolveOrg(authCtx.DataHost, list, auth.OrgInputs{Flag: args[0], FlagSource: "org", AnyHost: onRouter})
 		if err != nil {
 			return err
+		}
+		// An org on another tenant of the same router signs in through it.
+		if onRouter {
+			if err := auth.BindTenant(org.DataHost(), router); err != nil {
+				return err
+			}
 		}
 		if err := auth.SelectOrg(org); err != nil {
 			return err
