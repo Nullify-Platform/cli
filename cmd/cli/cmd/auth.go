@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"

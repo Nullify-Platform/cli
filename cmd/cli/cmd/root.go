@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"errors"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
