@@ -201,3 +201,19 @@ func TestListOrgsFailsClosed(t *testing.T) {
 		})
 	}
 }
+
+// An org on another tenant that the router still reports pending or
+// unavailable cannot be chosen there, so it never replaces a working default.
+func TestAnyHostSkipsAnUnusableOrgOnAnotherTenant(t *testing.T) {
+	ready := Org{Name: "beta-org", Key: "githubOwnerId", ID: "3003003", Host: "api.beta.nullify.ai", Status: "ready"}
+	held := Org{Name: "gamma-org", Key: "githubOwnerId", ID: "4004004", Host: "api.gamma.nullify.ai", Status: "pending"}
+	list := OrgList{Orgs: []Org{acmeWeb}, Elsewhere: []Org{ready, held}}
+
+	org, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "beta-org", FlagSource: "--org", AnyHost: true})
+	if err != nil || org.ID != "3003003" {
+		t.Fatalf("org = %v, %v; want beta-org", org, err)
+	}
+	if _, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "gamma-org", FlagSource: "--org", AnyHost: true}); err == nil {
+		t.Fatal("a pending org on another tenant was chosen")
+	}
+}

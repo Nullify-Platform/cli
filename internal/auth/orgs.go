@@ -371,7 +371,7 @@ func findOrg(host string, list OrgList, ref, source string, anyHost bool) (Org, 
 	}
 	if len(match) == 0 && anyHost {
 		for _, o := range list.Elsewhere {
-			if o.Matches(ref) {
+			if o.Matches(ref) && o.Status != "pending" && o.Status != "unavailable" {
 				match = append(match, o)
 			}
 		}
