@@ -34,7 +34,7 @@ func withStoreLock(fn func() error) error {
 	if !locked {
 		return fmt.Errorf("lock %s: timed out", dir)
 	}
-	defer lock.Unlock()
+	defer func() { _ = lock.Unlock() }()
 
 	return fn()
 }
