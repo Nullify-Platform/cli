@@ -210,6 +210,10 @@ func CoverTenant(ctx context.Context, tenant string) (bool, error) {
 		if _, ok := creds[r.Key]; !ok {
 			continue
 		}
+		// A router only serves tenants under its own domain.
+		if _, ok := r.tenantLabel(apiHost(CredentialKey(tenant))); !ok {
+			continue
+		}
 		token, err := GetValidToken(ctx, r.Key)
 		if err == nil {
 			var orgs []Org

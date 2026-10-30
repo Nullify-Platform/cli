@@ -389,10 +389,13 @@ func findOrg(host string, list OrgList, ref, source string, anyHost bool) (Org, 
 func notFound(host string, list OrgList, ref, source string) error {
 	for _, o := range list.Pending {
 		if o.Matches(ref) {
-			return fmt.Errorf("%w: %s %q: %s is not routed to a Nullify host yet (status %s); try again later", ErrOrgNotFound, source, ref, o.Name, statusOr(o.Status, "pending"))
+			return fmt.Errorf("%w: %s %q: %s is not ready for use yet (status %s); try again later", ErrOrgNotFound, source, ref, o.Name, statusOr(o.Status, "pending"))
 		}
 	}
 	for _, o := range list.Elsewhere {
+		if o.Matches(ref) && (o.Status == "pending" || o.Status == "unavailable") {
+			return fmt.Errorf("%w: %s %q: %s on %s is not ready for use yet (status %s); try again later", ErrOrgNotFound, source, ref, o.Name, o.Host, o.Status)
+		}
 		if o.Matches(ref) {
 			return fmt.Errorf("%w: %s %q: %s is served by %s, not %s; use --host %s", ErrOrgNotFound, source, ref, o.Name, o.Host, apiHost(host), strings.TrimPrefix(o.Host, "api."))
 		}

@@ -82,7 +82,7 @@ func TestResolveOrgExplicitMissIsAnError(t *testing.T) {
 		{"unknown name does not fall through to the stored pick", OrgInputs{Flag: "nope", FlagSource: "--org", Stored: &OrgPick{Key: "githubOwnerId", ID: "2002002"}}, `--org "nope" is not one of your organizations`},
 		{"unknown NULLIFY_ORG", OrgInputs{EnvOrg: "nope"}, `NULLIFY_ORG "nope"`},
 		{"unknown NULLIFY_GITHUB_OWNER_ID", OrgInputs{EnvGitHubOwnerID: "999"}, `NULLIFY_GITHUB_OWNER_ID "999"`},
-		{"pending route reported apart", OrgInputs{Flag: "newco", FlagSource: "--org"}, "not routed to a Nullify host yet (status pending)"},
+		{"pending route reported apart", OrgInputs{Flag: "newco", FlagSource: "--org"}, "not ready for use yet (status pending)"},
 		{"org on another host reported apart", OrgInputs{Flag: "elsewhere-inc", FlagSource: "--org"}, "served by api.other.nullify.ai"},
 	}
 	for _, tt := range tests {
@@ -213,8 +213,8 @@ func TestAnyHostSkipsAnUnusableOrgOnAnotherTenant(t *testing.T) {
 	if err != nil || org.ID != "3003003" {
 		t.Fatalf("org = %v, %v; want beta-org", org, err)
 	}
-	if _, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "gamma-org", FlagSource: "--org", AnyHost: true}); err == nil {
-		t.Fatal("a pending org on another tenant was chosen")
+	if _, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "gamma-org", FlagSource: "--org", AnyHost: true}); err == nil || !strings.Contains(err.Error(), "not ready for use yet") {
+		t.Fatalf("err = %v, want gamma-org reported as not ready", err)
 	}
 	held.Status = "unavailable"
 	list.Elsewhere = []Org{ready, held}

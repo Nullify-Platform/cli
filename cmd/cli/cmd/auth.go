@@ -175,7 +175,7 @@ var statusCmd = &cobra.Command{
 
 func printInstallation(hostCreds auth.HostCredentials) {
 	if hostCreds.DataHost == "" {
-		fmt.Println("Data host: none selected - run 'nullify org use <name>'")
+		fmt.Println("Data host: none selected - run 'nullify auth login'")
 		return
 	}
 	fmt.Printf("Data host: %s (%s)\n", hostCreds.DataHost, hostCreds.Installation)

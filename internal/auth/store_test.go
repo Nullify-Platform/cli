@@ -171,3 +171,18 @@ func TestCoverTenantReportsARouterFailure(t *testing.T) {
 	require.False(t, covered)
 	require.ErrorContains(t, err, "could not check whether your nullify.ai login covers beta.nullify.ai")
 }
+
+// A dev router login is never asked about a production tenant: only a router
+// whose domain can hold the tenant is checked, so its failure is not
+// reported for a tenant it could never cover.
+func TestCoverTenantAsksOnlyRoutersThatCanServeTheTenant(t *testing.T) {
+	newAuthServer(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusBadGateway) })
+	seed(t, "router.dev.nullify.ai", "dev-token", "rt", time.Now().Add(time.Hour).Unix())
+
+	covered, err := CoverTenant(context.Background(), "beta.nullify.ai")
+	require.False(t, covered)
+	require.NoError(t, err)
+
+	_, err = CoverTenant(context.Background(), "sandbox.dev.nullify.ai")
+	require.ErrorContains(t, err, "router.dev.nullify.ai login covers sandbox.dev.nullify.ai")
+}

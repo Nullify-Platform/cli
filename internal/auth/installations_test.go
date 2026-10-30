@@ -151,5 +151,5 @@ func TestPendingOrgOnTheHostIsNotUsable(t *testing.T) {
 	require.Len(t, list.Pending, 1)
 	require.Equal(t, "held", list.Pending[0].Name)
 	_, err = ResolveOrg("acme.nullify.ai", list, OrgInputs{Flag: "held", FlagSource: "--org"})
-	require.ErrorContains(t, err, "not routed to a Nullify host yet")
+	require.ErrorContains(t, err, "not ready for use yet")
 }
