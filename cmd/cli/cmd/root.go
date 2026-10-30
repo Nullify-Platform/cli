@@ -199,21 +199,23 @@ func resolveHostE(ctx context.Context) (string, error) {
 		return sanitized, nil
 	}
 
+	// An invalid host is an error, never a reason to use another one: the
+	// token would go to a host the user did not name.
 	if envHost := os.Getenv("NULLIFY_HOST"); envHost != "" {
 		sanitized, err := lib.SanitizeNullifyHost(envHost)
-		if err == nil {
-			return sanitized, nil
+		if err != nil {
+			return "", withExitCode(1, fmt.Errorf("invalid NULLIFY_HOST %q, must be nullify.ai or <your-instance>.nullify.ai", envHost))
 		}
-		logger.L(ctx).Warn("NULLIFY_HOST env var is invalid, falling through to config", logger.String("host", envHost), logger.Err(err))
+		return sanitized, nil
 	}
 
 	cfg, err := auth.LoadConfig()
 	if err == nil && cfg.Host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(cfg.Host)
-		if err == nil {
-			return sanitized, nil
+		if err != nil {
+			return "", withExitCode(1, fmt.Errorf("invalid host %q in ~/.nullify/config.json, must be nullify.ai or <your-instance>.nullify.ai", cfg.Host))
 		}
-		logger.L(ctx).Warn("config file host is invalid, ignoring", logger.String("host", cfg.Host), logger.Err(err))
+		return sanitized, nil
 	}
 
 	return "", authError("no host configured. Run 'nullify init' to set up, or 'nullify auth login' to sign in.")

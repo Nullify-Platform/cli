@@ -18,6 +18,11 @@ func TestIsRouterHost(t *testing.T) {
 		{"app.acme.nullify.ai", false},
 		{"nullify.ai.evil.com", false},
 		{"evilnullify.ai", false},
+		{"router.dev.nullify.ai", true},
+		{"api.router.dev.nullify.ai", true},
+		{"https://app.router.dev.nullify.ai/", true},
+		{"sandbox.dev.nullify.ai", false},
+		{"dev.nullify.ai", false},
 		{"", false},
 	}
 	for _, tt := range tests {

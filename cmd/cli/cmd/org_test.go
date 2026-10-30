@@ -333,3 +333,88 @@ func TestAPITokenIgnoresHostsFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, authCtx.QueryParams)
 }
+
+// A host the user names is checked as the host a request would reach: a
+// fragment, userinfo or port is refused before any token is read, and an
+// invalid NULLIFY_HOST is an error rather than a reason to use the config.
+func TestInvalidHostsAreRefusedBeforeAnyRequest(t *testing.T) {
+	loginEnv(t)
+	listed := twoTestOrgs(t)
+
+	for _, bad := range []string{"api.attacker.example#.nullify.ai", "attacker.example@acme.nullify.ai", "acme.nullify.ai:8443"} {
+		host = bad
+		_, err := resolveCommandAuth(context.Background())
+		require.ErrorContains(t, err, "invalid host", bad)
+	}
+	host = ""
+
+	t.Setenv("NULLIFY_HOST", "api.attacker.example#.nullify.ai")
+	require.NoError(t, auth.SaveConfig(&auth.Config{Host: "acme.nullify.ai"}))
+	_, err := resolveCommandAuth(context.Background())
+	require.ErrorContains(t, err, "invalid NULLIFY_HOST")
+	require.Empty(t, *listed, "no request went anywhere")
+}
+
+// Upgrading from CLI v0.26.0: its router login selected globex-web on globex
+// and left no hosts file. This version keeps that choice, and when it is no
+// longer available says so instead of running as the other org.
+func TestV026RouterLoginUpgrade(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	t.Chdir(t.TempDir())
+	for _, env := range []string{"NULLIFY_HOST", "NULLIFY_TOKEN", "NULLIFY_ORG", "NULLIFY_GITHUB_OWNER_ID", "GITHUB_ACTIONS"} {
+		t.Setenv(env, "")
+	}
+	resetCommandFlags(t)
+	oldOrg := orgFlag
+	orgFlag = ""
+	t.Cleanup(func() { orgFlag = oldOrg })
+
+	require.NoError(t, auth.SaveConfig(&auth.Config{Host: "nullify.ai"}))
+	require.NoError(t, auth.SaveHostCredentials("nullify.ai", auth.HostCredentials{
+		AccessToken:     "router-token",
+		RefreshToken:    "rt",
+		ExpiresAt:       time.Now().Add(time.Hour).Unix(),
+		DataHost:        "globex.nullify.ai",
+		Installation:    "globex-web",
+		QueryParameters: map[string]string{"githubOwnerId": "5005005"},
+	}))
+
+	opsOrg := auth.Org{Name: "globex-ops", Provider: "github", Key: "githubOwnerId", ID: "6006006", Host: "api.globex.nullify.ai"}
+	webOrg := auth.Org{Name: "globex-web", Provider: "github", Key: "githubOwnerId", ID: "5005005", Host: "api.globex.nullify.ai"}
+	orgs := []auth.Org{opsOrg, webOrg}
+	var listedOn []string
+	stubOrgList(t, func(listHost string) (auth.OrgList, error) {
+		listedOn = append(listedOn, listHost)
+		return auth.OrgList{Orgs: orgs}, nil
+	})
+
+	authCtx, err := resolveCommandAuth(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, "globex.nullify.ai", authCtx.DataHost)
+	require.Equal(t, map[string]string{"githubOwnerId": "5005005"}, authCtx.QueryParams)
+	require.Equal(t, []string{"api.nullify.ai"}, listedOn, "the org list comes from the router")
+
+	orgFlag = "globex-ops"
+	authCtx, err = resolveCommandAuth(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, map[string]string{"githubOwnerId": "6006006"}, authCtx.QueryParams)
+	orgFlag = ""
+
+	orgs = []auth.Org{opsOrg}
+	_, err = resolveCommandAuth(context.Background())
+	require.ErrorContains(t, err, "your default organization globex-web")
+}
+
+// An API token in the environment wins over a stored login; status says so,
+// since a forgotten NULLIFY_TOKEN makes a fresh login look like it did nothing.
+func TestAuthStatusNotesAnEnvTokenOverridingTheLogin(t *testing.T) {
+	loginEnv(t)
+	twoTestOrgs(t)
+	t.Setenv("NULLIFY_TOKEN", "api-token")
+	require.NoError(t, auth.SaveHostCredentials("acme.nullify.ai", auth.HostCredentials{AccessToken: "tenant"}))
+
+	statusCmd.SetContext(context.Background())
+	out := captureStdout(t, func() { require.NoError(t, statusCmd.RunE(statusCmd, nil)) })
+	require.Contains(t, out, "Auth: API token")
+	require.Contains(t, out, "overrides your 'nullify auth login' session")
+}
