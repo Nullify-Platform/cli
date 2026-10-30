@@ -166,7 +166,7 @@ var orgCmd = &cobra.Command{
 var orgListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List the organizations you can use on this host",
-	Long: "List the organizations your login can use on this host, those not routed to a host yet, and those on " +
+	Long: "List the organizations your login can use on this host, those not ready yet, and those on " +
 		"other hosts. \"selected\" is the organization a command run now would use (--org changes it), and " +
 		"\"selection\" says why none is when that is the case.",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -229,27 +229,25 @@ var orgUseCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Using %s on %s\n", org, org.DataHost())
-		if pinned := pinnedHost(); pinned != "" && auth.CredentialKey(pinned) != org.DataHost() && !auth.IsRouterHost(pinned) {
-			fmt.Fprintf(promptOut, "Note: %s still points commands at %s; unset it to run on %s.\n", pinnedHostSource(), pinned, org.DataHost())
+		if pinned := pinnedEnvHost(); pinned != "" && pinned != org.DataHost() && !auth.IsRouterHost(pinned) {
+			fmt.Fprintf(promptOut, "Note: NULLIFY_HOST still points commands at %s; unset it to run on %s.\n", pinned, org.DataHost())
 		}
 		return nil
 	},
 }
 
-// pinnedHost is the host --host or NULLIFY_HOST names, which wins over the
-// saved default host.
-func pinnedHost() string {
+// pinnedEnvHost is the tenant NULLIFY_HOST pins plain commands to, in
+// credential key form, or "" when it is unset or --host names this
+// command's host (a flag lasts one command, so it pins nothing).
+func pinnedEnvHost() string {
 	if host != "" {
-		return host
+		return ""
 	}
-	return os.Getenv("NULLIFY_HOST")
-}
-
-func pinnedHostSource() string {
-	if host != "" {
-		return "--host"
+	pinned, err := lib.SanitizeNullifyHost(os.Getenv("NULLIFY_HOST"))
+	if err != nil {
+		return ""
 	}
-	return "NULLIFY_HOST"
+	return auth.CredentialKey(pinned)
 }
 
 // orgListing describes the orgs the token can use on host and which one a

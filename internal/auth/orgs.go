@@ -405,7 +405,7 @@ func notFound(host string, list OrgList, ref, source string) error {
 
 func noOrgs(host string, list OrgList) error {
 	if len(list.Pending) > 0 {
-		return fmt.Errorf("%w: %s; %d of your organizations are not routed yet", ErrNoOrgs, apiHost(host), len(list.Pending))
+		return fmt.Errorf("%w: %s; %d of your organizations are not ready yet", ErrNoOrgs, apiHost(host), len(list.Pending))
 	}
 	return fmt.Errorf("%w: %s", ErrNoOrgs, apiHost(host))
 }

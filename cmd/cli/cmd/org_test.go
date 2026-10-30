@@ -579,9 +579,9 @@ func TestRememberOrgFollowsTheRouterSelectionOnlyOnItsTenant(t *testing.T) {
 	require.Equal(t, "3003003", auth.StoredPick("beta.nullify.ai").ID)
 }
 
-// With an API token, auth status and auth config still report an invalid
-// host as an error, and an invalid config host too.
-func TestAuthStatusAndConfigReportInvalidHostsWithAToken(t *testing.T) {
+// auth status with an API token reports an invalid NULLIFY_HOST as an error,
+// and auth config an invalid config host.
+func TestAuthStatusAndConfigReportInvalidHosts(t *testing.T) {
 	loginEnv(t)
 	t.Setenv("NULLIFY_TOKEN", "api-token")
 	t.Setenv("NULLIFY_HOST", "api.attacker.example#.nullify.ai")
@@ -600,6 +600,8 @@ func TestAuthStatusAndConfigReportInvalidHostsWithAToken(t *testing.T) {
 func TestCommandSurfacesAFailedRouterCoverageCheck(t *testing.T) {
 	loginEnv(t)
 	t.Setenv("NULLIFY_HOST", "beta.nullify.ai")
+	oldCover := coverTenant
+	t.Cleanup(func() { coverTenant = oldCover })
 	coverTenant = func(context.Context, string) (bool, error) {
 		return false, errors.New("could not check whether your nullify.ai login covers beta.nullify.ai: status 502")
 	}
@@ -609,19 +611,70 @@ func TestCommandSurfacesAFailedRouterCoverageCheck(t *testing.T) {
 }
 
 // 'nullify org use' moving to another instance warns when NULLIFY_HOST still
-// pins plain commands to the old one, instead of implying they moved.
-func TestOrgUseWarnsWhenNullifyHostPinsTheOldInstance(t *testing.T) {
+// pins plain commands to the old one, in any spelling of it, and says
+// nothing when the org is on the pinned tenant, when the pin is the router,
+// when nothing is pinned, or when --host names this command's host only.
+func TestOrgUseNotesAPinnedNullifyHost(t *testing.T) {
+	beta := auth.Org{Name: "beta-org", Provider: "github", Key: "githubOwnerId", ID: "3003003", Host: "api.beta.nullify.ai", Status: "ready"}
+	run := func(t *testing.T, envHost, flagHost, org string) string {
+		t.Helper()
+		loginEnv(t)
+		stubOrgList(t, func(string) (auth.OrgList, error) {
+			return auth.OrgList{Orgs: []auth.Org{testOrgA, testOrgB}, Elsewhere: []auth.Org{beta}}, nil
+		})
+		t.Setenv("NULLIFY_HOST", envHost)
+		host = flagHost
+		var note bytes.Buffer
+		oldOut := promptOut
+		promptOut = &note
+		t.Cleanup(func() { promptOut = oldOut })
+		orgUseCmd.SetContext(context.Background())
+		captureStdout(t, func() { require.NoError(t, orgUseCmd.RunE(orgUseCmd, []string{org})) })
+		return note.String()
+	}
+
+	for _, env := range []string{"acme.nullify.ai", "https://ACME.nullify.ai/", "acme", "api.acme.nullify.ai"} {
+		t.Run("moved away from "+env, func(t *testing.T) {
+			require.Contains(t, run(t, env, "", "beta-org"), "NULLIFY_HOST still points commands at acme.nullify.ai")
+		})
+		t.Run("stayed on "+env, func(t *testing.T) {
+			require.Empty(t, run(t, env, "", "acme-payments"))
+		})
+	}
+	t.Run("--host is this command only", func(t *testing.T) {
+		require.Empty(t, run(t, "", "acme.nullify.ai", "beta-org"))
+	})
+}
+
+// 'nullify org list --org <org on another tenant>' on the router, run as a
+// command, selects it as the command would.
+func TestOrgListCommandOnTheRouterSelectsAnOrgElsewhere(t *testing.T) {
 	loginEnv(t)
+	t.Setenv("NULLIFY_HOST", "nullify.ai")
+	require.NoError(t, auth.SaveHostCredentials("nullify.ai", auth.HostCredentials{
+		AccessToken: "router-token", RefreshToken: "rt", ExpiresAt: time.Now().Add(time.Hour).Unix(), DataHost: "acme.nullify.ai",
+	}))
 	beta := auth.Org{Name: "beta-org", Provider: "github", Key: "githubOwnerId", ID: "3003003", Host: "api.beta.nullify.ai", Status: "ready"}
 	stubOrgList(t, func(string) (auth.OrgList, error) {
 		return auth.OrgList{Orgs: []auth.Org{testOrgA, testOrgB}, Elsewhere: []auth.Org{beta}}, nil
 	})
-	var note bytes.Buffer
-	oldOut := promptOut
-	promptOut = &note
-	t.Cleanup(func() { promptOut = oldOut })
+	orgFlag = "beta-org"
 
-	orgUseCmd.SetContext(context.Background())
-	captureStdout(t, func() { require.NoError(t, orgUseCmd.RunE(orgUseCmd, []string{"beta-org"})) })
-	require.Contains(t, note.String(), "NULLIFY_HOST still points commands at acme.nullify.ai")
+	orgListCmd.SetContext(context.Background())
+	out := captureStdout(t, func() { require.NoError(t, orgListCmd.RunE(orgListCmd, nil)) })
+	var listed map[string]any
+	require.NoError(t, json.Unmarshal([]byte(out), &listed), out)
+	require.Equal(t, "beta-org", listed["selected"])
+}
+
+// auth status on a router login with no selected data host points to a new
+// login, not to 'nullify org use', which cannot run without one.
+func TestAuthStatusWithoutADataHostPointsToLogin(t *testing.T) {
+	loginEnv(t)
+	t.Setenv("NULLIFY_HOST", "nullify.ai")
+	require.NoError(t, auth.SaveHostCredentials("nullify.ai", auth.HostCredentials{AccessToken: "router-token", ExpiresAt: time.Now().Add(time.Hour).Unix()}))
+
+	statusCmd.SetContext(context.Background())
+	out := captureStdout(t, func() { require.NoError(t, statusCmd.RunE(statusCmd, nil)) })
+	require.Contains(t, out, "Data host: none selected - run 'nullify auth login'")
 }

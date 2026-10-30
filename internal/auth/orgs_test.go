@@ -97,7 +97,7 @@ func TestResolveOrgExplicitMissIsAnError(t *testing.T) {
 
 func TestResolveOrgWithNoOrgs(t *testing.T) {
 	_, err := ResolveOrg(tenantHost, OrgList{Pending: []Org{pendingOrg}}, OrgInputs{})
-	if !errors.Is(err, ErrNoOrgs) || !strings.Contains(err.Error(), "not routed yet") {
+	if !errors.Is(err, ErrNoOrgs) || !strings.Contains(err.Error(), "not ready yet") {
 		t.Fatalf("err = %v, want ErrNoOrgs mentioning the pending org", err)
 	}
 }
@@ -218,7 +218,7 @@ func TestAnyHostSkipsAnUnusableOrgOnAnotherTenant(t *testing.T) {
 	}
 	held.Status = "unavailable"
 	list.Elsewhere = []Org{ready, held}
-	if _, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "gamma-org", FlagSource: "--org", AnyHost: true}); err == nil {
-		t.Fatal("an unavailable org on another tenant was chosen")
+	if _, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "gamma-org", FlagSource: "--org", AnyHost: true}); err == nil || !strings.Contains(err.Error(), "not ready for use yet") {
+		t.Fatalf("err = %v, want gamma-org reported as not ready", err)
 	}
 }
