@@ -229,8 +229,27 @@ var orgUseCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Using %s on %s\n", org, org.DataHost())
+		if pinned := pinnedHost(); pinned != "" && auth.CredentialKey(pinned) != org.DataHost() && !auth.IsRouterHost(pinned) {
+			fmt.Fprintf(promptOut, "Note: %s still points commands at %s; unset it to run on %s.\n", pinnedHostSource(), pinned, org.DataHost())
+		}
 		return nil
 	},
+}
+
+// pinnedHost is the host --host or NULLIFY_HOST names, which wins over the
+// saved default host.
+func pinnedHost() string {
+	if host != "" {
+		return host
+	}
+	return os.Getenv("NULLIFY_HOST")
+}
+
+func pinnedHostSource() string {
+	if host != "" {
+		return "--host"
+	}
+	return "NULLIFY_HOST"
 }
 
 // orgListing describes the orgs the token can use on host and which one a

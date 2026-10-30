@@ -607,3 +607,21 @@ func TestCommandSurfacesAFailedRouterCoverageCheck(t *testing.T) {
 	_, err := resolveCommandAuth(context.Background())
 	require.ErrorContains(t, err, "could not check whether your nullify.ai login covers beta.nullify.ai")
 }
+
+// 'nullify org use' moving to another instance warns when NULLIFY_HOST still
+// pins plain commands to the old one, instead of implying they moved.
+func TestOrgUseWarnsWhenNullifyHostPinsTheOldInstance(t *testing.T) {
+	loginEnv(t)
+	beta := auth.Org{Name: "beta-org", Provider: "github", Key: "githubOwnerId", ID: "3003003", Host: "api.beta.nullify.ai", Status: "ready"}
+	stubOrgList(t, func(string) (auth.OrgList, error) {
+		return auth.OrgList{Orgs: []auth.Org{testOrgA, testOrgB}, Elsewhere: []auth.Org{beta}}, nil
+	})
+	var note bytes.Buffer
+	oldOut := promptOut
+	promptOut = &note
+	t.Cleanup(func() { promptOut = oldOut })
+
+	orgUseCmd.SetContext(context.Background())
+	captureStdout(t, func() { require.NoError(t, orgUseCmd.RunE(orgUseCmd, []string{"beta-org"})) })
+	require.Contains(t, note.String(), "NULLIFY_HOST still points commands at acme.nullify.ai")
+}
