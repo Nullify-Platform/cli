@@ -96,27 +96,61 @@ nullify findings
 nullify auth login
 ```
 
-Opens your browser to sign in through nullify.ai with your identity provider (for example Microsoft Entra ID or GitLab). After sign-in, the CLI selects the installation that holds your data: it uses the only one automatically, asks you to pick one in a terminal, or takes `--installation <name>` in scripts. Tokens are stored locally and refreshed automatically.
+Opens your browser to sign in with your identity provider (for example Microsoft Entra ID or GitLab). Tokens are stored locally and refreshed automatically.
 
-If you sign in through nullify.ai, do not set `--host` or `NULLIFY_HOST` to your instance; run `nullify auth login` and the CLI routes data requests to the selected installation. An explicit instance host uses only the credentials stored for that host.
-
-To sign in to your own Nullify instance instead, pass its host:
+With no host saved, the CLI signs in through nullify.ai, the Nullify router. With a host saved or passed, it first asks that instance where its login runs (`GET /auth/cli/config`): an instance on the router hands the login to the router, and an instance that signs in itself keeps its own login. The CLI only follows an answer naming your instance or a Nullify router, and fails otherwise.
 
 ```sh
+# Through the router, or wherever your saved instance says
+nullify auth login
+
+# Name your instance; on the router this still signs in at the router
 nullify auth login --host acme.nullify.ai
+
+# Choose the organization to start with
+nullify auth login --org acme-web
 ```
 
-Switch to another installation after signing in through nullify.ai:
+One router login covers every instance the router lists for you, so `--host <instance>` works afterwards without another login, and an older login an instance ran itself is replaced. After signing in, the CLI selects the organization commands run as: the one you pass with `--org`, the one you used last, the only one, or the one you pick in a terminal.
+
+### Organizations
+
+One login can cover several organizations, on one instance or several. Each command runs as the first of these that applies:
+
+1. `--org <name|id>`
+2. `NULLIFY_ORG` (name or id)
+3. `NULLIFY_GITHUB_OWNER_ID`
+4. The owner of the current directory's git remote, if it names exactly one of your organizations on the instance (worktrees and submodules included)
+5. Your default, set by `nullify org use` or the last login
+6. Your only organization on the instance
+
+If your default is no longer available, the command stops and says so rather than running as another organization; in a terminal it asks. When nothing applies and you have several organizations, the CLI asks in a terminal and remembers the answer; elsewhere it fails and lists the choices. `nullify org list` shows your organizations and which rule picked the one in use.
+
+Signed in through the router, `nullify org use` can name an organization on another instance: plain commands then run on that instance. `--org` does the same for one command when the command's host is the router (`nullify.ai`, the default after a router login).
 
 ```sh
-nullify auth switch --installation other-org
+# See your organizations on this instance and which one is in use
+nullify org list
+
+# Make one your default
+nullify org use acme-web
+
+# Run one command as another
+nullify findings --org acme-payments
 ```
+
+An API token (`NULLIFY_TOKEN`) belongs to one organization, and the server uses it when the command names none. With a token, only `--org`, `NULLIFY_ORG` and `NULLIFY_GITHUB_OWNER_ID` apply (the first two are looked up on the instance itself); `nullify org use`, the git remote and the prompt are for browser logins. An API token always needs your instance as the host (`--host` or `NULLIFY_HOST`), never `nullify.ai`. When `NULLIFY_TOKEN` is set it wins over your browser login, and `nullify auth status` says so.
+
+### Upgrading from an earlier version
+
+Your login and your selected organization carry over. If you used an API token as a workaround for the router login, remove `NULLIFY_TOKEN` and `NULLIFY_GITHUB_OWNER_ID` from your shell and your MCP configuration, run `nullify auth login`, and restart your MCP servers. Upgrade every copy of the CLI your tools run: an older copy running alongside can overwrite the login file.
 
 ### Environment Variables
 
 ```sh
 export NULLIFY_HOST=api.acme.nullify.ai
 export NULLIFY_TOKEN=your-token-here
+export NULLIFY_ORG=acme-web   # optional: organization to run as, by name or id
 ```
 
 ### Multiple Instances
@@ -147,10 +181,12 @@ nullify auth switch
 |---------|-------------|
 | `nullify auth login` | Authenticate via browser SSO |
 | `nullify auth logout` | Clear stored credentials for a host |
-| `nullify auth status` | Show auth state, host, and token expiry |
+| `nullify auth status` | Show auth state, host, auth host, organization, and token expiry |
 | `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
-| `nullify auth switch` | Switch active instance or installation, or list configured instances |
-| `nullify auth config` | Print current CLI config as JSON |
+| `nullify auth switch` | Switch active instance or list configured instances |
+| `nullify auth config` | Print the effective host, auth host, data host, and organization as JSON |
+| `nullify org list` | List the organizations you can use, and which one commands run as and why |
+| `nullify org use <name\|id>` | Remember the organization commands run as (and, through the Nullify router, its instance) |
 
 ### Scanning
 
@@ -288,6 +324,29 @@ Add the following to your MCP config file:
 }
 ```
 
+One server serves one instance. When your login covers several organizations there, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them; every result says which organization it ran as. Without the argument a call uses the default the server settled when it started (`--org`, then the same order as the CLI); `nullify org use` in a terminal does not change a running server. If that leaves several organizations, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization:
+
+```json
+{
+  "mcpServers": {
+    "nullify-acme-web": {
+      "command": "nullify",
+      "args": ["mcp", "serve", "--org", "acme-web"]
+    },
+    "nullify-acme-payments": {
+      "command": "nullify",
+      "args": ["mcp", "serve", "--org", "acme-payments"]
+    }
+  }
+}
+```
+
+With Claude Code:
+
+```sh
+claude mcp add nullify-acme-web -- nullify mcp serve --org acme-web
+```
+
 Scope findings to a specific repository with `--repo`:
 
 ```json
@@ -303,19 +362,28 @@ Scope findings to a specific repository with `--repo`:
 
 ## Configuration
 
-The CLI stores configuration at `~/.nullify/config.json`. Host resolution priority:
+The CLI stores configuration in `~/.nullify/`:
+
+| File | Holds |
+|------|-------|
+| `config.json` | The active instance |
+| `credentials.json` | Login tokens, one entry per login host (the router's login is shared by the instances that use it) |
+| `hosts.json` | Per instance: the host its login runs on, and the organization picked with `nullify org use` |
+
+Host resolution priority:
 
 1. `--host` flag
 2. `NULLIFY_HOST` environment variable
 3. Config file (`~/.nullify/config.json`)
 
-When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.ai and sends data requests to the selected installation's instance. GitHub Actions token exchange (`--github-token`) needs your instance host, not `nullify.ai`.
+When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.ai and sends data requests to the selected organization's instance. GitHub Actions token exchange (`--github-token`) needs your instance host, not `nullify.ai`.
 
 ### Global Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--host` | Nullify instance (e.g., `acme.nullify.ai`), or `nullify.ai` to sign in through the Nullify router | From config |
+| `--org` | Organization to run as, by name or id (see [Organizations](#organizations)) | |
 | `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
 | `--verbose, -v` | Enable verbose logging | `false` |
 | `--debug, -d` | Enable debug logging | `false` |

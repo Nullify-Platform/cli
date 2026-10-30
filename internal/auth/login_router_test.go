@@ -39,6 +39,9 @@ func (f *fakeLoginServer) handle(t *testing.T) http.HandlerFunc {
 				ExpiresIn:       3600,
 				QueryParameters: map[string]string{"fromToken": "1"},
 			})
+		case "/auth/cli/config":
+			// A stack from before discovery: it signs in itself.
+			w.WriteHeader(http.StatusNotFound)
 		case "/admin/installations":
 			f.installationsCalls++
 			assert.Equal(t, "Bearer access", r.Header.Get("Authorization"))
@@ -70,24 +73,8 @@ func requireOnlyRouterHost(t *testing.T, hosts []string, wantCalls int) {
 	t.Helper()
 	require.Len(t, hosts, wantCalls)
 	for _, host := range hosts {
-		require.Equal(t, RouterHost, host)
+		require.Equal(t, RouterHost, CredentialKey(host))
 	}
-}
-
-// stubBrowser completes the browser step by calling the local callback URL.
-func stubBrowser(t *testing.T) {
-	t.Helper()
-	old := openBrowser
-	openBrowser = func(url string) error {
-		go func() {
-			resp, err := http.Get(url)
-			if err == nil {
-				resp.Body.Close()
-			}
-		}()
-		return nil
-	}
-	t.Cleanup(func() { openBrowser = old })
 }
 
 func installationJSON(name, baseURL string) string {
@@ -142,14 +129,14 @@ func TestLoginRouterHost(t *testing.T) {
 			name:          "several installations without a terminal",
 			host:          "nullify.ai",
 			installations: []string{acme, beta},
-			wantErr:       "pass --installation <name>",
+			wantErr:       "pass --org <name>",
 		},
 		{
 			name:          "unknown installation name",
 			host:          "app.nullify.ai",
 			picker:        InstallationPicker{Name: "gamma"},
 			installations: []string{acme, beta},
-			wantErr:       `installation "gamma" not found`,
+			wantErr:       `organization "gamma" not found`,
 		},
 	}
 	for _, tt := range tests {
@@ -235,7 +222,7 @@ func TestRefreshTokenKeepsRouterSelection(t *testing.T) {
 	require.Equal(t, map[string]string{"githubOwnerId": "7"}, got.QueryParameters)
 }
 
-func TestRefreshTokenTakesResponseQueryParametersWithoutDataHost(t *testing.T) {
+func TestRefreshTokenKeepsTheLoginsQueryParameters(t *testing.T) {
 	newAuthServer(t, func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(`{"accessToken":"new","expiresIn":60}`))
 	})
@@ -250,7 +237,7 @@ func TestRefreshTokenTakesResponseQueryParametersWithoutDataHost(t *testing.T) {
 
 	creds, err := LoadCredentials()
 	require.NoError(t, err)
-	require.Empty(t, creds["acme.nullify.ai"].QueryParameters)
+	require.Equal(t, map[string]string{"githubOwnerId": "7"}, creds["acme.nullify.ai"].QueryParameters, "a refresh never changes the org")
 }
 
 func TestRefreshTokenRereadsCredentialsBeforeWriting(t *testing.T) {
@@ -324,16 +311,17 @@ func TestSwitchInstallation(t *testing.T) {
 	}))
 	require.NoError(t, SaveConfig(&Config{Host: "other.nullify.ai"}))
 
-	_, err := SwitchInstallation(context.Background(), "gamma")
-	require.ErrorContains(t, err, `installation "gamma" not found`)
+	prod, _ := RouterFor(RouterHost)
+	_, err := SwitchInstallation(context.Background(), prod, "gamma")
+	require.ErrorContains(t, err, `organization "gamma" not found`)
 	creds, err := LoadCredentials()
 	require.NoError(t, err)
 	require.Equal(t, "acme", creds[RouterHost].Installation)
 
-	install, err := SwitchInstallation(context.Background(), "beta")
+	install, err := SwitchInstallation(context.Background(), prod, "beta")
 	require.NoError(t, err)
 	requireOnlyRouterHost(t, *authHosts, 2)
-	require.Equal(t, "beta.nullify.ai", install.DataHost)
+	require.Equal(t, "beta.nullify.ai", install.DataHost())
 
 	creds, err = LoadCredentials()
 	require.NoError(t, err)
@@ -350,6 +338,7 @@ func TestSwitchInstallation(t *testing.T) {
 func TestSwitchInstallationRequiresRouterLogin(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 
-	_, err := SwitchInstallation(context.Background(), "acme")
+	prod, _ := RouterFor(RouterHost)
+	_, err := SwitchInstallation(context.Background(), prod, "acme")
 	require.ErrorContains(t, err, "not authenticated")
 }

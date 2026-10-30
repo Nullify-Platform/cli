@@ -54,6 +54,7 @@ func TestServeWithClientIOHandlesEOF(t *testing.T) {
 		ctx,
 		api.NewClient("acme.nullify.ai", "token", map[string]string{}),
 		ToolSetDefault,
+		Orgs{},
 		strings.NewReader(""),
 		io.Discard,
 	)

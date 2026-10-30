@@ -90,6 +90,7 @@ require (
 )
 
 require (
+	github.com/gofrs/flock v0.13.0
 	github.com/nullify-platform/logger v1.32.2
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.28.0

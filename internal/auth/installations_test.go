@@ -4,60 +4,84 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/nullify-platform/cli/internal/api/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUsableInstallations(t *testing.T) {
-	params := map[string]string{"githubOwnerId": "1"}
-	outputs := []models.EndpointsAdminInstallationOutput{
-		{Name: "ready", NullifyBaseURL: new("https://api.acme.nullify.ai"), QueryParameters: params},
-		{Name: "pending", QueryParameters: params},
-		{Name: "no-params", NullifyBaseURL: new("https://api.beta.nullify.ai")},
-		{Name: "bad-url", NullifyBaseURL: new("https://api.acme.evil.com"), QueryParameters: params},
-		{Name: "router-url", NullifyBaseURL: new("https://api.nullify.ai"), QueryParameters: params},
+func installationsBody(entries ...string) string {
+	return `{"installations":[` + strings.Join(entries, ",") + `]}`
+}
+
+func entry(name, baseURL, id string) string {
+	if baseURL == "" {
+		return fmt.Sprintf(`{"name":%q,"provider":{},"queryParameters":{"githubOwnerId":%q}}`, name, id)
 	}
+	return fmt.Sprintf(`{"name":%q,"provider":{},"nullifyBaseUrl":%q,"queryParameters":{"githubOwnerId":%q}}`, name, baseURL, id)
+}
 
-	got := usableInstallations(context.Background(), outputs)
+// A router's org is used only from one of that router's own tenant origins:
+// a listing naming any other host, the other router environment's tenants
+// included, leaves the org unavailable and the host is never contacted.
+func TestRoutedOrgsKeepOnlyTheRoutersTenantOrigins(t *testing.T) {
+	body := installationsBody(
+		entry("ready", "https://api.acme.nullify.ai", "1"),
+		entry("pending", "", "2"),
+		entry("evil", "https://api.acme.evil.com", "3"),
+		entry("fragment", "https://api.attacker.example#.nullify.ai", "4"),
+		entry("router", "https://api.nullify.ai", "5"),
+		entry("dev", "https://api.sandbox.dev.nullify.ai", "6"),
+		entry("port", "https://api.acme.nullify.ai:8443", "7"),
+	)
+	newAuthServer(t, func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte(body)) })
 
-	require.Equal(t, []Installation{
-		{Name: "ready", DataHost: "acme.nullify.ai", QueryParameters: params},
-	}, got)
+	prod, err := fetchOrgs(context.Background(), "api.nullify.ai", "router-token")
+	require.NoError(t, err)
+	routed := routedOrgs(prod)
+	require.Len(t, routed, 1)
+	require.Equal(t, "ready", routed[0].Name)
+	require.Equal(t, "acme.nullify.ai", routed[0].DataHost())
+	require.Equal(t, map[string]string{"githubOwnerId": "1"}, routed[0].Query())
 
-	got[0].QueryParameters["githubOwnerId"] = "2"
-	require.Equal(t, "1", params["githubOwnerId"], "installation must not share the response map")
+	dev, err := fetchOrgs(context.Background(), "api.router.dev.nullify.ai", "router-token")
+	require.NoError(t, err)
+	routed = routedOrgs(dev)
+	require.Len(t, routed, 1)
+	require.Equal(t, "dev", routed[0].Name)
+	require.Equal(t, "sandbox.dev.nullify.ai", routed[0].DataHost())
 }
 
 func TestInstallationPickerPick(t *testing.T) {
-	acme := Installation{Name: "acme", DataHost: "acme.nullify.ai"}
-	beta := Installation{Name: "beta", DataHost: "beta.nullify.ai"}
-	acmeGitLab := Installation{Name: "acme", DataHost: "acme-gl.nullify.ai"}
+	acme := Org{Name: "acme", Key: "githubOwnerId", ID: "1", Host: "api.acme.nullify.ai"}
+	beta := Org{Name: "beta", Key: "githubOwnerId", ID: "2", Host: "api.beta.nullify.ai"}
+	acmeElsewhere := Org{Name: "acme", Key: "githubOwnerId", ID: "3", Host: "api.acme-gl.nullify.ai"}
 
 	tests := []struct {
 		name        string
 		picker      InstallationPicker
-		installs    []Installation
-		want        Installation
+		orgs        []Org
+		want        Org
 		wantErr     string
 		wantErrIs   error
 		wantPrompts bool
 	}{
-		{name: "none", installs: nil, wantErrIs: errNoUsableInstallation},
-		{name: "single selects automatically", installs: []Installation{acme}, want: acme},
-		{name: "single still honours name", picker: InstallationPicker{Name: "beta"}, installs: []Installation{acme}, wantErr: `installation "beta" not found - available: acme`},
-		{name: "by name", picker: InstallationPicker{Name: "beta"}, installs: []Installation{acme, beta}, want: beta},
-		{name: "duplicate name", picker: InstallationPicker{Name: "acme"}, installs: []Installation{acme, acmeGitLab}, wantErr: "matches 2 installations"},
-		{name: "many without terminal", installs: []Installation{acme, beta}, wantErr: "multiple installations are available (acme, beta) - pass --installation <name>"},
-		{name: "prompt", picker: InstallationPicker{Interactive: true, In: strings.NewReader("2\n")}, installs: []Installation{acme, beta}, want: beta, wantPrompts: true},
-		{name: "prompt without newline", picker: InstallationPicker{Interactive: true, In: strings.NewReader("1")}, installs: []Installation{acme, beta}, want: acme, wantPrompts: true},
-		{name: "prompt out of range", picker: InstallationPicker{Interactive: true, In: strings.NewReader("3\n")}, installs: []Installation{acme, beta}, wantErr: "invalid selection", wantPrompts: true},
-		{name: "prompt not a number", picker: InstallationPicker{Interactive: true, In: strings.NewReader("acme\n")}, installs: []Installation{acme, beta}, wantErr: "invalid selection", wantPrompts: true},
-		{name: "prompt with duplicate names", picker: InstallationPicker{Interactive: true, In: strings.NewReader("1\n")}, installs: []Installation{acme, acmeGitLab}, wantErr: "used by more than one installation"},
+		{name: "none", orgs: nil, wantErrIs: errNoUsableInstallation},
+		{name: "single selects automatically", orgs: []Org{acme}, want: acme},
+		{name: "single still honours name", picker: InstallationPicker{Name: "beta"}, orgs: []Org{acme}, wantErr: `organization "beta" not found - available: acme`},
+		{name: "by name", picker: InstallationPicker{Name: "beta"}, orgs: []Org{acme, beta}, want: beta},
+		{name: "by id", picker: InstallationPicker{Name: "2"}, orgs: []Org{acme, beta}, want: beta},
+		{name: "duplicate name", picker: InstallationPicker{Name: "acme"}, orgs: []Org{acme, acmeElsewhere}, wantErr: "matches 2 organizations"},
+		{name: "remembered", picker: InstallationPicker{Remembered: &OrgPick{Key: "githubOwnerId", ID: "2"}}, orgs: []Org{acme, beta}, want: beta},
+		{name: "remembered but gone", picker: InstallationPicker{Remembered: &OrgPick{Key: "githubOwnerId", ID: "9"}}, orgs: []Org{acme, beta}, wantErr: "multiple organizations are available"},
+		{name: "many without terminal", orgs: []Org{acme, beta}, wantErr: "multiple organizations are available (acme, beta) - pass --org <name>"},
+		{name: "prompt", picker: InstallationPicker{Interactive: true, In: strings.NewReader("2\n")}, orgs: []Org{acme, beta}, want: beta, wantPrompts: true},
+		{name: "prompt without newline", picker: InstallationPicker{Interactive: true, In: strings.NewReader("1")}, orgs: []Org{acme, beta}, want: acme, wantPrompts: true},
+		{name: "prompt out of range", picker: InstallationPicker{Interactive: true, In: strings.NewReader("3\n")}, orgs: []Org{acme, beta}, wantErr: "invalid selection", wantPrompts: true},
+		{name: "prompt not a number", picker: InstallationPicker{Interactive: true, In: strings.NewReader("acme\n")}, orgs: []Org{acme, beta}, wantErr: "invalid selection", wantPrompts: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -65,7 +89,7 @@ func TestInstallationPickerPick(t *testing.T) {
 			picker := tt.picker
 			picker.Out = &out
 
-			got, err := picker.Pick(tt.installs)
+			got, err := picker.Pick(tt.orgs)
 
 			switch {
 			case tt.wantErrIs != nil:
@@ -78,8 +102,8 @@ func TestInstallationPickerPick(t *testing.T) {
 			}
 
 			if tt.wantPrompts {
-				require.Contains(t, out.String(), "1) acme (acme.nullify.ai)")
-				require.Contains(t, out.String(), "2) beta (beta.nullify.ai)")
+				require.Contains(t, out.String(), "1) acme (githubOwnerId 1) on acme.nullify.ai")
+				require.Contains(t, out.String(), "2) beta (githubOwnerId 2) on beta.nullify.ai")
 			} else {
 				require.Empty(t, out.String())
 			}
@@ -87,30 +111,45 @@ func TestInstallationPickerPick(t *testing.T) {
 	}
 }
 
-func TestFetchInstallationsSendsBearerToRouter(t *testing.T) {
+func TestFetchOrgsSendsBearerToRouter(t *testing.T) {
 	newAuthServer(t, func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/admin/installations", r.URL.Path)
 		assert.Equal(t, "Bearer router-token", r.Header.Get("Authorization"))
-		_, _ = w.Write([]byte(`{"installations":[{"name":"acme","avatarUrl":"","provider":{},` +
-			`"nullifyBaseUrl":"https://api.acme.nullify.ai","queryParameters":{"githubOwnerId":"7"}}]}`))
+		_, _ = w.Write([]byte(installationsBody(entry("acme", "https://api.acme.nullify.ai", "7"))))
 	})
 
 	authHosts := recordAuthHosts(t)
 
-	got, err := fetchInstallations(context.Background(), "router-token")
+	got, err := fetchOrgs(context.Background(), "api.nullify.ai", "router-token")
 	require.NoError(t, err)
-	requireOnlyRouterHost(t, *authHosts, 1)
-	require.Equal(t, []Installation{
-		{Name: "acme", DataHost: "acme.nullify.ai", QueryParameters: map[string]string{"githubOwnerId": "7"}},
-	}, got)
+	require.Equal(t, []string{"api.nullify.ai"}, *authHosts)
+	require.Equal(t, []Org{{Name: "acme", Key: "githubOwnerId", ID: "7", Host: "api.acme.nullify.ai"}}, got)
 }
 
-func TestFetchInstallationsReportsServerError(t *testing.T) {
+func TestFetchOrgsReportsServerError(t *testing.T) {
 	newAuthServer(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	})
 
-	_, err := fetchInstallations(context.Background(), "router-token")
+	_, err := fetchOrgs(context.Background(), "api.nullify.ai", "router-token")
 	require.Error(t, err)
 	require.False(t, errors.Is(err, errNoUsableInstallation))
+}
+
+// An org the router reports pending or unavailable is not usable on its host
+// even when its base URL names that host.
+func TestPendingOrgOnTheHostIsNotUsable(t *testing.T) {
+	body := `{"installations":[` +
+		`{"name":"ready","provider":{},"nullifyBaseUrl":"https://api.acme.nullify.ai","queryParameters":{"githubOwnerId":"1"},"provisioningStatus":"ready"},` +
+		`{"name":"held","provider":{},"nullifyBaseUrl":"https://api.acme.nullify.ai","queryParameters":{"githubOwnerId":"2"},"provisioningStatus":"pending"}]}`
+	newAuthServer(t, func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte(body)) })
+
+	list, err := ListOrgs(context.Background(), "acme.nullify.ai", "api.nullify.ai", "router-token")
+	require.NoError(t, err)
+	require.Len(t, list.Orgs, 1)
+	require.Equal(t, "ready", list.Orgs[0].Name)
+	require.Len(t, list.Pending, 1)
+	require.Equal(t, "held", list.Pending[0].Name)
+	_, err = ResolveOrg("acme.nullify.ai", list, OrgInputs{Flag: "held", FlagSource: "--org"})
+	require.ErrorContains(t, err, "not ready for use yet")
 }

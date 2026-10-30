@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 
@@ -21,13 +22,12 @@ func TestClientDo_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &Client{
-		BaseURL:    server.URL,
-		Token:      "test-token",
-		HTTPClient: server.Client(),
-	}
+	// The token goes only to the client's own API host, so the request is
+	// made there and delivered to the test server underneath.
+	client := NewClient("acme.nullify.ai", "test-token", nil)
+	client.HTTPClient = &http.Client{Transport: deliverTo(server)}
 
-	result, err := client.do(context.Background(), "GET", server.URL+"/test", nil)
+	result, err := client.do(context.Background(), "GET", client.BaseURL+"/test", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -151,3 +151,17 @@ func TestNewClient_WithHTTPClientOverride(t *testing.T) {
 		t.Error("expected WithHTTPClient to override the default client")
 	}
 }
+
+// deliverTo sends every request to server, whatever host it names.
+func deliverTo(server *httptest.Server) http.RoundTripper {
+	return roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		out := r.Clone(r.Context())
+		target, _ := url.Parse(server.URL)
+		out.URL.Scheme, out.URL.Host, out.Host = target.Scheme, target.Host, ""
+		return http.DefaultTransport.RoundTrip(out)
+	})
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }

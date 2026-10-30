@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"errors"
-	"maps"
 	"os"
 
 	"github.com/nullify-platform/cli/internal/api"
@@ -19,10 +18,19 @@ func stdinIsTTY() bool {
 
 // commandAuthContext separates the host that issues tokens from the host that serves data.
 type commandAuthContext struct {
-	AuthHost    string
-	DataHost    string
+	// AuthHost issues and refreshes the token: the router for a router
+	// login, else the data host itself.
+	AuthHost string
+	// DataHost serves the command's requests.
+	DataHost string
+	// OnRouter is set when the command named the router rather than a
+	// tenant, so an explicit org may move it to another tenant.
+	OnRouter    bool
 	Token       string
 	QueryParams map[string]string
+	// Org is the org the command runs as, nil when the server takes it from
+	// an API token or it was given only as an id.
+	Org *auth.Org
 }
 
 // Client builds a NullifyClient for the data host and token.
@@ -34,53 +42,38 @@ func (c *commandAuthContext) APIClient() *api.Client {
 	return api.NewClient(c.DataHost, c.Token, c.QueryParams)
 }
 
-// resolveCommandHosts sets the auth and data hosts for the command host; only the router host has different ones.
-func resolveCommandHosts(ctx context.Context) (*commandAuthContext, error) {
-	commandHost, err := resolveHostE(ctx)
+// coverTenant is auth.CoverTenant, a var so tests need no router.
+var coverTenant = auth.CoverTenant
+
+// resolveCommandAuth resolves the hosts, token and org a command runs with.
+// Stored credentials no longer carry the org: a login's saved
+// query_parameters were the server's default, not the user's choice.
+func resolveCommandAuth(ctx context.Context) (*commandAuthContext, error) {
+	authCtx, err := resolveCommandToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return commandHostsFor(commandHost)
-}
 
-func commandHostsFor(commandHost string) (*commandAuthContext, error) {
-	if !auth.IsRouterHost(commandHost) {
-		return &commandAuthContext{AuthHost: commandHost, DataHost: commandHost}, nil
-	}
-
-	dataHost, err := auth.DataHost(auth.RouterHost)
-	if errors.Is(err, auth.ErrNoDataHost) && explicitTokenSet() {
-		return nil, authError("nullify.ai serves sign-in only - with --nullify-token or NULLIFY_TOKEN, set --host or NULLIFY_HOST to <instance>.nullify.ai")
-	}
+	in := orgInputsFor(authCtx.DataHost, orgFlag, "--org")
+	in.AnyHost = authCtx.OnRouter
+	scope, err := resolveOrgScope(ctx, authCtx.DataHost, authCtx.Token, in, stdinIsTTY())
 	if err != nil {
 		return nil, authError("%w", err)
 	}
-	return &commandAuthContext{AuthHost: auth.RouterHost, DataHost: dataHost}, nil
+	if scope.Org != nil && scope.Org.DataHost() != "" && scope.Org.DataHost() != auth.CredentialKey(authCtx.DataHost) {
+		authCtx.DataHost = scope.Org.DataHost()
+	}
+	if scope.Token != "" {
+		authCtx.Token = scope.Token
+	}
+	authCtx.Org = scope.Org
+	authCtx.QueryParams = scope.Query
+	return authCtx, nil
 }
 
-func explicitTokenSet() bool {
-	if nullifyToken != "" || os.Getenv("NULLIFY_TOKEN") != "" {
-		return true
-	}
-	return os.Getenv("GITHUB_ACTIONS") == "true" && githubToken != "" && os.Getenv("GITHUB_REPOSITORY") != ""
-}
-
-// routerSignInHint returns a hint when tenantHost has no credentials but is the data host of the router sign-in.
-func routerSignInHint(tenantHost string) string {
-	creds, err := auth.LoadCredentials()
-	if err != nil {
-		return ""
-	}
-	if _, ok := creds[auth.CredentialKey(tenantHost)]; ok {
-		return ""
-	}
-	if creds[auth.RouterHost].DataHost != tenantHost {
-		return ""
-	}
-	return " (signed in through nullify.ai - use --host nullify.ai or 'nullify auth switch --host nullify.ai')"
-}
-
-func resolveCommandAuth(ctx context.Context) (*commandAuthContext, error) {
+// resolveCommandToken resolves the hosts and token only, for callers that
+// choose the org themselves.
+func resolveCommandToken(ctx context.Context) (*commandAuthContext, error) {
 	authCtx, err := resolveCommandHosts(ctx)
 	if err != nil {
 		return nil, err
@@ -91,26 +84,54 @@ func resolveCommandAuth(ctx context.Context) (*commandAuthContext, error) {
 		if errors.Is(err, lib.ErrNoToken) {
 			return nil, authError("not authenticated. Run 'nullify auth login' first")
 		}
-		if !auth.IsRouterHost(authCtx.AuthHost) {
-			return nil, authError("%w%s", err, routerSignInHint(authCtx.AuthHost))
-		}
 		return nil, authError("%w", err)
 	}
+	authCtx.QueryParams = map[string]string{}
+	return authCtx, nil
+}
 
-	queryParams := map[string]string{}
-	creds, err := auth.LoadCredentials()
-	if err == nil {
-		maps.Copy(queryParams, creds[auth.CredentialKey(authCtx.AuthHost)].QueryParameters)
+// resolveCommandHosts sets the auth and data hosts for the command host.
+func resolveCommandHosts(ctx context.Context) (*commandAuthContext, error) {
+	commandHost, err := resolveHostE(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return commandHostsFor(ctx, commandHost)
+}
+
+// commandHostsFor maps the host a command names to the host that signs it in
+// and the host that serves it. The router serves sign-in only: its data host
+// is the tenant of the selected org. A tenant signs in through the router it
+// is bound to, through a router login that lists it, or by itself. An API or
+// GitHub Actions token always goes to the tenant it names.
+func commandHostsFor(ctx context.Context, commandHost string) (*commandAuthContext, error) {
+	if router, ok := auth.RouterFor(commandHost); ok {
+		if usesMachineToken() {
+			return nil, authError("%s serves sign-in only - with --nullify-token or NULLIFY_TOKEN, set --host or NULLIFY_HOST to <instance>.nullify.ai", router.Key)
+		}
+		dataHost, err := auth.DataHost(router.Key)
+		if err != nil {
+			return nil, authError("%w", err)
+		}
+		// A CLI v0.26.0 login selected its data host without binding it.
+		if err := auth.BindTenant(dataHost, router); err != nil {
+			return nil, authError("%w", err)
+		}
+		return &commandAuthContext{AuthHost: router.Key, DataHost: dataHost, OnRouter: true}, nil
 	}
 
-	// NULLIFY_GITHUB_OWNER_ID env var provides the githubOwnerId query param
-	// when using NULLIFY_TOKEN directly (no stored credentials).
-	if ownerID := os.Getenv("NULLIFY_GITHUB_OWNER_ID"); ownerID != "" {
-		if _, set := queryParams["githubOwnerId"]; !set {
-			queryParams["githubOwnerId"] = ownerID
+	if usesMachineToken() {
+		return &commandAuthContext{AuthHost: commandHost, DataHost: commandHost}, nil
+	}
+
+	if _, _, ok, err := auth.LookupCredentials(commandHost); err == nil && !ok {
+		if _, err := coverTenant(ctx, commandHost); err != nil {
+			return nil, authError("%w", err)
 		}
 	}
-
-	authCtx.QueryParams = queryParams
-	return authCtx, nil
+	authHost, err := auth.AuthHostFor(commandHost)
+	if err != nil {
+		return nil, authError("%w", err)
+	}
+	return &commandAuthContext{AuthHost: authHost, DataHost: commandHost}, nil
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -25,6 +26,7 @@ type commandOutput struct {
 
 var (
 	host      string
+	orgFlag   string
 	verbose   bool
 	debug     bool
 	quiet     bool
@@ -121,6 +123,7 @@ func resetCommandOutput(
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&host, "host", "", "Your Nullify instance (e.g., acme.nullify.ai), or nullify.ai to sign in through the Nullify router")
+	rootCmd.PersistentFlags().StringVar(&orgFlag, "org", "", "Organization to run as, by name or id, when your login covers several (see 'nullify org list')")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug logging")
 	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (json, table, yaml, sarif)")
@@ -197,36 +200,36 @@ func resolveHostE(ctx context.Context) (string, error) {
 		return sanitized, nil
 	}
 
+	// An invalid host is an error, never a reason to use another one: the
+	// token would go to a host the user did not name.
 	if envHost := os.Getenv("NULLIFY_HOST"); envHost != "" {
 		sanitized, err := lib.SanitizeNullifyHost(envHost)
-		if err == nil {
-			return sanitized, nil
+		if err != nil {
+			return "", withExitCode(1, fmt.Errorf("invalid NULLIFY_HOST %q, must be nullify.ai or <your-instance>.nullify.ai", envHost))
 		}
-		logger.L(ctx).Warn("NULLIFY_HOST env var is invalid, falling through to config", logger.String("host", envHost), logger.Err(err))
+		return sanitized, nil
 	}
 
 	cfg, err := auth.LoadConfig()
 	if err == nil && cfg.Host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(cfg.Host)
-		if err == nil {
-			return sanitized, nil
+		if err != nil {
+			return "", withExitCode(1, fmt.Errorf("invalid host %q in ~/.nullify/config.json, must be nullify.ai or <your-instance>.nullify.ai", cfg.Host))
 		}
-		logger.L(ctx).Warn("config file host is invalid, ignoring", logger.String("host", cfg.Host), logger.Err(err))
+		return sanitized, nil
 	}
 
-	return "", authError("no host configured. Run 'nullify init' to set up, or 'nullify auth login' to sign in.")
+	return "", authError("%w. Run 'nullify init' to set up, or 'nullify auth login' to sign in.", errNoHost)
 }
 
+// errNoHost reports that no --host, NULLIFY_HOST or configured host was set,
+// as opposed to one that was set and is invalid.
+var errNoHost = errors.New("no host configured")
+
 func getNullifyClientE(ctx context.Context) (*client.NullifyClient, error) {
-	authCtx, err := resolveCommandHosts(ctx)
+	authCtx, err := resolveCommandToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	authCtx.Token, err = lib.GetNullifyToken(ctx, authCtx.AuthHost, nullifyToken, githubToken)
-	if err != nil {
-		return nil, authError("failed to get token. Run 'nullify auth login' to authenticate: %w", err)
-	}
-
 	return authCtx.Client(), nil
 }

@@ -24,30 +24,26 @@ var whoamiCmd = &cobra.Command{
 			"host": whoamiHost,
 		}
 
-		hosts, hostsErr := commandHostsFor(whoamiHost)
-		if hostsErr == nil && hosts.AuthHost != hosts.DataHost {
+		hosts, hostsErr := commandHostsFor(ctx, whoamiHost)
+		if hostsErr == nil {
 			info["auth_host"] = hosts.AuthHost
 			info["data_host"] = hosts.DataHost
 		}
 
-		creds, err := auth.LoadCredentials()
-		if hostsErr != nil {
+		hostCreds, _, ok, err := auth.LookupCredentials(whoamiHost)
+		switch {
+		case hostsErr != nil:
 			info["authenticated"] = false
 			info["error"] = hostsErr.Error()
-		} else if err != nil {
+		case err != nil:
 			info["authenticated"] = false
 			info["error"] = "no credentials found"
-		} else if hostCreds, ok := creds[auth.CredentialKey(hosts.AuthHost)]; !ok {
+		case !ok:
 			info["authenticated"] = false
 			info["error"] = fmt.Sprintf("no credentials for host %s", hosts.AuthHost)
-		} else {
+		default:
 			info["authenticated"] = true
-			if hostCreds.Installation != "" {
-				info["installation"] = hostCreds.Installation
-			}
-			if hostCreds.QueryParameters != nil {
-				info["query_parameters"] = hostCreds.QueryParameters
-			}
+			info["org"] = describeOrg(ctx, whoamiHost)
 			if hostCreds.ExpiresAt > 0 {
 				info["expires_at"] = hostCreds.ExpiresAt
 			}
