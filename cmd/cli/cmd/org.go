@@ -237,12 +237,9 @@ var orgUseCmd = &cobra.Command{
 }
 
 // pinnedEnvHost is the tenant NULLIFY_HOST pins plain commands to, in
-// credential key form, or "" when it is unset or --host names this
-// command's host (a flag lasts one command, so it pins nothing).
+// credential key form, or "" when it is unset. --host lasts one command and
+// pins nothing, but NULLIFY_HOST still applies to the next one.
 func pinnedEnvHost() string {
-	if host != "" {
-		return ""
-	}
 	pinned, err := lib.SanitizeNullifyHost(os.Getenv("NULLIFY_HOST"))
 	if err != nil {
 		return ""

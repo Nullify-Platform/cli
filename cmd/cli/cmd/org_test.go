@@ -624,6 +624,10 @@ func TestOrgUseNotesAPinnedNullifyHost(t *testing.T) {
 		})
 		t.Setenv("NULLIFY_HOST", envHost)
 		host = flagHost
+		if envHost == "" && flagHost == "" {
+			// The saved host is a default, not a pin.
+			require.NoError(t, auth.SaveConfig(&auth.Config{Host: "acme.nullify.ai"}))
+		}
 		var note bytes.Buffer
 		oldOut := promptOut
 		promptOut = &note
@@ -641,8 +645,17 @@ func TestOrgUseNotesAPinnedNullifyHost(t *testing.T) {
 			require.Empty(t, run(t, env, "", "acme-payments"))
 		})
 	}
-	t.Run("--host is this command only", func(t *testing.T) {
+	t.Run("--host alone pins nothing", func(t *testing.T) {
 		require.Empty(t, run(t, "", "acme.nullify.ai", "beta-org"))
+	})
+	t.Run("--host with NULLIFY_HOST still notes the env pin", func(t *testing.T) {
+		require.Contains(t, run(t, "acme.nullify.ai", "acme.nullify.ai", "beta-org"), "NULLIFY_HOST still points commands at acme.nullify.ai")
+	})
+	t.Run("pinned to the router", func(t *testing.T) {
+		require.Empty(t, run(t, "nullify.ai", "acme.nullify.ai", "beta-org"))
+	})
+	t.Run("only a saved host", func(t *testing.T) {
+		require.Empty(t, run(t, "", "", "beta-org"))
 	})
 }
 

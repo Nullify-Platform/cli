@@ -154,7 +154,7 @@ func registerOrgTools(s *server.MCPServer, orgs Orgs) {
 	s.AddTool(
 		mcp.NewTool(listOrganizationsTool,
 			mcp.WithDescription("List the organizations your Nullify login can use on this host, which one calls use by default, "+
-				"and any not routed yet. Pass one as the org argument of another tool to run it as that organization."),
+				"and any not ready yet. Pass one as the org argument of another tool to run it as that organization."),
 			mcp.WithReadOnlyHintAnnotation(true),
 		),
 		func(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
