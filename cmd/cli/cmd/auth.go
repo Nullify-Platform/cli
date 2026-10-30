@@ -3,8 +3,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 	"time"
 
@@ -22,41 +24,56 @@ var authCmd = &cobra.Command{
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Log in to Nullify",
-	Long:  "Authenticate with your Nullify instance. Opens your browser to log in with your identity provider.",
+	Long:  "Authenticate with Nullify. Opens your browser to log in with your identity provider. Without --host or a configured host, signs in through nullify.ai and selects an installation.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 		defer stop()
 
-		loginHost := host
-
-		// If no host from flag, try config file
-		if loginHost == "" {
-			cfg, err := auth.LoadConfig()
-			if err == nil && cfg.Host != "" {
-				loginHost = cfg.Host
-			}
-		}
-
-		// If still no host, prompt (only when running interactively).
-		if loginHost == "" {
-			if !stdinIsTTY() {
-				return fmt.Errorf("not a terminal; pass --host <your-instance>.nullify.ai")
-			}
-			fmt.Print("Enter your Nullify instance (e.g., acme.nullify.ai): ")
-			_, _ = fmt.Scanln(&loginHost)
-		}
-
-		sanitizedHost, err := lib.SanitizeNullifyHost(loginHost)
+		sanitizedHost, err := resolveLoginHost()
 		if err != nil {
-			return fmt.Errorf("invalid host %q - must be in the format <your-instance>.nullify.ai", loginHost)
+			return err
 		}
 
-		if err := auth.Login(ctx, sanitizedHost); err != nil {
+		installation, _ := cmd.Flags().GetString("installation")
+		if installation != "" && !auth.IsRouterHost(sanitizedHost) {
+			return fmt.Errorf("--installation applies only when signing in through nullify.ai")
+		}
+
+		if err := auth.Login(ctx, sanitizedHost, installationPicker(installation)); err != nil {
 			return fmt.Errorf("login failed: %w", err)
 		}
 		return nil
 	},
+}
+
+// resolveLoginHost returns the --host flag, else the configured host, else the router host.
+func resolveLoginHost() (string, error) {
+	loginHost := host
+	if loginHost == "" {
+		cfg, err := auth.LoadConfig()
+		if err == nil && cfg.Host != "" {
+			loginHost = cfg.Host
+		}
+	}
+	if loginHost == "" {
+		loginHost = auth.RouterHost
+	}
+
+	sanitizedHost, err := lib.SanitizeNullifyHost(loginHost)
+	if err != nil {
+		return "", fmt.Errorf("invalid host %q - must be nullify.ai or <your-instance>.nullify.ai", loginHost)
+	}
+	return sanitizedHost, nil
+}
+
+func installationPicker(name string) auth.InstallationPicker {
+	return auth.InstallationPicker{
+		Name:        name,
+		Interactive: stdinIsTTY(),
+		In:          os.Stdin,
+		Out:         os.Stdout,
+	}
 }
 
 var logoutCmd = &cobra.Command{
@@ -85,12 +102,12 @@ var statusCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, err := auth.LoadConfig()
 		if err != nil {
-			fmt.Println("Not configured. Run 'nullify auth login --host <your-instance>.nullify.ai' to get started.")
+			fmt.Println("Not configured. Run 'nullify auth login' to get started.")
 			return nil
 		}
 
 		if cfg.Host == "" {
-			fmt.Println("No host configured. Run 'nullify auth login --host <your-instance>.nullify.ai'")
+			fmt.Println("No host configured. Run 'nullify auth login'")
 			return nil
 		}
 
@@ -108,6 +125,10 @@ var statusCmd = &cobra.Command{
 			return nil
 		}
 
+		if auth.IsRouterHost(cfg.Host) {
+			printInstallation(hostCreds)
+		}
+
 		if hostCreds.ExpiresAt > 0 {
 			expiresAt := time.Unix(hostCreds.ExpiresAt, 0)
 			if time.Now().After(expiresAt) {
@@ -120,6 +141,14 @@ var statusCmd = &cobra.Command{
 		}
 		return nil
 	},
+}
+
+func printInstallation(hostCreds auth.HostCredentials) {
+	if hostCreds.DataHost == "" {
+		fmt.Println("Installation: none selected - run 'nullify auth switch --installation <name>'")
+		return
+	}
+	fmt.Printf("Installation: %s (%s)\n", hostCreds.Installation, hostCreds.DataHost)
 }
 
 var tokenCmd = &cobra.Command{
@@ -146,32 +175,29 @@ var tokenCmd = &cobra.Command{
 
 var switchCmd = &cobra.Command{
 	Use:   "switch",
-	Short: "Switch between configured hosts",
-	Long:  "Switch the default host when multiple Nullify instances are configured.",
+	Short: "Switch between configured hosts or installations",
+	Long:  "Switch the default host when multiple Nullify instances are configured, or select another installation with --installation when signed in through nullify.ai.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		switchHost, _ := cmd.Flags().GetString("host")
 		if switchHost == "" && host != "" {
 			switchHost = host
 		}
 
-		if switchHost == "" {
-			// List available hosts
-			creds, err := auth.LoadCredentials()
-			if err != nil || len(creds) == 0 {
-				fmt.Println("No configured hosts. Run 'nullify auth login --host <your-instance>.nullify.ai'")
-				return nil
+		installation, _ := cmd.Flags().GetString("installation")
+		if installation != "" {
+			if switchHost != "" && !auth.IsRouterHost(switchHost) {
+				return fmt.Errorf("--installation applies only to nullify.ai")
 			}
+			install, err := auth.SwitchInstallation(cmd.Context(), installation)
+			if err != nil {
+				return fmt.Errorf("switch installation failed: %w", err)
+			}
+			fmt.Printf("Switched to installation %s (%s)\n", install.Name, install.DataHost)
+			return nil
+		}
 
-			cfg, _ := auth.LoadConfig()
-			fmt.Println("Configured hosts:")
-			for h := range creds {
-				marker := "  "
-				if cfg != nil && auth.CredentialKey(cfg.Host) == h {
-					marker = "* "
-				}
-				fmt.Printf("%s%s\n", marker, h)
-			}
-			fmt.Println("\nUse 'nullify auth switch --host <host>' to switch.")
+		if switchHost == "" {
+			listConfiguredHosts()
 			return nil
 		}
 
@@ -193,6 +219,32 @@ var switchCmd = &cobra.Command{
 		fmt.Printf("Switched to %s\n", sanitizedHost)
 		return nil
 	},
+}
+
+func listConfiguredHosts() {
+	creds, err := auth.LoadCredentials()
+	if err != nil || len(creds) == 0 {
+		fmt.Println("No configured hosts. Run 'nullify auth login'")
+		return
+	}
+
+	cfg, _ := auth.LoadConfig()
+	fmt.Println("Configured hosts:")
+	for _, h := range slices.Sorted(maps.Keys(creds)) {
+		marker := "  "
+		if cfg != nil && auth.CredentialKey(cfg.Host) == h {
+			marker = "* "
+		}
+		fmt.Printf("%s%s%s\n", marker, h, installationLabel(creds[h]))
+	}
+	fmt.Println("\nUse 'nullify auth switch --host <host>' to switch hosts, or 'nullify auth switch --installation <name>' to switch installations on nullify.ai.")
+}
+
+func installationLabel(hostCreds auth.HostCredentials) string {
+	if hostCreds.DataHost == "" {
+		return ""
+	}
+	return fmt.Sprintf(" (installation %s, %s)", hostCreds.Installation, hostCreds.DataHost)
 }
 
 var configShowCmd = &cobra.Command{
@@ -220,6 +272,9 @@ func init() {
 	authCmd.AddCommand(tokenCmd)
 	authCmd.AddCommand(switchCmd)
 	authCmd.AddCommand(configShowCmd)
+
+	loginCmd.Flags().String("installation", "", "Installation to use when signing in through nullify.ai")
+	switchCmd.Flags().String("installation", "", "Installation to select for the nullify.ai sign-in")
 }
 
 func resolveHostForAuth() (string, error) {

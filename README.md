@@ -93,10 +93,24 @@ nullify findings
 ### Interactive (SSO/IdP)
 
 ```sh
-nullify auth login --host api.acme.nullify.ai
+nullify auth login
 ```
 
-Opens your browser for single sign-on. Tokens are stored locally and refreshed automatically.
+Opens your browser to sign in through nullify.ai with your identity provider (for example Microsoft Entra ID or GitLab). After sign-in, the CLI selects the installation that holds your data: it uses the only one automatically, asks you to pick one in a terminal, or takes `--installation <name>` in scripts. Tokens are stored locally and refreshed automatically.
+
+If you sign in through nullify.ai, do not set `--host` or `NULLIFY_HOST` to your instance; run `nullify auth login` and the CLI routes data requests to the selected installation. An explicit instance host uses only the credentials stored for that host.
+
+To sign in to your own Nullify instance instead, pass its host:
+
+```sh
+nullify auth login --host acme.nullify.ai
+```
+
+Switch to another installation after signing in through nullify.ai:
+
+```sh
+nullify auth switch --installation other-org
+```
 
 ### Environment Variables
 
@@ -135,7 +149,7 @@ nullify auth switch
 | `nullify auth logout` | Clear stored credentials for a host |
 | `nullify auth status` | Show auth state, host, and token expiry |
 | `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
-| `nullify auth switch` | Switch active instance or list configured instances |
+| `nullify auth switch` | Switch active instance or installation, or list configured instances |
 | `nullify auth config` | Print current CLI config as JSON |
 
 ### Scanning
@@ -292,14 +306,16 @@ Scope findings to a specific repository with `--repo`:
 The CLI stores configuration at `~/.nullify/config.json`. Host resolution priority:
 
 1. `--host` flag
-2. Config file (`~/.nullify/config.json`)
-3. `NULLIFY_HOST` environment variable
+2. `NULLIFY_HOST` environment variable
+3. Config file (`~/.nullify/config.json`)
+
+When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.ai and sends data requests to the selected installation's instance. GitHub Actions token exchange (`--github-token`) needs your instance host, not `nullify.ai`.
 
 ### Global Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--host` | Nullify API instance (e.g., `api.acme.nullify.ai`) | From config |
+| `--host` | Nullify instance (e.g., `acme.nullify.ai`), or `nullify.ai` to sign in through the Nullify router | From config |
 | `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
 | `--verbose, -v` | Enable verbose logging | `false` |
 | `--debug, -d` | Enable debug logging | `false` |

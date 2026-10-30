@@ -43,6 +43,21 @@ func TestParseCustomerDomain(t *testing.T) {
 			input:   "acme.example.com",
 			wantErr: true,
 		},
+		{
+			name:  "router bare host",
+			input: "nullify.ai",
+			want:  "api.nullify.ai",
+		},
+		{
+			name:  "router app host",
+			input: "app.nullify.ai",
+			want:  "api.nullify.ai",
+		},
+		{
+			name:  "router api host",
+			input: "api.nullify.ai",
+			want:  "api.nullify.ai",
+		},
 	}
 
 	for _, tt := range tests {
@@ -94,6 +109,31 @@ func TestSanitizeNullifyHost(t *testing.T) {
 			inputHost:    "https://acme.nullify.ai",
 			expectedHost: "acme.nullify.ai",
 			wantErr:      false,
+		},
+		{
+			name:         "router bare host",
+			inputHost:    "nullify.ai",
+			expectedHost: "nullify.ai",
+		},
+		{
+			name:         "router api host",
+			inputHost:    "api.nullify.ai",
+			expectedHost: "nullify.ai",
+		},
+		{
+			name:         "router app host with scheme and path",
+			inputHost:    "https://app.nullify.ai/dashboard?tab=1",
+			expectedHost: "nullify.ai",
+		},
+		{
+			name:         "router host in upper case",
+			inputHost:    "HTTPS://API.NULLIFY.AI",
+			expectedHost: "nullify.ai",
+		},
+		{
+			name:         "tenant host is not the router",
+			inputHost:    "app.acme.nullify.ai",
+			expectedHost: "app.acme.nullify.ai",
 		},
 		{
 			name:         "input host with invalid scheme delimiter",

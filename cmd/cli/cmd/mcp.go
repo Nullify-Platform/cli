@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -53,24 +54,10 @@ var mcpServeCmd = &cobra.Command{
 			return fmt.Errorf("invalid --tools value %q. Valid values: %s", toolsFlag, strings.Join(validSets, ", "))
 		}
 
-		// Drive the generated API client through a refreshing+retrying transport
-		// so long-running MCP sessions keep working as the token rotates. Tenant
-		// scoping (owner/installation IDs, --repo) rides along as default params.
-		tokenProvider := func() (string, error) {
-			return lib.GetNullifyToken(ctx, authCtx.Host, nullifyToken, githubToken)
+		apiClient, err := newMCPAPIClient(ctx, authCtx, queryParams)
+		if err != nil {
+			return fmt.Errorf("failed to create client: %w", err)
 		}
-		refreshProvider := func() (string, error) {
-			return lib.RefreshNullifyToken(ctx, authCtx.Host, nullifyToken, githubToken)
-		}
-		httpClient, clientErr := client.NewRefreshingHTTPClient(authCtx.Host, tokenProvider, refreshProvider)
-		if clientErr != nil {
-			return fmt.Errorf("failed to create client: %w", clientErr)
-		}
-		// Empty token literal is intentional: the refreshing transport's
-		// RoundTrip injects (and rotates) the Authorization header after
-		// api.Client.do sets it, so the static value in api.Client is
-		// overridden on every request.
-		apiClient := api.NewClient(authCtx.Host, "", queryParams, api.WithHTTPClient(httpClient))
 
 		err = mcp.ServeWithClient(ctx, apiClient, toolSet)
 		if err != nil {
@@ -86,6 +73,28 @@ func init() {
 
 	mcpServeCmd.Flags().String("repo", "", "Repository name to scope findings to (auto-detected from git remote if not set)")
 	mcpServeCmd.Flags().String("tools", "default", "Tool set to register (default, all, minimal, findings, admin)")
+}
+
+// newMCPAPIClient drives the API client through a refreshing, retrying transport so long MCP sessions survive token rotation.
+func newMCPAPIClient(ctx context.Context, authCtx *commandAuthContext, queryParams map[string]string) (*api.Client, error) {
+	tokenProvider, refreshProvider := mcpTokenProviders(ctx, authCtx.AuthHost)
+	httpClient, err := client.NewRefreshingHTTPClient(authCtx.DataHost, tokenProvider, refreshProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	// The refreshing transport sets the Authorization header on every request, so the static token stays empty.
+	return api.NewClient(authCtx.DataHost, "", queryParams, api.WithHTTPClient(httpClient)), nil
+}
+
+func mcpTokenProviders(ctx context.Context, authHost string) (client.TokenProvider, client.TokenProvider) {
+	tokenProvider := func() (string, error) {
+		return lib.GetNullifyToken(ctx, authHost, nullifyToken, githubToken)
+	}
+	refreshProvider := func() (string, error) {
+		return lib.RefreshNullifyToken(ctx, authHost, nullifyToken, githubToken)
+	}
+	return tokenProvider, refreshProvider
 }
 
 // resolveRepo determines the repository name from the flag or git config.
