@@ -126,7 +126,7 @@ One login can cover several organizations, on one instance or several. Each comm
 
 If your default is no longer available, the command stops and says so rather than running as another organization; in a terminal it asks. When nothing applies and you have several organizations, the CLI asks in a terminal and remembers the answer; elsewhere it fails and lists the choices. `nullify org list` shows your organizations and which rule picked the one in use.
 
-Signed in through the router, `nullify org use` can name an organization on another instance: plain commands then run on that instance. `--org` does the same for one command when no `--host` is set.
+Signed in through the router, `nullify org use` can name an organization on another instance: plain commands then run on that instance. `--org` does the same for one command when the command's host is the router (`nullify.ai`, the default after a router login).
 
 ```sh
 # See your organizations on this instance and which one is in use

@@ -159,8 +159,8 @@ func promptForOrg(host string, orgs []auth.Org) (auth.Org, error) {
 var orgCmd = &cobra.Command{
 	Use:   "org",
 	Short: "Choose the organization commands run as",
-	Long: "A login can cover several organizations on one Nullify host. Commands run as the org chosen by " +
-		"--org, NULLIFY_ORG, NULLIFY_GITHUB_OWNER_ID, the git remote's owner, 'nullify org use', or the only org, in that order.",
+	Long: "A login can cover several organizations, and a router login several instances. Commands run as the org chosen by " +
+		"--org, NULLIFY_ORG, NULLIFY_GITHUB_OWNER_ID, the git remote's owner, your default ('nullify org use' or the last login), or the only org, in that order.",
 }
 
 var orgListCmd = &cobra.Command{

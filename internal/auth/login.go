@@ -323,8 +323,9 @@ func RememberOrg(org Org) error {
 
 // SelectOrg makes org the default for its data host and, for a router login,
 // moves the router's selected data host to it and makes the router the
-// default host. Every way of choosing an org (the login picker, 'nullify org
-// use', 'nullify auth switch --installation', the prompt) saves through here.
+// default host. The login picker, 'nullify org use' and 'nullify auth switch
+// --installation' save through here; the prompt uses RememberOrg, which does
+// not move the default host.
 func SelectOrg(org Org) error {
 	dataHost := org.DataHost()
 	if dataHost == "" {

@@ -216,4 +216,9 @@ func TestAnyHostSkipsAnUnusableOrgOnAnotherTenant(t *testing.T) {
 	if _, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "gamma-org", FlagSource: "--org", AnyHost: true}); err == nil {
 		t.Fatal("a pending org on another tenant was chosen")
 	}
+	held.Status = "unavailable"
+	list.Elsewhere = []Org{ready, held}
+	if _, err := ResolveOrg(tenantHost, list, OrgInputs{Flag: "gamma-org", FlagSource: "--org", AnyHost: true}); err == nil {
+		t.Fatal("an unavailable org on another tenant was chosen")
+	}
 }

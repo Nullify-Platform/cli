@@ -218,7 +218,14 @@ func TestMCPConcurrentCallsAcrossOrgsRefreshOnce(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			org := []string{"acme-web", "acme-payments"}[i%2]
-			outs[i] = mcpCall(t, ctx, s, map[string]any{"org": org})
+			msg, _ := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+				"params": map[string]any{"name": "list_repositories", "arguments": map[string]any{"org": org}}})
+			out, err := json.Marshal(s.HandleMessage(ctx, msg))
+			if err != nil {
+				outs[i] = "marshal error: " + err.Error()
+				return
+			}
+			outs[i] = string(out)
 		}()
 	}
 	wg.Wait()

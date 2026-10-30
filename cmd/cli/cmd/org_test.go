@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -449,13 +450,27 @@ func TestOrgUseMovesToAnotherTenantOfTheRouter(t *testing.T) {
 // as 'nullify org use', and refuses a host that is not a router.
 func TestAuthSwitchInstallationAlias(t *testing.T) {
 	loginEnv(t)
+	fake := &fakeNullify{live: "router-token"}
+	old := http.DefaultTransport
+	http.DefaultTransport = fake
+	t.Cleanup(func() { http.DefaultTransport = old })
+	require.NoError(t, auth.SaveHostCredentials("nullify.ai", auth.HostCredentials{
+		AccessToken: "router-token", RefreshToken: "rt", ExpiresAt: time.Now().Add(time.Hour).Unix(),
+	}))
 	require.NoError(t, switchCmd.Flags().Set("installation", "acme-payments"))
 	t.Cleanup(func() { _ = switchCmd.Flags().Set("installation", "") })
 
 	host = "acme.nullify.ai"
-	err := switchCmd.RunE(switchCmd, nil)
-	require.ErrorContains(t, err, "applies to a Nullify router host")
-	host = ""
+	require.ErrorContains(t, switchCmd.RunE(switchCmd, nil), "applies to a Nullify router host")
+
+	host = "nullify.ai"
+	switchCmd.SetContext(context.Background())
+	captureStdout(t, func() { require.NoError(t, switchCmd.RunE(switchCmd, nil)) })
+	creds, err := auth.LoadCredentials()
+	require.NoError(t, err)
+	require.Equal(t, "acme.nullify.ai", creds["nullify.ai"].DataHost)
+	require.Equal(t, map[string]string{"githubOwnerId": "2002002"}, creds["nullify.ai"].QueryParameters)
+	require.Equal(t, "2002002", auth.StoredPick("acme.nullify.ai").ID, "same default 'org use' writes")
 }
 
 // An invalid host saved in the config is an error, not a reason to use
@@ -519,4 +534,76 @@ func TestPromptAnswerDoesNotMoveTheDefaultHost(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "own.nullify.ai", cfg.Host)
 	require.Equal(t, "2002002", auth.StoredPick("acme.nullify.ai").ID)
+}
+
+// 'nullify org list --org <org on another tenant>' on the router selects it,
+// as a command with the same --org would run there.
+func TestOrgListOnTheRouterSelectsAnOrgElsewhere(t *testing.T) {
+	loginEnv(t)
+	beta := auth.Org{Name: "beta-org", Provider: "github", Key: "githubOwnerId", ID: "3003003", Host: "api.beta.nullify.ai", Status: "ready"}
+	stubOrgList(t, func(string) (auth.OrgList, error) {
+		return auth.OrgList{Orgs: []auth.Org{testOrgA, testOrgB}, Elsewhere: []auth.Org{beta}}, nil
+	})
+
+	out, err := orgListing(context.Background(), "acme.nullify.ai", "router-token", auth.OrgInputs{Flag: "beta-org", FlagSource: "--org", AnyHost: true})
+	require.NoError(t, err)
+	require.Equal(t, "beta-org", out["selected"])
+
+	out, err = orgListing(context.Background(), "acme.nullify.ai", "router-token", auth.OrgInputs{Flag: "beta-org", FlagSource: "--org"})
+	require.NoError(t, err)
+	require.Nil(t, out["selected"], "off the router an org elsewhere is not selectable")
+}
+
+// The prompt's RememberOrg moves the router's selection only when it is
+// already on that tenant.
+func TestRememberOrgFollowsTheRouterSelectionOnlyOnItsTenant(t *testing.T) {
+	loginEnv(t)
+	require.NoError(t, auth.SaveHostCredentials("nullify.ai", auth.HostCredentials{AccessToken: "t", DataHost: "acme.nullify.ai", Installation: "acme-web",
+		QueryParameters: map[string]string{"githubOwnerId": "1001001"}}))
+
+	require.NoError(t, auth.RememberOrg(testOrgB))
+	creds, err := auth.LoadCredentials()
+	require.NoError(t, err)
+	require.Equal(t, "acme-payments", creds["nullify.ai"].Installation)
+	require.Equal(t, map[string]string{"githubOwnerId": "2002002"}, creds["nullify.ai"].QueryParameters)
+
+	beta := auth.Org{Name: "beta-org", Key: "githubOwnerId", ID: "3003003", Host: "api.beta.nullify.ai"}
+	require.NoError(t, auth.UpdateHostConfig("beta.nullify.ai", func(hc auth.HostConfig) auth.HostConfig {
+		hc.AuthHost = "api.nullify.ai"
+		return hc
+	}))
+	require.NoError(t, auth.RememberOrg(beta))
+	creds, err = auth.LoadCredentials()
+	require.NoError(t, err)
+	require.Equal(t, "acme.nullify.ai", creds["nullify.ai"].DataHost, "a pick on another tenant moved the router selection")
+	require.Equal(t, "3003003", auth.StoredPick("beta.nullify.ai").ID)
+}
+
+// With an API token, auth status and auth config still report an invalid
+// host as an error, and an invalid config host too.
+func TestAuthStatusAndConfigReportInvalidHostsWithAToken(t *testing.T) {
+	loginEnv(t)
+	t.Setenv("NULLIFY_TOKEN", "api-token")
+	t.Setenv("NULLIFY_HOST", "api.attacker.example#.nullify.ai")
+	statusCmd.SetContext(context.Background())
+	require.ErrorContains(t, statusCmd.RunE(statusCmd, nil), "invalid NULLIFY_HOST")
+
+	t.Setenv("NULLIFY_TOKEN", "")
+	t.Setenv("NULLIFY_HOST", "")
+	require.NoError(t, auth.SaveConfig(&auth.Config{Host: "acme.nullify.ai:8443"}))
+	configShowCmd.SetContext(context.Background())
+	require.ErrorContains(t, configShowCmd.RunE(configShowCmd, nil), "in ~/.nullify/config.json")
+}
+
+// A command on a tenant the router login might cover reports a failed check
+// of that, not "not authenticated".
+func TestCommandSurfacesAFailedRouterCoverageCheck(t *testing.T) {
+	loginEnv(t)
+	t.Setenv("NULLIFY_HOST", "beta.nullify.ai")
+	coverTenant = func(context.Context, string) (bool, error) {
+		return false, errors.New("could not check whether your nullify.ai login covers beta.nullify.ai: status 502")
+	}
+
+	_, err := resolveCommandAuth(context.Background())
+	require.ErrorContains(t, err, "could not check whether your nullify.ai login covers beta.nullify.ai")
 }
