@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,8 @@ type HostCredentials struct {
 	RefreshToken    string            `json:"refresh_token"`
 	ExpiresAt       int64             `json:"expires_at"`
 	QueryParameters map[string]string `json:"query_parameters,omitempty"`
+	DataHost        string            `json:"data_host,omitempty"`
+	Installation    string            `json:"installation,omitempty"`
 }
 
 type Credentials map[string]HostCredentials
@@ -115,29 +118,46 @@ func CredentialKey(host string) string {
 }
 
 func SaveHostCredentials(host string, hostCreds HostCredentials) error {
-	creds, err := LoadCredentials()
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return fmt.Errorf("cannot update credentials: %w", err)
+	return updateHostCredentials(host, func(HostCredentials) HostCredentials { return hostCreds })
+}
+
+func updateHostCredentials(host string, update func(HostCredentials) HostCredentials) error {
+	return updateCredentials(func(creds Credentials) Credentials {
+		next := maps.Clone(creds)
+		key := CredentialKey(host)
+		next[key] = update(creds[key])
+		return next
+	})
+}
+
+// updateCredentials applies update to the stored credentials under the store
+// lock and saves them.
+func updateCredentials(update func(Credentials) Credentials) error {
+	return withStoreLock(func() error {
+		creds, err := LoadCredentials()
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return fmt.Errorf("cannot update credentials: %w", err)
+			}
+			creds = make(Credentials)
 		}
-		creds = make(Credentials)
-	}
-
-	creds[CredentialKey(host)] = hostCreds
-
-	return SaveCredentials(creds)
+		return SaveCredentials(update(creds))
+	})
 }
 
 func DeleteHostCredentials(host string) error {
-	creds, err := LoadCredentials()
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
+	return withStoreLock(func() error {
+		creds, err := LoadCredentials()
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil
+			}
+			return err
 		}
-		return err
-	}
 
-	delete(creds, CredentialKey(host))
+		next := maps.Clone(creds)
+		delete(next, CredentialKey(host))
 
-	return SaveCredentials(creds)
+		return SaveCredentials(next)
+	})
 }

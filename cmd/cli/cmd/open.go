@@ -19,9 +19,7 @@ var openCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		// Strip "api." prefix to get the dashboard URL
-		dashboardHost := strings.TrimPrefix(openHost, "api.")
-		url := "https://" + dashboardHost
+		url := dashboardURL(openHost)
 
 		if !quiet {
 			fmt.Fprintf(os.Stderr, "Opening %s...\n", url)
@@ -43,4 +41,11 @@ var openCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(openCmd)
+}
+
+func dashboardURL(commandHost string) string {
+	if auth.IsRouterHost(commandHost) {
+		return auth.RouterAppURL
+	}
+	return "https://" + strings.TrimPrefix(commandHost, "api.")
 }

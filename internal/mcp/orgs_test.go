@@ -45,18 +45,18 @@ func orgsFor(byName map[string]string, def string) Orgs {
 		names = append(names, n)
 	}
 	return Orgs{
-		Resolve: func(_ context.Context, org string) (map[string]string, error) {
+		Resolve: func(_ context.Context, org string) (map[string]string, string, error) {
 			if org == "" {
 				org = def
 			}
 			if org == "" {
-				return nil, fmt.Errorf("acme.nullify.ai serves %d organizations; choose one with --org: %s", len(byName), strings.Join(names, ", "))
+				return nil, "", fmt.Errorf("acme.nullify.ai serves %d organizations; choose one with --org: %s", len(byName), strings.Join(names, ", "))
 			}
 			id, ok := byName[org]
 			if !ok {
-				return nil, fmt.Errorf("org argument %q is not one of your organizations", org)
+				return nil, "", fmt.Errorf("org argument %q is not one of your organizations", org)
 			}
-			return map[string]string{"githubOwnerId": id}, nil
+			return map[string]string{"githubOwnerId": id}, org, nil
 		},
 		List: func(context.Context) (any, error) {
 			return map[string]any{"organizations": names}, nil
@@ -117,7 +117,7 @@ func TestServerStartsWithSeveralOrgsAndNoDefault(t *testing.T) {
 	resolved := 0
 	orgs := orgsFor(map[string]string{"acme-web": "1001001", "acme-payments": "2002002"}, "")
 	resolve := orgs.Resolve
-	orgs.Resolve = func(ctx context.Context, org string) (map[string]string, error) {
+	orgs.Resolve = func(ctx context.Context, org string) (map[string]string, string, error) {
 		resolved++
 		return resolve(ctx, org)
 	}

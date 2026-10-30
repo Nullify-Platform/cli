@@ -46,7 +46,7 @@ func refreshHandler(w http.ResponseWriter, _ *http.Request) {
 func TestRefreshTokenReadsSetCookie(t *testing.T) {
 	newAuthServer(t, refreshHandler)
 
-	got, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "stored-refresh"})
+	got, err := refreshStored(t, "example.nullify.ai", "stored-refresh")
 	if err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
@@ -82,6 +82,9 @@ func TestRefreshTokenLeavesStoredOrgAlone(t *testing.T) {
 		RefreshToken:    "rt",
 		QueryParameters: map[string]string{"githubOwnerId": "7"},
 	}
+	if err := SaveHostCredentials("example.nullify.ai", stored); err != nil {
+		t.Fatalf("SaveHostCredentials: %v", err)
+	}
 
 	if _, err := refreshToken(context.Background(), "example.nullify.ai", stored); err != nil {
 		t.Fatalf("refreshToken: %v", err)
@@ -102,7 +105,7 @@ func TestRefreshTokenBodyTokenWins(t *testing.T) {
 		_, _ = w.Write([]byte(`{"accessToken":"body-token","expiresIn":60}`))
 	})
 
-	got, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
+	got, err := refreshStored(t, "example.nullify.ai", "rt")
 	if err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
@@ -119,7 +122,7 @@ func TestRefreshTokenIgnoresEmptyCookie(t *testing.T) {
 		_, _ = w.Write([]byte(`{"expiresIn":3600}`))
 	})
 
-	got, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
+	got, err := refreshStored(t, "example.nullify.ai", "rt")
 	if err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
@@ -140,7 +143,7 @@ func TestRefreshTokenExpiresFallback(t *testing.T) {
 		_, _ = w.Write([]byte(`{}`))
 	})
 
-	if _, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"}); err != nil {
+	if _, err := refreshStored(t, "example.nullify.ai", "rt"); err != nil {
 		t.Fatalf("refreshToken: %v", err)
 	}
 
@@ -158,7 +161,7 @@ func TestRefreshTokenNoTokenAnywhere(t *testing.T) {
 		_, _ = w.Write([]byte(`{"expiresIn":3600}`))
 	})
 
-	_, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
+	_, err := refreshStored(t, "example.nullify.ai", "rt")
 	if err == nil {
 		t.Fatal("want an error when neither body nor cookie carries a token")
 	}
@@ -169,7 +172,7 @@ func TestRefreshTokenNon200(t *testing.T) {
 		w.WriteHeader(http.StatusUnauthorized)
 	})
 
-	_, err := refreshToken(context.Background(), "example.nullify.ai", HostCredentials{RefreshToken: "rt"})
+	_, err := refreshStored(t, "example.nullify.ai", "rt")
 	if err == nil {
 		t.Fatal("want an error on a non-200 refresh")
 	}
@@ -240,4 +243,15 @@ func seed(t *testing.T, host, access, refresh string, expiresAt int64) {
 	if err != nil {
 		t.Fatalf("seed credentials: %v", err)
 	}
+}
+
+// refreshStored stores a login under host with refresh token rt and refreshes
+// it, as a command would.
+func refreshStored(t *testing.T, host, rt string) (string, error) {
+	t.Helper()
+	stored := HostCredentials{RefreshToken: rt}
+	if err := SaveHostCredentials(host, stored); err != nil {
+		t.Fatalf("SaveHostCredentials: %v", err)
+	}
+	return refreshToken(context.Background(), host, stored)
 }

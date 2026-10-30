@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -77,15 +78,23 @@ func saveHosts(hosts Hosts) error {
 
 // UpdateHostConfig applies update to the stored config for host and saves it.
 func UpdateHostConfig(host string, update func(HostConfig) HostConfig) error {
-	hosts, err := LoadHosts()
-	if err != nil {
-		return err
-	}
+	return updateHosts(func(hosts Hosts) Hosts {
+		next := maps.Clone(hosts)
+		next[CredentialKey(host)] = update(hosts[CredentialKey(host)])
+		return next
+	})
+}
 
-	next := maps.Clone(hosts)
-	next[CredentialKey(host)] = update(hosts[CredentialKey(host)])
-
-	return saveHosts(next)
+// updateHosts applies update to the stored host configs under the store lock
+// and saves them.
+func updateHosts(update func(Hosts) Hosts) error {
+	return withStoreLock(func() error {
+		hosts, err := LoadHosts()
+		if err != nil {
+			return err
+		}
+		return saveHosts(update(hosts))
+	})
 }
 
 // AuthHostFor returns the host whose credentials serve host: the auth host
@@ -150,4 +159,82 @@ func KnownHosts() ([]string, error) {
 	}
 
 	return slices.Sorted(maps.Keys(known)), nil
+}
+
+// StoredPick returns the org remembered for dataHost: the one saved by a
+// login or 'nullify org use', else the installation a CLI v0.26.0 router
+// login selected there, which this version takes over as the same choice.
+// It is returned even when the org is no longer available, so the caller can
+// say so instead of quietly using another.
+func StoredPick(dataHost string) *OrgPick {
+	key := CredentialKey(dataHost)
+	if hosts, err := LoadHosts(); err == nil && hosts[key].Org != nil {
+		return hosts[key].Org
+	}
+
+	creds, err := LoadCredentials()
+	if err != nil {
+		return nil
+	}
+	for _, r := range routers {
+		rc := creds[r.Key]
+		if rc.DataHost != key {
+			continue
+		}
+		for _, k := range slices.Sorted(maps.Keys(rc.QueryParameters)) {
+			if slices.Contains(slices.Collect(maps.Values(providerKeys)), k) && rc.QueryParameters[k] != "" {
+				return &OrgPick{Name: rc.Installation, Key: k, ID: rc.QueryParameters[k]}
+			}
+		}
+	}
+	return nil
+}
+
+// CoverTenant binds tenant to a stored router login that lists one of the
+// user's orgs on it, and reports whether one did: a router login covers every
+// tenant it lists, including one added after the login.
+func CoverTenant(ctx context.Context, tenant string) (bool, error) {
+	if covered, err := CoverSelectedTenant(tenant); covered || err != nil {
+		return covered, err
+	}
+	creds, err := LoadCredentials()
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	for _, r := range routers {
+		if _, ok := creds[r.Key]; !ok {
+			continue
+		}
+		token, err := GetValidToken(ctx, r.Key)
+		if err != nil {
+			continue
+		}
+		orgs, err := fetchOrgs(ctx, r.AuthHost, token)
+		if err != nil {
+			continue
+		}
+		if len(orgsOn(routedOrgs(orgs), tenant)) > 0 {
+			return true, BindTenant(tenant, r)
+		}
+	}
+	return false, nil
+}
+
+// CoverSelectedTenant binds tenant to the router login whose selected data
+// host it is, as a CLI v0.26.0 login leaves it, without asking the router.
+func CoverSelectedTenant(tenant string) (bool, error) {
+	creds, err := LoadCredentials()
+	if err != nil {
+		return false, nil
+	}
+	for _, r := range routers {
+		if rc, ok := creds[r.Key]; ok && rc.DataHost == CredentialKey(tenant) {
+			return true, BindTenant(tenant, r)
+		}
+	}
+	return false, nil
 }

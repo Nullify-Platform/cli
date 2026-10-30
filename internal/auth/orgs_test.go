@@ -35,7 +35,7 @@ func TestResolveOrgPrecedence(t *testing.T) {
 		{"NULLIFY_ORG beats NULLIFY_GITHUB_OWNER_ID", twoOrgs(), OrgInputs{EnvOrg: "acme-payments", EnvGitHubOwnerID: "1001001"}, acmePay},
 		{"NULLIFY_GITHUB_OWNER_ID beats the stored pick", twoOrgs(), OrgInputs{EnvGitHubOwnerID: "1001001", Stored: stored}, acmeWeb},
 		{"NULLIFY_ORG beats the stored pick", twoOrgs(), OrgInputs{EnvOrg: "acme-web", Stored: stored}, acmeWeb},
-		{"stored pick beats the git owner", twoOrgs(), OrgInputs{Stored: stored, GitOwner: "acme-web"}, acmePay},
+		{"git owner beats the stored pick", twoOrgs(), OrgInputs{Stored: stored, GitOwner: "acme-web"}, acmeWeb},
 		{"stored pick no longer in the list falls through to the git owner", twoOrgs(), OrgInputs{Stored: stale, GitOwner: "ACME-WEB"}, acmeWeb},
 		{"git owner names one org", twoOrgs(), OrgInputs{GitOwner: "acme-payments"}, acmePay},
 		{"git owner matching nothing falls through to the sole org", OrgList{Orgs: []Org{acmeWeb}}, OrgInputs{GitOwner: "someone-else"}, acmeWeb},

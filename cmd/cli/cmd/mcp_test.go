@@ -92,8 +92,8 @@ func TestMCPServeOnARouterLogin(t *testing.T) {
 	require.NotContains(t, out, `"isError":true`, out)
 
 	// The token stops being accepted mid-session, before its stored expiry:
-	// the same process refreshes at the router, never the tenant, for the
-	// org list and for the API call, and both retry.
+	// the API call refreshes once, at the router, never the tenant, and
+	// retries; the org list is still cached.
 	fake.mu.Lock()
 	fake.live = "only-a-refresh-gets-this"
 	fake.mu.Unlock()
@@ -102,7 +102,7 @@ func TestMCPServeOnARouterLogin(t *testing.T) {
 
 	fake.mu.Lock()
 	defer fake.mu.Unlock()
-	require.Equal(t, []string{"api.nullify.ai", "api.nullify.ai"}, fake.refreshes)
+	require.Equal(t, []string{"api.nullify.ai"}, fake.refreshes)
 	require.Equal(t, []string{
 		"Bearer router-token 2002002",
 		"Bearer router-token 1001001",

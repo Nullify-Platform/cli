@@ -137,6 +137,9 @@ func fakeRouterLogin(t *testing.T) func(w http.ResponseWriter, r *http.Request, 
 				ExpiresIn:       3600,
 				QueryParameters: map[string]string{"githubOwnerId": "1"},
 			})
+		case host == routerAPI && path == "/admin/installations":
+			_, _ = w.Write([]byte(`{"installations":[{"name":"acme-web","provider":{"id":"GitHub","github":{}},` +
+				`"nullifyBaseUrl":"https://` + tenantAPI + `","queryParameters":{"githubOwnerId":"1001001"}}]}`))
 		default:
 			t.Errorf("unexpected call to %s%s", host, path)
 			w.WriteHeader(http.StatusTeapot)
@@ -175,7 +178,7 @@ func TestLoginRunsSessionAndRedeemOnTheAuthHost(t *testing.T) {
 	// A login the tenant ran itself before it moved to the router.
 	seed(t, tenantHost, "tenant-pool-token", "tenant-pool-refresh", time.Now().Add(time.Hour).Unix())
 
-	if err := Login(context.Background(), tenantHost); err != nil {
+	if err := Login(context.Background(), tenantHost, InstallationPicker{}); err != nil {
 		t.Fatalf("Login: %v", err)
 	}
 
@@ -183,6 +186,7 @@ func TestLoginRunsSessionAndRedeemOnTheAuthHost(t *testing.T) {
 		{tenantAPI, "/auth/cli/config"},
 		{routerAPI, "/auth/cli/session"},
 		{routerAPI, "/auth/cli/token"},
+		{routerAPI, "/admin/installations"},
 	}
 	if len(*calls) != len(want) {
 		t.Fatalf("calls = %v, want %v", *calls, want)
@@ -208,9 +212,20 @@ func TestLoginRunsSessionAndRedeemOnTheAuthHost(t *testing.T) {
 	if err != nil || authHost != routerAPI {
 		t.Errorf("AuthHostFor = %q, %v; want %q", authHost, err, routerAPI)
 	}
+	// The router is the default host and the tenant its selected data host,
+	// which is also how CLI v0.26.0 reads a router login.
 	cfg, err := LoadConfig()
-	if err != nil || cfg.Host != tenantHost {
-		t.Errorf("config = %+v, %v; want host %q", cfg, err, tenantHost)
+	if err != nil || cfg.Host != RouterHost {
+		t.Errorf("config = %+v, %v; want host %q", cfg, err, RouterHost)
+	}
+	router := creds[RouterHost]
+	if router.DataHost != CredentialKey(tenantHost) || router.Installation != "acme-web" ||
+		router.QueryParameters["githubOwnerId"] != "1001001" {
+		t.Errorf("router selection = %+v, want acme-web on %s", router, tenantHost)
+	}
+	hosts, err := LoadHosts()
+	if err != nil || hosts[CredentialKey(tenantHost)].Org == nil || hosts[CredentialKey(tenantHost)].Org.ID != "1001001" {
+		t.Errorf("hosts = %+v, %v; want acme-web remembered for %s", hosts, err, tenantHost)
 	}
 }
 
@@ -220,7 +235,7 @@ func TestLoginFailsClosedWhenDiscoveryFails(t *testing.T) {
 	})
 	stubBrowser(t)
 
-	err := Login(context.Background(), tenantHost)
+	err := Login(context.Background(), tenantHost, InstallationPicker{})
 	if err == nil || !strings.Contains(err.Error(), "status 502") {
 		t.Fatalf("err = %v, want the discovery failure", err)
 	}
@@ -452,7 +467,7 @@ func TestLoginOnALegacyStackStaysOnTheTenant(t *testing.T) {
 	})
 	stubBrowser(t)
 
-	if err := Login(context.Background(), tenantHost); err != nil {
+	if err := Login(context.Background(), tenantHost, InstallationPicker{}); err != nil {
 		t.Fatalf("Login: %v", err)
 	}
 	if len(*calls) != 3 {

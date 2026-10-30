@@ -93,10 +93,24 @@ nullify findings
 ### Interactive (SSO/IdP)
 
 ```sh
-nullify auth login --host api.acme.nullify.ai
+nullify auth login
 ```
 
-Opens your browser for single sign-on. Tokens are stored locally and refreshed automatically.
+Opens your browser to sign in through nullify.ai with your identity provider (for example Microsoft Entra ID or GitLab). After sign-in, the CLI selects the installation that holds your data: it uses the only one automatically, asks you to pick one in a terminal, or takes `--installation <name>` in scripts. Tokens are stored locally and refreshed automatically.
+
+If you sign in through nullify.ai, do not set `--host` or `NULLIFY_HOST` to your instance; run `nullify auth login` and the CLI routes data requests to the selected installation. An explicit instance host uses only the credentials stored for that host.
+
+To sign in to your own Nullify instance instead, pass its host:
+
+```sh
+nullify auth login --host acme.nullify.ai
+```
+
+Switch to another installation after signing in through nullify.ai:
+
+```sh
+nullify auth switch --installation other-org
+```
 
 Before it signs in, the CLI asks your instance where its login runs (`GET /auth/cli/config`). An instance attached to the Nullify router answers with the router's host (`api.nullify.ai`), and the CLI signs in and refreshes there; one login then covers every instance that shares it. An instance without that endpoint signs in on its own host. The CLI only follows an answer naming your instance or a Nullify router, and fails otherwise.
 
@@ -165,9 +179,9 @@ nullify auth switch
 | `nullify auth status` | Show auth state, host, auth host, organization, and token expiry |
 | `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
 | `nullify auth switch` | Switch active instance or list configured instances |
-| `nullify auth config` | Print the effective host, auth host, and organization as JSON |
-| `nullify org list` | List the organizations you can use on this instance |
-| `nullify org use <name\|id>` | Remember the organization to use on this instance |
+| `nullify auth config` | Print the effective host, auth host, data host, and organization as JSON |
+| `nullify org list` | List the organizations you can use, and which one commands run as and why |
+| `nullify org use <name\|id>` | Remember the organization commands run as (and, through the Nullify router, its instance) |
 
 ### Scanning
 
@@ -357,11 +371,13 @@ Host resolution priority:
 2. `NULLIFY_HOST` environment variable
 3. Config file (`~/.nullify/config.json`)
 
+When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.ai and sends data requests to the selected organization's instance. GitHub Actions token exchange (`--github-token`) needs your instance host, not `nullify.ai`.
+
 ### Global Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--host` | Nullify API instance (e.g., `api.acme.nullify.ai`) | From config |
+| `--host` | Nullify instance (e.g., `acme.nullify.ai`), or `nullify.ai` to sign in through the Nullify router | From config |
 | `--org` | Organization to run as, by name or id (see [Organizations](#organizations)) | |
 | `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
 | `--verbose, -v` | Enable verbose logging | `false` |

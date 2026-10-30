@@ -31,6 +31,11 @@ var (
 type orgScope struct {
 	Org   *auth.Org
 	Query map[string]string
+	// Reason says which rule chose Org.
+	Reason string
+	// Token is the token the org list accepted, newer than the caller's
+	// when the list refused that one and it was refreshed.
+	Token string
 }
 
 // usesMachineToken reports whether the command authenticates with an API or
@@ -51,25 +56,23 @@ func orgInputsFor(host, flag, source string) auth.OrgInputs {
 		EnvGitHubOwnerID: os.Getenv("NULLIFY_GITHUB_OWNER_ID"),
 		GitOwner:         lib.DetectOwnerFromGit(),
 	}
-	if hosts, err := auth.LoadHosts(); err == nil {
-		in.Stored = hosts[auth.CredentialKey(host)].Org
-	}
+	in.Stored = auth.StoredPick(host)
 	return in
 }
 
 // resolveOrgScope picks the org a command on host runs as (auth.ResolveOrg).
 // An API token names its org only when asked to: with no explicit choice
 // the request goes without one and the server takes the token's own. When
-// the choice is ambiguous and prompt is set, the user is asked and the
-// answer is remembered for host.
+// the choice is ambiguous, or the remembered org is gone, and prompt is set,
+// the user is asked and the answer is remembered for host.
 func resolveOrgScope(ctx context.Context, host, token string, in auth.OrgInputs, prompt bool) (orgScope, error) {
 	listHost := host
 	if usesMachineToken() {
 		if strings.TrimSpace(in.Flag) == "" && strings.TrimSpace(in.EnvOrg) == "" {
 			if id := strings.TrimSpace(in.EnvGitHubOwnerID); id != "" {
-				return orgScope{Query: map[string]string{"githubOwnerId": id}}, nil
+				return orgScope{Query: map[string]string{"githubOwnerId": id}, Reason: "NULLIFY_GITHUB_OWNER_ID", Token: token}, nil
 			}
-			return orgScope{Query: map[string]string{}}, nil
+			return orgScope{Query: map[string]string{}, Reason: "the API token's own", Token: token}, nil
 		}
 		// The token is the tenant's, so its orgs are read from the tenant.
 		in = auth.OrgInputs{Flag: in.Flag, FlagSource: in.FlagSource, EnvOrg: in.EnvOrg}
@@ -78,22 +81,29 @@ func resolveOrgScope(ctx context.Context, host, token string, in auth.OrgInputs,
 		if listHost, err = auth.AuthHostFor(host); err != nil {
 			return orgScope{}, err
 		}
+		if !auth.IsRouterHost(listHost) {
+			in.AnyHost = false
+		}
 	}
 
-	list, err := listOrgsFresh(ctx, host, listHost, token)
+	list, token, err := listOrgsFresh(ctx, host, listHost, token)
 	if err != nil {
 		return orgScope{}, err
 	}
 
-	org, err := auth.ResolveOrg(host, list, in)
+	org, reason, err := auth.ResolveOrgReason(host, list, in)
 	var notChosen *auth.ErrOrgNotChosen
 	if errors.As(err, &notChosen) && prompt && !usesMachineToken() {
 		explicit := strings.TrimSpace(in.Flag) != "" || strings.TrimSpace(in.EnvOrg) != "" || strings.TrimSpace(in.EnvGitHubOwnerID) != ""
+		if notChosen.Unavailable != nil {
+			fmt.Fprintf(promptOut, "Your default organization %s is no longer available on %s.\n", notChosen.Unavailable.Name, host)
+		}
 		org, err = promptForOrg(host, notChosen.Orgs)
+		reason = "chosen at the prompt"
 		// An ambiguous --org answers this command only; the remembered pick
 		// changes when nothing named an org.
 		if err == nil && !explicit {
-			if saveErr := rememberOrg(host, org); saveErr != nil {
+			if saveErr := auth.SelectOrg(org); saveErr != nil {
 				fmt.Fprintf(promptOut, "Could not remember %s for %s: %v\n", org.Name, host, saveErr)
 			} else {
 				fmt.Fprintf(promptOut, "Using %s on %s from now on; change it with 'nullify org use'.\n", org.Name, host)
@@ -103,22 +113,24 @@ func resolveOrgScope(ctx context.Context, host, token string, in auth.OrgInputs,
 	if err != nil {
 		return orgScope{}, err
 	}
-	return orgScope{Org: &org, Query: org.Query()}, nil
+	return orgScope{Org: &org, Query: org.Query(), Reason: reason, Token: token}, nil
 }
 
 // listOrgsFresh lists orgs with token, and once more with a force-refreshed
 // token if the list rejects it: a token can stop being accepted before its
-// stored expiry, and the org list is often a command's first call.
-func listOrgsFresh(ctx context.Context, host, listHost, token string) (auth.OrgList, error) {
+// stored expiry, and the org list is often a command's first call. It
+// returns the token the list accepted.
+func listOrgsFresh(ctx context.Context, host, listHost, token string) (auth.OrgList, string, error) {
 	list, err := listOrgs(ctx, host, listHost, token)
 	if !errors.Is(err, auth.ErrTokenRejected) {
-		return list, err
+		return list, token, err
 	}
 	fresh, refreshErr := lib.RefreshNullifyToken(ctx, host, nullifyToken, githubToken)
 	if refreshErr != nil || fresh == "" || fresh == token {
-		return list, err
+		return list, token, err
 	}
-	return listOrgs(ctx, host, listHost, fresh)
+	list, err = listOrgs(ctx, host, listHost, fresh)
+	return list, fresh, err
 }
 
 func promptForOrg(host string, orgs []auth.Org) (auth.Org, error) {
@@ -144,18 +156,11 @@ func promptForOrg(host string, orgs []auth.Org) (auth.Org, error) {
 	return auth.Org{}, fmt.Errorf("%q is not one of the listed organizations", answer)
 }
 
-func rememberOrg(host string, org auth.Org) error {
-	return auth.UpdateHostConfig(host, func(hc auth.HostConfig) auth.HostConfig {
-		hc.Org = &auth.OrgPick{Name: org.Name, Key: org.Key, ID: org.ID}
-		return hc
-	})
-}
-
 var orgCmd = &cobra.Command{
 	Use:   "org",
 	Short: "Choose the organization commands run as",
 	Long: "A login can cover several organizations on one Nullify host. Commands run as the org chosen by " +
-		"--org, NULLIFY_ORG, NULLIFY_GITHUB_OWNER_ID, 'nullify org use', the git remote's owner, or the only org, in that order.",
+		"--org, NULLIFY_ORG, NULLIFY_GITHUB_OWNER_ID, the git remote's owner, 'nullify org use', or the only org, in that order.",
 }
 
 var orgListCmd = &cobra.Command{
@@ -171,7 +176,7 @@ var orgListCmd = &cobra.Command{
 			return err
 		}
 
-		out, err := orgListing(ctx, authCtx.Host, authCtx.Token, orgFlag)
+		out, err := orgListing(ctx, authCtx.DataHost, authCtx.Token, auth.OrgInputs{Flag: orgFlag, FlagSource: "--org"})
 		if err != nil {
 			return err
 		}
@@ -186,8 +191,10 @@ var orgListCmd = &cobra.Command{
 
 var orgUseCmd = &cobra.Command{
 	Use:   "use <name|id>",
-	Short: "Remember the organization to use on this host",
-	Args:  cobra.ExactArgs(1),
+	Short: "Remember the organization commands run as",
+	Long: "Remember the organization commands run as. Signed in through the Nullify router, it can name an " +
+		"organization on another instance, and plain commands then run on that instance.",
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		if usesMachineToken() {
@@ -198,31 +205,31 @@ var orgUseCmd = &cobra.Command{
 			return err
 		}
 
-		listHost, err := auth.AuthHostFor(authCtx.Host)
+		listHost, err := auth.AuthHostFor(authCtx.DataHost)
 		if err != nil {
 			return err
 		}
-		list, err := listOrgsFresh(ctx, authCtx.Host, listHost, authCtx.Token)
+		list, _, err := listOrgsFresh(ctx, authCtx.DataHost, listHost, authCtx.Token)
 		if err != nil {
 			return err
 		}
-		org, err := auth.ResolveOrg(authCtx.Host, list, auth.OrgInputs{Flag: args[0], FlagSource: "org"})
+		org, err := auth.ResolveOrg(authCtx.DataHost, list, auth.OrgInputs{Flag: args[0], FlagSource: "org", AnyHost: auth.IsRouterHost(listHost)})
 		if err != nil {
 			return err
 		}
-		if err := rememberOrg(authCtx.Host, org); err != nil {
-			return fmt.Errorf("failed to save the organization: %w", err)
+		if err := auth.SelectOrg(org); err != nil {
+			return err
 		}
 
-		fmt.Printf("Using %s on %s\n", org, authCtx.Host)
+		fmt.Printf("Using %s on %s\n", org, org.DataHost())
 		return nil
 	},
 }
 
 // orgListing describes the orgs the token can use on host and which one a
-// call naming none would run as, for `nullify org list` and the MCP
-// list_organizations tool. flag is --org.
-func orgListing(ctx context.Context, host, token, flag string) (map[string]any, error) {
+// call naming none would run as, and why, for `nullify org list` and the MCP
+// list_organizations tool. in is how the caller names its org.
+func orgListing(ctx context.Context, host, token string, in auth.OrgInputs) (map[string]any, error) {
 	listHost := host
 	if !usesMachineToken() {
 		var err error
@@ -230,7 +237,7 @@ func orgListing(ctx context.Context, host, token, flag string) (map[string]any, 
 			return nil, err
 		}
 	}
-	list, err := listOrgsFresh(ctx, host, listHost, token)
+	list, token, err := listOrgsFresh(ctx, host, listHost, token)
 	if err != nil {
 		return nil, err
 	}
@@ -245,13 +252,18 @@ func orgListing(ctx context.Context, host, token, flag string) (map[string]any, 
 	if len(list.Elsewhere) > 0 {
 		out["elsewhere"] = list.Elsewhere
 	}
-	scope, err := resolveOrgScope(ctx, host, token, orgInputsFor(host, flag, "--org"), false)
+	full := orgInputsFor(host, in.Flag, in.FlagSource)
+	if in.Stored != nil {
+		full.Stored = in.Stored
+	}
+	scope, err := resolveOrgScope(ctx, host, token, full, false)
 	switch {
 	case err != nil:
 		out["selected"] = nil
 		out["selection"] = err.Error()
 	case scope.Org != nil:
 		out["selected"] = scope.Org.Name
+		out["selection"] = scope.Reason
 	case scope.Query["githubOwnerId"] != "":
 		out["selected"] = nil
 		out["selection"] = "githubOwnerId " + scope.Query["githubOwnerId"] + " (NULLIFY_GITHUB_OWNER_ID)"

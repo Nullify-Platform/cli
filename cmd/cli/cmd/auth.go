@@ -23,41 +23,59 @@ var authCmd = &cobra.Command{
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Log in to Nullify",
-	Long:  "Authenticate with your Nullify instance. Opens your browser to log in with your identity provider.",
+	Long: "Authenticate with Nullify. Opens your browser to log in with your identity provider. An instance that " +
+		"signs in through the Nullify router hands the login to the router, and one router login then covers every " +
+		"instance the router lists for you. Without --host, logs in where your configured instance says, or through " +
+		"nullify.ai. --org chooses the organization to start with.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 		defer stop()
 
-		loginHost := host
-
-		// If no host from flag, try config file
-		if loginHost == "" {
-			cfg, err := auth.LoadConfig()
-			if err == nil && cfg.Host != "" {
-				loginHost = cfg.Host
-			}
-		}
-
-		// If still no host, prompt (only when running interactively).
-		if loginHost == "" {
-			if !stdinIsTTY() {
-				return fmt.Errorf("not a terminal; pass --host <your-instance>.nullify.ai")
-			}
-			fmt.Print("Enter your Nullify instance (e.g., acme.nullify.ai): ")
-			_, _ = fmt.Scanln(&loginHost)
-		}
-
-		sanitizedHost, err := lib.SanitizeNullifyHost(loginHost)
+		sanitizedHost, err := resolveLoginHost()
 		if err != nil {
-			return fmt.Errorf("invalid host %q - must be in the format <your-instance>.nullify.ai", loginHost)
+			return err
 		}
 
-		if err := auth.Login(ctx, sanitizedHost); err != nil {
+		name := orgFlag
+		if installation, _ := cmd.Flags().GetString("installation"); name == "" {
+			name = installation
+		}
+
+		if err := auth.Login(ctx, sanitizedHost, installationPicker(name)); err != nil {
 			return fmt.Errorf("login failed: %w", err)
 		}
 		return nil
 	},
+}
+
+// resolveLoginHost returns the --host flag, else the configured host, else the router host.
+func resolveLoginHost() (string, error) {
+	loginHost := host
+	if loginHost == "" {
+		cfg, err := auth.LoadConfig()
+		if err == nil && cfg.Host != "" {
+			loginHost = cfg.Host
+		}
+	}
+	if loginHost == "" {
+		loginHost = auth.RouterHost
+	}
+
+	sanitizedHost, err := lib.SanitizeNullifyHost(loginHost)
+	if err != nil {
+		return "", fmt.Errorf("invalid host %q - must be nullify.ai or <your-instance>.nullify.ai", loginHost)
+	}
+	return sanitizedHost, nil
+}
+
+func installationPicker(name string) auth.InstallationPicker {
+	return auth.InstallationPicker{
+		Name:        name,
+		Interactive: stdinIsTTY(),
+		In:          os.Stdin,
+		Out:         os.Stdout,
+	}
 }
 
 var logoutCmd = &cobra.Command{
@@ -90,7 +108,7 @@ var logoutCmd = &cobra.Command{
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show authentication status",
-	Long:  "Display the current authentication state including host, auth host, organization, and token expiry.",
+	Long:  "Display the current authentication state including host, auth host, data host, organization, and token expiry.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
@@ -102,6 +120,9 @@ var statusCmd = &cobra.Command{
 			}
 			fmt.Printf("Host: %s\n", statusHost)
 			fmt.Println("Auth: API token")
+			if _, _, ok, err := auth.LookupCredentials(statusHost); err == nil && ok {
+				fmt.Println("Note: the API token (--nullify-token or NULLIFY_TOKEN) overrides your 'nullify auth login' session")
+			}
 			fmt.Printf("Org: %s\n", describeOrg(ctx, statusHost))
 			return nil
 		}
@@ -111,7 +132,7 @@ var statusCmd = &cobra.Command{
 			if host != "" {
 				return err
 			}
-			fmt.Println("No host configured. Run 'nullify auth login --host <your-instance>.nullify.ai'")
+			fmt.Println("No host configured. Run 'nullify auth login'")
 			return nil
 		}
 
@@ -126,6 +147,10 @@ var statusCmd = &cobra.Command{
 			return nil
 		}
 
+		if auth.IsRouterHost(statusHost) {
+			printInstallation(hostCreds)
+		}
+
 		if hostCreds.ExpiresAt > 0 {
 			expiresAt := time.Unix(hostCreds.ExpiresAt, 0)
 			if time.Now().After(expiresAt) {
@@ -136,9 +161,20 @@ var statusCmd = &cobra.Command{
 		} else {
 			fmt.Println("Status: authenticated")
 		}
+		if id := os.Getenv("NULLIFY_GITHUB_OWNER_ID"); id != "" {
+			fmt.Printf("Note: NULLIFY_GITHUB_OWNER_ID=%s chooses the organization\n", id)
+		}
 		fmt.Printf("Org: %s\n", describeOrg(ctx, statusHost))
 		return nil
 	},
+}
+
+func printInstallation(hostCreds auth.HostCredentials) {
+	if hostCreds.DataHost == "" {
+		fmt.Println("Data host: none selected - run 'nullify org use <name>'")
+		return
+	}
+	fmt.Printf("Data host: %s (%s)\n", hostCreds.DataHost, hostCreds.Installation)
 }
 
 var tokenCmd = &cobra.Command{
@@ -166,31 +202,28 @@ var tokenCmd = &cobra.Command{
 var switchCmd = &cobra.Command{
 	Use:   "switch",
 	Short: "Switch between configured hosts",
-	Long:  "Switch the default host when multiple Nullify instances are configured.",
+	Long:  "Switch the default host when multiple Nullify instances are configured. To choose an organization, use 'nullify org use'.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		switchHost, _ := cmd.Flags().GetString("host")
 		if switchHost == "" && host != "" {
 			switchHost = host
 		}
 
-		if switchHost == "" {
-			// List available hosts
-			known, err := auth.KnownHosts()
-			if err != nil || len(known) == 0 {
-				fmt.Println("No configured hosts. Run 'nullify auth login --host <your-instance>.nullify.ai'")
-				return nil
+		if installation, _ := cmd.Flags().GetString("installation"); installation != "" {
+			router, err := switchRouter(switchHost)
+			if err != nil {
+				return err
 			}
+			org, err := auth.SwitchInstallation(cmd.Context(), router, installation)
+			if err != nil {
+				return fmt.Errorf("switch installation failed: %w", err)
+			}
+			fmt.Printf("Using %s on %s\n", org, org.DataHost())
+			return nil
+		}
 
-			cfg, _ := auth.LoadConfig()
-			fmt.Println("Configured hosts:")
-			for _, h := range known {
-				marker := "  "
-				if cfg != nil && auth.CredentialKey(cfg.Host) == h {
-					marker = "* "
-				}
-				fmt.Printf("%s%s\n", marker, h)
-			}
-			fmt.Println("\nUse 'nullify auth switch --host <host>' to switch.")
+		if switchHost == "" {
+			listConfiguredHosts()
 			return nil
 		}
 
@@ -214,6 +247,57 @@ var switchCmd = &cobra.Command{
 	},
 }
 
+// switchRouter is the router 'auth switch --installation' selects on: the
+// one named, else the configured host's, else the production router.
+func switchRouter(named string) (auth.Router, error) {
+	if named != "" {
+		router, ok := auth.RouterFor(named)
+		if !ok {
+			return auth.Router{}, fmt.Errorf("--installation applies to a Nullify router host; use 'nullify org use' for %s", named)
+		}
+		return router, nil
+	}
+	if cfg, err := auth.LoadConfig(); err == nil {
+		if router, ok := auth.RouterFor(cfg.Host); ok {
+			return router, nil
+		}
+		if authHost, err := auth.AuthHostFor(cfg.Host); err == nil {
+			if router, ok := auth.RouterFor(authHost); ok {
+				return router, nil
+			}
+		}
+	}
+	router, _ := auth.RouterFor(auth.RouterHost)
+	return router, nil
+}
+
+func listConfiguredHosts() {
+	known, err := auth.KnownHosts()
+	if err != nil || len(known) == 0 {
+		fmt.Println("No configured hosts. Run 'nullify auth login'")
+		return
+	}
+	creds, _ := auth.LoadCredentials()
+
+	cfg, _ := auth.LoadConfig()
+	fmt.Println("Configured hosts:")
+	for _, h := range known {
+		marker := "  "
+		if cfg != nil && auth.CredentialKey(cfg.Host) == h {
+			marker = "* "
+		}
+		fmt.Printf("%s%s%s\n", marker, h, installationLabel(creds[h]))
+	}
+	fmt.Println("\nUse 'nullify auth switch --host <host>' to switch hosts, or 'nullify org use <name>' to choose an organization.")
+}
+
+func installationLabel(hostCreds auth.HostCredentials) string {
+	if hostCreds.DataHost == "" {
+		return ""
+	}
+	return fmt.Sprintf(" (installation %s, %s)", hostCreds.Installation, hostCreds.DataHost)
+}
+
 var configShowCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Show current configuration",
@@ -231,8 +315,9 @@ var configShowCmd = &cobra.Command{
 			shown["auth"] = "api_token"
 		} else {
 			shown["auth"] = "login"
-			if authHost, err := auth.AuthHostFor(configHost); err == nil {
-				shown["auth_host"] = authHost
+			if hosts, err := commandHostsFor(ctx, configHost); err == nil {
+				shown["auth_host"] = hosts.AuthHost
+				shown["data_host"] = hosts.DataHost
 			}
 		}
 		shown["org"] = describeOrg(ctx, configHost)
@@ -243,19 +328,25 @@ var configShowCmd = &cobra.Command{
 	},
 }
 
-// describeOrg says which org commands on host run as right now, without
-// prompting.
+// describeOrg says which org commands on host run as right now, where, and
+// why, without prompting.
 func describeOrg(ctx context.Context, host string) string {
-	token, err := lib.GetNullifyToken(ctx, host, nullifyToken, githubToken)
+	hosts, err := commandHostsFor(ctx, host)
+	if err != nil {
+		return "unknown: " + err.Error()
+	}
+	token, err := lib.GetNullifyToken(ctx, hosts.AuthHost, nullifyToken, githubToken)
 	if err != nil {
 		return "unknown (not authenticated)"
 	}
-	scope, err := resolveOrgScope(ctx, host, token, orgInputsFor(host, orgFlag, "--org"), false)
+	in := orgInputsFor(hosts.DataHost, orgFlag, "--org")
+	in.AnyHost = hosts.OnRouter
+	scope, err := resolveOrgScope(ctx, hosts.DataHost, token, in, false)
 	switch {
 	case err != nil:
 		return "not chosen: " + err.Error()
 	case scope.Org != nil:
-		return scope.Org.String()
+		return fmt.Sprintf("%s on %s (%s)", scope.Org, scope.Org.DataHost(), scope.Reason)
 	case scope.Query["githubOwnerId"] != "":
 		return "githubOwnerId " + scope.Query["githubOwnerId"] + " (NULLIFY_GITHUB_OWNER_ID)"
 	default:
@@ -271,6 +362,11 @@ func init() {
 	authCmd.AddCommand(tokenCmd)
 	authCmd.AddCommand(switchCmd)
 	authCmd.AddCommand(configShowCmd)
+
+	loginCmd.Flags().String("installation", "", "Same as --org")
+	switchCmd.Flags().String("installation", "", "Same as 'nullify org use <name>'")
+	_ = loginCmd.Flags().MarkHidden("installation")
+	_ = switchCmd.Flags().MarkHidden("installation")
 }
 
 func resolveHostForAuth() (string, error) {

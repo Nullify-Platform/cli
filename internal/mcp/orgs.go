@@ -18,11 +18,11 @@ import (
 // starts without one: a login can cover several orgs, and each tool call or
 // resource read picks its own.
 type Orgs struct {
-	// Resolve returns the query parameters that scope one call. org is the
-	// call's org argument, empty when it named none; Resolve then falls back
-	// to serve --org and the CLI's usual chain, and errors with the choices
-	// when that is still ambiguous.
-	Resolve func(ctx context.Context, org string) (map[string]string, error)
+	// Resolve returns the query parameters that scope one call and a label
+	// naming the org they select. org is the call's org argument, empty when
+	// it named none; Resolve then uses the default the server started with,
+	// and errors with the choices when there is none.
+	Resolve func(ctx context.Context, org string) (map[string]string, string, error)
 	// List backs the list_organizations tool. Its result is returned as JSON.
 	List func(ctx context.Context) (any, error)
 }
@@ -73,11 +73,15 @@ func orgMiddleware(orgs Orgs) server.ToolHandlerMiddleware {
 			if err != nil {
 				return toolError(err), nil
 			}
-			scope, err := orgs.Resolve(ctx, org)
+			scope, label, err := orgs.Resolve(ctx, org)
 			if err != nil {
 				return toolError(err), nil
 			}
-			return next(withScope(ctx, scope), req)
+			result, err := next(withScope(ctx, scope), req)
+			if err == nil && result != nil && label != "" {
+				result.Content = append(result.Content, mcp.NewTextContent("Organization: "+label))
+			}
+			return result, err
 		}
 	}
 }
@@ -113,7 +117,7 @@ func orgArgument(args map[string]any) (string, error) {
 func resourceOrgMiddleware(orgs Orgs) server.ResourceHandlerMiddleware {
 	return func(next server.ResourceHandlerFunc) server.ResourceHandlerFunc {
 		return func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-			scope, err := orgs.Resolve(ctx, "")
+			scope, _, err := orgs.Resolve(ctx, "")
 			if err != nil {
 				return nil, err
 			}

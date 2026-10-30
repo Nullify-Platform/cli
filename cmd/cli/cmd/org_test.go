@@ -95,7 +95,7 @@ func TestResolveCommandAuthAmbiguousWithoutATerminal(t *testing.T) {
 func TestOrgEnvVarsBeatTheStoredPick(t *testing.T) {
 	loginEnv(t)
 	twoTestOrgs(t)
-	require.NoError(t, rememberOrg("acme.nullify.ai", testOrgA))
+	require.NoError(t, auth.SelectOrg(testOrgA))
 
 	authCtx, err := resolveCommandAuth(context.Background())
 	require.NoError(t, err)
@@ -155,16 +155,20 @@ func TestPromptRejectsAnUnlistedAnswer(t *testing.T) {
 	require.Nil(t, hosts["acme.nullify.ai"].Org)
 }
 
-func TestStoredPickNoLongerAuthorizedFallsThrough(t *testing.T) {
+// A default org the user can no longer use stops the command and names it:
+// running as the other org instead would act on the wrong one's data.
+func TestUnavailableDefaultIsAnErrorNotAnotherOrg(t *testing.T) {
 	loginEnv(t)
 	stubOrgList(t, func(string) (auth.OrgList, error) {
 		return auth.OrgList{Orgs: []auth.Org{testOrgB}}, nil
 	})
-	require.NoError(t, rememberOrg("acme.nullify.ai", testOrgA))
+	require.NoError(t, auth.SelectOrg(testOrgA))
 
-	authCtx, err := resolveCommandAuth(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, "2002002", authCtx.QueryParams["githubOwnerId"])
+	_, err := resolveCommandAuth(context.Background())
+	var notChosen *auth.ErrOrgNotChosen
+	require.ErrorAs(t, err, &notChosen)
+	require.Contains(t, err.Error(), "your default organization acme-web")
+	require.Contains(t, err.Error(), "acme-payments")
 }
 
 func TestAPITokenOrgSelection(t *testing.T) {
@@ -239,7 +243,7 @@ func captureStdout(t *testing.T, run func()) string {
 func TestAuthConfigShowsHostAuthHostAndOrg(t *testing.T) {
 	loginEnv(t)
 	twoTestOrgs(t)
-	require.NoError(t, rememberOrg("acme.nullify.ai", testOrgB))
+	require.NoError(t, auth.SelectOrg(testOrgB))
 
 	configShowCmd.SetContext(context.Background())
 	out := captureStdout(t, func() { require.NoError(t, configShowCmd.RunE(configShowCmd, nil)) })
@@ -249,7 +253,8 @@ func TestAuthConfigShowsHostAuthHostAndOrg(t *testing.T) {
 		"host":      "acme.nullify.ai",
 		"auth":      "login",
 		"auth_host": "api.nullify.ai",
-		"org":       "acme-payments (githubOwnerId 2002002)",
+		"data_host": "acme.nullify.ai",
+		"org":       "acme-payments (githubOwnerId 2002002) on acme.nullify.ai (your default)",
 	}, shown)
 
 	t.Setenv("NULLIFY_TOKEN", "api-token")
@@ -306,7 +311,7 @@ func TestAmbiguousExplicitOrgDoesNotChangeTheRememberedPick(t *testing.T) {
 	stubOrgList(t, func(string) (auth.OrgList, error) {
 		return auth.OrgList{Orgs: []auth.Org{dupGitHub, dupGitLab, testOrgA}}, nil
 	})
-	require.NoError(t, rememberOrg("acme.nullify.ai", testOrgA))
+	require.NoError(t, auth.SelectOrg(testOrgA))
 	oldIn, oldOut := promptIn, promptOut
 	promptIn, promptOut = strings.NewReader("2\n"), &bytes.Buffer{}
 	t.Cleanup(func() { promptIn, promptOut = oldIn, oldOut })
