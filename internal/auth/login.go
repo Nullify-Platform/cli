@@ -293,6 +293,34 @@ func withSelection(hostCreds HostCredentials, org Org) HostCredentials {
 	return hostCreds
 }
 
+// RememberOrg makes org the default for its data host without moving the
+// default host: a router login's selection follows only when it is already
+// on that data host.
+func RememberOrg(org Org) error {
+	dataHost := org.DataHost()
+	err := UpdateHostConfig(dataHost, func(hc HostConfig) HostConfig {
+		hc.Org = pickOf(org)
+		return hc
+	})
+	if err != nil {
+		return fmt.Errorf("failed to save the organization: %w", err)
+	}
+	authHost, err := AuthHostFor(dataHost)
+	if err != nil {
+		return err
+	}
+	router, onRouter := RouterFor(authHost)
+	if !onRouter {
+		return nil
+	}
+	return updateHostCredentials(router.Key, func(hostCreds HostCredentials) HostCredentials {
+		if hostCreds.DataHost != dataHost {
+			return hostCreds
+		}
+		return withSelection(hostCreds, org)
+	})
+}
+
 // SelectOrg makes org the default for its data host and, for a router login,
 // moves the router's selected data host to it and makes the router the
 // default host. Every way of choosing an org (the login picker, 'nullify org

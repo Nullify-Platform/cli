@@ -179,6 +179,8 @@ func sortOrgs(host, listHost string, orgs []Org) OrgList {
 	var list OrgList
 	for _, org := range orgs {
 		switch {
+		case org.Host == target && (org.Status == "pending" || org.Status == "unavailable"):
+			list.Pending = append(list.Pending, org)
 		case org.Host == target:
 			list.Orgs = append(list.Orgs, org)
 		case org.Host != "":

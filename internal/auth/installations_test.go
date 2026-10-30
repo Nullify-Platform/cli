@@ -135,3 +135,21 @@ func TestFetchOrgsReportsServerError(t *testing.T) {
 	require.Error(t, err)
 	require.False(t, errors.Is(err, errNoUsableInstallation))
 }
+
+// An org the router reports pending or unavailable is not usable on its host
+// even when its base URL names that host.
+func TestPendingOrgOnTheHostIsNotUsable(t *testing.T) {
+	body := `{"installations":[` +
+		`{"name":"ready","provider":{},"nullifyBaseUrl":"https://api.acme.nullify.ai","queryParameters":{"githubOwnerId":"1"},"provisioningStatus":"ready"},` +
+		`{"name":"held","provider":{},"nullifyBaseUrl":"https://api.acme.nullify.ai","queryParameters":{"githubOwnerId":"2"},"provisioningStatus":"pending"}]}`
+	newAuthServer(t, func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte(body)) })
+
+	list, err := ListOrgs(context.Background(), "acme.nullify.ai", "api.nullify.ai", "router-token")
+	require.NoError(t, err)
+	require.Len(t, list.Orgs, 1)
+	require.Equal(t, "ready", list.Orgs[0].Name)
+	require.Len(t, list.Pending, 1)
+	require.Equal(t, "held", list.Pending[0].Name)
+	_, err = ResolveOrg("acme.nullify.ai", list, OrgInputs{Flag: "held", FlagSource: "--org"})
+	require.ErrorContains(t, err, "not routed to a Nullify host yet")
+}

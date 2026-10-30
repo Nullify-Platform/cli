@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"context"
 	"fmt"
 	"os"
@@ -218,8 +219,12 @@ func resolveHostE(ctx context.Context) (string, error) {
 		return sanitized, nil
 	}
 
-	return "", authError("no host configured. Run 'nullify init' to set up, or 'nullify auth login' to sign in.")
+	return "", authError("%w. Run 'nullify init' to set up, or 'nullify auth login' to sign in.", errNoHost)
 }
+
+// errNoHost reports that no --host, NULLIFY_HOST or configured host was set,
+// as opposed to one that was set and is invalid.
+var errNoHost = errors.New("no host configured")
 
 func getNullifyClientE(ctx context.Context) (*client.NullifyClient, error) {
 	authCtx, err := resolveCommandToken(ctx)

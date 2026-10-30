@@ -205,23 +205,23 @@ func CoverTenant(ctx context.Context, tenant string) (bool, error) {
 		return false, err
 	}
 
+	var checkErr error
 	for _, r := range routers {
 		if _, ok := creds[r.Key]; !ok {
 			continue
 		}
 		token, err := GetValidToken(ctx, r.Key)
-		if err != nil {
-			continue
+		if err == nil {
+			var orgs []Org
+			if orgs, err = fetchOrgs(ctx, r.AuthHost, token); err == nil && len(orgsOn(routedOrgs(orgs), tenant)) > 0 {
+				return true, BindTenant(tenant, r)
+			}
 		}
-		orgs, err := fetchOrgs(ctx, r.AuthHost, token)
 		if err != nil {
-			continue
-		}
-		if len(orgsOn(routedOrgs(orgs), tenant)) > 0 {
-			return true, BindTenant(tenant, r)
+			checkErr = fmt.Errorf("could not check whether your %s login covers %s: %w", r.Key, tenant, err)
 		}
 	}
-	return false, nil
+	return false, checkErr
 }
 
 // CoverSelectedTenant binds tenant to the router login whose selected data

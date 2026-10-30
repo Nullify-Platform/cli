@@ -487,3 +487,36 @@ func TestWhoamiReportsHostsAndOrg(t *testing.T) {
 	require.Equal(t, true, info["authenticated"])
 	require.Contains(t, info["org"], "acme-payments")
 }
+
+// auth status and auth config report an invalid NULLIFY_HOST or config host
+// as an error, not as "no host configured".
+func TestAuthStatusReportsAnInvalidEnvOrConfigHost(t *testing.T) {
+	loginEnv(t)
+	t.Setenv("NULLIFY_HOST", "api.attacker.example#.nullify.ai")
+	statusCmd.SetContext(context.Background())
+	require.ErrorContains(t, statusCmd.RunE(statusCmd, nil), "invalid NULLIFY_HOST")
+	configShowCmd.SetContext(context.Background())
+	require.ErrorContains(t, configShowCmd.RunE(configShowCmd, nil), "invalid NULLIFY_HOST")
+
+	t.Setenv("NULLIFY_HOST", "")
+	require.NoError(t, auth.SaveConfig(&auth.Config{Host: "acme.nullify.ai:8443"}))
+	require.ErrorContains(t, statusCmd.RunE(statusCmd, nil), "in ~/.nullify/config.json")
+}
+
+// Answering the org prompt during a command on a tenant remembers the org
+// for that tenant without changing the default instance.
+func TestPromptAnswerDoesNotMoveTheDefaultHost(t *testing.T) {
+	loginEnv(t)
+	twoTestOrgs(t)
+	require.NoError(t, auth.SaveConfig(&auth.Config{Host: "own.nullify.ai"}))
+	oldIn, oldOut := promptIn, promptOut
+	promptIn, promptOut = strings.NewReader("2\n"), io.Discard
+	t.Cleanup(func() { promptIn, promptOut = oldIn, oldOut })
+
+	_, err := resolveOrgScope(context.Background(), "acme.nullify.ai", "router-token", orgInputsFor("acme.nullify.ai", "", "--org"), true)
+	require.NoError(t, err)
+	cfg, err := auth.LoadConfig()
+	require.NoError(t, err)
+	require.Equal(t, "own.nullify.ai", cfg.Host)
+	require.Equal(t, "2002002", auth.StoredPick("acme.nullify.ai").ID)
+}

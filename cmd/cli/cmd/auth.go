@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -115,6 +116,9 @@ var statusCmd = &cobra.Command{
 		if usesMachineToken() {
 			statusHost, err := resolveHostE(ctx)
 			if err != nil {
+				if !errors.Is(err, errNoHost) {
+					return err
+				}
 				fmt.Println("No host configured. Pass --host or set NULLIFY_HOST.")
 				return nil
 			}
@@ -129,7 +133,7 @@ var statusCmd = &cobra.Command{
 
 		statusHost, err := resolveHostE(ctx)
 		if err != nil {
-			if host != "" {
+			if !errors.Is(err, errNoHost) {
 				return err
 			}
 			fmt.Println("No host configured. Run 'nullify auth login'")
@@ -306,6 +310,9 @@ var configShowCmd = &cobra.Command{
 		ctx := cmd.Context()
 		configHost, err := resolveHostE(ctx)
 		if err != nil {
+			if !errors.Is(err, errNoHost) {
+				return err
+			}
 			fmt.Fprintf(os.Stderr, "No config found. Run 'nullify init' to set up.\n")
 			return nil
 		}

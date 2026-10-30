@@ -103,7 +103,7 @@ func resolveOrgScope(ctx context.Context, host, token string, in auth.OrgInputs,
 		// An ambiguous --org answers this command only; the remembered pick
 		// changes when nothing named an org.
 		if err == nil && !explicit {
-			if saveErr := auth.SelectOrg(org); saveErr != nil {
+			if saveErr := auth.RememberOrg(org); saveErr != nil {
 				fmt.Fprintf(promptOut, "Could not remember %s for %s: %v\n", org.Name, host, saveErr)
 			} else {
 				fmt.Fprintf(promptOut, "Using %s on %s from now on; change it with 'nullify org use'.\n", org.Name, host)
@@ -176,7 +176,7 @@ var orgListCmd = &cobra.Command{
 			return err
 		}
 
-		out, err := orgListing(ctx, authCtx.DataHost, authCtx.Token, auth.OrgInputs{Flag: orgFlag, FlagSource: "--org"})
+		out, err := orgListing(ctx, authCtx.DataHost, authCtx.Token, auth.OrgInputs{Flag: orgFlag, FlagSource: "--org", AnyHost: authCtx.OnRouter})
 		if err != nil {
 			return err
 		}
@@ -260,6 +260,7 @@ func orgListing(ctx context.Context, host, token string, in auth.OrgInputs) (map
 		out["elsewhere"] = list.Elsewhere
 	}
 	full := orgInputsFor(host, in.Flag, in.FlagSource)
+	full.AnyHost = in.AnyHost
 	if in.Stored != nil {
 		full.Stored = in.Stored
 	}

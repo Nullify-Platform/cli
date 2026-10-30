@@ -30,7 +30,7 @@ var routers = []Router{
 }
 
 // ErrNoDataHost reports that the router credentials have no selected installation.
-var ErrNoDataHost = errors.New("no organization selected for the router sign-in - run 'nullify auth login' or 'nullify org use <name>'")
+var ErrNoDataHost = errors.New("no organization selected for the router sign-in - run 'nullify auth login'")
 
 // RouterFor returns the router environment host names in its bare, "api." or
 // "app." form.

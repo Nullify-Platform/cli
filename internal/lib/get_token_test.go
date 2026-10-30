@@ -111,12 +111,13 @@ func TestGetNullifyTokenRefusesGitHubExchangeOnRouter(t *testing.T) {
 // The GitHub token exchange carries the GitHub token in its body: a redirect
 // is returned as an error, never followed with that body.
 func TestGitHubTokenExchangeDoesNotFollowRedirects(t *testing.T) {
-	var followed atomic.Bool
+	var followed, exchanged atomic.Bool
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/elsewhere" {
 			followed.Store(true)
 			return
 		}
+		exchanged.Store(r.Method == http.MethodPost && r.URL.Path == "/auth/github_token")
 		http.Redirect(w, r, "/elsewhere", http.StatusTemporaryRedirect)
 	}))
 	t.Cleanup(srv.Close)
@@ -130,5 +131,6 @@ func TestGitHubTokenExchangeDoesNotFollowRedirects(t *testing.T) {
 
 	_, err := GetNullifyToken(context.Background(), strings.TrimPrefix(srv.URL, "https://"), "", "gh-token")
 	require.Error(t, err)
+	require.True(t, exchanged.Load(), "the exchange never reached the server")
 	require.False(t, followed.Load(), "the exchange followed a redirect")
 }

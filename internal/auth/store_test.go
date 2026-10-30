@@ -160,3 +160,14 @@ func TestCoverSelectedTenantBindsTheV026DataHost(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "api.nullify.ai", authHost)
 }
+
+// When the router cannot be asked whether its login covers a tenant, the
+// command reports that, not "not authenticated".
+func TestCoverTenantReportsARouterFailure(t *testing.T) {
+	newAuthServer(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusBadGateway) })
+	seed(t, RouterHost, "router-token", "rt", time.Now().Add(time.Hour).Unix())
+
+	covered, err := CoverTenant(context.Background(), "beta.nullify.ai")
+	require.False(t, covered)
+	require.ErrorContains(t, err, "could not check whether your nullify.ai login covers beta.nullify.ai")
+}
