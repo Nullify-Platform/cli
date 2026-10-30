@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -22,6 +23,8 @@ var httpClient = &http.Client{Timeout: 30 * time.Second}
 // tests can point the auth calls at an httptest server.
 var authBaseURL = func(host string) string { return "https://" + apiHost(host) }
 
+var openBrowser = OpenBrowser
+
 type cliSessionResponse struct {
 	SessionID string `json:"session_id"`
 	AuthURL   string `json:"auth_url"`
@@ -35,7 +38,10 @@ type cliTokenResponse struct {
 	QueryParameters map[string]string `json:"query_parameters,omitempty"`
 }
 
-func Login(ctx context.Context, host string) error {
+// Login signs in to host in the browser. For the router host it also selects the installation that serves data.
+func Login(ctx context.Context, host string, picker InstallationPicker) error {
+	host = normalizeHost(host)
+
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return fmt.Errorf("failed to start local server: %w", err)
@@ -64,7 +70,7 @@ func Login(ctx context.Context, host string) error {
 	fmt.Printf("\nOpening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", sessionResp.AuthURL)
 
-	if err := OpenBrowser(sessionResp.AuthURL); err != nil {
+	if err := openBrowser(sessionResp.AuthURL); err != nil {
 		logger.L(ctx).Debug("could not open browser automatically", logger.Err(err))
 		fmt.Println("(Could not open browser automatically. Please open the URL above manually.)")
 	}
@@ -102,14 +108,23 @@ waitLoop:
 		return fmt.Errorf("authentication failed: %s", tokenResp.Error)
 	}
 
-	expiresAt := time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second).Unix()
-
-	err = SaveHostCredentials(host, HostCredentials{
+	hostCreds := HostCredentials{
 		AccessToken:     tokenResp.AccessToken,
 		RefreshToken:    tokenResp.RefreshToken,
-		ExpiresAt:       expiresAt,
+		ExpiresAt:       time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second).Unix(),
 		QueryParameters: tokenResp.QueryParameters,
-	})
+	}
+
+	if host == RouterHost {
+		install, err := selectInstallation(ctx, tokenResp.AccessToken, picker)
+		if err != nil {
+			return err
+		}
+		hostCreds = withInstallation(hostCreds, install)
+		fmt.Printf("Using installation %s (%s)\n", install.Name, install.DataHost)
+	}
+
+	err = SaveHostCredentials(host, hostCreds)
 	if err != nil {
 		return fmt.Errorf("failed to save credentials: %w", err)
 	}
@@ -123,11 +138,82 @@ waitLoop:
 	return nil
 }
 
+func selectInstallation(ctx context.Context, token string, picker InstallationPicker) (Installation, error) {
+	installs, err := fetchInstallations(ctx, token)
+	if err != nil {
+		return Installation{}, err
+	}
+	return picker.Pick(installs)
+}
+
+func withInstallation(hostCreds HostCredentials, install Installation) HostCredentials {
+	hostCreds.DataHost = install.DataHost
+	hostCreds.Installation = install.Name
+	hostCreds.QueryParameters = install.QueryParameters
+	return hostCreds
+}
+
+// SwitchInstallation selects the named installation for the stored router credentials and makes the router the default host.
+func SwitchInstallation(ctx context.Context, name string) (Installation, error) {
+	token, err := GetValidToken(ctx, RouterHost)
+	if err != nil {
+		return Installation{}, err
+	}
+
+	install, err := selectInstallation(ctx, token, InstallationPicker{Name: name})
+	if err != nil {
+		return Installation{}, err
+	}
+
+	err = updateHostCredentials(RouterHost, func(hostCreds HostCredentials) HostCredentials {
+		return withInstallation(hostCreds, install)
+	})
+	if err != nil {
+		return Installation{}, fmt.Errorf("failed to save credentials: %w", err)
+	}
+
+	if err := SaveConfig(&Config{Host: RouterHost}); err != nil {
+		return Installation{}, fmt.Errorf("failed to save config: %w", err)
+	}
+	return install, nil
+}
+
+// DataHost returns the host that serves data for the credentials stored under authHost.
+func DataHost(authHost string) (string, error) {
+	if !IsRouterHost(authHost) {
+		return authHost, nil
+	}
+
+	creds, err := LoadCredentials()
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", ErrNoDataHost
+		}
+		return "", fmt.Errorf("load credentials: %w", err)
+	}
+	dataHost := creds[RouterHost].DataHost
+	if dataHost == "" {
+		return "", ErrNoDataHost
+	}
+	return dataHost, nil
+}
+
+// CheckSession returns an error unless host has a valid token and, for the router, a selected installation.
+func CheckSession(ctx context.Context, host string) error {
+	if _, err := GetValidToken(ctx, host); err != nil {
+		return err
+	}
+	_, err := DataHost(host)
+	return err
+}
+
 func Logout(host string) error {
 	return DeleteHostCredentials(host)
 }
 
 func GetValidToken(ctx context.Context, host string) (string, error) {
+	host = normalizeHost(host)
+
 	creds, err := LoadCredentials()
 	if err != nil {
 		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
@@ -164,6 +250,8 @@ var ErrNotRefreshable = errors.New("no refresh token stored")
 // the server rejects while the CLI still believes it is valid -- revocation, a
 // killed session, or a local clock running behind the server's.
 func ForceRefreshToken(ctx context.Context, host string) (string, error) {
+	host = normalizeHost(host)
+
 	creds, err := LoadCredentials()
 	if err != nil {
 		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
@@ -299,11 +387,14 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 
 	expiresAt := time.Now().Add(time.Duration(result.ExpiresIn) * time.Second).Unix()
 
-	err = SaveHostCredentials(host, HostCredentials{
-		AccessToken:     result.AccessToken,
-		RefreshToken:    refreshTok,
-		ExpiresAt:       expiresAt,
-		QueryParameters: result.QueryParameters,
+	err = updateHostCredentials(host, func(hostCreds HostCredentials) HostCredentials {
+		hostCreds.AccessToken = result.AccessToken
+		hostCreds.RefreshToken = refreshTok
+		hostCreds.ExpiresAt = expiresAt
+		if hostCreds.DataHost == "" {
+			hostCreds.QueryParameters = result.QueryParameters
+		}
+		return hostCreds
 	})
 	if err != nil {
 		logger.L(ctx).Warn("failed to save refreshed credentials", logger.Err(err))

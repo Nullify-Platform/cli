@@ -13,6 +13,8 @@ type HostCredentials struct {
 	RefreshToken    string            `json:"refresh_token"`
 	ExpiresAt       int64             `json:"expires_at"`
 	QueryParameters map[string]string `json:"query_parameters,omitempty"`
+	DataHost        string            `json:"data_host,omitempty"`
+	Installation    string            `json:"installation,omitempty"`
 }
 
 type Credentials map[string]HostCredentials
@@ -124,6 +126,21 @@ func SaveHostCredentials(host string, hostCreds HostCredentials) error {
 	}
 
 	creds[CredentialKey(host)] = hostCreds
+
+	return SaveCredentials(creds)
+}
+
+func updateHostCredentials(host string, update func(HostCredentials) HostCredentials) error {
+	creds, err := LoadCredentials()
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("cannot update credentials: %w", err)
+		}
+		creds = make(Credentials)
+	}
+
+	key := CredentialKey(host)
+	creds[key] = update(creds[key])
 
 	return SaveCredentials(creds)
 }

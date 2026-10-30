@@ -3,6 +3,8 @@ package lib
 import (
 	"errors"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/auth"
 )
 
 // ParseCustomerDomain accepts various forms of customer input and returns
@@ -10,10 +12,15 @@ import (
 //   - "acme" → "api.acme.nullify.ai"
 //   - "acme.nullify.ai" → "api.acme.nullify.ai"
 //   - "api.acme.nullify.ai" → "api.acme.nullify.ai"
+//   - "nullify.ai", "app.nullify.ai" or "api.nullify.ai" → "api.nullify.ai"
 func ParseCustomerDomain(input string) (string, error) {
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return "", errors.New("customer domain cannot be empty")
+	}
+
+	if auth.IsRouterHost(input) {
+		return "api." + auth.RouterHost, nil
 	}
 
 	// Strip any scheme

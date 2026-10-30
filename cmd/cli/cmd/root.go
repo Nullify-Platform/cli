@@ -120,7 +120,7 @@ func resetCommandOutput(
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&host, "host", "", "The base URL of your Nullify API instance (e.g., acme.nullify.ai)")
+	rootCmd.PersistentFlags().StringVar(&host, "host", "", "Your Nullify instance (e.g., acme.nullify.ai), or nullify.ai to sign in through the Nullify router")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug logging")
 	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (json, table, yaml, sarif)")
@@ -192,7 +192,7 @@ func resolveHostE(ctx context.Context) (string, error) {
 	if host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(host)
 		if err != nil {
-			return "", withExitCode(1, fmt.Errorf("invalid host %q, must be in the format <your-instance>.nullify.ai", host))
+			return "", withExitCode(1, fmt.Errorf("invalid host %q, must be nullify.ai or <your-instance>.nullify.ai", host))
 		}
 		return sanitized, nil
 	}
@@ -214,19 +214,19 @@ func resolveHostE(ctx context.Context) (string, error) {
 		logger.L(ctx).Warn("config file host is invalid, ignoring", logger.String("host", cfg.Host), logger.Err(err))
 	}
 
-	return "", authError("no host configured. Run 'nullify init' to set up, or 'nullify auth login --host <your-instance>.nullify.ai' to configure.")
+	return "", authError("no host configured. Run 'nullify init' to set up, or 'nullify auth login' to sign in.")
 }
 
 func getNullifyClientE(ctx context.Context) (*client.NullifyClient, error) {
-	nullifyHost, err := resolveHostE(ctx)
+	authCtx, err := resolveCommandHosts(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := lib.GetNullifyToken(ctx, nullifyHost, nullifyToken, githubToken)
+	authCtx.Token, err = lib.GetNullifyToken(ctx, authCtx.AuthHost, nullifyToken, githubToken)
 	if err != nil {
 		return nil, authError("failed to get token. Run 'nullify auth login' to authenticate: %w", err)
 	}
 
-	return client.NewNullifyClient(nullifyHost, token), nil
+	return authCtx.Client(), nil
 }
