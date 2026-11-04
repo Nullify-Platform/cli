@@ -140,7 +140,14 @@ nullify auth switch
 |---------|-------------|
 | `nullify init` | Interactive setup wizard (instance, auth, MCP config) |
 | `nullify status` | Security posture overview with finding counts by scanner |
-| `nullify findings` | List findings across all scanner types with filters |
+| `nullify findings` | List findings across all scanner types with filters (same as `nullify findings list`) |
+| `nullify findings allowlist` | Suppress a finding, with a required reason and allowlist type |
+| `nullify findings unallowlist` | Re-open an allowlisted finding, with a required reason |
+| `nullify findings archive` / `unarchive` | Archive or restore a finding (CSPM) |
+| `nullify findings mark-false-positive` / `unmark-false-positive` | Set or clear the false positive mark |
+| `nullify findings get` / `triage` | Read a finding or its AI triage |
+| `nullify findings create-ticket` / `delete-ticket` | Manage the ticket of a finding |
+| `nullify findings feedback` / `get-feedback` | Record or read feedback on a finding of any type |
 ### Authentication
 
 | Command | Description |
@@ -187,7 +194,37 @@ nullify findings --repo my-repo --status open
 
 # Limit results
 nullify findings --limit 50
+
+# List CSPM or SCPM findings in one UTC window
+nullify findings list --type cspm --from 2026-11-01T00:00:00Z --to 2026-11-02T00:00:00Z
+nullify findings list --type scpm
 ```
+
+`--type` accepts `sast`, `sca_dependencies`, `sca_containers`, `secrets`, `pentest`, `bughunt`, `cspm` and `scpm`. An unknown type is an error.
+
+The output reports `total`, `returned` and `truncated`:
+
+| Result | Meaning |
+|--------|---------|
+| `total` 0, exit 0 | No finding matches the filters |
+| `truncated` true, exit 0 | More findings exist; raise `--limit` |
+| Exit 2 | No access (401 or 403) |
+| Exit 3 | Other API or network failure |
+
+Act on a finding. Allowlisting needs a reason and an explicit type, because the type is the record of why the finding was closed: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise.
+
+```sh
+nullify findings allowlist abc123 --type cspm --allowlist-type UserFalsePositive --reason "Bucket is public by design"
+nullify findings unallowlist abc123 --type cspm --reason "Bucket is no longer public"
+nullify findings archive abc123 --type cspm
+nullify findings feedback abc123 --verdict wrong --comment "Not reachable from the internet"
+```
+
+Raw API commands follow the API spec: `nullify api cspm create-allowlist-by-id`, `create-unallowlist-by-id`, `create-archive-by-id`, `create-unarchive-by-id`, `create-mark-false-positive-by-id`, `create-unmark-false-positive-by-id`, `patch-findings`, `get-triage` and `delete-ticket`.
+
+## Command stability
+
+`spec/command-names.lock` fixes the name of each API command, and `spec/command-surface.tsv` lists every command and flag. CI fails if a command or flag disappears unless `internal/commands/surface_decisions.go` records the decision. A moved command keeps working as a deprecated alias that calls the new route. See [CHANGELOG.md](CHANGELOG.md) for the moves.
 
 ## Pentest Scans
 
@@ -263,9 +300,9 @@ Add a security report to your pull request:
 The CLI includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server with 50+ tools, giving AI coding assistants full access to your security data. Capabilities include:
 
 - **Query** — findings, repositories, SBOMs, cloud accounts, metrics, trends
-- **Triage** — mark findings as false positive, accepted risk, or reopen
+- **Triage** — allowlist, archive or mark false positive across every finding type, including CSPM, reopen, and record feedback
 - **Remediate** — generate AI-powered fix diffs and open PRs, end-to-end
-- **Track** — campaigns, escalations, SLA policies, code reviews
+- **Track** — campaigns, action items, SLA policies, code reviews
 
 ### Setup
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/findings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -74,6 +75,12 @@ var scannerListers = []scannerLister{
 			return marshalOut(c.ListCspmFindings(ctx, api.ListCspmFindingsInput{Limit: limitPtr(1)}))
 		},
 	},
+	{
+		name: "scpm",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListScpmFindings(ctx, api.ListScpmFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
 }
 
 func registerCompositeTools(s *server.MCPServer, c *api.Client) {
@@ -118,17 +125,17 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			// repository/severity are honored there (the per-scanner GET list
 			// endpoints silently drop both).
 			for _, sc := range scannerListers {
-				findings, _, err := searchFindings(ctx, c, findingSearchOpts{
-					apiTypes:   findingTypes[sc.name].apiTypes,
-					severity:   severity,
-					repository: repo,
-					limit:      limit,
+				result, err := findings.Search(ctx, c, findings.SearchOptions{
+					APITypes:   findings.Types[sc.name].APITypes,
+					Severity:   severity,
+					Repository: repo,
+					Limit:      limit,
 				})
 				if err != nil {
 					parts = append(parts, fmt.Sprintf("--- %s ---\nError: %v", sc.name, err))
 					continue
 				}
-				b, _ := json.MarshalIndent(findings, "", "  ")
+				b, _ := json.MarshalIndent(result.Findings, "", "  ")
 				parts = append(parts, fmt.Sprintf("--- %s ---\n%s", sc.name, string(b)))
 			}
 			return toolResult(strings.Join(parts, "\n\n")), nil
@@ -144,17 +151,21 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			limit := getIntArg(req.GetArguments(), "limit", 10)
 			var parts []string
 			for _, sc := range scannerListers {
-				apiTypes := findingTypes[sc.name].apiTypes
+				apiTypes := findings.Types[sc.name].APITypes
 				for _, sev := range []string{"critical", "high"} {
-					findings, _, err := searchFindings(ctx, c, findingSearchOpts{
-						apiTypes: apiTypes,
-						severity: sev,
-						limit:    limit,
+					result, err := findings.Search(ctx, c, findings.SearchOptions{
+						APITypes: apiTypes,
+						Severity: sev,
+						Limit:    limit,
 					})
-					if err != nil || len(findings) == 0 {
+					if err != nil {
+						parts = append(parts, fmt.Sprintf("--- %s (%s) ---\nError: %v", sc.name, sev, err))
 						continue
 					}
-					b, _ := json.MarshalIndent(findings, "", "  ")
+					if len(result.Findings) == 0 {
+						continue
+					}
+					b, _ := json.MarshalIndent(result.Findings, "", "  ")
 					parts = append(parts, fmt.Sprintf("--- %s (%s) ---\n%s", sc.name, sev, string(b)))
 				}
 			}

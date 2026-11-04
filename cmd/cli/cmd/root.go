@@ -143,27 +143,24 @@ func init() {
 	}
 
 	// Register generated API commands under 'api' parent for cleaner top-level help
-	commands.RegisterAdminCommands(apiCmd, getAPIClient)
-	commands.RegisterContextCommands(apiCmd, getAPIClient)
+	commands.RegisterAPICommands(apiCmd, getAPIClient)
 	commands.RegisterContextPushCommand(apiCmd, getAPIClient)
 	commands.ApplyContextCommandDefaults(apiCmd, getAPIClient)
-	commands.RegisterCspmCommands(apiCmd, getAPIClient)
 	// Register pentest and bughunt subcommands from generated DAST commands
 	commands.RegisterPentestSubcommands(pentestCmd, getAPIClient)
 	commands.RegisterBughuntSubcommands(bughuntCmd, getAPIClient)
-	commands.RegisterManagerCommands(apiCmd, getAPIClient)
-	commands.RegisterSastCommands(apiCmd, getAPIClient)
-	commands.RegisterScaCommands(apiCmd, getAPIClient)
-	commands.RegisterSecretsCommands(apiCmd, getAPIClient)
-	commands.RegisterScpmCommands(apiCmd, getAPIClient)
-	commands.RegisterOrchestratorCommands(apiCmd, getAPIClient)
-	commands.RegisterAssetGraphCommands(apiCmd, getAPIClient)
-	commands.RegisterInfrastructureCommands(apiCmd, getAPIClient)
 
 	// Hand-written workflow — not generated from OpenAPI. Routes through
 	// scpm's /scpm/dependencies/analyze. Wired at top level (not under
 	// apiCmd) so `nullify deps analyze` reads naturally in CI scripts.
 	commands.RegisterDepsAnalyzeCommand(rootCmd, getAPIClient)
+
+	commands.ApplySurfaceDecisions(rootCmd, commands.Decisions)
+}
+
+// Root returns the root command, with every subcommand registered.
+func Root() *cobra.Command {
+	return rootCmd
 }
 
 func setupLogger(ctx context.Context) (context.Context, error) {

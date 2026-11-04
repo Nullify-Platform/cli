@@ -1,87 +1,155 @@
 package mcp
 
 import (
-	"reflect"
+	"context"
+	"encoding/json"
 	"testing"
+
+	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
+	"github.com/stretchr/testify/require"
 )
 
-func TestResolveFindingType(t *testing.T) {
-	for _, name := range []string{"sast", "sca_dependencies", "sca_containers", "secrets", "pentest", "bughunt", "cspm", "scpm"} {
-		ft, err := resolveFindingType(name)
-		if err != nil {
-			t.Errorf("unexpected error for type %q: %v", name, err)
-			continue
-		}
-		if len(ft.apiTypes) == 0 {
-			t.Errorf("expected non-empty apiTypes for %q", name)
-		}
-		if ft.get == nil {
-			t.Errorf("expected a get method for %q", name)
-		}
+func callTool(t *testing.T, s *server.MCPServer, name string, args map[string]any) mcp.CallToolResult {
+	t.Helper()
+	message, err := json.Marshal(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"method":  "tools/call",
+		"params":  map[string]any{"name": name, "arguments": args},
+	})
+	require.NoError(t, err)
+
+	raw, err := json.Marshal(s.HandleMessage(context.Background(), message))
+	require.NoError(t, err)
+
+	var response struct {
+		Result json.RawMessage `json:"result"`
 	}
-	for _, bad := range []string{"invalid", ""} {
-		if _, err := resolveFindingType(bad); err == nil {
-			t.Errorf("expected error for type %q, got nil", bad)
-		}
-	}
+	require.NoError(t, json.Unmarshal(raw, &response))
+	result, err := mcp.ParseCallToolResult(&response.Result)
+	require.NoError(t, err)
+	return *result
 }
 
-func TestTypesWithCapability(t *testing.T) {
-	cases := []struct {
-		name string
-		pick func(findingType) bool
-		want []string
+func TestFindingTools(t *testing.T) {
+	falsePositive := map[string]any{"type": "cspm", "id": "f1", "allowlist_type": "UserFalsePositive", "reason": "public by design"}
+
+	tests := []struct {
+		name     string
+		tool     string
+		args     map[string]any
+		isError  bool
+		requests []capturedReq
 	}{
 		{
-			name: "allowlist",
-			pick: func(ft findingType) bool { return ft.allowlist != nil },
-			want: []string{"bughunt", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"},
+			name: "allowlist cspm", tool: "nullify_allowlist_finding", args: falsePositive,
+			requests: []capturedReq{{"POST", "/cspm/findings/f1/allowlist", []byte(`{"allowlistReason":"public by design","allowlistType":"UserFalsePositive"}`)}},
 		},
 		{
-			name: "autofix",
-			pick: func(ft findingType) bool { return ft.autofixFix != nil },
-			want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm"},
+			name: "unallowlist cspm", tool: "nullify_unallowlist_finding", args: map[string]any{"type": "cspm", "id": "f1", "reason": "reopen"},
+			requests: []capturedReq{{"POST", "/cspm/findings/f1/unallowlist", []byte(`{"unallowlistReason":"reopen"}`)}},
 		},
 		{
-			name: "ticket",
-			pick: func(ft findingType) bool { return ft.ticket != nil },
-			want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "secrets"},
+			name: "allowlist bughunt keeps the PATCH body", tool: "nullify_allowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "allowlist_type": "UserOther", "reason": "r"},
+			requests: []capturedReq{{"PATCH", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allow":true,"reason":"r"}`)}},
 		},
 		{
-			name: "triage",
-			pick: func(ft findingType) bool { return ft.triage != nil },
-			want: []string{"bughunt", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"},
+			name: "unallowlist bughunt", tool: "nullify_unallowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "reason": "r"},
+			requests: []capturedReq{{"PATCH", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allow":false,"reason":"r"}`)}},
 		},
 		{
-			name: "autofix create-PR",
-			pick: func(ft findingType) bool { return ft.autofixCreatePR != nil },
-			want: []string{"scpm"},
+			name: "archive cspm", tool: "nullify_archive_finding", args: map[string]any{"type": "cspm", "id": "f1"},
+			requests: []capturedReq{{"POST", "/cspm/findings/f1/archive", []byte(`{}`)}},
 		},
+		{
+			name: "mark false positive", tool: "nullify_mark_false_positive", args: map[string]any{"type": "cspm", "id": "f1", "reason": "r"},
+			requests: []capturedReq{{"POST", "/cspm/findings/f1/mark-false-positive", []byte(`{"falsePositiveReason":"r"}`)}},
+		},
+		{
+			name: "triage cspm", tool: "nullify_get_finding_triage", args: map[string]any{"type": "cspm", "id": "f1"},
+			requests: []capturedReq{{"GET", "/cspm/findings/f1/triage", nil}},
+		},
+		{
+			name: "delete ticket", tool: "nullify_delete_ticket", args: map[string]any{"type": "scpm", "id": "f1"},
+			requests: []capturedReq{{"DELETE", "/scpm/findings/f1/ticket", nil}},
+		},
+		{
+			name: "submit feedback", tool: "nullify_submit_finding_feedback", args: map[string]any{"id": "f1", "verdict": "wrong", "comment": "not reachable"},
+			requests: []capturedReq{{"POST", "/findings/f1/feedback", []byte(`{"commentText":"not reachable","verdict":"wrong"}`)}},
+		},
+		{
+			name: "get feedback", tool: "nullify_get_finding_feedback", args: map[string]any{"id": "f1"},
+			requests: []capturedReq{{"GET", "/findings/f1/feedback", nil}},
+		},
+		{name: "allowlist without a type sends nothing", tool: "nullify_allowlist_finding", args: map[string]any{"type": "cspm", "id": "f1", "reason": "r"}, isError: true},
+		{name: "allowlist without a reason sends nothing", tool: "nullify_allowlist_finding", args: map[string]any{"type": "cspm", "id": "f1", "allowlist_type": "UserFixed"}, isError: true},
+		{name: "archive on sast sends nothing", tool: "nullify_archive_finding", args: map[string]any{"type": "sast", "id": "f1"}, isError: true},
 	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if got := typesWith(tc.pick); !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("typesWith(%s) = %v, want %v", tc.name, got, tc.want)
-			}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{}
+			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
+			registerUnifiedTools(s, testClient(ft))
+
+			result := callTool(t, s, tt.tool, tt.args)
+
+			require.Equal(t, tt.isError, result.IsError)
+			require.Equal(t, tt.requests, ft.requests)
 		})
 	}
 }
 
-func TestAllFindingTypeNames(t *testing.T) {
-	if names := allFindingTypeNames(); len(names) != 8 {
-		t.Errorf("expected 8 finding types, got %d: %v", len(names), names)
+func TestSearchToolReportsCompleteness(t *testing.T) {
+	tests := []struct {
+		name string
+		args map[string]any
+		body string
+		want string
+		sent string
+	}{
+		{
+			name: "scpm uses its API type and an empty result is reported as complete",
+			args: map[string]any{"type": "scpm"},
+			body: `{"findings":[],"total":0,"hasMoreData":false,"page":1}`,
+			want: `{"findings":[],"total":0,"returned":0,"truncated":false}`,
+			sent: `"type":["SupplyChain"]`,
+		},
+		{
+			name: "a cut-off result is reported as truncated",
+			args: map[string]any{"type": "cspm", "limit": 1},
+			body: `{"findings":[{}],"total":9,"hasMoreData":true,"page":1}`,
+			want: `{"total":9,"returned":1,"truncated":true}`,
+			sent: `"type":["Cloud"]`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(capturedReq) (int, string) { return 200, tt.body }}
+			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
+			registerUnifiedTools(s, testClient(ft))
+
+			result := callTool(t, s, "nullify_search_findings", tt.args)
+
+			require.False(t, result.IsError)
+			text, ok := result.Content[0].(mcp.TextContent)
+			require.True(t, ok)
+			require.JSONEqf(t, withoutFindings(t, tt.want), withoutFindings(t, text.Text), "tool result %s", text.Text)
+			require.Contains(t, string(ft.requests[0].body), tt.sent)
+		})
 	}
 }
 
+func withoutFindings(t *testing.T, doc string) string {
+	t.Helper()
+	var fields map[string]any
+	require.NoError(t, json.Unmarshal([]byte(doc), &fields))
+	delete(fields, "findings")
+	out, err := json.Marshal(fields)
+	require.NoError(t, err)
+	return string(out)
+}
+
 func TestValidToolSets(t *testing.T) {
-	sets := ValidToolSets()
-	expected := map[string]bool{"default": true, "all": true, "minimal": true, "findings": true, "admin": true}
-	if len(sets) != len(expected) {
-		t.Errorf("expected %d tool sets, got %d: %v", len(expected), len(sets), sets)
-	}
-	for _, s := range sets {
-		if !expected[s] {
-			t.Errorf("unexpected tool set %q", s)
-		}
-	}
+	require.ElementsMatch(t, []string{"default", "all", "minimal", "findings", "admin"}, ValidToolSets())
 }

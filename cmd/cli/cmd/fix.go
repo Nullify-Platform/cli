@@ -3,10 +3,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
+	"strings"
 
-	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/findings"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -14,97 +14,55 @@ import (
 var fixCmd = &cobra.Command{
 	Use:   "fix <finding-id>",
 	Short: "Generate an autofix for a finding",
-	Long: `Generate an automated fix for a security finding and optionally create a PR.
+	Long: `Generate an automated fix for a security finding and wait for it to finish.
 
-Supports SAST and SCA dependency findings.`,
+The fix run opens any pull request itself. --create-pr waits for that pull
+request and reports it.`,
 	Example: `  # Fix a SAST finding
   nullify fix abc123 --type sast
 
-  # Fix and create a PR
+  # Fix and report the pull request
   nullify fix abc123 --type sast --create-pr
 
   # Fix an SCA dependency finding
   nullify fix def456 --type sca`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-
 		findingID := args[0]
-
-		authCtx, err := resolveCommandAuth(ctx)
-		if err != nil {
-			return err
-		}
-		nullifyClient := authCtx.Client()
-		queryParams := authCtx.QueryParams
-
 		findingType, _ := cmd.Flags().GetString("type")
 		createPR, _ := cmd.Flags().GetBool("create-pr")
 
-		var basePath string
-		switch findingType {
-		case "sast":
-			basePath = "/sast/findings"
-		case "sca":
-			basePath = "/sca/dependencies/findings"
-		default:
-			return fmt.Errorf("--type must be 'sast' or 'sca'")
+		authCtx, err := resolveCommandAuth(cmd.Context())
+		if err != nil {
+			return err
 		}
 
-		qs := lib.BuildQueryString(queryParams)
-
-		// Step 1: Generate autofix
 		if !quiet {
 			fmt.Fprintf(os.Stderr, "Generating fix for %s finding %s...\n", findingType, findingID)
 		}
-		_, err = lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-			fmt.Sprintf("%s/%s/autofix/fix%s", basePath, url.PathEscape(findingID), qs))
+		fixResult, err := findings.Fix(cmd.Context(), authCtx.APIClient(), findingType, findingID, createPR)
 		if err != nil {
-			return reportError(
-				cmd,
-				fmt.Errorf("generating fix: %w", err),
-				"Error generating fix: %v\n",
-				err,
-			)
-		}
-
-		// Step 2: Get diff
-		diffBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-			fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, url.PathEscape(findingID), qs))
-		if err != nil {
-			return reportError(
-				cmd,
-				fmt.Errorf("getting diff: %w", err),
-				"Error getting diff: %v\n",
-				err,
-			)
+			return findingsError(err)
 		}
 
 		result := map[string]any{
 			"finding_id": findingID,
 			"type":       findingType,
-			"diff":       json.RawMessage(diffBody),
+		}
+		if fixResult.StillRunning {
+			result["still_running"] = true
+		}
+		if len(fixResult.Diff) > 0 {
+			result["diff"] = fixResult.Diff
+		}
+		if fixResult.PullRequest != nil {
+			result["pr"] = fixResult.PullRequest
 		}
 
-		// Step 3: Optionally create PR
-		if createPR {
-			if !quiet {
-				fmt.Fprintf(os.Stderr, "Creating PR...\n")
-			}
-			prBody, err := lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-				fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, url.PathEscape(findingID), qs))
-			if err != nil {
-				return reportError(
-					cmd,
-					fmt.Errorf("creating PR: %w", err),
-					"Error creating PR: %v\n",
-					err,
-				)
-			}
-			result["pr"] = json.RawMessage(prBody)
+		out, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return err
 		}
-
-		out, _ := json.MarshalIndent(result, "", "  ")
 		if err := output.Print(cmd, out); err != nil {
 			fmt.Fprintln(os.Stderr, string(out))
 		}
@@ -115,7 +73,8 @@ Supports SAST and SCA dependency findings.`,
 func init() {
 	rootCmd.AddCommand(fixCmd)
 
-	fixCmd.Flags().String("type", "", "Finding type (sast, sca)")
+	autofixTypes := findings.NamesWith(func(t findings.Type) bool { return t.AutofixFix != nil })
+	fixCmd.Flags().String("type", "", "Finding type (sca, "+strings.Join(autofixTypes, ", ")+")")
 	_ = fixCmd.MarkFlagRequired("type")
-	fixCmd.Flags().Bool("create-pr", false, "Create a PR with the fix")
+	fixCmd.Flags().Bool("create-pr", false, "Wait for and report the pull request")
 }
