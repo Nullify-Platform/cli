@@ -457,9 +457,7 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/nullify-platform/cli/internal/apierror"
 	"github.com/nullify-platform/cli/internal/client"
@@ -467,22 +465,6 @@ import (
 
 // Version is set at build time via ldflags.
 var Version = "dev"
-
-// defaultTimeout is the request timeout used when NULLIFY_HTTP_TIMEOUT is unset
-// or invalid. 30s is too short for long-running calls (scan-start, autofix), so
-// callers can raise it via the env var (e.g. "120s").
-const defaultTimeout = 30 * time.Second
-
-// httpTimeout returns the request timeout, overridable via the
-// NULLIFY_HTTP_TIMEOUT env var (a Go duration string such as "120s").
-func httpTimeout() time.Duration {
-	if v := os.Getenv("NULLIFY_HTTP_TIMEOUT"); v != "" {
-		if d, err := time.ParseDuration(v); err == nil && d > 0 {
-			return d
-		}
-	}
-	return defaultTimeout
-}
 
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
@@ -513,7 +495,7 @@ func NewClient(host string, token string, defaultParams map[string]string, opts 
 		Token:         token,
 		DefaultParams: defaultParams,
 		HTTPClient: &http.Client{
-			Timeout:   httpTimeout(),
+			Timeout:   client.HTTPTimeout(),
 			Transport: client.NewRetryTransport(http.DefaultTransport),
 		},
 	}

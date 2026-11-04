@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -233,12 +234,16 @@ func TestFixWaitFlags(t *testing.T) {
 func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 	tests := []struct {
 		name        string
+		flagToken   string
 		refreshCode int
 		exit        int
 		stdout      []string
+		tokens      []string
+		refreshes   int
 	}{
-		{name: "a refreshed token continues the wait", refreshCode: http.StatusOK, exit: ExitSuccess, stdout: []string{`"state": "cached"`, `"run_id": "r1"`}},
-		{name: "a failed refresh prints the partial result", refreshCode: http.StatusUnauthorized, exit: ExitNetworkError, stdout: []string{`"state": "in_progress_requested"`, `"run_id": "r1"`, `"check_with": "nullify findings fix-status f1 --type sast"`}},
+		{name: "a refreshed token continues the wait", refreshCode: http.StatusOK, exit: ExitSuccess, stdout: []string{`"state": "cached"`, `"run_id": "r1"`}, tokens: []string{"Bearer old", "Bearer new"}, refreshes: 1},
+		{name: "a failed refresh prints the partial result", refreshCode: http.StatusUnauthorized, exit: ExitNetworkError, stdout: []string{`"state": "in_progress_requested"`, `"run_id": "r1"`, `"check_with": "nullify findings fix-status f1 --type sast"`}, tokens: []string{"Bearer old"}, refreshes: 1},
+		{name: "--nullify-token is never replaced by stored credentials", flagToken: "explicit", refreshCode: http.StatusOK, exit: ExitNetworkError, stdout: []string{`"state": "in_progress_requested"`, `"run_id": "r1"`, `"check_with": "nullify findings fix-status f1 --type sast"`}, tokens: []string{"Bearer explicit"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -246,6 +251,13 @@ func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 			t.Setenv("NULLIFY_HOST", "acme.nullify.ai")
 			t.Setenv("NULLIFY_TOKEN", "")
 			require.ErrorIs(t, auth.SaveHostCredentials("acme.nullify.ai", auth.HostCredentials{AccessToken: "old", RefreshToken: "r", ExpiresAt: time.Now().Add(time.Hour).Unix()}), nil)
+
+			savedToken := nullifyToken
+			t.Cleanup(func() { nullifyToken = savedToken })
+			nullifyToken = tt.flagToken
+
+			var tokens []string
+			refreshes := 0
 
 			respond := func(code int, body string) (*http.Response, error) {
 				return &http.Response{StatusCode: code, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(body))}, nil
@@ -255,10 +267,15 @@ func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 			http.DefaultTransport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 				switch {
 				case strings.HasSuffix(r.URL.Path, "/auth/refresh_token"):
+					refreshes++
 					return respond(tt.refreshCode, `{"accessToken":"new","expiresIn":3600}`)
 				case strings.HasSuffix(r.URL.Path, "/autofix/fix"):
+					tokens = append(tokens, r.Header.Get("Authorization"))
 					return respond(http.StatusOK, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
-				case r.Header.Get("Authorization") != "Bearer new":
+				}
+
+				tokens = append(tokens, r.Header.Get("Authorization"))
+				if r.Header.Get("Authorization") != "Bearer new" {
 					return respond(http.StatusUnauthorized, `{}`)
 				}
 				return respond(http.StatusOK, `{"status":{"state":"cached","terminal":true}}`)
@@ -279,6 +296,8 @@ func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 			require.ErrorIs(t, err, nil)
 
 			require.Equal(t, tt.exit, ExitCodeForError(runErr))
+			require.Equal(t, tt.tokens, slices.Compact(tokens))
+			require.Equal(t, tt.refreshes, refreshes)
 			for _, want := range tt.stdout {
 				require.Contains(t, string(out), want)
 			}

@@ -5,6 +5,7 @@
 ### Changed
 
 - `nullify fix` now waits up to 50 minutes, because a run can take 45. It waited 5 minutes before. `--timeout` sets the wait. A run still going at the timeout exits non-zero and prints how to check it, and it continues on the server. `--no-wait` starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
+- `nullify mcp serve` and `nullify fix` honour `NULLIFY_HTTP_TIMEOUT`.
 - `nullify_fix_finding` now starts the run and returns at once, with a non-error result. It no longer waits and no longer takes `create_pr`. Use `nullify_get_fix_status` and `nullify_get_fix_diff`.
 
 ### Added

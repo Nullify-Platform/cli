@@ -6,12 +6,29 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/logger"
 )
+
+// DefaultHTTPTimeout is the request timeout used when NULLIFY_HTTP_TIMEOUT is
+// unset or invalid. 30s is too short for long-running calls (scan-start, autofix),
+// so callers can raise it via the env var (e.g. "120s").
+const DefaultHTTPTimeout = 30 * time.Second
+
+// HTTPTimeout returns the request timeout, overridable via the
+// NULLIFY_HTTP_TIMEOUT env var (a Go duration string such as "120s").
+func HTTPTimeout() time.Duration {
+	if v := os.Getenv("NULLIFY_HTTP_TIMEOUT"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil && d > 0 {
+			return d
+		}
+	}
+	return DefaultHTTPTimeout
+}
 
 // TokenProvider is a function that returns a valid token.
 type TokenProvider func() (string, error)
@@ -67,7 +84,7 @@ func NewRefreshingHTTPClient(nullifyHost string, tokenProvider, refreshProvider 
 	}
 
 	return &http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   HTTPTimeout(),
 		Transport: NewRetryTransport(t),
 	}, nil
 }

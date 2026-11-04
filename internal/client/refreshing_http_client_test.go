@@ -10,6 +10,34 @@ import (
 	"time"
 )
 
+func TestHTTPTimeoutReachesTheRefreshingClient(t *testing.T) {
+	tests := []struct {
+		name string
+		env  string
+		want time.Duration
+	}{
+		{name: "default when unset", env: "", want: DefaultHTTPTimeout},
+		{name: "overrides from env", env: "120s", want: 120 * time.Second},
+		{name: "falls back to default on invalid", env: "not-a-duration", want: DefaultHTTPTimeout},
+		{name: "falls back to default on non-positive", env: "0s", want: DefaultHTTPTimeout},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("NULLIFY_HTTP_TIMEOUT", tt.env)
+			provider := func() (string, error) { return "tok", nil }
+
+			got, err := NewRefreshingHTTPClient("acme.nullify.ai", provider, provider)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if HTTPTimeout() != tt.want || got.Timeout != tt.want {
+				t.Errorf("HTTPTimeout() = %v, client timeout = %v, want %v", HTTPTimeout(), got.Timeout, tt.want)
+			}
+		})
+	}
+}
+
 func TestNewRefreshingHTTPClientFetchesInitialToken(t *testing.T) {
 	calls := 0
 	provider := func() (string, error) {
