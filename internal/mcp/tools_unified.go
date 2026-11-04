@@ -46,8 +46,8 @@ func registerSearchTool(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
 			mcp.WithString("status", mcp.Description("Filter by status"), mcp.Enum(findings.Statuses...)),
 			mcp.WithString("repository", mcp.Description(repositoryFilterHelp)),
-			mcp.WithString("from", mcp.Description("Only findings at or after this RFC 3339 UTC time")),
-			mcp.WithString("to", mcp.Description("Only findings at or before this RFC 3339 UTC time")),
+			mcp.WithString("from", mcp.Description("Only findings at or after this RFC 3339 time, such as 2026-11-01T00:00:00Z. Any other format is an error.")),
+			mcp.WithString("to", mcp.Description("Only findings at or before this RFC 3339 time, such as 2026-11-01T00:00:00Z. Any other format is an error.")),
 			mcp.WithNumber("limit", mcp.Description("Max total findings across pages (default 100)")),
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {

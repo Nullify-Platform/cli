@@ -18,8 +18,11 @@ import (
 var (
 	ErrAutofixFailed       = errors.New("autofix failed")
 	ErrAutofixStillRunning = errors.New("autofix is still running")
-	ErrNoPullRequest       = errors.New("autofix finished without opening a new pull request")
-	ErrAutofixDiff         = errors.New("get autofix diff")
+	// ErrAutofixStatusUnreadable means that the status route was failing when the
+	// wait ended, so the state of the run is not known.
+	ErrAutofixStatusUnreadable = errors.New("autofix status could not be read")
+	ErrNoPullRequest           = errors.New("autofix finished without opening a new pull request")
+	ErrAutofixDiff             = errors.New("get autofix diff")
 )
 
 // ErrInvalidTimeout is returned before the API is called.
@@ -146,9 +149,9 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	if status.State != "" {
 		result.State = status.State
 	}
-	if errors.Is(err, context.DeadlineExceeded) {
+	if ended := waitEnded(err, stillRunning, check); ended != nil {
 		result.CheckWith = check
-		result.Failure = stillRunning
+		result.Failure = ended
 		return result, nil
 	}
 	if err != nil {
@@ -179,9 +182,9 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	if status.State != "" {
 		result.State = status.State
 	}
-	if errors.Is(err, context.DeadlineExceeded) {
+	if ended := waitEnded(err, stillRunning, check); ended != nil {
 		result.CheckWith = check
-		result.Failure = errors.Join(diffErr, stillRunning)
+		result.Failure = errors.Join(diffErr, ended)
 		return result, nil
 	}
 	if err != nil {
@@ -204,6 +207,18 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		result.Failure = diffErr
 	}
 	return result, nil
+}
+
+// waitEnded returns the failure for a poll that reached its deadline, or nil for any
+// other poll result.
+func waitEnded(err, stillRunning error, check string) error {
+	switch {
+	case errors.Is(err, ErrAutofixStatusUnreadable):
+		return fmt.Errorf("%w; the run may continue on the server; check it with: %s", err, check)
+	case errors.Is(err, context.DeadlineExceeded):
+		return stillRunning
+	}
+	return nil
 }
 
 func fixType(typeName, findingID string) (Type, error) {
@@ -304,11 +319,13 @@ func transientPollError(err error) bool {
 
 // pollAutofix polls the autofix status route until the watched phase ends or the
 // deadline passes. On the deadline it returns the last status it read and
-// context.DeadlineExceeded.
+// context.DeadlineExceeded, or ErrAutofixStatusUnreadable when its latest read failed.
 func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, watchPR bool, earlier []string, deadline time.Time) (AutofixStatus, error) {
 	var last AutofixStatus
+	var readErr error
 	for {
 		status, err := readAutofixStatus(ctx, c, t, findingID)
+		readErr = err
 		switch {
 		case err == nil:
 			last = status
@@ -320,6 +337,9 @@ func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, w
 		}
 
 		if time.Now().After(deadline) {
+			if readErr != nil {
+				return last, fmt.Errorf("%w: %w", ErrAutofixStatusUnreadable, readErr)
+			}
 			return last, context.DeadlineExceeded
 		}
 		select {

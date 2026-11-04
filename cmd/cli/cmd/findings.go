@@ -133,7 +133,7 @@ func findingsError(err error) error {
 	for _, invalid := range []error{
 		findings.ErrUnknownType, findings.ErrUnsupported, findings.ErrFindingIDRequired,
 		findings.ErrReasonRequired, findings.ErrInvalidAllowlistType, findings.ErrInvalidVerdict,
-		findings.ErrInvalidLimit, findings.ErrInvalidStatus, findings.ErrInvalidTimeout,
+		findings.ErrInvalidLimit, findings.ErrInvalidStatus, findings.ErrInvalidTime, findings.ErrInvalidTimeout,
 	} {
 		if errors.Is(err, invalid) {
 			return err
@@ -147,8 +147,8 @@ func addFindingsListFlags(cmd *cobra.Command) {
 	cmd.Flags().String("status", "", "Filter by status ("+strings.Join(findings.Statuses, ", ")+")")
 	cmd.Flags().String("type", "", "Filter by type ("+strings.Join(findings.Names(), ", ")+")")
 	cmd.Flags().String("repo", "", "Exact repository name, owner/name preferred (auto-detected from git if not set, except for cspm and bughunt)")
-	cmd.Flags().String("from", "", "Only findings at or after this RFC 3339 UTC time")
-	cmd.Flags().String("to", "", "Only findings at or before this RFC 3339 UTC time")
+	cmd.Flags().String("from", "", "Only findings at or after this RFC 3339 time, such as 2026-11-01T00:00:00Z")
+	cmd.Flags().String("to", "", "Only findings at or before this RFC 3339 time, such as 2026-11-01T00:00:00Z")
 	cmd.Flags().Int("limit", 100, "Maximum total findings to return (fetches multiple pages as needed)")
 	cmd.Flags().Bool("debug", false, "Print one line per page to stderr")
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/api/models"
@@ -16,6 +17,7 @@ import (
 var (
 	ErrInvalidLimit  = errors.New("limit must be greater than zero")
 	ErrInvalidStatus = errors.New("invalid status")
+	ErrInvalidTime   = errors.New("invalid time")
 )
 
 // Statuses are the values that SearchOptions.Status accepts.
@@ -122,9 +124,15 @@ func (o SearchOptions) query() (models.ModelsUnifiedFindingsQuery, error) {
 		query.Severity = []string{strings.ToUpper(o.Severity)}
 	}
 	if o.From != "" {
+		if err := checkFilterTime("from", o.From); err != nil {
+			return query, err
+		}
 		query.FromDate = &o.From
 	}
 	if o.To != "" {
+		if err := checkFilterTime("to", o.To); err != nil {
+			return query, err
+		}
 		query.ToDate = &o.To
 	}
 
@@ -143,6 +151,18 @@ func (o SearchOptions) query() (models.ModelsUnifiedFindingsQuery, error) {
 		return query, fmt.Errorf("%w %q, valid statuses: %s", ErrInvalidStatus, o.Status, strings.Join(Statuses, ", "))
 	}
 	return query, nil
+}
+
+// checkFilterTime rejects a time that the server cannot parse. The server ignores
+// such a filter, and the search then returns findings outside the window. A plain
+// date is rejected, because it does not say which end of the day "to" means.
+func checkFilterTime(name, value string) error {
+	for _, layout := range []string{time.RFC3339, "2006-01-02T15:04:05"} {
+		if _, err := time.Parse(layout, value); err == nil {
+			return nil
+		}
+	}
+	return fmt.Errorf("%w for %s: %q, use RFC 3339 such as 2026-11-01T00:00:00Z", ErrInvalidTime, name, value)
 }
 
 // repositoryNames returns the filter values for a repository. The server matches

@@ -155,6 +155,7 @@ func TestFindingsErrorExitCodes(t *testing.T) {
 		{name: "unknown type", err: findings.ErrUnknownType, want: 1},
 		{name: "unsupported", err: findings.ErrUnsupported, want: 1},
 		{name: "bad limit", err: findings.ErrInvalidLimit, want: 1},
+		{name: "bad time", err: findings.ErrInvalidTime, want: 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -172,6 +173,7 @@ func TestReportFixExitCode(t *testing.T) {
 		{name: "success", result: findings.FixResult{State: "cached"}, want: ExitSuccess},
 		{name: "failed", result: findings.FixResult{State: "failed_abort", Failure: findings.ErrAutofixFailed}, want: 1},
 		{name: "still running", result: findings.FixResult{Failure: findings.ErrAutofixStillRunning}, want: 1},
+		{name: "status not readable", result: findings.FixResult{Failure: findings.ErrAutofixStatusUnreadable}, want: 1},
 		{name: "no new pull request", result: findings.FixResult{State: "pending_review", Failure: findings.ErrNoPullRequest}, want: 1},
 	}
 	for _, tt := range tests {

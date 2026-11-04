@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"slices"
 	"sort"
 	"strings"
@@ -34,9 +35,7 @@ type Type struct {
 	// the body {allow, reason}. Other types use separate POST routes.
 	AllowOnPatch bool
 	// AllowlistTypeUnrecorded marks a type for which the server may not record the
-	// allowlist type. Bug hunt has no such input. SCA handlers ignore it until
-	// monorepo #17588 deploys: remove the mark from the SCA rows when the spec moves
-	// past that pull request.
+	// allowlist type.
 	AllowlistTypeUnrecorded bool
 
 	Get                 Action
@@ -110,6 +109,14 @@ func writeRaw[I any, P findingInput[I]](call func(*api.Client, context.Context, 
 	}
 }
 
+// readRaw reads a route and returns the response as the server sent it. pathFormat
+// holds the finding ID as %s.
+func readRaw(pathFormat string) Action {
+	return func(ctx context.Context, c *api.Client, id string, _ []byte) (json.RawMessage, error) {
+		return c.GetRaw(ctx, fmt.Sprintf(pathFormat, url.PathEscape(id)))
+	}
+}
+
 // Types is the table of finding types, keyed by the slug that users pass.
 var Types = map[string]Type{
 	"sast": {
@@ -122,7 +129,7 @@ var Types = map[string]Type{
 		Unallowlist:   writeRaw((*api.Client).CreateSastFindingsFindingIdUnallowlist),
 		AutofixFix:    write((*api.Client).CreateSastFindingsFindingIdAutofixFix),
 		AutofixStatus: read((*api.Client).ListSastFindingsFindingIdAutofixStatus),
-		AutofixDiff:   read((*api.Client).ListSastFindingsFindingIdAutofixCacheDiff),
+		AutofixDiff:   readRaw("/sast/findings/%s/autofix/cache/diff"),
 	},
 	"sca_dependencies": {
 		APITypes:                []string{"Dependencies"},
@@ -135,7 +142,7 @@ var Types = map[string]Type{
 		Unallowlist:             writeRaw((*api.Client).CreateScaDependenciesFindingsFindingIdUnallowlist),
 		AutofixFix:              write((*api.Client).CreateScaDependenciesFindingsFindingIdAutofixFix),
 		AutofixStatus:           read((*api.Client).ListScaDependenciesFindingsFindingIdAutofixStatus),
-		AutofixDiff:             read((*api.Client).ListScaDependenciesFindingsFindingIdAutofixCacheDiff),
+		AutofixDiff:             readRaw("/sca/dependencies/findings/%s/autofix/cache/diff"),
 	},
 	"sca_containers": {
 		APITypes:                []string{"Containers"},
@@ -159,13 +166,14 @@ var Types = map[string]Type{
 		Unallowlist:  writeRaw((*api.Client).CreateSecretsFindingsFindingIdUnallowlist),
 	},
 	"secrets_sensitive_data": {
-		APITypes:     []string{"SecretsSensitiveData"},
-		Get:          read((*api.Client).GetSecretsSensitivedataFindingsFindingId),
-		Triage:       read((*api.Client).ListSecretsSensitivedataFindingsFindingIdTriage),
-		CreateTicket: write((*api.Client).CreateSecretsSensitivedataFindingsFindingIdTicket),
-		DeleteTicket: read((*api.Client).DeleteSecretsSensitivedataFindingsFindingIdTicket),
-		Allowlist:    writeRaw((*api.Client).CreateSecretsSensitivedataFindingsFindingIdAllowlist),
-		Unallowlist:  writeRaw((*api.Client).CreateSecretsSensitivedataFindingsFindingIdUnallowlist),
+		APITypes:                []string{"SecretsSensitiveData"},
+		AllowlistTypeUnrecorded: true,
+		Get:                     read((*api.Client).GetSecretsSensitivedataFindingsFindingId),
+		Triage:                  read((*api.Client).ListSecretsSensitivedataFindingsFindingIdTriage),
+		CreateTicket:            write((*api.Client).CreateSecretsSensitivedataFindingsFindingIdTicket),
+		DeleteTicket:            read((*api.Client).DeleteSecretsSensitivedataFindingsFindingIdTicket),
+		Allowlist:               writeRaw((*api.Client).CreateSecretsSensitivedataFindingsFindingIdAllowlist),
+		Unallowlist:             writeRaw((*api.Client).CreateSecretsSensitivedataFindingsFindingIdUnallowlist),
 	},
 	"pentest": {
 		APITypes:      []string{"Pentest"},
@@ -226,6 +234,8 @@ var typeAliases = map[string]string{
 	"secrets_credentials": "SecretsCredentials",
 	"dast_bughunt":        "BugHunt",
 	"dast_pentest":        "Pentest",
+	// The API accepts Platform as a type filter, but it matches no finding.
+	"Platform": "scpm",
 }
 
 // rowTypes maps the "type" value of a listed finding to its slug, so that a row

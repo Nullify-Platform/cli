@@ -188,6 +188,8 @@ func TestAPITypesFor(t *testing.T) {
 		{name: "SecretsSensitiveData", want: []string{"SecretsSensitiveData"}},
 		{name: "SecretsCredentials", want: []string{"SecretsCredentials"}},
 		{name: "secrets_credentials", want: []string{"SecretsCredentials"}},
+		{name: "Platform", want: []string{"SupplyChain"}},
+		{name: "Unknown", err: ErrUnknownType},
 		{name: "dast_bughunt", want: []string{"BugHunt"}},
 		{name: "dast_pentest", want: []string{"Pentest"}},
 		{name: "bughunt", want: []string{"BugHunt"}},
@@ -309,6 +311,13 @@ func TestSearchReportsCompleteness(t *testing.T) {
 		{name: "a zero limit is rejected", opts: SearchOptions{Limit: 0}, wantErr: ErrInvalidLimit},
 		{name: "a negative limit is rejected", opts: SearchOptions{Limit: -1}, wantErr: ErrInvalidLimit},
 		{name: "an unknown status is rejected", opts: SearchOptions{Limit: 10, Status: "allowlisted"}, wantErr: ErrInvalidStatus},
+		{name: "a plain from date is rejected", opts: SearchOptions{Limit: 10, From: "2026-11-01"}, wantErr: ErrInvalidTime},
+		{name: "a plain to date is rejected", opts: SearchOptions{Limit: 10, To: "2026-11-01"}, wantErr: ErrInvalidTime},
+		{name: "a to time with a space is rejected", opts: SearchOptions{Limit: 10, To: "2026-11-01 10:00:00"}, wantErr: ErrInvalidTime},
+		{name: "words are rejected", opts: SearchOptions{Limit: 10, From: "yesterday"}, wantErr: ErrInvalidTime},
+		{name: "RFC 3339 with an offset is accepted", opts: SearchOptions{Limit: 10, From: "2026-11-01T00:00:00+10:00"}, pages: []string{page(0, 0, false)}, wantCalls: 1},
+		{name: "fractional seconds are accepted", opts: SearchOptions{Limit: 10, To: "2026-11-01T00:00:00.5Z"}, pages: []string{page(0, 0, false)}, wantCalls: 1},
+		{name: "a time with no zone is accepted, as on the server", opts: SearchOptions{Limit: 10, To: "2026-11-01T00:00:00"}, pages: []string{page(0, 0, false)}, wantCalls: 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -655,6 +664,55 @@ func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
 	}
 }
 
+func TestFixSaysWhenTheStatusCannotBeRead(t *testing.T) {
+	shortPollInterval(t)
+
+	const done = `{"status":{"state":"cached","terminal":true}}`
+
+	tests := []struct {
+		name     string
+		createPR bool
+		statuses []int
+	}{
+		{name: "fix phase", statuses: []int{500}},
+		{name: "pull request phase", createPR: true, statuses: []int{200, 500}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			polled := 0
+			ft := &fakeTransport{respond: func(_ int, r request) (int, string) {
+				if !strings.HasSuffix(r.Path, "/status") {
+					return 200, `{}`
+				}
+				code := tt.statuses[min(polled, len(tt.statuses)-1)]
+				polled++
+				return code, done
+			}}
+
+			got, err := Fix(context.Background(), clientFor(ft), "sast", "f1", FixOptions{WaitForPR: tt.createPR, Timeout: 30 * time.Millisecond})
+
+			require.ErrorIs(t, err, nil)
+			require.ErrorIs(t, got.Failure, ErrAutofixStatusUnreadable)
+			require.NotErrorIs(t, got.Failure, ErrAutofixStillRunning)
+			require.ErrorContains(t, got.Failure, "nullify findings fix-status f1 --type sast")
+			require.Equal(t, "nullify findings fix-status f1 --type sast", got.CheckWith)
+		})
+	}
+}
+
+func TestFixKeepsTheDiffAsSent(t *testing.T) {
+	const diff = `{"diffs":[],"addedLater":1}`
+	ft := &fakeTransport{respond: func(_ int, r request) (int, string) {
+		return 200, map[bool]string{true: diff, false: `{"status":{"state":"cached","terminal":true}}`}[strings.HasSuffix(r.Path, "/diff")]
+	}}
+
+	got, err := Fix(context.Background(), clientFor(ft), "sast", "f1", FixOptions{Timeout: time.Minute})
+
+	require.ErrorIs(t, err, nil)
+	require.ErrorIs(t, got.Failure, nil)
+	require.Equal(t, diff, string(got.Diff))
+}
+
 func TestFixPollErrors(t *testing.T) {
 	shortPollInterval(t)
 
@@ -786,6 +844,7 @@ func TestAllowlistTypeWarning(t *testing.T) {
 	}{
 		{name: "bughunt warns", verb: "allowlist", findType: "bughunt", params: falsePositive, response: `{"success":true}`, want: `{"success":true,"warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "sca dependencies warns and keeps the response", verb: "allowlist", findType: "sca_dependencies", params: falsePositive, response: `{"a":1}`, want: `{"a":1,"warning":"` + AllowlistTypeWarning + `"}`},
+		{name: "sensitive data warns", verb: "allowlist", findType: "secrets_sensitive_data", params: falsePositive, response: `{}`, want: `{"warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "sca containers warns", verb: "allowlist", findType: "sca_containers", params: falsePositive, response: `{}`, want: `{"warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "a response that is not an object is kept", verb: "allowlist", findType: "sca", params: falsePositive, response: `done`, want: `{"response":"done","warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "cspm records the type", verb: "allowlist", findType: "cspm", params: falsePositive, response: `{}`, want: `{}`},
@@ -810,10 +869,10 @@ func TestVerbTypeValues(t *testing.T) {
 		want []string
 	}{
 		{verb: "archive", want: []string{"Cloud", "cspm"}},
-		{verb: "unmark-false-positive", want: []string{"Cloud", "SupplyChain", "cspm", "scpm"}},
+		{verb: "unmark-false-positive", want: []string{"Cloud", "Platform", "SupplyChain", "cspm", "scpm"}},
 		{verb: "fix-diff", want: []string{"Code", "Dependencies", "dependencies", "sast", "sca", "sca_dependencies"}},
 		{verb: "get", want: []string{
-			"BugHunt", "Cloud", "Code", "Containers", "Dependencies", "Pentest", "SecretsCredentials", "SecretsSensitiveData", "SupplyChain",
+			"BugHunt", "Cloud", "Code", "Containers", "Dependencies", "Pentest", "Platform", "SecretsCredentials", "SecretsSensitiveData", "SupplyChain",
 			"bughunt", "containers", "cspm", "dast_bughunt", "dast_pentest", "dependencies", "pentest", "sast", "sca", "sca_containers",
 			"sca_dependencies", "scpm", "secrets", "secrets_credentials", "secrets_sensitive_data",
 		}},
