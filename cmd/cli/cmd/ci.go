@@ -45,6 +45,8 @@ Exit codes:
 		if err != nil {
 			return err
 		}
+		nullifyClient := authCtx.Client()
+		queryParams := authCtx.QueryParams
 
 		severityThreshold, _ := cmd.Flags().GetString("severity-threshold")
 		findingType, _ := cmd.Flags().GetString("type")
@@ -64,17 +66,18 @@ Exit codes:
 		}
 
 		if repo == "" {
-			repo = lib.DetectRepoFullNameFromGit()
-		}
-		if repo != "" {
-			fmt.Fprintf(os.Stderr, "Checking repository %s. Cloud and bug hunt findings have no repository, so they count for the whole tenant.\n", repo)
+			repo = lib.DetectRepoFromGit()
 		}
 
 		severities := severitiesAboveThreshold(severityThreshold)
 
-		endpoints, unknownType := gateEndpoints(findingType)
-		if unknownType {
-			fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
+		endpoints := allScannerEndpoints()
+		if findingType != "" {
+			if filtered := filterEndpointsByType(endpoints, findingType); filtered != nil {
+				endpoints = filtered
+			} else {
+				fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
+			}
 		}
 
 		var totalFindings int64
@@ -86,7 +89,13 @@ Exit codes:
 			for _, sev := range severities {
 				ep, sev := ep, sev
 				g.Go(func() error {
-					count, err := unifiedFindingsCount(gctx, authCtx.APIClient(), ep, sev, repo)
+					params := []string{"severity", sev, "status", "open", "limit", "1"}
+					if repo != "" {
+						params = append(params, "repository", repo)
+					}
+					qs := lib.BuildQueryString(queryParams, params...)
+
+					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 					if err != nil {
 						mu.Lock()
 						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
@@ -95,6 +104,10 @@ Exit codes:
 						return nil
 					}
 
+					// limit=1 keeps the payload small; the accurate count
+					// comes from the response's "total" field, not the
+					// truncated items array.
+					count := totalFindingsCount(body)
 					if count > 0 {
 						atomic.AddInt64(&totalFindings, int64(count))
 						mu.Lock()
@@ -248,8 +261,8 @@ func init() {
 	ciCmd.AddCommand(ciReportCmd)
 
 	ciGateCmd.Flags().String("severity-threshold", "high", "Minimum severity to fail on (critical, high, medium, low)")
-	ciGateCmd.Flags().String("type", "", "Filter by finding type: the names that nullify findings --type accepts. The default is sast, sca_dependencies, sca_containers, secrets, pentest, bughunt and cspm; scpm and secrets_sensitive_data only when named here")
-	ciGateCmd.Flags().String("repo", "", "Repository name or owner/name (auto-detected from git if not set). Cloud and bug hunt findings have no repository and count for the whole tenant")
+	ciGateCmd.Flags().String("type", "", "Filter by finding type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm)")
+	ciGateCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
 
 	ciReportCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
 	ciReportCmd.Flags().String("format", "markdown", "Report format (markdown, sarif)")
@@ -263,6 +276,29 @@ func severitiesAboveThreshold(threshold string) []string {
 		}
 	}
 	return []string{"critical", "high"}
+}
+
+// countFindings extracts a count from API response JSON. When used with limit=1,
+// it returns 0 or 1 to indicate whether findings exist at a given severity.
+func countFindings(body string) int {
+	var result any
+	if err := json.Unmarshal([]byte(body), &result); err != nil {
+		return 0
+	}
+
+	switch v := result.(type) {
+	case []any:
+		return len(v)
+	case map[string]any:
+		if items, ok := v["items"].([]any); ok {
+			return len(items)
+		}
+		if total, ok := v["total"].(float64); ok {
+			return int(total)
+		}
+	}
+
+	return 0
 }
 
 // totalFindingsCount extracts an accurate finding count from an API response.

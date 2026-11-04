@@ -25,3 +25,49 @@ func TestSeveritiesAboveThreshold(t *testing.T) {
 		})
 	}
 }
+
+func TestCountFindings(t *testing.T) {
+	tests := []struct {
+		name     string
+		body     string
+		expected int
+	}{
+		{
+			name:     "empty array",
+			body:     `[]`,
+			expected: 0,
+		},
+		{
+			name:     "array with items",
+			body:     `[{"id": 1}, {"id": 2}, {"id": 3}]`,
+			expected: 3,
+		},
+		{
+			name:     "object with items array",
+			body:     `{"items": [{"id": 1}]}`,
+			expected: 1,
+		},
+		{
+			name:     "object with total field",
+			body:     `{"total": 42}`,
+			expected: 42,
+		},
+		{
+			name:     "invalid json",
+			body:     `not json`,
+			expected: 0,
+		},
+		{
+			name:     "empty object",
+			body:     `{}`,
+			expected: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := countFindings(tt.body)
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}

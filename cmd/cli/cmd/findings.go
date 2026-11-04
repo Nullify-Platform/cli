@@ -15,8 +15,12 @@ import (
 
 const findingsListLong = `Query and display security findings from all Nullify scanners.
 Supports SAST, SCA (dependencies and containers), Secrets, Pentest, BugHunt, CSPM and SCPM.
-Auto-detects the current repository from git if --repo is not specified, except for CSPM findings, which have no repository.
+Auto-detects the current repository from git if --repo is not specified, except for --type cspm and --type bughunt, because these findings have no repository.
+With no --type inside a repository, the repository filter therefore excludes cloud and bug hunt findings.
 Results are paginated automatically up to --limit total findings.
+
+The search returns triaged findings only: a finding whose triage has not finished or has failed is not listed.
+A repository filter matches the exact stored name, so a wrong name returns nothing. Pass owner/name: a bare name misses pentest findings that hold the full name.
 
 The output reports total, returned and truncated. An empty result has total 0.
 A truncated result has truncated true. A failure to read, such as no access,
@@ -142,7 +146,7 @@ func addFindingsListFlags(cmd *cobra.Command) {
 	cmd.Flags().String("severity", "", "Filter by severity (critical, high, medium, low)")
 	cmd.Flags().String("status", "", "Filter by status ("+strings.Join(findings.Statuses, ", ")+")")
 	cmd.Flags().String("type", "", "Filter by type ("+strings.Join(findings.Names(), ", ")+")")
-	cmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set, except for cspm)")
+	cmd.Flags().String("repo", "", "Exact repository name, owner/name preferred (auto-detected from git if not set, except for cspm and bughunt)")
 	cmd.Flags().String("from", "", "Only findings at or after this RFC 3339 UTC time")
 	cmd.Flags().String("to", "", "Only findings at or before this RFC 3339 UTC time")
 	cmd.Flags().Int("limit", 100, "Maximum total findings to return (fetches multiple pages as needed)")

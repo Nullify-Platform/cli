@@ -6,11 +6,9 @@
 
 - `nullify fix` now follows the run. It used to send the request, read the diff and exit 0 without waiting for the run. CI callers now wait up to 50 minutes by default, because a run can take 45. `--timeout` sets the wait. A failed run, or a run still going at the timeout, exits 1 and prints how to check it. The run continues on the server. `--no-wait` gives the fast return: it starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
 - `nullify mcp serve` and `nullify fix` honour `NULLIFY_HTTP_TIMEOUT`.
-- **`nullify ci gate` results change.** It now reads the unified findings search with `finding:list` access, which GitHub Actions and service account tokens have. It used to send filters that the list routes do not read. Allowlisted, archived, false positive, resolved and other-repository findings no longer fail a gate. The default gate no longer always exits 3: lower-case severity failed every CSPM request. With no `--type`, the checked types do not change. Any request failure, or a response in another shape, still exits 3.
-- `nullify ci gate` now checks one repository, detected from git or set with `--repo` (`name` or `owner/name`). A wrong name matches nothing and passes, so the command prints the repository to stderr. Cloud and bug hunt findings have no repository, so they count for the whole tenant.
-- `nullify ci gate --type` accepts every name that `nullify findings --type` accepts, including `scpm`, `secrets_sensitive_data`, `dast_pentest`, `dast_bughunt`, `secrets_credentials` and `sca`. It read them as unknown before, and then gated every type.
-- For a search or a gate, `sca` means dependencies and containers. For a verb on one finding, `sca` still means the dependency route. The MCP tool `type` parameters accept the same names as the CLI.
-- `get_findings_for_repo` returns `total`, `returned` and `truncated` per section, and says that cloud findings have no repository instead of an empty list.
+- `nullify ci gate` is unchanged.
+- For a search, `sca` means dependencies and containers. For a verb on one finding, `sca` still means the dependency route. The MCP tool `type` parameters accept the same names as the CLI.
+- `get_findings_for_repo` returns `total`, `returned` and `truncated` per section, and says that cloud and bug hunt findings have no repository instead of an empty list.
 - `nullify_fix_finding` now starts the run and returns at once, with a non-error result. It no longer waits and no longer takes `create_pr`. Use `nullify_get_fix_status` and `nullify_get_fix_diff`.
 
 ### Added
@@ -25,9 +23,9 @@
 
 ### Known limits
 
+- `nullify findings` and the MCP search tools use the unified search. It returns triaged findings only, and a repository filter matches the exact stored name. With no `--type` inside a repository, cloud and bug hunt findings are excluded.
 - `--allowlist-type` and the MCP `allowlist_type` are required for every finding type, but the server may not record them for `bughunt`, `sca_dependencies` and `sca_containers`. These types return a `warning` field, and the CLI also writes the warning to stderr. The reason is recorded. Bug hunt has no such input. SCA handlers ignore the type until monorepo #17588 deploys: remove `AllowlistTypeUnrecorded` from the SCA rows when the spec moves past that pull request.
 
-- `nullify ci report` still reads the list routes, which do not read its severity, status or repository filter, so its counts include findings that the gate no longer counts.
 
 ### Fixed
 

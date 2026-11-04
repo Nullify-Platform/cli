@@ -18,7 +18,7 @@ import (
 var ErrUnknownType = errors.New("unknown finding type")
 
 // ErrUnreadableResponse is returned for a successful response without the expected
-// shape. It must never read as an empty result, because a CI gate would then pass.
+// shape. It must never read as an empty result.
 var ErrUnreadableResponse = errors.New("unreadable findings response")
 
 // Action calls one finding operation. Operations that take no request body

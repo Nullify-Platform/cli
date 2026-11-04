@@ -31,15 +31,21 @@ func registerOptInFindingTools(s *server.MCPServer, c *api.Client) {
 	}
 }
 
+// findingsSearchScope tells a caller what the unified search leaves out.
+const findingsSearchScope = "The search returns triaged findings only: a finding whose triage has not finished or has failed is not listed."
+
+// repositoryFilterHelp describes how the unified search matches a repository.
+const repositoryFilterHelp = "Repository, owner/name preferred. It must match the stored name exactly, so a wrong name returns nothing. A bare name misses pentest findings that hold the full name. Cloud and bug hunt findings have no repository, so this filter excludes them."
+
 func registerSearchTool(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
 		readOnlyTool(
 			"nullify_search_findings",
-			mcp.WithDescription("Search security findings across all or a specific scanner type. Paginates automatically up to limit. The result reports total, returned and truncated, so that an empty result can be told apart from a cut-off one. An access failure is an error, never an empty result."),
+			mcp.WithDescription("Search security findings across all or a specific scanner type. Paginates automatically up to limit. The result reports total, returned and truncated, so that an empty result can be told apart from a cut-off one. An access failure is an error, never an empty result. "+findingsSearchScope),
 			mcp.WithString("type", mcp.Description("Finding type to search"), mcp.Enum(findings.AcceptedNames(func(findings.Type) bool { return true })...)),
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
 			mcp.WithString("status", mcp.Description("Filter by status"), mcp.Enum(findings.Statuses...)),
-			mcp.WithString("repository", mcp.Description("Filter by repository name")),
+			mcp.WithString("repository", mcp.Description(repositoryFilterHelp)),
 			mcp.WithString("from", mcp.Description("Only findings at or after this RFC 3339 UTC time")),
 			mcp.WithString("to", mcp.Description("Only findings at or before this RFC 3339 UTC time")),
 			mcp.WithNumber("limit", mcp.Description("Max total findings across pages (default 100)")),
