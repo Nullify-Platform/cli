@@ -125,8 +125,14 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			// repository/severity are honored there (the per-scanner GET list
 			// endpoints silently drop both).
 			for _, sc := range scannerListers {
+				apiTypes := findings.Types[sc.name].APITypes
+				if !findings.HasRepository(apiTypes) {
+					parts = append(parts, fmt.Sprintf("--- %s ---\nNot listed: these findings have no repository.", sc.name))
+					continue
+				}
+
 				result, err := findings.Search(ctx, c, findings.SearchOptions{
-					APITypes:   findings.Types[sc.name].APITypes,
+					APITypes:   apiTypes,
 					Severity:   severity,
 					Repository: repo,
 					Limit:      limit,
@@ -135,7 +141,7 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 					parts = append(parts, fmt.Sprintf("--- %s ---\nError: %v", sc.name, err))
 					continue
 				}
-				b, _ := json.MarshalIndent(result.Findings, "", "  ")
+				b, _ := json.MarshalIndent(result, "", "  ")
 				parts = append(parts, fmt.Sprintf("--- %s ---\n%s", sc.name, string(b)))
 			}
 			return toolResult(strings.Join(parts, "\n\n")), nil

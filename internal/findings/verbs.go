@@ -21,9 +21,13 @@ var (
 	ErrInvalidVerdict       = errors.New("invalid feedback verdict")
 )
 
-// AllowlistTypes are the allowlist types that a user can submit. The REST API
-// records UserAssumeRisk when the type is absent, so friendly commands and MCP
-// tools require an explicit value.
+// AllowlistTypeWarning is the warning for a type with AllowlistTypeUnrecorded.
+const AllowlistTypeWarning = "The server may not record the allowlist type for this finding type yet. The reason is recorded."
+
+// AllowlistTypes are the allowlist types that a user can submit. Friendly commands
+// and MCP tools require one for every finding type, so that the interface is the
+// same for all of them. Type.AllowlistTypeUnrecorded marks the types for which the
+// server may not record it.
 var AllowlistTypes = []string{
 	string(models.ModelsAllowlistTypeUserfixed),
 	string(models.ModelsAllowlistTypeUserassumerisk),
@@ -195,7 +199,36 @@ func (v Verb) Run(ctx context.Context, c *api.Client, typeName, findingID string
 			return nil, err
 		}
 	}
-	return action(ctx, c, findingID, body)
+
+	data, err := action(ctx, c, findingID, body)
+	if err != nil {
+		return nil, err
+	}
+	if warning := v.Warning(typeName); warning != "" {
+		return addWarning(data, warning)
+	}
+	return data, nil
+}
+
+// Warning returns what a successful run of the verb for the type must tell the
+// caller, or an empty string.
+func (v Verb) Warning(typeName string) string {
+	t, err := Lookup(typeName)
+	if err != nil || !v.NeedsAllowlistType || !t.AllowlistTypeUnrecorded {
+		return ""
+	}
+	return AllowlistTypeWarning
+}
+
+// addWarning adds a warning field to a response. The write has already happened,
+// so a response that is not a JSON object is kept as a string in a response field.
+func addWarning(data json.RawMessage, warning string) (json.RawMessage, error) {
+	fields := map[string]any{}
+	if err := json.Unmarshal(data, &fields); err != nil {
+		fields = map[string]any{"response": string(data)}
+	}
+	fields["warning"] = warning
+	return json.Marshal(fields)
 }
 
 // Types returns the finding types that support the verb.

@@ -187,6 +187,9 @@ func TestAPITypesFor(t *testing.T) {
 		{name: "secrets_sensitive_data", want: []string{"SecretsSensitiveData"}},
 		{name: "SecretsSensitiveData", want: []string{"SecretsSensitiveData"}},
 		{name: "SecretsCredentials", want: []string{"SecretsCredentials"}},
+		{name: "secrets_credentials", want: []string{"SecretsCredentials"}},
+		{name: "dast_bughunt", want: []string{"BugHunt"}},
+		{name: "dast_pentest", want: []string{"Pentest"}},
 		{name: "bughunt", want: []string{"BugHunt"}},
 		{name: "cspm", want: []string{"Cloud"}},
 		{name: "scpm", want: []string{"SupplyChain"}},
@@ -421,6 +424,7 @@ func TestFix(t *testing.T) {
 		retry      = `{"status":{"state":"failed_retry","terminal":true}}`
 		cancelled  = `{"status":{"state":"cancelled","terminal":true}}`
 		iteration  = `{"status":{"state":"failed_iteration","terminal":true}}`
+		openAfter  = `{"status":{"state":"failed_iteration","terminal":true,"pullRequests":[{"url":"http://new","status":"open"},{"url":"http://old","status":"closed"}]}}`
 		closed     = `{"status":{"state":"pr_closed","terminal":true}}`
 		unknown    = `{"status":{"state":"a_new_terminal_state","terminal":true}}`
 	)
@@ -492,6 +496,11 @@ func TestFix(t *testing.T) {
 			failure: ErrAutofixFailed, state: "failed_iteration", routes: []string{sastFix, sastStatus},
 		},
 		{
+			name: "failed_iteration keeps its open pull request", findType: "sast", statuses: []string{openAfter},
+			failure: ErrAutofixFailed, state: "failed_iteration", routes: []string{sastFix, sastStatus},
+			pr: &PullRequestStatus{State: "open", URL: "http://new"},
+		},
+		{
 			name: "pr_closed", findType: "sast", statuses: []string{closed},
 			failure: ErrAutofixFailed, state: "pr_closed", routes: []string{sastFix, sastStatus},
 		},
@@ -556,10 +565,9 @@ func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
 		status   string
 		createPR bool
 		state    string
-		pr       *PullRequestStatus
 	}{
 		{name: "fix phase", status: `{"status":{"state":"in_progress_agent","terminal":false}}`, state: "in_progress_agent"},
-		{name: "pull request phase", status: `{"status":{"state":"cached","terminal":true}}`, createPR: true, state: "cached", pr: &PullRequestStatus{StillRunning: true}},
+		{name: "pull request phase", status: `{"status":{"state":"cached","terminal":true}}`, createPR: true, state: "cached"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -572,9 +580,9 @@ func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
 			require.ErrorIs(t, err, nil)
 			require.ErrorIs(t, got.Failure, ErrAutofixStillRunning)
 			require.ErrorContains(t, got.Failure, "nullify findings fix-status f1 --type sast")
-			require.True(t, got.StillRunning || got.PullRequest != nil)
+			require.True(t, got.StillRunning)
 			require.Equal(t, tt.state, got.State)
-			require.Equal(t, tt.pr, got.PullRequest)
+			require.Nil(t, got.PullRequest)
 		})
 	}
 }
@@ -693,6 +701,37 @@ func TestSensitiveDataVerbsUseTheirRoutes(t *testing.T) {
 
 			require.ErrorIs(t, err, nil)
 			require.Equal(t, []request{tt.request}, ft.requests)
+		})
+	}
+}
+
+func TestAllowlistTypeWarning(t *testing.T) {
+	falsePositive := Params{Reason: "r", AllowlistType: "UserFalsePositive"}
+
+	tests := []struct {
+		name     string
+		verb     string
+		findType string
+		params   Params
+		response string
+		want     string
+	}{
+		{name: "bughunt warns", verb: "allowlist", findType: "bughunt", params: falsePositive, response: `{"success":true}`, want: `{"success":true,"warning":"` + AllowlistTypeWarning + `"}`},
+		{name: "sca dependencies warns and keeps the response", verb: "allowlist", findType: "sca_dependencies", params: falsePositive, response: `{"a":1}`, want: `{"a":1,"warning":"` + AllowlistTypeWarning + `"}`},
+		{name: "sca containers warns", verb: "allowlist", findType: "sca_containers", params: falsePositive, response: `{}`, want: `{"warning":"` + AllowlistTypeWarning + `"}`},
+		{name: "a response that is not an object is kept", verb: "allowlist", findType: "sca", params: falsePositive, response: `done`, want: `{"response":"done","warning":"` + AllowlistTypeWarning + `"}`},
+		{name: "cspm records the type", verb: "allowlist", findType: "cspm", params: falsePositive, response: `{}`, want: `{}`},
+		{name: "secrets records the type", verb: "allowlist", findType: "secrets", params: falsePositive, response: `{}`, want: `{}`},
+		{name: "unallowlist has no type", verb: "unallowlist", findType: "sca", params: Params{Reason: "r"}, response: `{}`, want: `{}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(int, request) (int, string) { return 200, tt.response }}
+
+			got, err := verbNamed(t, tt.verb).Run(context.Background(), clientFor(ft), tt.findType, "f1", tt.params)
+
+			require.ErrorIs(t, err, nil)
+			require.JSONEq(t, tt.want, string(got))
 		})
 	}
 }

@@ -120,6 +120,8 @@ jobs:
               echo '```'
             fi
             echo
+            echo "If this bundle includes monorepo #17588, remove \`AllowlistTypeUnrecorded\` from the SCA rows in \`internal/findings/types.go\`."
+            echo
             echo "This pull request needs a person to review and merge it. A merge to main releases to customers."
           } > "$RUNNER_TEMP/body.md"
           rm -f surface.log

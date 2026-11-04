@@ -212,7 +212,7 @@ The output reports `total`, `returned` and `truncated`:
 | `truncated` true, exit 0 | More findings exist; raise `--limit` |
 | Exit 3 | An API or network failure, including no access (401 or 403) |
 
-Act on a finding. Allowlisting needs a reason and an explicit type, because the type is the record of why the finding was closed: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise.
+Act on a finding. Allowlisting needs a reason and an explicit type: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise. The server may not record the type for `bughunt`, `sca_dependencies` and `sca_containers` yet. For these types the command writes a warning to stderr and adds a `warning` field to the result. The reason is recorded.
 
 ```sh
 nullify findings allowlist abc123 --type cspm --allowlist-type UserFalsePositive --reason "Bucket is public by design"

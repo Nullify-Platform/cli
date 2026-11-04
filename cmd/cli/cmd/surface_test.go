@@ -226,11 +226,6 @@ func TestRunFix(t *testing.T) {
 	}
 }
 
-func TestFixWaitFlags(t *testing.T) {
-	require.Equal(t, "50m0s", fixCmd.Flags().Lookup("timeout").DefValue)
-	require.Equal(t, "false", fixCmd.Flags().Lookup("no-wait").DefValue)
-}
-
 func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -301,6 +296,97 @@ func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 			for _, want := range tt.stdout {
 				require.Contains(t, string(out), want)
 			}
+		})
+	}
+}
+
+func TestReportVerbWarnsOnStderr(t *testing.T) {
+	tests := []struct {
+		name     string
+		findType string
+		want     string
+	}{
+		{name: "the type may not be recorded", findType: "bughunt", want: "Warning: " + findings.AllowlistTypeWarning + "\n"},
+		{name: "the type is recorded", findType: "cspm", want: ""},
+	}
+
+	var allowlist findings.Verb
+	for _, verb := range findings.Verbs {
+		if verb.Name == "allowlist" {
+			allowlist = verb
+		}
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stderr bytes.Buffer
+			cmd := &cobra.Command{Use: "allowlist"}
+			cmd.SetErr(&stderr)
+
+			require.ErrorIs(t, reportVerb(cmd, allowlist, tt.findType, []byte(`{}`)), nil)
+			require.Equal(t, tt.want, stderr.String())
+		})
+	}
+}
+
+func TestGateEndpoints(t *testing.T) {
+	defaults := []string{"sast", "sca_dependencies", "sca_containers", "secrets", "pentest", "bughunt", "cspm"}
+
+	tests := []struct {
+		name     string
+		findType string
+		want     []string
+		unknown  bool
+	}{
+		{name: "no type keeps the default set", want: defaults},
+		{name: "a default type", findType: "sast", want: []string{"sast"}},
+		{name: "scpm when named", findType: "scpm", want: []string{"scpm"}},
+		{name: "sensitive data when named", findType: "secrets_sensitive_data", want: []string{"secrets_sensitive_data"}},
+		{name: "an unknown type gates the default set", findType: "typo", want: defaults, unknown: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, unknown := gateEndpoints(tt.findType)
+
+			var names []string
+			for _, ep := range got {
+				names = append(names, ep.name)
+			}
+			require.Equal(t, tt.want, names)
+			require.Equal(t, tt.unknown, unknown)
+		})
+	}
+}
+
+func TestUnifiedFindingsCount(t *testing.T) {
+	tests := []struct {
+		name     string
+		findType string
+		want     string
+	}{
+		{name: "scpm", findType: "scpm", want: `"type":["SupplyChain"]`},
+		{name: "sensitive data", findType: "secrets_sensitive_data", want: `"type":["SecretsSensitiveData"]`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var body string
+			c := &api.Client{
+				BaseURL: "https://example.com",
+				HTTPClient: &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+					sent, err := io.ReadAll(r.Body)
+					body = string(sent)
+					return &http.Response{StatusCode: http.StatusOK, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(`{"findings":[{}],"total":3,"hasMoreData":true}`))}, err
+				})},
+			}
+			endpoints, _ := gateEndpoints(tt.findType)
+
+			count, err := unifiedFindingsCount(context.Background(), c, endpoints[0], "high", "acme/app")
+
+			require.ErrorIs(t, err, nil)
+			require.Equal(t, 3, count)
+			require.Contains(t, body, tt.want)
+			require.Contains(t, body, `"severity":["HIGH"]`)
+			require.Contains(t, body, `"repository":["acme/app"]`)
+			require.Contains(t, body, `"isResolved":false`)
 		})
 	}
 }

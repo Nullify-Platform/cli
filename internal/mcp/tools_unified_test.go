@@ -165,6 +165,36 @@ func TestFixToolStartsTheRunAndReturns(t *testing.T) {
 	require.Equal(t, []capturedReq{{"POST", "/sast/findings/f1/autofix/fix", []byte(`{}`)}}, ft.requests)
 }
 
+func TestFindingsForRepo(t *testing.T) {
+	tests := []struct {
+		name  string
+		want  []string
+		never string
+	}{
+		{name: "cloud findings have no repository", want: []string{"--- cspm ---\nNot listed: these findings have no repository."}, never: `"Cloud"`},
+		{name: "a section reports truncation", want: []string{`"truncated": true`, `"total": 9`, `"returned": 1`}, never: `"Cloud"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(capturedReq) (int, string) {
+				return 200, `{"findings":[{}],"total":9,"hasMoreData":true}`
+			}}
+			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
+			registerCompositeTools(s, testClient(ft))
+
+			result := callTool(t, s, "get_findings_for_repo", map[string]any{"repository": "acme/app", "limit": 1})
+
+			text := result.Content[0].(mcp.TextContent).Text
+			for _, want := range tt.want {
+				require.Contains(t, text, want)
+			}
+			for _, r := range ft.requests {
+				require.NotContains(t, string(r.body), tt.never)
+			}
+		})
+	}
+}
+
 func TestValidToolSets(t *testing.T) {
 	require.ElementsMatch(t, []string{"default", "all", "minimal", "findings", "admin", "findings-write"}, ValidToolSets())
 }

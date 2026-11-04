@@ -71,13 +71,9 @@ Exit codes:
 
 		severities := severitiesAboveThreshold(severityThreshold)
 
-		endpoints := allScannerEndpoints()
-		if findingType != "" {
-			if filtered := filterEndpointsByType(endpoints, findingType); filtered != nil {
-				endpoints = filtered
-			} else {
-				fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
-			}
+		endpoints, unknownType := gateEndpoints(findingType)
+		if unknownType {
+			fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
 		}
 
 		var totalFindings int64
@@ -89,13 +85,25 @@ Exit codes:
 			for _, sev := range severities {
 				ep, sev := ep, sev
 				g.Go(func() error {
-					params := []string{"severity", sev, "status", "open", "limit", "1"}
-					if repo != "" {
-						params = append(params, "repository", repo)
-					}
-					qs := lib.BuildQueryString(queryParams, params...)
+					var count int
+					var err error
+					if ep.apiTypes != nil {
+						count, err = unifiedFindingsCount(gctx, authCtx.APIClient(), ep, sev, repo)
+					} else {
+						params := []string{"severity", sev, "status", "open", "limit", "1"}
+						if repo != "" {
+							params = append(params, "repository", repo)
+						}
+						qs := lib.BuildQueryString(queryParams, params...)
 
-					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
+						var body string
+						body, err = lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
+
+						// limit=1 keeps the payload small; the accurate count
+						// comes from the response's "total" field, not the
+						// truncated items array.
+						count = totalFindingsCount(body)
+					}
 					if err != nil {
 						mu.Lock()
 						fmt.Fprintf(os.Stderr, "Warning: failed to query %s (%s): %v\n", ep.name, sev, err)
@@ -104,10 +112,6 @@ Exit codes:
 						return nil
 					}
 
-					// limit=1 keeps the payload small; the accurate count
-					// comes from the response's "total" field, not the
-					// truncated items array.
-					count := totalFindingsCount(body)
 					if count > 0 {
 						atomic.AddInt64(&totalFindings, int64(count))
 						mu.Lock()
@@ -261,7 +265,7 @@ func init() {
 	ciCmd.AddCommand(ciReportCmd)
 
 	ciGateCmd.Flags().String("severity-threshold", "high", "Minimum severity to fail on (critical, high, medium, low)")
-	ciGateCmd.Flags().String("type", "", "Filter by finding type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm)")
+	ciGateCmd.Flags().String("type", "", "Filter by finding type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm; scpm and secrets_sensitive_data only when named here)")
 	ciGateCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
 
 	ciReportCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")

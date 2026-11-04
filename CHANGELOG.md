@@ -6,6 +6,8 @@
 
 - `nullify fix` now waits up to 50 minutes, because a run can take 45. It waited 5 minutes before. `--timeout` sets the wait. A run still going at the timeout exits non-zero and prints how to check it, and it continues on the server. `--no-wait` starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
 - `nullify mcp serve` and `nullify fix` honour `NULLIFY_HTTP_TIMEOUT`.
+- `nullify ci gate --type` accepts `scpm` and `secrets_sensitive_data`, which it read as unknown before, and then gated every type. With no `--type`, the checked types do not change.
+- `get_findings_for_repo` returns `total`, `returned` and `truncated` per section, and says that cloud findings have no repository instead of an empty list.
 - `nullify_fix_finding` now starts the run and returns at once, with a non-error result. It no longer waits and no longer takes `create_pr`. Use `nullify_get_fix_status` and `nullify_get_fix_diff`.
 
 ### Added
@@ -17,6 +19,10 @@
 - MCP tools in the new `findings-write` set and in `all`, not in the default set: `nullify_archive_finding`, `nullify_unarchive_finding`, `nullify_mark_false_positive`, `nullify_unmark_false_positive`, `nullify_delete_ticket`.
 - `nullify findings fix-status` and `fix-diff`, with the MCP tools `nullify_get_fix_status` and `nullify_get_fix_diff`.
 - MCP `list_action_items`. Every MCP tool now has read-only or destructive annotations.
+
+### Known limits
+
+- `--allowlist-type` and the MCP `allowlist_type` are required for every finding type, but the server may not record them for `bughunt`, `sca_dependencies` and `sca_containers`. These types return a `warning` field, and the CLI also writes the warning to stderr. The reason is recorded. Bug hunt has no such input. SCA handlers ignore the type until monorepo #17588 deploys: remove `AllowlistTypeUnrecorded` from the SCA rows when the spec moves past that pull request.
 
 ### Fixed
 

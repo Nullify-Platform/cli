@@ -29,6 +29,11 @@ type Type struct {
 	// AllowOnPatch marks a type whose allowlist state is set by one PATCH with
 	// the body {allow, reason}. Other types use separate POST routes.
 	AllowOnPatch bool
+	// AllowlistTypeUnrecorded marks a type for which the server may not record the
+	// allowlist type. Bug hunt has no such input. SCA handlers ignore it until
+	// monorepo #17588 deploys: remove the mark from the SCA rows when the spec moves
+	// past that pull request.
+	AllowlistTypeUnrecorded bool
 
 	Get                 Action
 	Triage              Action
@@ -116,27 +121,29 @@ var Types = map[string]Type{
 		AutofixDiff:   read((*api.Client).ListSastFindingsFindingIdAutofixCacheDiff),
 	},
 	"sca_dependencies": {
-		APITypes:      []string{"Dependencies"},
-		Get:           read((*api.Client).GetScaDependenciesFindingsFindingId),
-		Triage:        read((*api.Client).ListScaDependenciesFindingsFindingIdTriage),
-		CreateTicket:  write((*api.Client).CreateScaDependenciesFindingsFindingIdTicket),
-		DeleteTicket:  read((*api.Client).DeleteScaDependenciesFindingsFindingIdTicket),
-		Allowlist:     writeRaw((*api.Client).CreateScaDependenciesFindingsFindingIdAllowlist),
-		Unallowlist:   writeRaw((*api.Client).CreateScaDependenciesFindingsFindingIdUnallowlist),
-		AutofixFix:    write((*api.Client).CreateScaDependenciesFindingsFindingIdAutofixFix),
-		AutofixStatus: read((*api.Client).ListScaDependenciesFindingsFindingIdAutofixStatus),
-		AutofixDiff:   read((*api.Client).ListScaDependenciesFindingsFindingIdAutofixCacheDiff),
+		APITypes:                []string{"Dependencies"},
+		AllowlistTypeUnrecorded: true,
+		Get:                     read((*api.Client).GetScaDependenciesFindingsFindingId),
+		Triage:                  read((*api.Client).ListScaDependenciesFindingsFindingIdTriage),
+		CreateTicket:            write((*api.Client).CreateScaDependenciesFindingsFindingIdTicket),
+		DeleteTicket:            read((*api.Client).DeleteScaDependenciesFindingsFindingIdTicket),
+		Allowlist:               writeRaw((*api.Client).CreateScaDependenciesFindingsFindingIdAllowlist),
+		Unallowlist:             writeRaw((*api.Client).CreateScaDependenciesFindingsFindingIdUnallowlist),
+		AutofixFix:              write((*api.Client).CreateScaDependenciesFindingsFindingIdAutofixFix),
+		AutofixStatus:           read((*api.Client).ListScaDependenciesFindingsFindingIdAutofixStatus),
+		AutofixDiff:             read((*api.Client).ListScaDependenciesFindingsFindingIdAutofixCacheDiff),
 	},
 	"sca_containers": {
-		APITypes:      []string{"Containers"},
-		Get:           read((*api.Client).GetScaContainersFindingsFindingId),
-		Triage:        read((*api.Client).ListScaContainersFindingsFindingIdTriage),
-		CreateTicket:  write((*api.Client).CreateScaContainersFindingsFindingIdTicket),
-		DeleteTicket:  read((*api.Client).DeleteScaContainersFindingsFindingIdTicket),
-		Allowlist:     writeRaw((*api.Client).CreateScaContainersFindingsFindingIdAllowlist),
-		Unallowlist:   writeRaw((*api.Client).CreateScaContainersFindingsFindingIdUnallowlist),
-		AutofixFix:    write((*api.Client).CreateScaContainersFindingsFindingIdAutofixFix),
-		AutofixStatus: read((*api.Client).ListScaContainersFindingsFindingIdAutofixStatus),
+		APITypes:                []string{"Containers"},
+		AllowlistTypeUnrecorded: true,
+		Get:                     read((*api.Client).GetScaContainersFindingsFindingId),
+		Triage:                  read((*api.Client).ListScaContainersFindingsFindingIdTriage),
+		CreateTicket:            write((*api.Client).CreateScaContainersFindingsFindingIdTicket),
+		DeleteTicket:            read((*api.Client).DeleteScaContainersFindingsFindingIdTicket),
+		Allowlist:               writeRaw((*api.Client).CreateScaContainersFindingsFindingIdAllowlist),
+		Unallowlist:             writeRaw((*api.Client).CreateScaContainersFindingsFindingIdUnallowlist),
+		AutofixFix:              write((*api.Client).CreateScaContainersFindingsFindingIdAutofixFix),
+		AutofixStatus:           read((*api.Client).ListScaContainersFindingsFindingIdAutofixStatus),
 	},
 	"secrets": {
 		APITypes:     []string{"SecretsCredentials", "SecretsSensitiveData"},
@@ -168,14 +175,15 @@ var Types = map[string]Type{
 		AutofixStatus: read((*api.Client).ListDastPentestFindingsFindingIdAutofixStatus),
 	},
 	"bughunt": {
-		APITypes:     []string{"BugHunt"},
-		AllowOnPatch: true,
-		Get:          read((*api.Client).GetDastBughuntFindingsFindingId),
-		Triage:       read((*api.Client).ListDastBughuntFindingsFindingIdTriage),
-		CreateTicket: write((*api.Client).CreateDastBughuntFindingsFindingIdTicket),
-		DeleteTicket: read((*api.Client).DeleteDastBughuntFindingsFindingIdTicket),
-		Allowlist:    write((*api.Client).PatchDastBughuntFindingsFindingIdAllowlist),
-		Unallowlist:  write((*api.Client).PatchDastBughuntFindingsFindingIdAllowlist),
+		APITypes:                []string{"BugHunt"},
+		AllowOnPatch:            true,
+		AllowlistTypeUnrecorded: true,
+		Get:                     read((*api.Client).GetDastBughuntFindingsFindingId),
+		Triage:                  read((*api.Client).ListDastBughuntFindingsFindingIdTriage),
+		CreateTicket:            write((*api.Client).CreateDastBughuntFindingsFindingIdTicket),
+		DeleteTicket:            read((*api.Client).DeleteDastBughuntFindingsFindingIdTicket),
+		Allowlist:               write((*api.Client).PatchDastBughuntFindingsFindingIdAllowlist),
+		Unallowlist:             write((*api.Client).PatchDastBughuntFindingsFindingIdAllowlist),
 	},
 	"cspm": {
 		APITypes:            []string{"Cloud"},
@@ -210,6 +218,10 @@ var typeAliases = map[string]string{
 	"sca":          "sca_dependencies",
 	"dependencies": "sca_dependencies",
 	"containers":   "sca_containers",
+	// The monorepo FindingType names. Its other names are already slugs.
+	"secrets_credentials": "SecretsCredentials",
+	"dast_bughunt":        "BugHunt",
+	"dast_pentest":        "Pentest",
 }
 
 // rowTypes maps the "type" value of a listed finding to its slug, so that a row
@@ -266,6 +278,9 @@ func Lookup(name string) (Type, error) {
 // APITypesFor resolves a slug, an alias or a raw API value to the values of the
 // /admin/findings "type" filter.
 func APITypesFor(name string) ([]string, error) {
+	if alias, ok := typeAliases[name]; ok {
+		name = alias
+	}
 	if _, ok := rowTypes[name]; ok {
 		return []string{name}, nil
 	}

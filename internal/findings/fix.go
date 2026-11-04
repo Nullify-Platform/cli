@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/api/models"
 	"github.com/nullify-platform/cli/internal/apierror"
 )
 
@@ -32,6 +33,8 @@ const DefaultFixTimeout = 50 * time.Minute
 // pull request. When waiting on pull-request creation, a poll must not stop here
 // even though the server reports terminal=true.
 const autoFixStateCached = "cached"
+
+const autoFixStateFailedIteration = "failed_iteration"
 
 // autofixSuccessStates are the terminal states in which the run produced a fix.
 // Every other terminal state, known or not, is a failure.
@@ -65,12 +68,12 @@ type FixResult struct {
 	// CheckWith is the command that reports a run that continues on the server. It
 	// is set when the wait ended before the run did.
 	CheckWith string
-	// StillRunning is true when fix generation did not end before the deadline.
+	// StillRunning is true when the wait reached the deadline before the run ended.
 	StillRunning bool
 	// Diff is the proposed change. It is empty for a type with no diff route.
 	Diff json.RawMessage
-	// PullRequest is set when the run opened a pull request, or when the wait for
-	// one reached the deadline. It never names a pull request of an earlier run.
+	// PullRequest is set when the run opened a pull request, or when its latest
+	// iteration failed and left a pull request open.
 	PullRequest *PullRequestStatus
 	// Failure is why the run did not deliver its result. It is nil on success.
 	Failure error
@@ -78,9 +81,8 @@ type FixResult struct {
 
 // PullRequestStatus is the pull-request phase of an autofix run.
 type PullRequestStatus struct {
-	State        string `json:"state,omitempty"`
-	URL          string `json:"url,omitempty"`
-	StillRunning bool   `json:"stillRunning,omitempty"`
+	State string `json:"state,omitempty"`
+	URL   string `json:"url,omitempty"`
 }
 
 // FixStart is the answer to a request that starts an autofix run.
@@ -158,6 +160,7 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	}
 
 	if !status.succeeded() {
+		result.PullRequest = status.openPullRequestOfFailedIteration()
 		result.Failure = status.failure()
 		return result, nil
 	}
@@ -180,7 +183,7 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		result.State = status.State
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		result.PullRequest = &PullRequestStatus{StillRunning: true}
+		result.StillRunning = true
 		result.CheckWith = check
 		result.Failure = errors.Join(diffErr, stillRunning)
 		return result, nil
@@ -195,6 +198,9 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	}
 	switch {
 	case !status.succeeded():
+		if result.PullRequest == nil {
+			result.PullRequest = status.openPullRequestOfFailedIteration()
+		}
 		result.Failure = errors.Join(diffErr, status.failure())
 	case result.PullRequest == nil:
 		result.Failure = errors.Join(diffErr, fmt.Errorf("%w: state %s", ErrNoPullRequest, status.State))
@@ -247,6 +253,20 @@ func (s AutofixStatus) newPullRequest(earlier []string) *AutofixPullRequest {
 	for _, pr := range s.PullRequests {
 		if pr.URL != "" && !slices.Contains(earlier, pr.URL) {
 			return &pr
+		}
+	}
+	return nil
+}
+
+// openPullRequestOfFailedIteration returns the open pull request when the latest
+// iteration failed. The pull request stays open with its earlier commits.
+func (s AutofixStatus) openPullRequestOfFailedIteration() *PullRequestStatus {
+	if s.State != autoFixStateFailedIteration {
+		return nil
+	}
+	for _, pr := range s.PullRequests {
+		if pr.Status == string(models.ModelsPullRequestStateOpen) {
+			return &PullRequestStatus{State: pr.Status, URL: pr.URL}
 		}
 	}
 	return nil
