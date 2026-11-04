@@ -664,6 +664,42 @@ func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
 	}
 }
 
+func TestFixStopsOnARescuedPullRequestStep(t *testing.T) {
+	shortPollInterval(t)
+
+	const creating = `{"status":{"state":"in_progress_creating_pr","terminal":false}}`
+	const cached = `{"status":{"state":"cached","terminal":true}}`
+
+	tests := []struct {
+		name     string
+		statuses []string
+	}{
+		{name: "the pull-request step started in the fix phase", statuses: []string{cached, creating, cached}},
+		{name: "the pull-request step started after the fix phase", statuses: []string{cached, cached, creating, cached}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			polled := 0
+			ft := &fakeTransport{respond: func(_ int, r request) (int, string) {
+				if !strings.HasSuffix(r.Path, "/status") {
+					return 200, `{}`
+				}
+				status := tt.statuses[min(polled, len(tt.statuses)-1)]
+				polled++
+				return 200, status
+			}}
+
+			got, err := Fix(context.Background(), clientFor(ft), "sast", "f1", FixOptions{WaitForPR: true, Timeout: time.Minute})
+
+			require.ErrorIs(t, err, nil)
+			require.ErrorIs(t, got.Failure, ErrNoPullRequest)
+			require.NotErrorIs(t, got.Failure, ErrAutofixStillRunning)
+			require.Equal(t, "cached", got.State)
+			require.Nil(t, got.PullRequest)
+		})
+	}
+}
+
 func TestFixSaysWhenTheStatusCannotBeRead(t *testing.T) {
 	shortPollInterval(t)
 
@@ -845,6 +881,8 @@ func TestAllowlistTypeWarning(t *testing.T) {
 		{name: "bughunt warns", verb: "allowlist", findType: "bughunt", params: falsePositive, response: `{"success":true}`, want: `{"success":true,"warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "sca dependencies warns and keeps the response", verb: "allowlist", findType: "sca_dependencies", params: falsePositive, response: `{"a":1}`, want: `{"a":1,"warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "sensitive data warns", verb: "allowlist", findType: "secrets_sensitive_data", params: falsePositive, response: `{}`, want: `{"warning":"` + AllowlistTypeWarning + `"}`},
+		{name: "cspm unallowlist says the reason is not recorded", verb: "unallowlist", findType: "cspm", params: Params{Reason: "r"}, response: `{}`, want: `{"warning":"` + UnallowlistReasonWarning + `"}`},
+		{name: "pentest unallowlist records the reason", verb: "unallowlist", findType: "pentest", params: Params{Reason: "r"}, response: `{}`, want: `{}`},
 		{name: "sca containers warns", verb: "allowlist", findType: "sca_containers", params: falsePositive, response: `{}`, want: `{"warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "a response that is not an object is kept", verb: "allowlist", findType: "sca", params: falsePositive, response: `done`, want: `{"response":"done","warning":"` + AllowlistTypeWarning + `"}`},
 		{name: "cspm records the type", verb: "allowlist", findType: "cspm", params: falsePositive, response: `{}`, want: `{}`},

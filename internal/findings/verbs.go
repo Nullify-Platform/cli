@@ -24,6 +24,9 @@ var (
 // AllowlistTypeWarning is the warning for a type with AllowlistTypeUnrecorded.
 const AllowlistTypeWarning = "The server may not record the allowlist type for this finding type yet. The reason is recorded."
 
+// UnallowlistReasonWarning is the warning for a type with UnallowlistReasonUnrecorded.
+const UnallowlistReasonWarning = "The server does not record the reason for this finding type. The finding is re-opened."
+
 // AllowlistTypes are the allowlist types that a user can submit. Friendly commands
 // and MCP tools require one for every finding type, so that the interface is the
 // same for all of them. Type.AllowlistTypeUnrecorded marks the types for which the
@@ -214,10 +217,15 @@ func (v Verb) Run(ctx context.Context, c *api.Client, typeName, findingID string
 // caller, or an empty string.
 func (v Verb) Warning(typeName string) string {
 	t, err := Lookup(typeName)
-	if err != nil || !v.NeedsAllowlistType || !t.AllowlistTypeUnrecorded {
+	switch {
+	case err != nil:
 		return ""
+	case v.NeedsAllowlistType && t.AllowlistTypeUnrecorded:
+		return AllowlistTypeWarning
+	case v.Name == "unallowlist" && t.UnallowlistReasonUnrecorded:
+		return UnallowlistReasonWarning
 	}
-	return AllowlistTypeWarning
+	return ""
 }
 
 // addWarning adds a warning field to a response. The write has already happened,

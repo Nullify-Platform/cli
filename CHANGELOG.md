@@ -7,7 +7,7 @@
 - `nullify fix` now follows the run. It used to send the request, read the diff and exit 0 without waiting for the run. CI callers now wait up to 50 minutes by default, because a run can take 45. `--timeout` sets the wait. A failed run, or a run still going at the timeout, exits 1 and prints how to check it. The run continues on the server. `--no-wait` gives the fast return: it starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
 - `nullify mcp serve` and `nullify fix` honour `NULLIFY_HTTP_TIMEOUT`.
 - `nullify ci gate` is unchanged.
-- `nullify fix`: a 403 or 409 from the start request now exits 3. It exited 1 before.
+- `nullify fix`: any API failure on the start request now exits 3, including 403 and 409. It exited 1 before.
 - The MCP search with `limit: 0` is now an error.
 - `nullify api admin delete-mapping` and `update-mapping` now print the fields of the published response only, because the published API now describes these responses. Other fields are dropped.
 - For a search, `sca` means dependencies and containers. For a verb on one finding, `sca` still means the dependency route. The MCP tool `type` parameters accept the same names as the CLI.
@@ -26,12 +26,15 @@
 
 ### Known limits
 
+- `nullify fix` exits 1 when a run succeeded but its diff cannot be read, even when it prints a new pull request. The exit is the same as before.
+- `nullify findings unallowlist --reason` is required for every type, but the CSPM route does not record it. CSPM returns a `warning` field, and the CLI also writes the warning to stderr.
 - `nullify findings` and the MCP search tools use the unified search. It returns triaged findings only, and a repository filter matches the exact stored name. With no `--type` inside a repository, cloud and bug hunt findings are excluded.
 - `--allowlist-type` and the MCP `allowlist_type` are required for every finding type, but the server may not record them for `bughunt`, `sca_dependencies`, `sca_containers` and `secrets_sensitive_data`. These types return a `warning` field, and the CLI also writes the warning to stderr. The reason is recorded. Bug hunt has no such input. SCA and sensitive-data handlers ignore the type until monorepo #17588 deploys: remove `AllowlistTypeUnrecorded` from these rows when the spec moves past that pull request.
 
 
 ### Fixed
 
+- `nullify fix --create-pr` stops when the server rescues an abandoned pull-request step and moves the run to `cached`. It exits 1 and says that no new pull request was opened. It used to wait for the whole timeout and then say that the run was still going.
 - `nullify findings` and the MCP search reject a `--from` or `--to` that is not RFC 3339, plain dates included. The server ignored such a value, so the result was not filtered and the command exited 0.
 - `nullify findings --type secrets` and `--type bughunt` sent filter values that the API rejects, and exited 3 with a 400.
 - The MCP `type=scpm` search sent `Platform`, which the API accepts but which matches no finding, so it always returned nothing. `--type Platform` now means `scpm`. `--type Unknown` is rejected, because it also matches no finding.

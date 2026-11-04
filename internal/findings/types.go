@@ -37,6 +37,8 @@ type Type struct {
 	// AllowlistTypeUnrecorded marks a type for which the server may not record the
 	// allowlist type.
 	AllowlistTypeUnrecorded bool
+	// UnallowlistReasonUnrecorded marks a type whose unallowlist route ignores the reason.
+	UnallowlistReasonUnrecorded bool
 
 	Get                 Action
 	Triage              Action
@@ -198,19 +200,20 @@ var Types = map[string]Type{
 		Unallowlist:             write((*api.Client).PatchDastBughuntFindingsFindingIdAllowlist),
 	},
 	"cspm": {
-		APITypes:            []string{"Cloud"},
-		Get:                 read((*api.Client).GetCspmFindingsFindingId),
-		Triage:              read((*api.Client).ListCspmFindingsFindingIdTriage),
-		CreateTicket:        write((*api.Client).CreateCspmFindingsFindingIdTicket),
-		DeleteTicket:        read((*api.Client).DeleteCspmFindingsFindingIdTicket),
-		Allowlist:           write((*api.Client).CreateCspmFindingsFindingIdAllowlist),
-		Unallowlist:         write((*api.Client).CreateCspmFindingsFindingIdUnallowlist),
-		Archive:             write((*api.Client).CreateCspmFindingsFindingIdArchive),
-		Unarchive:           write((*api.Client).CreateCspmFindingsFindingIdUnarchive),
-		MarkFalsePositive:   write((*api.Client).CreateCspmFindingsFindingIdMarkFalsePositive),
-		UnmarkFalsePositive: write((*api.Client).CreateCspmFindingsFindingIdUnmarkFalsePositive),
-		AutofixFix:          write((*api.Client).CreateCspmFindingsFindingIdAutofixFix),
-		AutofixStatus:       read((*api.Client).ListCspmFindingsFindingIdAutofixStatus),
+		APITypes:                    []string{"Cloud"},
+		UnallowlistReasonUnrecorded: true,
+		Get:                         read((*api.Client).GetCspmFindingsFindingId),
+		Triage:                      read((*api.Client).ListCspmFindingsFindingIdTriage),
+		CreateTicket:                write((*api.Client).CreateCspmFindingsFindingIdTicket),
+		DeleteTicket:                read((*api.Client).DeleteCspmFindingsFindingIdTicket),
+		Allowlist:                   write((*api.Client).CreateCspmFindingsFindingIdAllowlist),
+		Unallowlist:                 write((*api.Client).CreateCspmFindingsFindingIdUnallowlist),
+		Archive:                     write((*api.Client).CreateCspmFindingsFindingIdArchive),
+		Unarchive:                   write((*api.Client).CreateCspmFindingsFindingIdUnarchive),
+		MarkFalsePositive:           write((*api.Client).CreateCspmFindingsFindingIdMarkFalsePositive),
+		UnmarkFalsePositive:         write((*api.Client).CreateCspmFindingsFindingIdUnmarkFalsePositive),
+		AutofixFix:                  write((*api.Client).CreateCspmFindingsFindingIdAutofixFix),
+		AutofixStatus:               read((*api.Client).ListCspmFindingsFindingIdAutofixStatus),
 	},
 	"scpm": {
 		APITypes:            []string{"SupplyChain"},

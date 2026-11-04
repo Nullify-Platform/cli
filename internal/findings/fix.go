@@ -39,6 +39,11 @@ const autoFixStateCached = "cached"
 
 const autoFixStateFailedIteration = "failed_iteration"
 
+// autofixPRPhaseStates are the states of a run that is opening a pull request. The
+// server allows no move from them to cached, except when it rescues an abandoned
+// run. So cached after one of these states means that no pull request will come.
+var autofixPRPhaseStates = []string{"in_progress_preview_available", "in_progress_creating_pr", "in_progress_draft"}
+
 // autofixSuccessStates are the terminal states in which the run produced a fix.
 // Every other terminal state, known or not, is a failure.
 var autofixSuccessStates = []string{autoFixStateCached, "pending_review", "pr_merged"}
@@ -145,7 +150,8 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	check := fmt.Sprintf("nullify findings fix-status %s --type %s", findingID, typeName)
 	stillRunning := fmt.Errorf("%w after %s; check it with: %s", ErrAutofixStillRunning, opts.Timeout, check)
 
-	status, err := pollAutofix(ctx, c, t, findingID, false, earlier, deadline)
+	var sawPRPhase bool
+	status, err := pollAutofix(ctx, c, t, findingID, false, earlier, deadline, &sawPRPhase)
 	if status.State != "" {
 		result.State = status.State
 	}
@@ -178,7 +184,7 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		return result, nil
 	}
 
-	status, err = pollAutofix(ctx, c, t, findingID, true, earlier, deadline)
+	status, err = pollAutofix(ctx, c, t, findingID, true, earlier, deadline, &sawPRPhase)
 	if status.State != "" {
 		result.State = status.State
 	}
@@ -320,7 +326,8 @@ func transientPollError(err error) bool {
 // pollAutofix polls the autofix status route until the watched phase ends or the
 // deadline passes. On the deadline it returns the last status it read and
 // context.DeadlineExceeded, or ErrAutofixStatusUnreadable when its latest read failed.
-func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, watchPR bool, earlier []string, deadline time.Time) (AutofixStatus, error) {
+// sawPRPhase records across phases that the run reached a pull-request state.
+func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, watchPR bool, earlier []string, deadline time.Time, sawPRPhase *bool) (AutofixStatus, error) {
 	var last AutofixStatus
 	var readErr error
 	for {
@@ -329,7 +336,8 @@ func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, w
 		switch {
 		case err == nil:
 			last = status
-			if autofixPhaseDone(status, watchPR, earlier) {
+			*sawPRPhase = *sawPRPhase || slices.Contains(autofixPRPhaseStates, status.State)
+			if autofixPhaseDone(status, watchPR, earlier) || (watchPR && *sawPRPhase && status.State == autoFixStateCached) {
 				return status, nil
 			}
 		case ctx.Err() != nil || !transientPollError(err):
