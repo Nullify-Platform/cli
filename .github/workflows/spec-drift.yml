@@ -1,10 +1,18 @@
 # Opens a pull request when the OpenAPI pin in the Makefile is behind the bundle
 # published in the monorepo. It only pushes a branch and opens a pull request:
 # it never merges, and release.yml runs only on a push to main.
+#
+# Each token has one repository and the least permission. The steps that run Go
+# from this repository have no token in their environment.
+#
+# Create the spec-sync environment with a main-only deployment branch policy before
+# you add the app key to it as an environment secret. GitHub creates a missing
+# environment with no policy when a job names it, so without this step a modified
+# workflow on another branch could read the key.
 name: Spec Drift
 on:
   schedule:
-    - cron: '0 20 * * 1-5'
+    - cron: '0 20 * * 1'
   workflow_dispatch:
 run-name: Spec Drift by @${{ github.actor }}
 permissions:
@@ -18,30 +26,42 @@ env:
   BRANCH: automation/spec-sync
 jobs:
   open-sync-pr:
+    if: github.repository == 'Nullify-Platform/cli'
     runs-on: ubuntu-24.04
+    environment: spec-sync
     steps:
-      - name: Mint a token that reads the monorepo and writes pull requests
-        id: token
+      - name: Require the app key
+        env:
+          APP_KEY: ${{ secrets.SPEC_SYNC_GITHUB_APP_KEY }}
+        run: |
+          if [ -z "$APP_KEY" ]; then
+            echo "::error::Secret SPEC_SYNC_GITHUB_APP_KEY is missing from the spec-sync environment. Add the private key of GitHub App 359904 as an environment secret."
+            exit 1
+          fi
+      - name: Mint a token that reads only the monorepo
+        id: read-token
         uses: actions/create-github-app-token@v3
         with:
           app-id: 359904
           private-key: ${{ secrets.SPEC_SYNC_GITHUB_APP_KEY }}
           owner: Nullify-Platform
-          repositories: nullify,cli
+          repositories: nullify
+          permission-contents: read
       - uses: actions/checkout@v6
         with:
-          token: ${{ steps.token.outputs.token }}
+          persist-credentials: false
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: Compare the pin with the newest bundle commit
         id: drift
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.read-token.outputs.token }}
+          OWN_TOKEN: ${{ github.token }}
         run: |
           latest=$(gh api "repos/$SPEC_REPO/commits?path=$SPEC_PATH&sha=main&per_page=1" --jq '.[0].sha')
           pinned=$(sed -n 's/^SPEC_REF ?= //p' Makefile)
-          proposed=$(gh api "repos/$GITHUB_REPOSITORY/contents/Makefile?ref=$BRANCH" -H "Accept: application/vnd.github.raw" 2>/dev/null | sed -n 's/^SPEC_REF ?= //p' || true)
+          proposed=$(GH_TOKEN="$OWN_TOKEN" gh api "repos/$GITHUB_REPOSITORY/contents/Makefile?ref=$BRANCH" -H "Accept: application/vnd.github.raw" 2>/dev/null | sed -n 's/^SPEC_REF ?= //p' || true)
           test -n "$latest"
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           echo "pinned=$pinned" >> "$GITHUB_OUTPUT"
@@ -50,24 +70,39 @@ jobs:
           else
             echo "drifted=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Regenerate from the newest bundle
+      - name: Download the newest bundle
         if: steps.drift.outputs.drifted == 'true'
-        id: regen
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.read-token.outputs.token }}
           LATEST: ${{ steps.drift.outputs.latest }}
         run: |
           sed -i "s/^SPEC_REF ?= .*/SPEC_REF ?= $LATEST/" Makefile
-          make fetch-spec generate-api
+          make fetch-spec
+      - name: Regenerate with no token in the environment
+        if: steps.drift.outputs.drifted == 'true'
+        id: regen
+        run: |
+          make generate-api
           if make command-surface > surface.log 2>&1; then
             echo "surface_ok=true" >> "$GITHUB_OUTPUT"
           else
             echo "surface_ok=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: Mint a token that writes only to this repository
+        if: steps.drift.outputs.drifted == 'true'
+        id: write-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: 359904
+          private-key: ${{ secrets.SPEC_SYNC_GITHUB_APP_KEY }}
+          owner: Nullify-Platform
+          repositories: cli
+          permission-contents: write
+          permission-pull-requests: write
       - name: Open or update the pull request
         if: steps.drift.outputs.drifted == 'true'
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.write-token.outputs.token }}
           LATEST: ${{ steps.drift.outputs.latest }}
           PINNED: ${{ steps.drift.outputs.pinned }}
           SURFACE_OK: ${{ steps.regen.outputs.surface_ok }}
@@ -76,9 +111,9 @@ jobs:
             echo "The published OpenAPI bundle moved from \`$PINNED\` to \`$LATEST\`."
             echo
             if [ "$SURFACE_OK" = "true" ]; then
-              echo "No command disappeared. New commands and any spec changes are in the diff."
+              echo "No command or MCP tool disappeared. New commands and any spec changes are in the diff."
             else
-              echo "A command or flag disappeared. Record each one in \`internal/commands/surface_decisions.go\` and run \`make command-surface\`:"
+              echo "A command, flag or MCP tool disappeared. Record each one in \`internal/commands/surface_decisions.go\` or \`mcp.Decisions\`, and run \`make command-surface\`:"
               echo
               echo '```'
               cat surface.log
@@ -94,7 +129,7 @@ jobs:
           git switch -C "$BRANCH"
           git add -A
           git commit -m "feat(api): sync the OpenAPI spec to ${LATEST:0:12}"
-          git push --force origin "$BRANCH"
+          git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push --force origin "$BRANCH"
 
           if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq length)" = "0" ]; then
             gh pr create --draft --head "$BRANCH" --title "feat(api): sync the OpenAPI spec" --body-file "$RUNNER_TEMP/body.md"

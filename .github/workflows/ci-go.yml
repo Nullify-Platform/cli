@@ -42,8 +42,9 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           git fetch --depth=1 origin "$BASE_REF"
+          git show FETCH_HEAD:spec/mcp-tools.tsv > "$RUNNER_TEMP/base-tools.tsv" || : > "$RUNNER_TEMP/base-tools.tsv"
           if git show FETCH_HEAD:spec/command-surface.tsv > "$RUNNER_TEMP/base-surface.tsv"; then
-            go run ./scripts/commandsurface --base "$RUNNER_TEMP/base-surface.tsv"
+            go run ./scripts/commandsurface --base "$RUNNER_TEMP/base-surface.tsv" --base-tools "$RUNNER_TEMP/base-tools.tsv"
           fi
       - name: test
         run: make unit
