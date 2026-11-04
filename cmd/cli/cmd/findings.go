@@ -39,7 +39,8 @@ var findingsCmd = &cobra.Command{
   nullify findings --limit 500
 
   # Allowlist a CSPM finding that triage got wrong
-  nullify findings allowlist abc123 --type cspm --allowlist-type UserFalsePositive --reason "Bucket is public by design"`,
+  nullify findings mark-false-positive abc123 --type cspm --reason "Bucket is public by design"
+  nullify findings allowlist abc123 --type sast --allowlist-type UserFalsePositive --reason "Test fixture"`,
 	Args: cobra.NoArgs,
 	RunE: runFindingsList,
 }
@@ -84,7 +85,7 @@ func runFindingsList(cmd *cobra.Command, _ []string) error {
 		}
 		opts.APITypes = apiTypes
 	}
-	opts.Repository = findingsRepository(repo, opts.APITypes, lib.DetectRepoFromGit)
+	opts.Repository = findingsRepository(repo, opts.APITypes, lib.DetectRepoFullNameFromGit)
 	if debug {
 		opts.Debug = os.Stderr
 	}

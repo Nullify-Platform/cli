@@ -236,17 +236,10 @@ func (v Verb) Types() []string {
 	return NamesWith(func(t Type) bool { return v.method(t) != nil })
 }
 
-// TypeValues returns the values that the verb accepts for a type: the slugs, and
-// the type values of listed findings.
+// TypeValues returns the values that the verb accepts for a type: the slugs, the
+// aliases and the type values of listed findings.
 func (v Verb) TypeValues() []string {
-	values := v.Types()
-	for rowType, slug := range rowTypes {
-		if v.method(Types[slug]) != nil {
-			values = append(values, rowType)
-		}
-	}
-	slices.Sort(values)
-	return values
+	return AcceptedNames(func(t Type) bool { return v.method(t) != nil })
 }
 
 func allowlistBody(t Type, p Params) ([]byte, error) {

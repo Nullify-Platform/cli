@@ -4,9 +4,12 @@
 
 ### Changed
 
-- `nullify fix` now waits up to 50 minutes, because a run can take 45. It waited 5 minutes before. `--timeout` sets the wait. A run still going at the timeout exits non-zero and prints how to check it, and it continues on the server. `--no-wait` starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
+- `nullify fix` now follows the run. It used to send the request, read the diff and exit 0 without waiting for the run. CI callers now wait up to 50 minutes by default, because a run can take 45. `--timeout` sets the wait. A failed run, or a run still going at the timeout, exits 1 and prints how to check it. The run continues on the server. `--no-wait` gives the fast return: it starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
 - `nullify mcp serve` and `nullify fix` honour `NULLIFY_HTTP_TIMEOUT`.
-- `nullify ci gate --type` accepts `scpm` and `secrets_sensitive_data`, which it read as unknown before, and then gated every type. With no `--type`, the checked types do not change.
+- **`nullify ci gate` results change.** It now reads the unified findings search with `finding:list` access, which GitHub Actions and service account tokens have. It used to send filters that the list routes do not read. Allowlisted, archived, false positive, resolved and other-repository findings no longer fail a gate. The default gate no longer always exits 3: lower-case severity failed every CSPM request. With no `--type`, the checked types do not change. Any request failure, or a response in another shape, still exits 3.
+- `nullify ci gate` now checks one repository, detected from git or set with `--repo` (`name` or `owner/name`). A wrong name matches nothing and passes, so the command prints the repository to stderr. Cloud and bug hunt findings have no repository, so they count for the whole tenant.
+- `nullify ci gate --type` accepts every name that `nullify findings --type` accepts, including `scpm`, `secrets_sensitive_data`, `dast_pentest`, `dast_bughunt`, `secrets_credentials` and `sca`. It read them as unknown before, and then gated every type.
+- For a search or a gate, `sca` means dependencies and containers. For a verb on one finding, `sca` still means the dependency route. The MCP tool `type` parameters accept the same names as the CLI.
 - `get_findings_for_repo` returns `total`, `returned` and `truncated` per section, and says that cloud findings have no repository instead of an empty list.
 - `nullify_fix_finding` now starts the run and returns at once, with a non-error result. It no longer waits and no longer takes `create_pr`. Use `nullify_get_fix_status` and `nullify_get_fix_diff`.
 
@@ -14,7 +17,7 @@
 
 - `nullify api` now follows the API published on 2 November 2026 (it was pinned to 26 May). This adds about 530 commands, including `nullify api cspm` allowlist, unallowlist, archive, unarchive, mark and unmark false positive, patch, triage and ticket delete, and a new `nullify api dast` group.
 - `nullify findings` subcommands: `list`, `get`, `triage`, `allowlist`, `unallowlist`, `archive`, `unarchive`, `mark-false-positive`, `unmark-false-positive`, `create-ticket`, `delete-ticket`, `feedback` and `get-feedback`.
-- `nullify findings --type` accepts `scpm`. `--from` and `--to` set UTC bounds. The output adds `returned` and `truncated`.
+- `nullify findings --type` accepts `scpm`. `--from` and `--to` set UTC bounds. The output adds `returned` and `truncated`. Each row is the JSON that the server sent, so it holds only the fields of that row and any field that the CLI does not know.
 - MCP tools in the default set: `nullify_submit_finding_feedback`, `nullify_get_finding_feedback`. `nullify_allowlist_finding`, `nullify_unallowlist_finding` and `nullify_get_finding_triage` work for CSPM, and `nullify_unallowlist_finding` and `nullify_create_ticket` work for bug hunt.
 - MCP tools in the new `findings-write` set and in `all`, not in the default set: `nullify_archive_finding`, `nullify_unarchive_finding`, `nullify_mark_false_positive`, `nullify_unmark_false_positive`, `nullify_delete_ticket`.
 - `nullify findings fix-status` and `fix-diff`, with the MCP tools `nullify_get_fix_status` and `nullify_get_fix_diff`.
@@ -23,6 +26,8 @@
 ### Known limits
 
 - `--allowlist-type` and the MCP `allowlist_type` are required for every finding type, but the server may not record them for `bughunt`, `sca_dependencies` and `sca_containers`. These types return a `warning` field, and the CLI also writes the warning to stderr. The reason is recorded. Bug hunt has no such input. SCA handlers ignore the type until monorepo #17588 deploys: remove `AllowlistTypeUnrecorded` from the SCA rows when the spec moves past that pull request.
+
+- `nullify ci report` still reads the list routes, which do not read its severity, status or repository filter, so its counts include findings that the gate no longer counts.
 
 ### Fixed
 

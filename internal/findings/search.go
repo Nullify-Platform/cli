@@ -51,6 +51,14 @@ type SearchResult struct {
 	Truncated bool `json:"truncated"`
 }
 
+// searchPage holds the parts of a response that Search reads. Each finding stays as
+// the server sent it.
+type searchPage struct {
+	Findings    []json.RawMessage `json:"findings"`
+	Total       int               `json:"total"`
+	HasMoreData bool              `json:"hasMoreData"`
+}
+
 // Search collects findings from POST /admin/findings up to opts.Limit. The page
 // size stays constant across pages, because the server computes its offset from
 // page and pageSize. The number of pages is bounded because every page must add
@@ -72,23 +80,24 @@ func Search(ctx context.Context, c *api.Client, opts SearchOptions) (SearchResul
 	for page := 1; hasMore && len(result.Findings) < opts.Limit; page++ {
 		query.Page, query.PageSize = &page, &pageSize
 
-		out, err := c.CreateAdminFindings(ctx, api.CreateAdminFindingsInput{Query: query})
+		body, err := c.CreateAdminFindingsRaw(ctx, query)
 		if err != nil {
 			return SearchResult{}, err
+		}
+
+		var out searchPage
+		if err := json.Unmarshal(body, &out); err != nil {
+			return SearchResult{}, fmt.Errorf("%w: %w", ErrUnreadableResponse, err)
+		}
+		if out.Findings == nil {
+			return SearchResult{}, fmt.Errorf("%w: no findings field", ErrUnreadableResponse)
 		}
 
 		if opts.Debug != nil {
 			fmt.Fprintf(opts.Debug, "[debug] POST /admin/findings page %d: %d findings, hasMoreData=%v, total=%d\n", page, len(out.Findings), out.HasMoreData, out.Total)
 		}
 
-		for _, finding := range out.Findings {
-			raw, err := json.Marshal(finding)
-			if err != nil {
-				return SearchResult{}, err
-			}
-			result.Findings = append(result.Findings, raw)
-		}
-
+		result.Findings = append(result.Findings, out.Findings...)
 		result.Total = out.Total
 		hasMore = out.HasMoreData
 		if len(out.Findings) == 0 {
@@ -107,7 +116,7 @@ func Search(ctx context.Context, c *api.Client, opts SearchOptions) (SearchResul
 func (o SearchOptions) query() (models.ModelsUnifiedFindingsQuery, error) {
 	query := models.ModelsUnifiedFindingsQuery{Type: o.APITypes}
 	if o.Repository != "" {
-		query.Repository = []string{o.Repository}
+		query.Repository = repositoryNames(o.Repository)
 	}
 	if o.Severity != "" {
 		query.Severity = []string{strings.ToUpper(o.Severity)}
@@ -134,4 +143,15 @@ func (o SearchOptions) query() (models.ModelsUnifiedFindingsQuery, error) {
 		return query, fmt.Errorf("%w %q, valid statuses: %s", ErrInvalidStatus, o.Status, strings.Join(Statuses, ", "))
 	}
 	return query, nil
+}
+
+// repositoryNames returns the filter values for a repository. The server matches
+// them exactly: most findings hold the bare name, and a pentest finding holds the
+// full name if it has one. With only one of the two, the other findings do not match.
+func repositoryNames(repo string) []string {
+	name := repo[strings.LastIndex(repo, "/")+1:]
+	if name == repo {
+		return []string{repo}
+	}
+	return []string{repo, name}
 }

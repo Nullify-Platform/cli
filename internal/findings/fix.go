@@ -68,8 +68,6 @@ type FixResult struct {
 	// CheckWith is the command that reports a run that continues on the server. It
 	// is set when the wait ended before the run did.
 	CheckWith string
-	// StillRunning is true when the wait reached the deadline before the run ended.
-	StillRunning bool
 	// Diff is the proposed change. It is empty for a type with no diff route.
 	Diff json.RawMessage
 	// PullRequest is set when the run opened a pull request, or when its latest
@@ -149,7 +147,6 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		result.State = status.State
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		result.StillRunning = true
 		result.CheckWith = check
 		result.Failure = stillRunning
 		return result, nil
@@ -183,7 +180,6 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		result.State = status.State
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		result.StillRunning = true
 		result.CheckWith = check
 		result.Failure = errors.Join(diffErr, stillRunning)
 		return result, nil

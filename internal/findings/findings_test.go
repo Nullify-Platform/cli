@@ -180,7 +180,7 @@ func TestAPITypesFor(t *testing.T) {
 		err  error
 	}{
 		{name: "sast", want: []string{"Code"}},
-		{name: "sca", want: []string{"Dependencies"}},
+		{name: "sca", want: []string{"Dependencies", "Containers"}},
 		{name: "dependencies", want: []string{"Dependencies"}},
 		{name: "containers", want: []string{"Containers"}},
 		{name: "secrets", want: []string{"SecretsCredentials", "SecretsSensitiveData"}},
@@ -213,6 +213,70 @@ func page(findings, total int, hasMore bool) string {
 		items[i] = "{}"
 	}
 	return fmt.Sprintf(`{"findings":[%s],"total":%d,"hasMoreData":%t,"page":1}`, strings.Join(items, ","), total, hasMore)
+}
+
+func TestSearchKeepsRowsAsSent(t *testing.T) {
+	tests := []struct {
+		name string
+		row  string
+	}{
+		{name: "a short row gains no fields", row: `{"id":"f1","type":"Code","severity":"HIGH","title":"t","repository":"r"}`},
+		{name: "a field the models do not have stays", row: `{"id":"f1","addedLater":{"a":[1,2]}}`},
+		{name: "a field of a changed type does not fail the list", row: `{"id":"f1","isFalsePositive":"no","createdAt":12}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(int, request) (int, string) {
+				return 200, `{"findings":[` + tt.row + `],"total":1,"hasMoreData":false}`
+			}}
+
+			got, err := Search(context.Background(), clientFor(ft), SearchOptions{Limit: 10})
+
+			require.ErrorIs(t, err, nil)
+			require.Equal(t, tt.row, string(got.Findings[0]))
+		})
+	}
+}
+
+func TestSearchRejectsAnUnreadableResponse(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+	}{
+		{name: "no findings field", body: `{}`},
+		{name: "a null findings field", body: `{"findings":null,"total":0}`},
+		{name: "findings is not a list", body: `{"findings":{},"total":0}`},
+		{name: "not JSON", body: `<html></html>`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(int, request) (int, string) { return 200, tt.body }}
+
+			_, err := Search(context.Background(), clientFor(ft), SearchOptions{Limit: 10})
+
+			require.ErrorIs(t, err, ErrUnreadableResponse)
+		})
+	}
+}
+
+func TestHasRepository(t *testing.T) {
+	tests := []struct {
+		name     string
+		apiTypes []string
+		want     bool
+	}{
+		{name: "every type", want: true},
+		{name: "code", apiTypes: []string{"Code"}, want: true},
+		{name: "pentest", apiTypes: []string{"Pentest"}, want: true},
+		{name: "sensitive data", apiTypes: []string{"SecretsSensitiveData"}, want: true},
+		{name: "cloud", apiTypes: []string{"Cloud"}},
+		{name: "bug hunt", apiTypes: []string{"BugHunt"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, HasRepository(tt.apiTypes))
+		})
+	}
 }
 
 func TestSearchReportsCompleteness(t *testing.T) {
@@ -292,6 +356,11 @@ func TestSearchSendsFilters(t *testing.T) {
 			name: "severity is sent upper-case with repository",
 			opts: SearchOptions{Limit: 10, Severity: "critical", Repository: "my-repo"},
 			want: map[string]any{"page": 1.0, "pageSize": 20.0, "severity": []any{"CRITICAL"}, "repository": []any{"my-repo"}},
+		},
+		{
+			name: "a full repository name also sends the bare name that most findings hold",
+			opts: SearchOptions{Limit: 10, Repository: "my-org/my-repo"},
+			want: map[string]any{"page": 1.0, "pageSize": 20.0, "repository": []any{"my-org/my-repo", "my-repo"}},
 		},
 		{name: "open", opts: SearchOptions{Limit: 500, Status: "open"}, want: map[string]any{"page": 1.0, "pageSize": 100.0, "isResolved": no}},
 		{name: "fixed", opts: SearchOptions{Limit: 100, Status: "fixed"}, want: map[string]any{"page": 1.0, "pageSize": 100.0, "isFixed": yes}},
@@ -580,7 +649,6 @@ func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
 			require.ErrorIs(t, err, nil)
 			require.ErrorIs(t, got.Failure, ErrAutofixStillRunning)
 			require.ErrorContains(t, got.Failure, "nullify findings fix-status f1 --type sast")
-			require.True(t, got.StillRunning)
 			require.Equal(t, tt.state, got.State)
 			require.Nil(t, got.PullRequest)
 		})
@@ -743,6 +811,12 @@ func TestVerbTypeValues(t *testing.T) {
 	}{
 		{verb: "archive", want: []string{"Cloud", "cspm"}},
 		{verb: "unmark-false-positive", want: []string{"Cloud", "SupplyChain", "cspm", "scpm"}},
+		{verb: "fix-diff", want: []string{"Code", "Dependencies", "dependencies", "sast", "sca", "sca_dependencies"}},
+		{verb: "get", want: []string{
+			"BugHunt", "Cloud", "Code", "Containers", "Dependencies", "Pentest", "SecretsCredentials", "SecretsSensitiveData", "SupplyChain",
+			"bughunt", "containers", "cspm", "dast_bughunt", "dast_pentest", "dependencies", "pentest", "sast", "sca", "sca_containers",
+			"sca_dependencies", "scpm", "secrets", "secrets_credentials", "secrets_sensitive_data",
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.verb, func(t *testing.T) {

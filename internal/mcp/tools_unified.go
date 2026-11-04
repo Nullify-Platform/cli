@@ -36,7 +36,7 @@ func registerSearchTool(s *server.MCPServer, c *api.Client) {
 		readOnlyTool(
 			"nullify_search_findings",
 			mcp.WithDescription("Search security findings across all or a specific scanner type. Paginates automatically up to limit. The result reports total, returned and truncated, so that an empty result can be told apart from a cut-off one. An access failure is an error, never an empty result."),
-			mcp.WithString("type", mcp.Description("Finding type to search"), mcp.Enum(findings.Names()...)),
+			mcp.WithString("type", mcp.Description("Finding type to search"), mcp.Enum(findings.AcceptedNames(func(findings.Type) bool { return true })...)),
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
 			mcp.WithString("status", mcp.Description("Filter by status"), mcp.Enum(findings.Statuses...)),
 			mcp.WithString("repository", mcp.Description("Filter by repository name")),
@@ -109,7 +109,7 @@ func registerVerbTool(s *server.MCPServer, c *api.Client, verb findings.Verb) {
 		mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
 	}
 	if verb.NeedsAllowlistType {
-		options = append(options, mcp.WithString("allowlist_type", mcp.Required(), mcp.Description("Why the finding is being allowlisted. Use UserFalsePositive when triage was wrong and UserAssumeRisk only when the risk is real and accepted."), mcp.Enum(findings.AllowlistTypes...)))
+		options = append(options, mcp.WithString("allowlist_type", mcp.Required(), mcp.Description("Why the finding is being allowlisted. Use UserFalsePositive when triage was wrong and UserAssumeRisk only when the risk is real and accepted. For a CSPM false positive use nullify_mark_false_positive, because this tool does not set is_false_positive on a CSPM finding."), mcp.Enum(findings.AllowlistTypes...)))
 	}
 	if verb.NeedsReason {
 		options = append(options, mcp.WithString("reason", mcp.Required(), mcp.Description("Human-readable reason")))
@@ -164,7 +164,7 @@ func registerFixTool(s *server.MCPServer, c *api.Client) {
 		writeTool(
 			"nullify_fix_finding",
 			mcp.WithDescription("Start an autofix run for a finding and return at once. A run can take up to 45 minutes and opens any pull request itself. Call nullify_get_fix_status to follow the run and nullify_get_fix_diff to read its change."),
-			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(findings.NamesWith(func(t findings.Type) bool { return t.AutofixFix != nil })...)),
+			mcp.WithString("type", mcp.Required(), mcp.Description("Finding type"), mcp.Enum(findings.AcceptedNames(func(t findings.Type) bool { return t.AutofixFix != nil })...)),
 			mcp.WithString("id", mcp.Required(), mcp.Description("Finding ID")),
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {

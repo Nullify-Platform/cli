@@ -132,6 +132,7 @@ func TestFindingsRepository(t *testing.T) {
 		{name: "a code search uses the working directory", apiTypes: []string{"Code"}, want: "detected-repo"},
 		{name: "a scpm search uses the working directory", apiTypes: []string{"SupplyChain"}, want: "detected-repo"},
 		{name: "a cloud search ignores the working directory", apiTypes: []string{"Cloud"}, want: ""},
+		{name: "a bug hunt search ignores the working directory", apiTypes: []string{"BugHunt"}, want: ""},
 		{name: "an explicit repository always wins", flag: "other", apiTypes: []string{"Cloud"}, want: "other"},
 	}
 	for _, tt := range tests {
@@ -170,7 +171,7 @@ func TestReportFixExitCode(t *testing.T) {
 	}{
 		{name: "success", result: findings.FixResult{State: "cached"}, want: ExitSuccess},
 		{name: "failed", result: findings.FixResult{State: "failed_abort", Failure: findings.ErrAutofixFailed}, want: 1},
-		{name: "still running", result: findings.FixResult{StillRunning: true, Failure: findings.ErrAutofixStillRunning}, want: 1},
+		{name: "still running", result: findings.FixResult{Failure: findings.ErrAutofixStillRunning}, want: 1},
 		{name: "no new pull request", result: findings.FixResult{State: "pending_review", Failure: findings.ErrNoPullRequest}, want: 1},
 	}
 	for _, tt := range tests {
@@ -328,6 +329,19 @@ func TestReportVerbWarnsOnStderr(t *testing.T) {
 	}
 }
 
+func gateClient(t *testing.T, response string, sent *string) *api.Client {
+	t.Helper()
+	return &api.Client{
+		BaseURL: "https://example.com",
+		HTTPClient: &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+			*sent = string(body)
+			return &http.Response{StatusCode: http.StatusOK, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(response))}, nil
+		})},
+	}
+}
+
 func TestGateEndpoints(t *testing.T) {
 	defaults := []string{"sast", "sca_dependencies", "sca_containers", "secrets", "pentest", "bughunt", "cspm"}
 
@@ -340,6 +354,11 @@ func TestGateEndpoints(t *testing.T) {
 		{name: "no type keeps the default set", want: defaults},
 		{name: "a default type", findType: "sast", want: []string{"sast"}},
 		{name: "scpm when named", findType: "scpm", want: []string{"scpm"}},
+		{name: "a monorepo pentest name", findType: "dast_pentest", want: []string{"dast_pentest"}},
+		{name: "a monorepo bug hunt name", findType: "dast_bughunt", want: []string{"dast_bughunt"}},
+		{name: "a monorepo credentials name", findType: "secrets_credentials", want: []string{"secrets_credentials"}},
+		{name: "sca is both types", findType: "sca", want: []string{"sca"}},
+		{name: "the type value of a row", findType: "Cloud", want: []string{"Cloud"}},
 		{name: "sensitive data when named", findType: "secrets_sensitive_data", want: []string{"secrets_sensitive_data"}},
 		{name: "an unknown type gates the default set", findType: "typo", want: defaults, unknown: true},
 	}
@@ -361,32 +380,55 @@ func TestUnifiedFindingsCount(t *testing.T) {
 	tests := []struct {
 		name     string
 		findType string
-		want     string
+		query    string
 	}{
-		{name: "scpm", findType: "scpm", want: `"type":["SupplyChain"]`},
-		{name: "sensitive data", findType: "secrets_sensitive_data", want: `"type":["SecretsSensitiveData"]`},
+		{name: "sast", findType: "sast", query: `{"type":["Code"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "dependencies", findType: "sca_dependencies", query: `{"type":["Dependencies"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "containers", findType: "sca_containers", query: `{"type":["Containers"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "secrets stays credentials only", findType: "secrets", query: `{"type":["SecretsCredentials"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "pentest", findType: "pentest", query: `{"type":["Pentest"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "bug hunt has no repository", findType: "bughunt", query: `{"type":["BugHunt"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "cloud has no repository", findType: "cspm", query: `{"type":["Cloud"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "scpm", findType: "scpm", query: `{"type":["SupplyChain"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "sensitive data", findType: "secrets_sensitive_data", query: `{"type":["SecretsSensitiveData"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "sca is both types", findType: "sca", query: `{"type":["Dependencies","Containers"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
+		{name: "a monorepo name", findType: "dast_pentest", query: `{"type":["Pentest"],"repository":["acme/app","app"],"severity":["HIGH"],"isResolved":false,"page":1,"pageSize":20}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var body string
-			c := &api.Client{
-				BaseURL: "https://example.com",
-				HTTPClient: &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-					sent, err := io.ReadAll(r.Body)
-					body = string(sent)
-					return &http.Response{StatusCode: http.StatusOK, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(`{"findings":[{}],"total":3,"hasMoreData":true}`))}, err
-				})},
-			}
+			var sent string
+			c := gateClient(t, `{"findings":[{}],"total":3,"hasMoreData":true}`, &sent)
 			endpoints, _ := gateEndpoints(tt.findType)
 
 			count, err := unifiedFindingsCount(context.Background(), c, endpoints[0], "high", "acme/app")
 
 			require.ErrorIs(t, err, nil)
 			require.Equal(t, 3, count)
-			require.Contains(t, body, tt.want)
-			require.Contains(t, body, `"severity":["HIGH"]`)
-			require.Contains(t, body, `"repository":["acme/app"]`)
-			require.Contains(t, body, `"isResolved":false`)
+			require.JSONEq(t, `{"query":`+tt.query+`}`, sent)
+		})
+	}
+}
+
+func TestUnifiedFindingsCountFailsClosed(t *testing.T) {
+	tests := []struct {
+		name      string
+		body      string
+		wantCount int
+		wantErr   error
+	}{
+		{name: "no findings", body: `{"findings":[],"total":0}`},
+		{name: "a row without a total counts", body: `{"findings":[{}]}`, wantCount: 1},
+		{name: "a response in another shape is an error", body: `{"items":[]}`, wantErr: findings.ErrUnreadableResponse},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var sent string
+			c := gateClient(t, tt.body, &sent)
+
+			count, err := unifiedFindingsCount(context.Background(), c, allScannerEndpoints()[0], "high", "")
+
+			require.ErrorIs(t, err, tt.wantErr)
+			require.Equal(t, tt.wantCount, count)
 		})
 	}
 }

@@ -17,6 +17,10 @@ import (
 // ErrUnknownType is returned for a finding type that is not in the table.
 var ErrUnknownType = errors.New("unknown finding type")
 
+// ErrUnreadableResponse is returned for a successful response without the expected
+// shape. It must never read as an empty result, because a CI gate would then pass.
+var ErrUnreadableResponse = errors.New("unreadable findings response")
+
 // Action calls one finding operation. Operations that take no request body
 // ignore body. The result is the JSON response of the API.
 type Action func(ctx context.Context, c *api.Client, findingID string, body []byte) (json.RawMessage, error)
@@ -259,6 +263,21 @@ func NamesWith(pick func(Type) bool) []string {
 	return names
 }
 
+// AcceptedNames returns every sorted name that Lookup resolves to a type for which
+// pick reports support: slugs, aliases and the type values of listed findings.
+func AcceptedNames(pick func(Type) bool) []string {
+	names := NamesWith(pick)
+	for _, table := range []map[string]string{typeAliases, rowTypes} {
+		for name := range table {
+			if t, err := Lookup(name); err == nil && pick(t) {
+				names = append(names, name)
+			}
+		}
+	}
+	slices.Sort(names)
+	return names
+}
+
 // Lookup resolves a slug, an alias or the type value of a listed finding to its
 // type.
 func Lookup(name string) (Type, error) {
@@ -276,8 +295,13 @@ func Lookup(name string) (Type, error) {
 }
 
 // APITypesFor resolves a slug, an alias or a raw API value to the values of the
-// /admin/findings "type" filter.
+// /admin/findings "type" filter. "sca" is both SCA types here, because a filter that
+// keeps only one would hide the other. A verb acts on one finding, so for a verb
+// "sca" is the dependency route (see Lookup).
 func APITypesFor(name string) ([]string, error) {
+	if name == "sca" {
+		return []string{"Dependencies", "Containers"}, nil
+	}
 	if alias, ok := typeAliases[name]; ok {
 		name = alias
 	}
@@ -292,8 +316,11 @@ func APITypesFor(name string) ([]string, error) {
 }
 
 // HasRepository reports whether findings of the API types can belong to a
-// repository. A repository detected from the working directory must not filter a
-// search for cloud findings, because that search would then always be empty.
+// repository. Cloud and bug hunt findings have none, so a repository filter removes
+// all of them. A repository detected from the working directory must not filter a
+// search for them, because that search would then always be empty.
 func HasRepository(apiTypes []string) bool {
-	return !slices.Equal(apiTypes, []string{"Cloud"})
+	return len(apiTypes) == 0 || slices.ContainsFunc(apiTypes, func(t string) bool {
+		return t != "Cloud" && t != "BugHunt"
+	})
 }

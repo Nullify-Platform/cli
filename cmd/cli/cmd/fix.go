@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -93,7 +94,7 @@ func reportFix(cmd *cobra.Command, findingID, findingType string, fixResult find
 	if fixResult.CheckWith != "" {
 		result["check_with"] = fixResult.CheckWith
 	}
-	if fixResult.StillRunning {
+	if errors.Is(fixResult.Failure, findings.ErrAutofixStillRunning) {
 		result["still_running"] = true
 	}
 	if len(fixResult.Diff) > 0 {

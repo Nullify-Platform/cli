@@ -172,6 +172,7 @@ func TestFindingsForRepo(t *testing.T) {
 		never string
 	}{
 		{name: "cloud findings have no repository", want: []string{"--- cspm ---\nNot listed: these findings have no repository."}, never: `"Cloud"`},
+		{name: "bug hunt findings have no repository", want: []string{"--- bughunt ---\nNot listed: these findings have no repository."}, never: `"BugHunt"`},
 		{name: "a section reports truncation", want: []string{`"truncated": true`, `"total": 9`, `"returned": 1`}, never: `"Cloud"`},
 	}
 	for _, tt := range tests {
