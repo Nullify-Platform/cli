@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 
-	"github.com/nullify-platform/cli/internal/apierror"
 	"github.com/nullify-platform/cli/internal/findings"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/output"
@@ -22,7 +20,7 @@ Results are paginated automatically up to --limit total findings.
 
 The output reports total, returned and truncated. An empty result has total 0.
 A truncated result has truncated true. A failure to read, such as no access,
-exits non-zero (2 for no access, 3 for other API failures) and is never an empty result.`
+exits with code 3 and is never an empty result.`
 
 var findingsCmd = &cobra.Command{
 	Use:   "findings",
@@ -124,24 +122,17 @@ func findingsRepository(flag string, apiTypes []string, detect func() string) st
 	return detect()
 }
 
-// findingsError sets the exit code for a failed finding operation: 2 when the
-// caller has no access, 3 for another API failure, and 1 for invalid input.
+// findingsError sets the exit code for a failed finding operation: 1 for invalid
+// input and 3 for an API failure, access failures included.
 func findingsError(err error) error {
-	var apiErr *apierror.APIError
-	if !errors.As(err, &apiErr) {
-		for _, invalid := range []error{
-			findings.ErrUnknownType, findings.ErrUnsupported, findings.ErrFindingIDRequired,
-			findings.ErrReasonRequired, findings.ErrInvalidAllowlistType, findings.ErrInvalidVerdict,
-			findings.ErrInvalidLimit, findings.ErrInvalidStatus,
-		} {
-			if errors.Is(err, invalid) {
-				return err
-			}
+	for _, invalid := range []error{
+		findings.ErrUnknownType, findings.ErrUnsupported, findings.ErrFindingIDRequired,
+		findings.ErrReasonRequired, findings.ErrInvalidAllowlistType, findings.ErrInvalidVerdict,
+		findings.ErrInvalidLimit, findings.ErrInvalidStatus, findings.ErrInvalidTimeout,
+	} {
+		if errors.Is(err, invalid) {
+			return err
 		}
-		return networkError("%w", err)
-	}
-	if apiErr.StatusCode == http.StatusUnauthorized || apiErr.StatusCode == http.StatusForbidden {
-		return authError("%w", err)
 	}
 	return networkError("%w", err)
 }

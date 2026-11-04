@@ -916,6 +916,8 @@ nullify findings archive	<finding-id>		type	active
 nullify findings create-ticket	<finding-id>		type	active
 nullify findings delete-ticket	<finding-id>		type	active
 nullify findings feedback	<finding-id>		comment,verdict	active
+nullify findings fix-diff	<finding-id>		type	active
+nullify findings fix-status	<finding-id>		type	active
 nullify findings get	<finding-id>		type	active
 nullify findings get-feedback	<finding-id>			active
 nullify findings list			debug,from,limit,repo,severity,status,to,type	active
@@ -924,7 +926,7 @@ nullify findings triage	<finding-id>		type	active
 nullify findings unallowlist	<finding-id>		reason,type	active
 nullify findings unarchive	<finding-id>		type	active
 nullify findings unmark-false-positive	<finding-id>		type	active
-nullify fix	<finding-id>		create-pr,type	active
+nullify fix	<finding-id>		create-pr,no-wait,timeout,type	active
 nullify init				active
 nullify mcp				active
 nullify mcp serve			repo,tools	active

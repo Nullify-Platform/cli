@@ -50,6 +50,11 @@ func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
 		registerUnifiedTools(s, c)
 		registerCompositeTools(s, c)
 
+	case ToolSetFindingsWrite:
+		registerUnifiedTools(s, c)
+		registerOptInFindingTools(s, c)
+		registerCompositeTools(s, c)
+
 	case ToolSetAdmin:
 		registerAdminTools(s, c)
 		registerContextTools(s, c)
@@ -58,6 +63,7 @@ func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
 
 	case ToolSetAll:
 		registerUnifiedTools(s, c)
+		registerOptInFindingTools(s, c)
 		registerCompositeTools(s, c)
 		registerContextTools(s, c)
 		registerManagerTools(s, c)
@@ -74,6 +80,17 @@ func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
 		registerScanTools(s, c)
 		registerThreatTools(s, c)
 	}
+}
+
+// readOnlyTool builds a tool that changes nothing on the server.
+func readOnlyTool(name string, options ...mcp.ToolOption) mcp.Tool {
+	return mcp.NewTool(name, append(options, mcp.WithReadOnlyHintAnnotation(true), mcp.WithDestructiveHintAnnotation(false))...)
+}
+
+// writeTool builds a tool that changes state on the server. The destructive hint
+// tells the client to ask a person before it calls the tool.
+func writeTool(name string, options ...mcp.ToolOption) mcp.Tool {
+	return mcp.NewTool(name, append(options, mcp.WithReadOnlyHintAnnotation(false), mcp.WithDestructiveHintAnnotation(true))...)
 }
 
 func getStringArg(args map[string]any, key string) string {

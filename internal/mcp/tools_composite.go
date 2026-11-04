@@ -85,7 +85,7 @@ var scannerListers = []scannerLister{
 
 func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("get_security_posture_summary",
+		readOnlyTool("get_security_posture_summary",
 			mcp.WithDescription("High-level security posture across all scanner types. Typically the first tool to call to understand overall state."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -109,7 +109,7 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_findings_for_repo",
+		readOnlyTool("get_findings_for_repo",
 			mcp.WithDescription("Get findings for a specific repository across all scanner types."),
 			mcp.WithString("repository", mcp.Required(), mcp.Description("Repository name")),
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
@@ -143,7 +143,7 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_critical_path",
+		readOnlyTool("get_critical_path",
 			mcp.WithDescription("Get critical and high severity findings across all scanner types — the most urgent issues."),
 			mcp.WithNumber("limit", mcp.Description("Max results per scanner per severity (default 10)")),
 		),
@@ -177,7 +177,7 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_security_trends",
+		readOnlyTool("get_security_trends",
 			mcp.WithDescription("Security metrics: current posture overview plus how it has changed over time."),
 			mcp.WithString("period", mcp.Description("Time period"), mcp.Enum("7d", "30d", "90d", "365d")),
 		),

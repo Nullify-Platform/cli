@@ -55,9 +55,11 @@ fetch-spec:
 generate-api:
 	go run ./scripts/generate --spec $(SPEC_LOCAL) --output internal/api --cmd-output internal/commands
 
-# command-surface checks the command tree against spec/command-surface.tsv and
-# rewrites that snapshot. It fails on a command or flag that disappeared unless
-# internal/commands/surface_decisions.go records the decision.
+# command-surface checks the command tree against spec/command-surface.tsv and the
+# MCP tools against spec/mcp-tools.tsv, and rewrites both snapshots. It fails on a
+# command, flag or tool that disappeared unless internal/commands/surface_decisions.go
+# or mcp.Decisions records the decision. A tool that changes its annotation or
+# tool sets needs a decision too.
 command-surface:
 	go run ./scripts/commandsurface --write
 

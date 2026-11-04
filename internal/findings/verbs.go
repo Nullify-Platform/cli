@@ -63,8 +63,12 @@ type Verb struct {
 	NeedsReason bool
 	// NeedsAllowlistType makes Params.AllowlistType mandatory.
 	NeedsAllowlistType bool
-	method             func(Type) Action
-	body               func(Type, Params) ([]byte, error)
+	// Write marks a verb that changes the finding or its ticket.
+	Write bool
+	// OptIn keeps the MCP tool out of the default tool set.
+	OptIn  bool
+	method func(Type) Action
+	body   func(Type, Params) ([]byte, error)
 }
 
 // Verbs lists the finding operations in the order that help shows them.
@@ -82,7 +86,20 @@ var Verbs = []Verb{
 		method:      func(t Type) Action { return t.Triage },
 	},
 	{
+		Name:        "fix-status",
+		Tool:        "nullify_get_fix_status",
+		Description: "Get the state of the autofix run of a finding: its state, whether it has ended, and its pull requests.",
+		method:      func(t Type) Action { return t.AutofixStatus },
+	},
+	{
+		Name:        "fix-diff",
+		Tool:        "nullify_get_fix_diff",
+		Description: "Get the proposed change of a finished autofix run.",
+		method:      func(t Type) Action { return t.AutofixDiff },
+	},
+	{
 		Name:               "allowlist",
+		Write:              true,
 		Tool:               "nullify_allowlist_finding",
 		Description:        "Allowlist a finding: suppress it as fixed, accepted risk, false positive, or other. This is how a finding is triaged out of the open queue.",
 		NeedsReason:        true,
@@ -92,6 +109,7 @@ var Verbs = []Verb{
 	},
 	{
 		Name:        "unallowlist",
+		Write:       true,
 		Tool:        "nullify_unallowlist_finding",
 		Description: "Remove a finding from the allowlist, re-opening it.",
 		NeedsReason: true,
@@ -100,18 +118,24 @@ var Verbs = []Verb{
 	},
 	{
 		Name:        "archive",
+		Write:       true,
+		OptIn:       true,
 		Tool:        "nullify_archive_finding",
 		Description: "Archive a finding, removing it from the open queue without recording a verdict.",
 		method:      func(t Type) Action { return t.Archive },
 	},
 	{
 		Name:        "unarchive",
+		Write:       true,
+		OptIn:       true,
 		Tool:        "nullify_unarchive_finding",
 		Description: "Restore an archived finding to the open queue.",
 		method:      func(t Type) Action { return t.Unarchive },
 	},
 	{
 		Name:        "mark-false-positive",
+		Write:       true,
+		OptIn:       true,
 		Tool:        "nullify_mark_false_positive",
 		Description: "Mark a finding as a false positive.",
 		NeedsReason: true,
@@ -120,20 +144,25 @@ var Verbs = []Verb{
 	},
 	{
 		Name:        "unmark-false-positive",
+		Write:       true,
+		OptIn:       true,
 		Tool:        "nullify_unmark_false_positive",
 		Description: "Remove the false positive mark from a finding.",
 		method:      func(t Type) Action { return t.UnmarkFalsePositive },
 	},
 	{
 		Name:        "create-ticket",
+		Write:       true,
 		Tool:        "nullify_create_ticket",
 		Description: "Create a ticket (e.g. Jira, GitHub issue) for a finding.",
 		method:      func(t Type) Action { return t.CreateTicket },
 	},
 	{
 		Name:        "delete-ticket",
+		Write:       true,
+		OptIn:       true,
 		Tool:        "nullify_delete_ticket",
-		Description: "Delete the ticket of a finding.",
+		Description: "Close the ticket of a finding on its integration and clear the link to it. The API does not record a reason for this.",
 		method:      func(t Type) Action { return t.DeleteTicket },
 	},
 }
@@ -174,6 +203,19 @@ func (v Verb) Types() []string {
 	return NamesWith(func(t Type) bool { return v.method(t) != nil })
 }
 
+// TypeValues returns the values that the verb accepts for a type: the slugs, and
+// the type values of listed findings.
+func (v Verb) TypeValues() []string {
+	values := v.Types()
+	for rowType, slug := range rowTypes {
+		if v.method(Types[slug]) != nil {
+			values = append(values, rowType)
+		}
+	}
+	slices.Sort(values)
+	return values
+}
+
 func allowlistBody(t Type, p Params) ([]byte, error) {
 	if t.AllowOnPatch {
 		return json.Marshal(map[string]any{"allow": true, "reason": p.Reason})
@@ -181,11 +223,13 @@ func allowlistBody(t Type, p Params) ([]byte, error) {
 	return json.Marshal(map[string]string{"allowlistReason": p.Reason, "allowlistType": p.AllowlistType})
 }
 
+// unallowlistBody always names the type UserOther, as the dashboard does. The
+// secrets routes require the field and the input of every other type drops it.
 func unallowlistBody(t Type, p Params) ([]byte, error) {
 	if t.AllowOnPatch {
 		return json.Marshal(map[string]any{"allow": false, "reason": p.Reason})
 	}
-	return json.Marshal(map[string]string{"unallowlistReason": p.Reason})
+	return json.Marshal(map[string]string{"unallowlistReason": p.Reason, "unallowlistType": string(models.ModelsAllowlistTypeUserother)})
 }
 
 func falsePositiveBody(_ Type, p Params) ([]byte, error) {

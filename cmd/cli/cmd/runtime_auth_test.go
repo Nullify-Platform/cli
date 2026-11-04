@@ -282,7 +282,7 @@ func TestMCPClientUsesAuthHostForTokensAndDataHostForRequests(t *testing.T) {
 	}))
 	authCtx := &commandAuthContext{AuthHost: auth.RouterHost, DataHost: "acme.nullify.ai"}
 
-	apiClient, err := newMCPAPIClient(context.Background(), authCtx, map[string]string{"repository": "r"})
+	apiClient, err := newRefreshingAPIClient(context.Background(), authCtx, map[string]string{"repository": "r"})
 	require.NoError(t, err)
 	require.Equal(t, "https://api.acme.nullify.ai", apiClient.BaseURL)
 	require.Equal(t, map[string]string{"repository": "r"}, apiClient.DefaultParams)

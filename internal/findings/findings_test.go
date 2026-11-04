@@ -3,6 +3,7 @@ package findings
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -154,10 +155,12 @@ func TestVerbTypes(t *testing.T) {
 		verb string
 		want []string
 	}{
-		{verb: "allowlist", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"}},
-		{verb: "unallowlist", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"}},
-		{verb: "triage", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"}},
-		{verb: "create-ticket", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets"}},
+		{verb: "allowlist", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets", "secrets_sensitive_data"}},
+		{verb: "unallowlist", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets", "secrets_sensitive_data"}},
+		{verb: "triage", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets", "secrets_sensitive_data"}},
+		{verb: "create-ticket", want: []string{"bughunt", "cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm", "secrets", "secrets_sensitive_data"}},
+		{verb: "fix-status", want: []string{"cspm", "pentest", "sast", "sca_containers", "sca_dependencies", "scpm"}},
+		{verb: "fix-diff", want: []string{"sast", "sca_dependencies"}},
 		{verb: "archive", want: []string{"cspm"}},
 		{verb: "unarchive", want: []string{"cspm"}},
 		{verb: "mark-false-positive", want: []string{"cspm"}},
@@ -181,6 +184,9 @@ func TestAPITypesFor(t *testing.T) {
 		{name: "dependencies", want: []string{"Dependencies"}},
 		{name: "containers", want: []string{"Containers"}},
 		{name: "secrets", want: []string{"SecretsCredentials", "SecretsSensitiveData"}},
+		{name: "secrets_sensitive_data", want: []string{"SecretsSensitiveData"}},
+		{name: "SecretsSensitiveData", want: []string{"SecretsSensitiveData"}},
+		{name: "SecretsCredentials", want: []string{"SecretsCredentials"}},
 		{name: "bughunt", want: []string{"BugHunt"}},
 		{name: "cspm", want: []string{"Cloud"}},
 		{name: "scpm", want: []string{"SupplyChain"}},
@@ -375,6 +381,10 @@ func TestFeedback(t *testing.T) {
 }
 
 func TestAutofixPhaseDone(t *testing.T) {
+	newPR := []AutofixPullRequest{{URL: "http://new"}, {URL: "http://old"}}
+	oldPR := []AutofixPullRequest{{URL: "http://old"}}
+	earlier := []string{"http://old"}
+
 	tests := []struct {
 		name    string
 		st      AutofixStatus
@@ -384,94 +394,320 @@ func TestAutofixPhaseDone(t *testing.T) {
 		{"agent in progress", AutofixStatus{State: "in_progress_agent"}, false, false},
 		{"cached is terminal for fix", AutofixStatus{State: "cached", Terminal: true}, false, true},
 		{"pending_review terminal for fix", AutofixStatus{State: "pending_review", Terminal: true}, false, true},
-		{"failed_retry not terminal", AutofixStatus{State: "failed_retry"}, false, false},
+		{"failed_retry is terminal for fix", AutofixStatus{State: "failed_retry", Terminal: true}, false, true},
 		{"cached without PR keeps waiting", AutofixStatus{State: "cached", Terminal: true}, true, false},
-		{"cached with PR url done", AutofixStatus{State: "cached", Terminal: true, PullRequestURL: "http://pr"}, true, true},
-		{"pending_review with url done", AutofixStatus{State: "pending_review", Terminal: true, PullRequestURL: "http://pr"}, true, true},
+		{"cached with an earlier PR keeps waiting", AutofixStatus{State: "cached", Terminal: true, PullRequests: oldPR}, true, false},
+		{"cached with a new PR is done", AutofixStatus{State: "cached", Terminal: true, PullRequests: newPR}, true, true},
+		{"new PR ends the wait before terminal", AutofixStatus{State: "in_progress_draft", PullRequests: newPR}, true, true},
 		{"pr_merged terminal done", AutofixStatus{State: "pr_merged", Terminal: true}, true, true},
 		{"failed_pr_creation done", AutofixStatus{State: "failed_pr_creation", Terminal: true}, true, true},
 		{"creating_pr still waiting", AutofixStatus{State: "in_progress_creating_pr"}, true, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, autofixPhaseDone(tt.st, tt.watchPR))
+			require.Equal(t, tt.want, autofixPhaseDone(tt.st, tt.watchPR, earlier))
 		})
 	}
 }
 
 func TestFix(t *testing.T) {
-	const terminal = `{"status":{"state":"cached","terminal":true,"pullRequestUrl":"http://pr"}}`
+	const (
+		none       = `{"status":{"state":"none","terminal":false}}`
+		cached     = `{"status":{"state":"cached","terminal":true}}`
+		hasOldPR   = `{"status":{"state":"pending_review","terminal":true,"pullRequestUrl":"http://old","pullRequestState":"open","pullRequests":[{"url":"http://old","status":"open"}]}}`
+		hasNewPR   = `{"status":{"state":"pending_review","terminal":true,"pullRequestUrl":"http://new","pullRequestState":"open","pullRequests":[{"url":"http://new","status":"open"},{"url":"http://old","status":"closed"}]}}`
+		noPRClosed = `{"status":{"state":"failed_pr_creation","terminal":true,"pullRequestUrl":"http://old","pullRequestState":"closed","pullRequests":[{"url":"http://old","status":"closed"}]}}`
+		abort      = `{"status":{"state":"failed_abort","terminal":true,"autofixVerdictExplanation":"needs a design change"}}`
+		retry      = `{"status":{"state":"failed_retry","terminal":true}}`
+		cancelled  = `{"status":{"state":"cancelled","terminal":true}}`
+		iteration  = `{"status":{"state":"failed_iteration","terminal":true}}`
+		closed     = `{"status":{"state":"pr_closed","terminal":true}}`
+		unknown    = `{"status":{"state":"a_new_terminal_state","terminal":true}}`
+	)
+
+	const (
+		sastFix    = "POST /sast/findings/f1/autofix/fix"
+		sastStatus = "GET /sast/findings/f1/autofix/status"
+		sastDiff   = "GET /sast/findings/f1/autofix/cache/diff"
+	)
 
 	tests := []struct {
 		name     string
 		findType string
 		createPR bool
+		statuses []string
+		diffCode int
 		want     error
+		failure  error
+		state    string
 		routes   []string
 		diff     bool
 		pr       *PullRequestStatus
 	}{
 		{
-			name: "sast reads the diff", findType: "sast",
-			routes: []string{"POST /sast/findings/f1/autofix/fix", "GET /sast/findings/f1/autofix/status", "GET /sast/findings/f1/autofix/cache/diff"},
-			diff:   true,
+			name: "sast reads the diff", findType: "sast", statuses: []string{cached},
+			state: "cached", routes: []string{sastFix, sastStatus, sastDiff}, diff: true,
 		},
 		{
-			name: "sca alias reads the dependency diff and reports the pull request", findType: "sca", createPR: true,
+			name: "sca alias reports the pull request of this run", findType: "sca", createPR: true, statuses: []string{hasOldPR, hasNewPR, hasNewPR},
+			state: "pending_review",
 			routes: []string{
+				"GET /sca/dependencies/findings/f1/autofix/status",
 				"POST /sca/dependencies/findings/f1/autofix/fix",
 				"GET /sca/dependencies/findings/f1/autofix/status",
 				"GET /sca/dependencies/findings/f1/autofix/cache/diff",
 				"GET /sca/dependencies/findings/f1/autofix/status",
 			},
 			diff: true,
-			pr:   &PullRequestStatus{URL: "http://pr"},
+			pr:   &PullRequestStatus{State: "open", URL: "http://new"},
 		},
 		{
-			name: "cspm has no diff route", findType: "cspm",
-			routes: []string{"POST /cspm/findings/f1/autofix/fix", "GET /cspm/findings/f1/autofix/status"},
+			name: "cspm has no diff route", findType: "cspm", statuses: []string{cached},
+			state: "cached", routes: []string{"POST /cspm/findings/f1/autofix/fix", "GET /cspm/findings/f1/autofix/status"},
 		},
 		{
-			name: "scpm has no diff or create-PR route", findType: "scpm", createPR: true,
-			routes: []string{"POST /scpm/findings/f1/autofix/fix", "GET /scpm/findings/f1/autofix/status", "GET /scpm/findings/f1/autofix/status"},
-			pr:     &PullRequestStatus{URL: "http://pr"},
+			name: "an older pull request is not reported", findType: "sast", createPR: true, statuses: []string{hasOldPR, hasOldPR, hasOldPR},
+			failure: ErrNoPullRequest, state: "pending_review",
+			routes: []string{sastStatus, sastFix, sastStatus, sastDiff, sastStatus}, diff: true,
+		},
+		{
+			name: "failed pull request creation does not report an older one", findType: "sast", createPR: true, statuses: []string{hasOldPR, cached, noPRClosed},
+			failure: ErrAutofixFailed, state: "failed_pr_creation",
+			routes: []string{sastStatus, sastFix, sastStatus, sastDiff, sastStatus}, diff: true,
+		},
+		{
+			name: "failed_abort", findType: "sast", statuses: []string{abort},
+			failure: ErrAutofixFailed, state: "failed_abort", routes: []string{sastFix, sastStatus},
+		},
+		{
+			name: "failed_retry", findType: "sast", statuses: []string{retry},
+			failure: ErrAutofixFailed, state: "failed_retry", routes: []string{sastFix, sastStatus},
+		},
+		{
+			name: "cancelled", findType: "sast", statuses: []string{cancelled},
+			failure: ErrAutofixFailed, state: "cancelled", routes: []string{sastFix, sastStatus},
+		},
+		{
+			name: "failed_iteration", findType: "sast", statuses: []string{iteration},
+			failure: ErrAutofixFailed, state: "failed_iteration", routes: []string{sastFix, sastStatus},
+		},
+		{
+			name: "pr_closed", findType: "sast", statuses: []string{closed},
+			failure: ErrAutofixFailed, state: "pr_closed", routes: []string{sastFix, sastStatus},
+		},
+		{
+			name: "an unknown terminal state is a failure", findType: "sast", statuses: []string{unknown},
+			failure: ErrAutofixFailed, state: "a_new_terminal_state", routes: []string{sastFix, sastStatus},
+		},
+		{
+			name: "failed run with create-pr stops after the fix phase", findType: "sast", createPR: true, statuses: []string{none, abort},
+			failure: ErrAutofixFailed, state: "failed_abort", routes: []string{sastStatus, sastFix, sastStatus},
+		},
+		{
+			name: "a failed diff read keeps the pull request", findType: "sast", createPR: true, statuses: []string{hasOldPR, hasNewPR, hasNewPR}, diffCode: 404,
+			failure: ErrAutofixDiff, state: "pending_review",
+			routes: []string{sastStatus, sastFix, sastStatus, sastDiff, sastStatus},
+			pr:     &PullRequestStatus{State: "open", URL: "http://new"},
 		},
 		{name: "secrets has no autofix", findType: "secrets", want: ErrUnsupported},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			polled := 0
 			ft := &fakeTransport{respond: func(_ int, r request) (int, string) {
-				return 200, map[bool]string{true: terminal, false: `{}`}[strings.HasSuffix(r.Path, "/status")]
+				if strings.HasSuffix(r.Path, "/diff") && tt.diffCode != 0 {
+					return tt.diffCode, `{}`
+				}
+				if !strings.HasSuffix(r.Path, "/status") {
+					return 200, `{}`
+				}
+				polled++
+				return 200, tt.statuses[polled-1]
 			}}
 
-			got, err := Fix(context.Background(), clientFor(ft), tt.findType, "f1", tt.createPR)
+			got, err := Fix(context.Background(), clientFor(ft), tt.findType, "f1", FixOptions{WaitForPR: tt.createPR, Timeout: time.Minute})
 
 			require.ErrorIs(t, err, tt.want)
+			require.ErrorIs(t, got.Failure, tt.failure)
 			var routes []string
 			for _, r := range ft.requests {
 				routes = append(routes, r.Method+" "+r.Path)
 			}
 			require.Equal(t, tt.routes, routes)
+			require.Equal(t, tt.state, got.State)
 			require.Equal(t, tt.diff, len(got.Diff) > 0)
 			require.Equal(t, tt.pr, got.PullRequest)
 		})
 	}
 }
 
-func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
-	t.Cleanup(func() {
-		autofixPollDeadline = 5 * time.Minute
-		autofixPollInterval = 3 * time.Second
-	})
-	autofixPollDeadline = 50 * time.Millisecond
+func shortPollInterval(t *testing.T) {
+	t.Helper()
+	interval := autofixPollInterval
+	t.Cleanup(func() { autofixPollInterval = interval })
 	autofixPollInterval = 5 * time.Millisecond
+}
 
-	ft := &fakeTransport{respond: func(int, request) (int, string) {
-		return 200, `{"status":{"state":"in_progress_agent","terminal":false}}`
-	}}
+func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
+	shortPollInterval(t)
 
-	got, err := Fix(context.Background(), clientFor(ft), "sast", "f1", false)
+	tests := []struct {
+		name     string
+		status   string
+		createPR bool
+		state    string
+		pr       *PullRequestStatus
+	}{
+		{name: "fix phase", status: `{"status":{"state":"in_progress_agent","terminal":false}}`, state: "in_progress_agent"},
+		{name: "pull request phase", status: `{"status":{"state":"cached","terminal":true}}`, createPR: true, state: "cached", pr: &PullRequestStatus{StillRunning: true}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(_ int, r request) (int, string) {
+				return 200, map[bool]string{true: tt.status, false: `{}`}[strings.HasSuffix(r.Path, "/status")]
+			}}
 
-	require.ErrorIs(t, err, nil)
-	require.True(t, got.StillRunning)
+			got, err := Fix(context.Background(), clientFor(ft), "sast", "f1", FixOptions{WaitForPR: tt.createPR, Timeout: 30 * time.Millisecond})
+
+			require.ErrorIs(t, err, nil)
+			require.ErrorIs(t, got.Failure, ErrAutofixStillRunning)
+			require.ErrorContains(t, got.Failure, "nullify findings fix-status f1 --type sast")
+			require.True(t, got.StillRunning || got.PullRequest != nil)
+			require.Equal(t, tt.state, got.State)
+			require.Equal(t, tt.pr, got.PullRequest)
+		})
+	}
+}
+
+func TestFixPollErrors(t *testing.T) {
+	shortPollInterval(t)
+
+	const done = `{"status":{"state":"cached","terminal":true}}`
+
+	tests := []struct {
+		name  string
+		codes []int
+		polls int
+		state string
+		want  bool
+		check string
+	}{
+		{name: "a server error does not end the wait", codes: []int{503, 200}, polls: 2, state: "cached"},
+		{name: "rate limiting does not end the wait", codes: []int{429, 200}, polls: 2, state: "cached"},
+		{name: "no access ends the wait", codes: []int{403, 200}, polls: 1, state: "in_progress_requested", want: true, check: "nullify findings fix-status f1 --type sast"},
+		{name: "not found ends the wait", codes: []int{404, 200}, polls: 1, state: "in_progress_requested", want: true, check: "nullify findings fix-status f1 --type sast"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			polls := 0
+			ft := &fakeTransport{respond: func(_ int, r request) (int, string) {
+				switch {
+				case strings.HasSuffix(r.Path, "/status"):
+					polls++
+					return tt.codes[polls-1], done
+				case strings.HasSuffix(r.Path, "/fix"):
+					return 200, `{"autoFixState":"in_progress_requested","runId":"r1"}`
+				}
+				return 200, `{}`
+			}}
+
+			got, err := Fix(context.Background(), clientFor(ft), "sast", "f1", FixOptions{Timeout: time.Minute})
+
+			var apiErr *apierror.APIError
+			require.Equal(t, tt.want, errors.As(err, &apiErr))
+			require.Equal(t, tt.polls, polls)
+			require.Equal(t, tt.state, got.State)
+			require.Equal(t, "r1", got.RunID)
+			require.Equal(t, tt.check, got.CheckWith)
+		})
+	}
+}
+
+func TestStartFix(t *testing.T) {
+	tests := []struct {
+		name     string
+		findType string
+		want     error
+		start    FixStart
+		requests []request
+	}{
+		{
+			name: "starts the run once and does not poll", findType: "sast",
+			start:    FixStart{State: "in_progress_requested", RunID: "r1"},
+			requests: []request{{"POST", "/sast/findings/f1/autofix/fix", `{}`}},
+		},
+		{name: "secrets has no autofix", findType: "secrets", want: ErrUnsupported},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{respond: func(int, request) (int, string) {
+				return 200, `{"autoFixState":"in_progress_requested","runId":"r1"}`
+			}}
+
+			got, err := StartFix(context.Background(), clientFor(ft), tt.findType, "f1")
+
+			require.ErrorIs(t, err, tt.want)
+			require.Equal(t, tt.start, got)
+			require.Equal(t, tt.requests, ft.requests)
+		})
+	}
+}
+
+func TestFixRejectsAnInvalidTimeout(t *testing.T) {
+	ft := &fakeTransport{}
+
+	_, err := Fix(context.Background(), clientFor(ft), "sast", "f1", FixOptions{})
+
+	require.ErrorIs(t, err, ErrInvalidTimeout)
+	require.Empty(t, ft.requests)
+}
+
+func TestSensitiveDataVerbsUseTheirRoutes(t *testing.T) {
+	const base = "/secrets/sensitivedata/findings/f1"
+	falsePositive := Params{Reason: "test data", AllowlistType: "UserFalsePositive"}
+
+	tests := []struct {
+		name     string
+		verb     string
+		findType string
+		params   Params
+		request  request
+	}{
+		{name: "get", verb: "get", findType: "secrets_sensitive_data", request: request{"GET", base, ""}},
+		{name: "triage", verb: "triage", findType: "secrets_sensitive_data", request: request{"GET", base + "/triage", ""}},
+		{name: "allowlist", verb: "allowlist", findType: "secrets_sensitive_data", params: falsePositive, request: request{"POST", base + "/allowlist", `{"allowlistReason":"test data","allowlistType":"UserFalsePositive"}`}},
+		{name: "unallowlist", verb: "unallowlist", findType: "secrets_sensitive_data", params: Params{Reason: "real"}, request: request{"POST", base + "/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
+		{name: "credential unallowlist names a type", verb: "unallowlist", findType: "secrets", params: Params{Reason: "real"}, request: request{"POST", "/secrets/findings/f1/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
+		{name: "create ticket", verb: "create-ticket", findType: "secrets_sensitive_data", request: request{"POST", base + "/ticket", `{}`}},
+		{name: "delete ticket", verb: "delete-ticket", findType: "secrets_sensitive_data", request: request{"DELETE", base + "/ticket", ""}},
+		{name: "row type of a sensitive-data finding", verb: "get", findType: "SecretsSensitiveData", request: request{"GET", base, ""}},
+		{name: "row type of a credential", verb: "get", findType: "SecretsCredentials", request: request{"GET", "/secrets/findings/f1", ""}},
+		{name: "secrets keeps the credential routes", verb: "get", findType: "secrets", request: request{"GET", "/secrets/findings/f1", ""}},
+		{name: "row type of a cloud finding", verb: "get", findType: "Cloud", request: request{"GET", "/cspm/findings/f1", ""}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{}
+
+			_, err := verbNamed(t, tt.verb).Run(context.Background(), clientFor(ft), tt.findType, "f1", tt.params)
+
+			require.ErrorIs(t, err, nil)
+			require.Equal(t, []request{tt.request}, ft.requests)
+		})
+	}
+}
+
+func TestVerbTypeValues(t *testing.T) {
+	tests := []struct {
+		verb string
+		want []string
+	}{
+		{verb: "archive", want: []string{"Cloud", "cspm"}},
+		{verb: "unmark-false-positive", want: []string{"Cloud", "SupplyChain", "cspm", "scpm"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.verb, func(t *testing.T) {
+			require.Equal(t, tt.want, verbNamed(t, tt.verb).TypeValues())
+		})
+	}
 }

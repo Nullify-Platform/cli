@@ -147,6 +147,15 @@ var Types = map[string]Type{
 		Allowlist:    writeRaw((*api.Client).CreateSecretsFindingsFindingIdAllowlist),
 		Unallowlist:  writeRaw((*api.Client).CreateSecretsFindingsFindingIdUnallowlist),
 	},
+	"secrets_sensitive_data": {
+		APITypes:     []string{"SecretsSensitiveData"},
+		Get:          read((*api.Client).GetSecretsSensitivedataFindingsFindingId),
+		Triage:       read((*api.Client).ListSecretsSensitivedataFindingsFindingIdTriage),
+		CreateTicket: write((*api.Client).CreateSecretsSensitivedataFindingsFindingIdTicket),
+		DeleteTicket: read((*api.Client).DeleteSecretsSensitivedataFindingsFindingIdTicket),
+		Allowlist:    writeRaw((*api.Client).CreateSecretsSensitivedataFindingsFindingIdAllowlist),
+		Unallowlist:  writeRaw((*api.Client).CreateSecretsSensitivedataFindingsFindingIdUnallowlist),
+	},
 	"pentest": {
 		APITypes:      []string{"Pentest"},
 		Get:           read((*api.Client).GetDastPentestFindingsFindingId),
@@ -203,6 +212,20 @@ var typeAliases = map[string]string{
 	"containers":   "sca_containers",
 }
 
+// rowTypes maps the "type" value of a listed finding to its slug, so that a row
+// from `--type secrets` can go straight to a verb.
+var rowTypes = map[string]string{
+	"Code":                 "sast",
+	"Dependencies":         "sca_dependencies",
+	"Containers":           "sca_containers",
+	"SecretsCredentials":   "secrets",
+	"SecretsSensitiveData": "secrets_sensitive_data",
+	"Pentest":              "pentest",
+	"BugHunt":              "bughunt",
+	"Cloud":                "cspm",
+	"SupplyChain":          "scpm",
+}
+
 // Names returns the sorted slugs of all finding types.
 func Names() []string {
 	names := make([]string, 0, len(Types))
@@ -224,10 +247,14 @@ func NamesWith(pick func(Type) bool) []string {
 	return names
 }
 
-// Lookup resolves a slug or an alias to its type.
+// Lookup resolves a slug, an alias or the type value of a listed finding to its
+// type.
 func Lookup(name string) (Type, error) {
 	if alias, ok := typeAliases[name]; ok {
 		name = alias
+	}
+	if slug, ok := rowTypes[name]; ok {
+		name = slug
 	}
 	t, ok := Types[name]
 	if !ok {
@@ -239,18 +266,14 @@ func Lookup(name string) (Type, error) {
 // APITypesFor resolves a slug, an alias or a raw API value to the values of the
 // /admin/findings "type" filter.
 func APITypesFor(name string) ([]string, error) {
+	if _, ok := rowTypes[name]; ok {
+		return []string{name}, nil
+	}
 	t, err := Lookup(name)
-	if err == nil {
-		return t.APITypes, nil
+	if err != nil {
+		return nil, err
 	}
-	for _, slug := range Names() {
-		for _, apiType := range Types[slug].APITypes {
-			if apiType == name {
-				return []string{apiType}, nil
-			}
-		}
-	}
-	return nil, err
+	return t.APITypes, nil
 }
 
 // HasRepository reports whether findings of the API types can belong to a

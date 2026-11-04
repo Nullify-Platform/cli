@@ -200,7 +200,9 @@ nullify findings list --type cspm --from 2026-11-01T00:00:00Z --to 2026-11-02T00
 nullify findings list --type scpm
 ```
 
-`--type` accepts `sast`, `sca_dependencies`, `sca_containers`, `secrets`, `pentest`, `bughunt`, `cspm` and `scpm`. An unknown type is an error.
+`--type` accepts `sast`, `sca_dependencies`, `sca_containers`, `secrets`, `secrets_sensitive_data`, `pentest`, `bughunt`, `cspm` and `scpm`. An unknown type is an error.
+
+`--type secrets` lists credentials and sensitive data together. To act on a listed finding, pass the `type` value of its row, for example `nullify findings get abc123 --type SecretsSensitiveData`. In a verb, `secrets` means credentials only.
 
 The output reports `total`, `returned` and `truncated`:
 
@@ -208,8 +210,7 @@ The output reports `total`, `returned` and `truncated`:
 |--------|---------|
 | `total` 0, exit 0 | No finding matches the filters |
 | `truncated` true, exit 0 | More findings exist; raise `--limit` |
-| Exit 2 | No access (401 or 403) |
-| Exit 3 | Other API or network failure |
+| Exit 3 | An API or network failure, including no access (401 or 403) |
 
 Act on a finding. Allowlisting needs a reason and an explicit type, because the type is the record of why the finding was closed: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise.
 
@@ -301,8 +302,10 @@ The CLI includes a built-in [Model Context Protocol](https://modelcontextprotoco
 
 - **Query** — findings, repositories, SBOMs, cloud accounts, metrics, trends
 - **Triage** — allowlist, archive or mark false positive across every finding type, including CSPM, reopen, and record feedback
-- **Remediate** — generate AI-powered fix diffs and open PRs, end-to-end
+- **Remediate** — start AI-powered fixes, then follow them with `nullify_get_fix_status` and `nullify_get_fix_diff`
 - **Track** — campaigns, action items, SLA policies, code reviews
+
+`nullify mcp serve --tools findings-write` adds the tools that the default set leaves out: archive, unarchive, mark and unmark false positive, and delete ticket. `--tools all` also has them. Every tool that changes state carries the destructive annotation, so a client can ask a person first. `spec/mcp-tools.tsv` lists every tool, its access and its tool sets.
 
 ### Setup
 

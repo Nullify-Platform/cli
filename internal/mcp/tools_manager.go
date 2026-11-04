@@ -11,7 +11,7 @@ import (
 
 func registerManagerTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("list_campaigns",
+		readOnlyTool("list_campaigns",
 			mcp.WithDescription("List remediation campaigns — coordinated efforts to fix groups of related findings."),
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
@@ -25,7 +25,7 @@ func registerManagerTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_campaign",
+		readOnlyTool("get_campaign",
 			mcp.WithDescription("Get a remediation campaign by ID, including progress and assigned findings."),
 			mcp.WithString("campaign_id", mcp.Required(), mcp.Description("The campaign ID")),
 		),
@@ -37,8 +37,8 @@ func registerManagerTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("list_action_items",
-			mcp.WithDescription("List action items: decisions and questions that need a person, ordered by priority. This replaces the retired list_escalations tool."),
+		readOnlyTool("list_action_items",
+			mcp.WithDescription("List action items: decisions and questions that need a person, ordered by priority."),
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

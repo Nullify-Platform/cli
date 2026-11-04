@@ -91,6 +91,7 @@ func TestFindingTools(t *testing.T) {
 			ft := &fakeTransport{}
 			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
 			registerUnifiedTools(s, testClient(ft))
+			registerOptInFindingTools(s, testClient(ft))
 
 			result := callTool(t, s, tt.tool, tt.args)
 
@@ -150,6 +151,20 @@ func withoutFindings(t *testing.T, doc string) string {
 	return string(out)
 }
 
+func TestFixToolStartsTheRunAndReturns(t *testing.T) {
+	ft := &fakeTransport{respond: func(capturedReq) (int, string) {
+		return 200, `{"autoFixState":"in_progress_requested","runId":"r1"}`
+	}}
+	s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
+	registerUnifiedTools(s, testClient(ft))
+
+	result := callTool(t, s, "nullify_fix_finding", map[string]any{"type": "sast", "id": "f1"})
+
+	require.False(t, result.IsError)
+	require.JSONEq(t, `{"state":"in_progress_requested","run_id":"r1","check_with":"nullify_get_fix_status"}`, result.Content[0].(mcp.TextContent).Text)
+	require.Equal(t, []capturedReq{{"POST", "/sast/findings/f1/autofix/fix", []byte(`{}`)}}, ft.requests)
+}
+
 func TestValidToolSets(t *testing.T) {
-	require.ElementsMatch(t, []string{"default", "all", "minimal", "findings", "admin"}, ValidToolSets())
+	require.ElementsMatch(t, []string{"default", "all", "minimal", "findings", "admin", "findings-write"}, ValidToolSets())
 }

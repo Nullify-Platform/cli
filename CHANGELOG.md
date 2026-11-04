@@ -2,12 +2,20 @@
 
 ## Unreleased
 
+### Changed
+
+- `nullify fix` now waits up to 50 minutes, because a run can take 45. It waited 5 minutes before. `--timeout` sets the wait. A run still going at the timeout exits non-zero and prints how to check it, and it continues on the server. `--no-wait` starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
+- `nullify_fix_finding` now starts the run and returns at once, with a non-error result. It no longer waits and no longer takes `create_pr`. Use `nullify_get_fix_status` and `nullify_get_fix_diff`.
+
 ### Added
 
 - `nullify api` now follows the API published on 2 November 2026 (it was pinned to 26 May). This adds about 530 commands, including `nullify api cspm` allowlist, unallowlist, archive, unarchive, mark and unmark false positive, patch, triage and ticket delete, and a new `nullify api dast` group.
 - `nullify findings` subcommands: `list`, `get`, `triage`, `allowlist`, `unallowlist`, `archive`, `unarchive`, `mark-false-positive`, `unmark-false-positive`, `create-ticket`, `delete-ticket`, `feedback` and `get-feedback`.
 - `nullify findings --type` accepts `scpm`. `--from` and `--to` set UTC bounds. The output adds `returned` and `truncated`.
-- MCP tools: `nullify_archive_finding`, `nullify_unarchive_finding`, `nullify_mark_false_positive`, `nullify_unmark_false_positive`, `nullify_delete_ticket`, `nullify_submit_finding_feedback`, `nullify_get_finding_feedback` and `list_action_items`. `nullify_allowlist_finding`, `nullify_unallowlist_finding` and `nullify_get_finding_triage` work for CSPM, and `nullify_unallowlist_finding` and `nullify_create_ticket` work for bug hunt.
+- MCP tools in the default set: `nullify_submit_finding_feedback`, `nullify_get_finding_feedback`. `nullify_allowlist_finding`, `nullify_unallowlist_finding` and `nullify_get_finding_triage` work for CSPM, and `nullify_unallowlist_finding` and `nullify_create_ticket` work for bug hunt.
+- MCP tools in the new `findings-write` set and in `all`, not in the default set: `nullify_archive_finding`, `nullify_unarchive_finding`, `nullify_mark_false_positive`, `nullify_unmark_false_positive`, `nullify_delete_ticket`.
+- `nullify findings fix-status` and `fix-diff`, with the MCP tools `nullify_get_fix_status` and `nullify_get_fix_diff`.
+- MCP `list_action_items`. Every MCP tool now has read-only or destructive annotations.
 
 ### Fixed
 
@@ -17,6 +25,9 @@
 - `nullify findings` rejects a `--limit` of zero or less, an unknown `--type` and an unknown `--status`. Each of these returned a wrong result before. Text after `nullify findings` that is not a subcommand is now an error, so a mistyped verb does not list findings.
 - `nullify fix --create-pr` called a route that the API removed. The fix run opens the pull request itself, so the command now waits for that pull request and reports it. `nullify fix` also waits for the fix to end before it reads the diff, and accepts every type with autofix.
 - `nullify_fix_finding` no longer calls the removed diff routes for CSPM, SCPM and pentest.
+- `nullify fix` reported success for a failed fix. A failed state, a run still going at the timeout, and `--create-pr` with no new pull request now exit non-zero. The output adds `state` and `run_id`. `--create-pr` reports only a pull request that this run opened, never an older one.
+- `nullify findings` could list sensitive-data secrets but every verb used the credential routes. `--type secrets_sensitive_data` uses `/secrets/sensitivedata/findings/...`, and each verb accepts the `type` value of a listed row. `--type secrets` still lists both.
+- Unallowlisting a secret sends the `unallowlistType` that the API requires, with the value that the dashboard sends.
 - MCP allowlist and unallowlist reject an empty reason or an invalid allowlist type before they call the API.
 
 ### Moved
@@ -59,7 +70,7 @@ The API no longer serves these routes, so these commands could only return 404. 
 | `nullify api manager list-customer-questions`, `get-customer-questions`, `delete-customer-questions`, `delete-customer-questions-2`, `delete-questions`, `patch-answers` | `nullify api manager list-action-items` |
 | `nullify api manager list-escalations`, `patch-escalations` | `nullify api manager list-action-items` |
 
-The MCP tool `list_escalations` is replaced by `list_action_items`.
+The MCP tool `list_escalations` is removed. Its route `GET /manager/escalations` is gone from prod (#5596), so the tool only returned errors. Use `list_action_items`, which returns a different schema, so it is not an alias. `spec/mcp-tools.tsv` now locks the MCP tool names, annotations and tool sets.
 
 ### Deprecated flags
 

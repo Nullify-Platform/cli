@@ -54,7 +54,7 @@ var mcpServeCmd = &cobra.Command{
 			return fmt.Errorf("invalid --tools value %q. Valid values: %s", toolsFlag, strings.Join(validSets, ", "))
 		}
 
-		apiClient, err := newMCPAPIClient(ctx, authCtx, queryParams)
+		apiClient, err := newRefreshingAPIClient(ctx, authCtx, queryParams)
 		if err != nil {
 			return fmt.Errorf("failed to create client: %w", err)
 		}
@@ -72,11 +72,11 @@ func init() {
 	mcpCmd.AddCommand(mcpServeCmd)
 
 	mcpServeCmd.Flags().String("repo", "", "Repository name to scope findings to (auto-detected from git remote if not set)")
-	mcpServeCmd.Flags().String("tools", "default", "Tool set to register (default, all, minimal, findings, admin)")
+	mcpServeCmd.Flags().String("tools", "default", "Tool set to register ("+strings.Join(mcp.ValidToolSets(), ", ")+")")
 }
 
-// newMCPAPIClient drives the API client through a refreshing, retrying transport so long MCP sessions survive token rotation.
-func newMCPAPIClient(ctx context.Context, authCtx *commandAuthContext, queryParams map[string]string) (*api.Client, error) {
+// newRefreshingAPIClient drives the API client through a refreshing, retrying transport so long MCP sessions and long autofix waits survive token rotation.
+func newRefreshingAPIClient(ctx context.Context, authCtx *commandAuthContext, queryParams map[string]string) (*api.Client, error) {
 	tokenProvider, refreshProvider := mcpTokenProviders(ctx, authCtx.AuthHost)
 	httpClient, err := client.NewRefreshingHTTPClient(authCtx.DataHost, tokenProvider, refreshProvider)
 	if err != nil {

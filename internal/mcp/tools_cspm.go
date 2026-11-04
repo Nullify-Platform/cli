@@ -13,7 +13,7 @@ import (
 // all finding operations.
 func registerCSPMTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("list_cspm_scans",
+		readOnlyTool("list_cspm_scans",
 			mcp.WithDescription("List CSPM (Cloud Security Posture Management) scan history."),
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
