@@ -48,6 +48,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
 					}
 				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				if v, _ := cmd.Flags().GetString("is-allowlisted"); v != "" {
 					b := v == "true"
 					in.IsAllowlisted = &b
@@ -96,8 +104,10 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/credentials/findings")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-false-positive", "", "")
 		cmd.Flags().String("is-resolved", "", "")
@@ -150,6 +160,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 						}
 					}
 				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsCredentialsFindingsAllowlistBatch(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -158,6 +176,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/credentials/findings/allowlist/batch")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -181,6 +201,19 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("file-path"); v != "" {
+					for _, s := range strings.Split(v, ",") {
+						in.FilePath = append(in.FilePath, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("is-allowlisted"); v != "" {
@@ -207,6 +240,10 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					x := string(v)
 					in.NextToken = &x
 				}
+				if v, _ := cmd.Flags().GetString("repository-id"); v != "" {
+					x := string(v)
+					in.RepositoryID = &x
+				}
 				if v, _ := cmd.Flags().GetString("secret-type"); v != "" {
 					x := string(v)
 					in.SecretType = &x
@@ -231,13 +268,17 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/credentials/findings/detailed")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("file-path", "", "if set, only findings in one of these files are returned")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-false-positive", "", "")
 		cmd.Flags().String("is-resolved", "", "")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
+		cmd.Flags().String("repository-id", "", "if set, only findings for this repository are returned")
 		cmd.Flags().String("secret-type", "", "")
 		cmd.Flags().String("sort", "", "")
 		cmd.Flags().String("sort-by", "", "")
@@ -257,6 +298,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.GetSecretsCredentialsFindingsFindingIdInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.GetSecretsCredentialsFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -269,6 +318,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/credentials/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -315,6 +366,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.PatchSecretsCredentialsFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -327,6 +386,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "PATCH /secrets/credentials/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -375,6 +436,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsCredentialsFindingsFindingIdAllowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -383,6 +452,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/credentials/findings/{findingId}/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -401,6 +472,18 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsCredentialsFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("next-token"); v != "" {
+					x := string(v)
+					in.NextToken = &x
+				}
 				out, err := client.ListSecretsCredentialsFindingsFindingIdEvents(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -413,6 +496,47 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/credentials/findings/{findingId}/events")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("next-token", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-credentials-findings-ticket <findingId>",
+			Short: "Delete Ticket for Credential Finding",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.DeleteSecretsCredentialsFindingsFindingIdTicketInput{}
+				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.DeleteSecretsCredentialsFindingsFindingIdTicket(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "DELETE /secrets/credentials/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -459,6 +583,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.CreateSecretsCredentialsFindingsFindingIdTicket(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -471,6 +603,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/credentials/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -489,6 +623,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsCredentialsFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSecretsCredentialsFindingsFindingIdTriage(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -501,6 +643,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/credentials/findings/{findingId}/triage")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -547,6 +691,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsCredentialsFindingsFindingIdUnallowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -555,6 +707,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/credentials/findings/{findingId}/unallowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -573,6 +727,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsCredentialsFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSecretsCredentialsFindingsFindingIdUsers(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -585,6 +747,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/credentials/findings/{findingId}/users")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -620,6 +784,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("from-time"); v != "" {
 					x := string(v)
 					in.FromTime = &x
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
 				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -657,11 +829,13 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/events")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("event-type", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("finding-id", "", "")
 		cmd.Flags().String("from-time", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		cmd.Flags().String("num-items", "", "")
@@ -687,6 +861,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("is-allowlisted"); v != "" {
@@ -737,8 +919,10 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/findings")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-false-positive", "", "")
 		cmd.Flags().String("is-resolved", "", "")
@@ -791,6 +975,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 						}
 					}
 				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsFindingsAllowlistBatch(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -799,6 +991,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/findings/allowlist/batch")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -822,6 +1016,19 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("file-path"); v != "" {
+					for _, s := range strings.Split(v, ",") {
+						in.FilePath = append(in.FilePath, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("is-allowlisted"); v != "" {
@@ -848,6 +1055,10 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					x := string(v)
 					in.NextToken = &x
 				}
+				if v, _ := cmd.Flags().GetString("repository-id"); v != "" {
+					x := string(v)
+					in.RepositoryID = &x
+				}
 				if v, _ := cmd.Flags().GetString("secret-type"); v != "" {
 					x := string(v)
 					in.SecretType = &x
@@ -872,13 +1083,17 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/findings/detailed")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("file-path", "", "if set, only findings in one of these files are returned")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-false-positive", "", "")
 		cmd.Flags().String("is-resolved", "", "")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
+		cmd.Flags().String("repository-id", "", "if set, only findings for this repository are returned")
 		cmd.Flags().String("secret-type", "", "")
 		cmd.Flags().String("sort", "", "")
 		cmd.Flags().String("sort-by", "", "")
@@ -903,6 +1118,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("is-allowlisted"); v != "" {
@@ -953,8 +1176,10 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/findings/preview")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-false-positive", "", "")
 		cmd.Flags().String("is-resolved", "", "")
@@ -979,6 +1204,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.GetSecretsFindingsFindingIdInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.GetSecretsFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -991,6 +1224,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1037,6 +1272,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.PatchSecretsFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1049,6 +1292,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "PATCH /secrets/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1097,6 +1342,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsFindingsFindingIdAllowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1105,6 +1358,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/findings/{findingId}/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1123,6 +1378,18 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("next-token"); v != "" {
+					x := string(v)
+					in.NextToken = &x
+				}
 				out, err := client.ListSecretsFindingsFindingIdEvents(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1135,6 +1402,47 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/findings/{findingId}/events")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("next-token", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-findings-ticket <findingId>",
+			Short: "Delete Ticket for Credential Finding",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.DeleteSecretsFindingsFindingIdTicketInput{}
+				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.DeleteSecretsFindingsFindingIdTicket(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "DELETE /secrets/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1181,6 +1489,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.CreateSecretsFindingsFindingIdTicket(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1193,6 +1509,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1211,6 +1529,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSecretsFindingsFindingIdTriage(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1223,6 +1549,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/findings/{findingId}/triage")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1269,6 +1597,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsFindingsFindingIdUnallowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1277,6 +1613,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/findings/{findingId}/unallowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1295,6 +1633,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSecretsFindingsFindingIdUsers(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1307,6 +1653,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/findings/{findingId}/users")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1321,6 +1669,18 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					return err
 				}
 				in := api.ListSecretsScanRunsInput{}
+				if v, _ := cmd.Flags().GetString("from"); v != "" {
+					x := string(v)
+					in.From = &x
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
 						return fmt.Errorf("limit"+": %w", err)
@@ -1345,6 +1705,10 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					x := string(v)
 					in.Sort = &x
 				}
+				if v, _ := cmd.Flags().GetString("to"); v != "" {
+					x := string(v)
+					in.To = &x
+				}
 				out, err := client.ListSecretsScanRuns(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1357,10 +1721,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/scan-runs")
+		cmd.Flags().String("from", "", "Only include scan runs started at or after this RFC3339 timestamp")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "Max scan runs per page (default 10, max 50)")
 		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
 		cmd.Flags().String("repository-id", "", "Repository ID to list scan runs for")
 		cmd.Flags().String("sort", "", "Sort order by start time (default newest)")
+		cmd.Flags().String("to", "", "Only include scan runs started at or before this RFC3339 timestamp")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1382,6 +1750,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("is-allowlisted"); v != "" {
@@ -1432,8 +1808,10 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/sensitivedata/findings")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-false-positive", "", "")
 		cmd.Flags().String("is-resolved", "", "")
@@ -1486,6 +1864,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 						}
 					}
 				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsSensitivedataFindingsAllowlistBatch(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1494,6 +1880,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/sensitivedata/findings/allowlist/batch")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1512,6 +1900,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.GetSecretsSensitivedataFindingsFindingIdInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.GetSecretsSensitivedataFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1524,6 +1920,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/sensitivedata/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1570,6 +1968,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.PatchSecretsSensitivedataFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1582,6 +1988,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "PATCH /secrets/sensitivedata/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1630,6 +2038,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsSensitivedataFindingsFindingIdAllowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1638,8 +2054,48 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/sensitivedata/findings/{findingId}/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-sensitivedata-findings-ticket <findingId>",
+			Short: "Delete Ticket for Sensitive Data Finding",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.DeleteSecretsSensitivedataFindingsFindingIdTicketInput{}
+				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.DeleteSecretsSensitivedataFindingsFindingIdTicket(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "DELETE /secrets/sensitivedata/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1686,6 +2142,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.CreateSecretsSensitivedataFindingsFindingIdTicket(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1698,6 +2162,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/sensitivedata/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1716,6 +2182,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsSensitivedataFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSecretsSensitivedataFindingsFindingIdTriage(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1728,6 +2202,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/sensitivedata/findings/{findingId}/triage")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1774,6 +2250,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSecretsSensitivedataFindingsFindingIdUnallowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1782,6 +2266,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /secrets/sensitivedata/findings/{findingId}/unallowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1800,6 +2286,14 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSecretsSensitivedataFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSecretsSensitivedataFindingsFindingIdUsers(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1812,6 +2306,8 @@ func RegisterSecretsCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /secrets/sensitivedata/findings/{findingId}/users")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 

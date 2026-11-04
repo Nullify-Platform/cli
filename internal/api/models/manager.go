@@ -3,14 +3,187 @@ package models
 
 import "encoding/json"
 
-type ActionsPendingAction struct {
+type ActionitemanswerAnswer struct {
+	Assignments []ActionitemanswerAssignment `json:"assignments,omitempty"`
+	DurationDays *int `json:"durationDays,omitempty"`
+	OptionID *string `json:"optionId,omitempty"`
+	OptionIds []string `json:"optionIds,omitempty"`
+	Other *string `json:"other,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	TeamID *string `json:"teamId,omitempty"`
+	Text *string `json:"text,omitempty"`
+	UserID *string `json:"userId,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type ActionitemanswerAssignment struct {
+	TargetID string `json:"targetId"`
+	TeamID string `json:"teamId"`
+}
+
+type ActionitemanswerEffect string
+
+const (
+	// (skipped value "" — no representable Go identifier)
+	ActionitemanswerEffectApprove ActionitemanswerEffect = "approve"
+	ActionitemanswerEffectNeedsChanges ActionitemanswerEffect = "needs_changes"
+	ActionitemanswerEffectFalsePositive ActionitemanswerEffect = "false_positive"
+	ActionitemanswerEffectSnooze ActionitemanswerEffect = "snooze"
+	ActionitemanswerEffectDismiss ActionitemanswerEffect = "dismiss"
+)
+
+type ActionitemanswerOption struct {
+	Consequence *string `json:"consequence,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Effect *ActionitemanswerEffect `json:"effect,omitempty"`
+	Exclusive *bool `json:"exclusive,omitempty"`
+	ID string `json:"id"`
+	Label string `json:"label"`
+	Recommended *bool `json:"recommended,omitempty"`
+	RequiresReason *bool `json:"requiresReason,omitempty"`
+	SnoozeDays *int `json:"snoozeDays,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type ActionitemanswerSpec struct {
+	AllowOther *bool `json:"allowOther,omitempty"`
+	DefaultOption *string `json:"defaultOption,omitempty"`
+	DurationsDays []int `json:"durationsDays,omitempty"`
+	IfUnanswered *string `json:"ifUnanswered,omitempty"`
+	Max *float64 `json:"max,omitempty"`
+	MaxDate *string `json:"maxDate,omitempty"`
+	MaxLength *int `json:"maxLength,omitempty"`
+	MaxSelections *int `json:"maxSelections,omitempty"`
+	Min *float64 `json:"min,omitempty"`
+	MinDate *string `json:"minDate,omitempty"`
+	MinSelections *int `json:"minSelections,omitempty"`
+	Options []ActionitemanswerOption `json:"options,omitempty"`
+	PickerKind *string `json:"pickerKind,omitempty"`
+	Placeholder *string `json:"placeholder,omitempty"`
+	Statement *string `json:"statement,omitempty"`
+	Suggested *string `json:"suggested,omitempty"`
+	Targets []ActionitemanswerTarget `json:"targets,omitempty"`
+	Unit *string `json:"unit,omitempty"`
+	ValueType *string `json:"valueType,omitempty"`
+	WhyItMatters *string `json:"whyItMatters,omitempty"`
+}
+
+type ActionitemanswerTarget struct {
+	ID string `json:"id"`
+	Label string `json:"label"`
 }
 
 type AuditToolCallAuditRecord struct {
 }
 
+type EndpointsActionItem struct {
+	Answer *ActionitemanswerAnswer `json:"answer,omitempty"`
+	AnswerMemoryID *string `json:"answerMemoryId,omitempty"`
+	AnswerSpec *ActionitemanswerSpec `json:"answerSpec,omitempty"`
+	AnswerType string `json:"answerType"`
+	Blocked *bool `json:"blocked,omitempty"`
+	ChatID *string `json:"chatId,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+	DedupKey string `json:"dedupKey"`
+	DependsOnIds []string `json:"dependsOnIds,omitempty"`
+	DetailedQuestion string `json:"detailedQuestion"`
+	Disposition *string `json:"disposition,omitempty"`
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	ExpiryReason *string `json:"expiryReason,omitempty"`
+	Findings []EndpointsActionItemFinding `json:"findings,omitempty"`
+	GitUser *EndpointsActionItemGitUser `json:"gitUser,omitempty"`
+	GitUserID *string `json:"gitUserId,omitempty"`
+	GroupKey *string `json:"groupKey,omitempty"`
+	ID string `json:"id"`
+	IfExpired *string `json:"ifExpired,omitempty"`
+	Kind ModelsActionItemKind `json:"kind"`
+	LastHumanActivityAt *string `json:"lastHumanActivityAt,omitempty"`
+	LastNudgedAt *string `json:"lastNudgedAt,omitempty"`
+	MessageChannelID *string `json:"messageChannelId,omitempty"`
+	MessageProvider *ModelsProviderID `json:"messageProvider,omitempty"`
+	MessageThreadRootID *string `json:"messageThreadRootId,omitempty"`
+	PullRequests []EndpointsActionItemPullRequest `json:"pullRequests,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	ResolutionMode *ModelsActionItemResolutionMode `json:"resolutionMode,omitempty"`
+	ResolutionReason *string `json:"resolutionReason,omitempty"`
+	ResolvedByUserID *string `json:"resolvedByUserId,omitempty"`
+	Response *string `json:"response,omitempty"`
+	Severity *string `json:"severity,omitempty"`
+	SnoozedUntil *string `json:"snoozedUntil,omitempty"`
+	State string `json:"state"`
+	Status ModelsActionItemStatus `json:"status"`
+	TeamID *string `json:"teamId,omitempty"`
+	TenantID string `json:"tenantId"`
+	Title string `json:"title"`
+	UpdatedAt string `json:"updatedAt"`
+	WaitingSince string `json:"waitingSince"`
+}
+
+type EndpointsActionItemFinding struct {
+	FindingID string `json:"findingId"`
+	FindingType ModelsActionItemLinkType `json:"findingType"`
+	Title *string `json:"title,omitempty"`
+}
+
+type EndpointsActionItemGitUser struct {
+	AvatarURL *string `json:"avatarUrl,omitempty"`
+	Email *string `json:"email,omitempty"`
+	Login string `json:"login"`
+	Name *string `json:"name,omitempty"`
+	ProfileURL *string `json:"profileUrl,omitempty"`
+}
+
+type EndpointsActionItemPullRequest struct {
+	FindingID string `json:"findingId"`
+	Status *string `json:"status,omitempty"`
+	Title *string `json:"title,omitempty"`
+	URL string `json:"url"`
+}
+
+type EndpointsAnswerActionItemInput struct {
+	Answer ActionitemanswerAnswer `json:"answer"`
+}
+
+type EndpointsAnswerActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
+type EndpointsAssignRepoActionItemInput struct {
+	TeamID string `json:"teamId"`
+}
+
+type EndpointsAssignRepoActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
+type EndpointsAssignTeamActionItemInput struct {
+	TeamID string `json:"teamId"`
+}
+
+type EndpointsAssignTeamActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
+type EndpointsCampaignEventPerson struct {
+	DisplayName string `json:"displayName"`
+	Login *string `json:"login,omitempty"`
+}
+
+type EndpointsCampaignEventPullRequest struct {
+	FirstReviewedAt *string `json:"firstReviewedAt,omitempty"`
+	MergedAt *string `json:"mergedAt,omitempty"`
+	Repository *string `json:"repository,omitempty"`
+	Status string `json:"status"`
+	Title *string `json:"title,omitempty"`
+	URL string `json:"url"`
+}
+
 type EndpointsCampaignRunDetail struct {
-	AgentCostCredits *int64 `json:"agentCostCredits,omitempty"`
 	AgentInputTokens *int64 `json:"agentInputTokens,omitempty"`
 	AgentOutputTokens *int64 `json:"agentOutputTokens,omitempty"`
 	CampaignID string `json:"campaignId"`
@@ -26,7 +199,6 @@ type EndpointsCampaignRunDetail struct {
 }
 
 type EndpointsCampaignRunSummary struct {
-	AgentCostCredits *int64 `json:"agentCostCredits,omitempty"`
 	AgentInputTokens *int64 `json:"agentInputTokens,omitempty"`
 	AgentOutputTokens *int64 `json:"agentOutputTokens,omitempty"`
 	CampaignID string `json:"campaignId"`
@@ -40,41 +212,113 @@ type EndpointsCampaignRunSummary struct {
 	ToolEventCount *int32 `json:"toolEventCount,omitempty"`
 }
 
-type EndpointsCustomerQuestionSetResponse struct {
-	CreatedAt *string `json:"createdAt,omitempty"`
-	CustomMessage *string `json:"customMessage,omitempty"`
-	GeneratedMemoryIds []string `json:"generatedMemoryIds,omitempty"`
-	ID *string `json:"id,omitempty"`
-	Questions []ModelsCustomerQuestion `json:"questions,omitempty"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
+type EndpointsChatSessionAction struct {
+	ActionID string `json:"actionId"`
+	Description string `json:"description"`
+	DisplayName string `json:"displayName"`
+	Executable bool `json:"executable"`
+	Params map[string]json.RawMessage `json:"params,omitempty"`
+	ResolvedByUserID *string `json:"resolvedByUserId,omitempty"`
+	Result string `json:"result"`
+	Severity string `json:"severity"`
+	Status string `json:"status"`
+	ToolName string `json:"toolName"`
 }
 
-type EndpointsDeleteAllCustomerQuestionSetsOutput struct {
-	DeletedCount int64 `json:"deletedCount"`
-	Version *string `json:"version,omitempty"`
+type EndpointsClassifyIdentityInput struct {
+	Decision string `json:"decision"`
+	Provider ModelsProviderID `json:"provider"`
+	ProviderUserID string `json:"providerUserId"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+type EndpointsClassifyIdentityOutput struct {
+	Classification EndpointsIdentityClassification `json:"classification"`
+	Version string `json:"version"`
+}
+
+type EndpointsDeleteActionItemOutput struct {
+	Success bool `json:"success"`
+	Version string `json:"version"`
 }
 
 type EndpointsDeleteChatSessionOutput struct {
 	Success *bool `json:"success,omitempty"`
 }
 
-type EndpointsDeleteCustomerQuestionOutput struct {
-	Success bool `json:"success"`
-	Version *string `json:"version,omitempty"`
-}
-
-type EndpointsDeleteCustomerQuestionSetOutput struct {
-	Success bool `json:"success"`
-	Version *string `json:"version,omitempty"`
-}
-
 type EndpointsDeleteEventOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
-type EndpointsGenerateDefaultCampaignsOutput struct {
-	Message string `json:"message"`
+type EndpointsDismissActionItemInput struct {
+	Classify *string `json:"classify,omitempty"`
+	Disposition *string `json:"disposition,omitempty"`
+	Reason string `json:"reason"`
+}
+
+type EndpointsDismissActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
 	Version string `json:"version"`
+}
+
+type EndpointsEscalationRecipient struct {
+	ID string `json:"id"`
+	Name string `json:"name"`
+}
+
+type EndpointsFixPRNudgeCandidate struct {
+	Available bool `json:"available"`
+	GitLogin string `json:"gitLogin"`
+	Name *string `json:"name,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	UserID *string `json:"userId,omitempty"`
+}
+
+type EndpointsFixPRNudgeResult struct {
+	Name *string `json:"name,omitempty"`
+	Outcome string `json:"outcome"`
+	UserID string `json:"userId"`
+}
+
+type EndpointsGenerateDefaultCampaignsOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	Message string `json:"message"`
+	RunID *string `json:"runId,omitempty"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetActionItemMessagesOutput struct {
+	HasMore bool `json:"hasMore"`
+	Messages []ModelsComment `json:"messages,omitempty"`
+	ReplayFrames []ModelsChatHistoryFrame `json:"replayFrames,omitempty"`
+	ReplayTruncated *bool `json:"replayTruncated,omitempty"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetActionItemsOutput struct {
+	ActionItems []EndpointsActionItem `json:"actionItems,omitempty"`
+	NumItems int `json:"numItems"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetActionItemsSummaryOutput struct {
+	Blocked int `json:"blocked"`
+	ByAnswerType map[string]int `json:"byAnswerType,omitempty"`
+	ByKind map[string]int `json:"byKind,omitempty"`
+	ByStatus map[string]int `json:"byStatus,omitempty"`
+	ByTeam map[string]int `json:"byTeam,omitempty"`
+	Snoozed int `json:"snoozed"`
+	Total int `json:"total"`
+	TotalOpen int `json:"totalOpen"`
+	TotalStalled *int `json:"totalStalled,omitempty"`
+	Unrouted int `json:"unrouted"`
+	Version string `json:"version"`
+	Waiting int `json:"waiting"`
 }
 
 type EndpointsGetAllCampaignsFindingsOutput struct {
@@ -87,7 +331,9 @@ type EndpointsGetCampaignEventsOutput struct {
 	Events []ModelsManagerEvent `json:"events,omitempty"`
 	HasNextPage bool `json:"hasNextPage"`
 	NumItems int `json:"numItems"`
+	People map[string]EndpointsCampaignEventPerson `json:"people,omitempty"`
 	PullRequestTitles map[string]string `json:"pullRequestTitles,omitempty"`
+	PullRequests map[string]EndpointsCampaignEventPullRequest `json:"pullRequests,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -99,7 +345,9 @@ type EndpointsGetCampaignFindingsOutput struct {
 }
 
 type EndpointsGetCampaignMetricsRefreshOutput struct {
+	Refreshed bool `json:"refreshed"`
 	Response string `json:"response"`
+	SkipReason *string `json:"skipReason,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -107,6 +355,7 @@ type EndpointsGetCampaignOutput struct {
 	Campaign *ModelsCampaign `json:"campaign,omitempty"`
 	MappedFindingIds []string `json:"mappedFindingIds,omitempty"`
 	MappedFindings []ModelsFindingProgress `json:"mappedFindings,omitempty"`
+	TouchLedger *ModelsCampaignTouchLedger `json:"touchLedger,omitempty"`
 	Version string `json:"version"`
 }
 
@@ -120,6 +369,8 @@ type EndpointsGetCampaignPreviewsOutput struct {
 	Campaigns []ModelsCampaignPreview `json:"campaigns,omitempty"`
 	Findings []ModelsFindingProgress `json:"findings,omitempty"`
 	NumItems int `json:"numItems"`
+	Portfolio *ModelsCampaignPortfolio `json:"portfolio,omitempty"`
+	Total int `json:"total"`
 	Version string `json:"version"`
 }
 
@@ -130,6 +381,7 @@ type EndpointsGetCampaignRunOutput struct {
 type EndpointsGetCampaignRunsOutput struct {
 	NextCursor *string `json:"nextCursor,omitempty"`
 	Runs []EndpointsCampaignRunSummary `json:"runs,omitempty"`
+	Total int `json:"total"`
 }
 
 type EndpointsGetCampaignSummariesOutput struct {
@@ -145,7 +397,7 @@ type EndpointsGetCampaignsOutput struct {
 }
 
 type EndpointsGetChatSessionActionsOutput struct {
-	Actions []ActionsPendingAction `json:"actions,omitempty"`
+	Actions []EndpointsChatSessionAction `json:"actions,omitempty"`
 }
 
 type EndpointsGetChatSessionAuditOutput struct {
@@ -154,27 +406,14 @@ type EndpointsGetChatSessionAuditOutput struct {
 }
 
 type EndpointsGetChatSessionHistoryOutput struct {
+	HasMore *bool `json:"hasMore,omitempty"`
 	Messages []ModelsComment `json:"messages,omitempty"`
+	ReplayFrames []ModelsChatHistoryFrame `json:"replayFrames,omitempty"`
+	ReplayTruncated *bool `json:"replayTruncated,omitempty"`
 }
 
 type EndpointsGetChatSessionOutput struct {
 	Session *SessionsChatSession `json:"session,omitempty"`
-}
-
-type EndpointsGetCreditsOutput struct {
-	Credits ModelsCredits `json:"credits"`
-	Version string `json:"version"`
-}
-
-type EndpointsGetCustomerQuestionSetOutput struct {
-	QuestionSet EndpointsCustomerQuestionSetResponse `json:"questionSet"`
-	Version *string `json:"version,omitempty"`
-}
-
-type EndpointsGetCustomerQuestionSetsOutput struct {
-	NumItems int `json:"numItems"`
-	QuestionSets []EndpointsCustomerQuestionSetResponse `json:"questionSets,omitempty"`
-	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetDefaultCampaignsOutput struct {
@@ -183,9 +422,14 @@ type EndpointsGetDefaultCampaignsOutput struct {
 	Version string `json:"version"`
 }
 
-type EndpointsGetEscalationsOutput struct {
-	Escalations []ModelsEscalation `json:"escalations,omitempty"`
-	NumItems int `json:"numItems"`
+type EndpointsGetEngagementUsersOutput struct {
+	NextCursor *string `json:"nextCursor,omitempty"`
+	Users []ModelsDeveloperEngagement `json:"users,omitempty"`
+	WindowStart string `json:"windowStart"`
+}
+
+type EndpointsGetEscalationRecipientsOutput struct {
+	Recipients []EndpointsEscalationRecipient `json:"recipients,omitempty"`
 	Version string `json:"version"`
 }
 
@@ -202,8 +446,28 @@ type EndpointsGetFindingEventsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetFixPRNudgeOutput struct {
+	Candidates []EndpointsFixPRNudgeCandidate `json:"candidates,omitempty"`
+	DisabledReason *string `json:"disabledReason,omitempty"`
+	Draft bool `json:"draft"`
+	Kind string `json:"kind"`
+	Message string `json:"message"`
+	Number int `json:"number"`
+	PrURL string `json:"prUrl"`
+	Repository string `json:"repository"`
+	SendsLeft int `json:"sendsLeft"`
+	State string `json:"state"`
+	Variant string `json:"variant"`
+	Version string `json:"version"`
+}
+
 type EndpointsGetManagerConfigOutput struct {
 	Config ModelsManagerConfig `json:"config"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetManagerEscalationConfigOutput struct {
+	Escalation *ModelsEscalationRouting `json:"escalation,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -213,43 +477,42 @@ type EndpointsGetManagerGroundRulesOutput struct {
 }
 
 type EndpointsGetManagerMetricsOutput struct {
-	AutofixDuration *int `json:"autofixDuration,omitempty"`
 	BacklogSearches *int `json:"backlogSearches,omitempty"`
-	DetectionDuration *int `json:"detectionDuration,omitempty"`
 	EscalatedFindings *int `json:"escalatedFindings,omitempty"`
 	Escalations *int `json:"escalations,omitempty"`
-	FindingsInBacklog int `json:"findingsInBacklog"`
-	FindingsInProgress int `json:"findingsInProgress"`
-	FindingsResolved int `json:"findingsResolved"`
+	FindingsAnalysis ModelsFindingsMetrics `json:"findingsAnalysis"`
 	InternetSearchCount *int `json:"internetSearchCount,omitempty"`
-	MappedFindings []ModelsFindingProgress `json:"mappedFindings,omitempty"`
-	MeanTimeAutofixToInProgress *int `json:"meanTimeAutofixToInProgress,omitempty"`
-	MeanTimeInProgressToResolved *int `json:"meanTimeInProgressToResolved,omitempty"`
-	MeanTimeToAutofix *int `json:"meanTimeToAutofix,omitempty"`
-	MeanTimeToDetectAndTriage *int `json:"meanTimeToDetectAndTriage,omitempty"`
-	MeanTimeToResolve int `json:"meanTimeToResolve"`
-	MeanTimeToTriage *int `json:"meanTimeToTriage,omitempty"`
-	MedianTimeAutofixToInProgress *int `json:"medianTimeAutofixToInProgress,omitempty"`
-	MedianTimeInProgressToResolved *int `json:"medianTimeInProgressToResolved,omitempty"`
-	MedianTimeToAutofix *int `json:"medianTimeToAutofix,omitempty"`
-	MedianTimeToDetectAndTriage *int `json:"medianTimeToDetectAndTriage,omitempty"`
-	MedianTimeToTriage *int `json:"medianTimeToTriage,omitempty"`
 	MessageCount *int `json:"messageCount,omitempty"`
 	PlansGenerated *int `json:"plansGenerated,omitempty"`
 	PrCloseCount *int `json:"prCloseCount,omitempty"`
 	PrCommentCount *int `json:"prCommentCount,omitempty"`
 	PrCreateCount *int `json:"prCreateCount,omitempty"`
+	PrMergedCount *int `json:"prMergedCount,omitempty"`
 	PreviewMessageCount *int `json:"previewMessageCount,omitempty"`
 	StoryPointsConsumed *int `json:"storyPointsConsumed,omitempty"`
 	TasksAssigned *int `json:"tasksAssigned,omitempty"`
 	TicketCloseCount *int `json:"ticketCloseCount,omitempty"`
 	TicketCommentCount *int `json:"ticketCommentCount,omitempty"`
 	TicketCreateCount *int `json:"ticketCreateCount,omitempty"`
-	TimeSaved *int `json:"timeSaved,omitempty"`
+	TicketsResolvedCount *int `json:"ticketsResolvedCount,omitempty"`
 	TimeSavedAssigning *int `json:"timeSavedAssigning,omitempty"`
-	TotalRemediationDuration *int `json:"totalRemediationDuration,omitempty"`
-	TriageDuration *int `json:"triageDuration,omitempty"`
 	Version string `json:"version"`
+}
+
+type EndpointsGetManagerRunOutput struct {
+	CampaignIds []string `json:"campaignIds,omitempty"`
+	CampaignRunIds []string `json:"campaignRunIds,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	Detail *string `json:"detail,omitempty"`
+	Error *string `json:"error,omitempty"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	Mode *string `json:"mode,omitempty"`
+	RunID string `json:"runId"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	State string `json:"state"`
+	StrategyID *string `json:"strategyId,omitempty"`
+	StrategyVersion *int `json:"strategyVersion,omitempty"`
+	Terminal *bool `json:"terminal,omitempty"`
 }
 
 type EndpointsGetManagerStateOutput struct {
@@ -268,24 +531,73 @@ type EndpointsGetPlansOutput struct {
 	Version string `json:"version"`
 }
 
+type EndpointsGetProposalsOutput struct {
+	Proposals []ModelsProposalView `json:"proposals,omitempty"`
+}
+
+type EndpointsGetSecurityProgramOutput struct {
+	Program *ModelsSecurityProgram `json:"program,omitempty"`
+}
+
 type EndpointsGetStrategyOutput struct {
+	AcceptedAt *string `json:"acceptedAt,omitempty"`
+	AcceptedBy *string `json:"acceptedBy,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
+	EditSource *string `json:"editSource,omitempty"`
+	EditedBy *string `json:"editedBy,omitempty"`
 	ID *string `json:"id,omitempty"`
 	Quarters []ModelsStrategyQuarterGoal `json:"quarters,omitempty"`
+	Status *string `json:"status,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 	Version *int `json:"version,omitempty"`
 }
 
+type EndpointsGetStrategyProposalOutput struct {
+	Proposal *ModelsStrategy `json:"proposal,omitempty"`
+}
+
+type EndpointsGetThreatCatalogOutput struct {
+	AppliedFilters []string `json:"appliedFilters,omitempty"`
+	NumItems int `json:"numItems"`
+	PageableTotal int `json:"pageableTotal"`
+	Sort *string `json:"sort,omitempty"`
+	Threats []EndpointsThreatCatalogEntry `json:"threats,omitempty"`
+	Total int `json:"total"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsGetThreatInvestigationOutput struct {
 	Events []ModelsManagerEvent `json:"events,omitempty"`
+	InvestigationVersions []ModelsThreatInvestigation `json:"investigationVersions,omitempty"`
 	ThreatInvestigation ModelsThreatInvestigation `json:"threatInvestigation"`
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetThreatInvestigationProgressOutput struct {
+	RunID *string `json:"runId,omitempty"`
+	Stages []EndpointsThreatInvestigationProgressStage `json:"stages,omitempty"`
+	Terminal bool `json:"terminal"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsGetThreatInvestigationsOutput struct {
+	AffectedInvestigations int `json:"affectedInvestigations"`
+	AffectedRepos int `json:"affectedRepos"`
+	LinkedFindings int `json:"linkedFindings"`
 	NumItems int `json:"numItems"`
 	ThreatInvestigations []ModelsThreatInvestigation `json:"threatInvestigations,omitempty"`
+	Total int `json:"total"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsIdentityClassification struct {
+	CreatedAt string `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+	Decision string `json:"decision"`
+	Provider ModelsProviderID `json:"provider"`
+	ProviderUserID string `json:"providerUserId"`
+	Reason *string `json:"reason,omitempty"`
+	Username *string `json:"username,omitempty"`
 }
 
 type EndpointsListChatSessionsOutput struct {
@@ -293,9 +605,22 @@ type EndpointsListChatSessionsOutput struct {
 	Sessions []SessionsChatSession `json:"sessions,omitempty"`
 }
 
+type EndpointsListIdentityClassificationsOutput struct {
+	Classifications []EndpointsIdentityClassification `json:"classifications,omitempty"`
+	Version string `json:"version"`
+}
+
 type EndpointsListStrategyVersionsOutput struct {
 	NumItems *int `json:"numItems,omitempty"`
 	Strategies []ModelsStrategy `json:"strategies,omitempty"`
+}
+
+type EndpointsListThreatReportsOutput struct {
+	Page int `json:"page"`
+	PageSize int `json:"pageSize"`
+	Reports []EndpointsThreatReportEntry `json:"reports,omitempty"`
+	TotalCount int `json:"totalCount"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsManagerConfigInput struct {
@@ -303,11 +628,52 @@ type EndpointsManagerConfigInput struct {
 	Initialized bool `json:"initialized"`
 }
 
+type EndpointsMapUserActionItemInput struct {
+	MessageUserID *string `json:"messageUserId,omitempty"`
+	ServiceAccount *bool `json:"serviceAccount,omitempty"`
+}
+
+type EndpointsMapUserActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
+type EndpointsNudgeActionItemInput struct {
+	Message *string `json:"message,omitempty"`
+	RecipientUserID *string `json:"recipientUserId,omitempty"`
+}
+
+type EndpointsNudgeActionItemOutput struct {
+	Sent bool `json:"sent"`
+	Version string `json:"version"`
+}
+
+type EndpointsNudgeFixPRInput struct {
+	RecipientUserIds []string `json:"recipientUserIds,omitempty"`
+}
+
+type EndpointsNudgeFixPROutput struct {
+	Results []EndpointsFixPRNudgeResult `json:"results,omitempty"`
+	Version string `json:"version"`
+}
+
+type EndpointsPatchActionItemInput struct {
+	TeamID *string `json:"teamId,omitempty"`
+}
+
+type EndpointsPatchActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
 type EndpointsPatchCampaignInput struct {
+	ClearExploitValidated *bool `json:"clearExploitValidated,omitempty"`
+	ConfirmWholeBacklog *bool `json:"confirmWholeBacklog,omitempty"`
 	CreatedAfter *string `json:"createdAfter,omitempty"`
 	CreatedBefore *string `json:"createdBefore,omitempty"`
 	Description *string `json:"description,omitempty"`
 	EndDate *string `json:"endDate,omitempty"`
+	ExploitValidated *bool `json:"exploitValidated,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
 	GeneratedReasoning *string `json:"generatedReasoning,omitempty"`
 	IsActive *bool `json:"isActive,omitempty"`
@@ -316,14 +682,15 @@ type EndpointsPatchCampaignInput struct {
 	MinPriority *float64 `json:"minPriority,omitempty"`
 	NoEndDate *bool `json:"noEndDate,omitempty"`
 	Owner *string `json:"owner,omitempty"`
+	PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 	PriorityLabels []string `json:"priorityLabels,omitempty"`
-	RepositoryNames []string `json:"repositoryNames,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	SeverityConfidence []string `json:"severityConfidence,omitempty"`
 	SortByColumns *string `json:"sortByColumns,omitempty"`
 	SortByDirection *string `json:"sortByDirection,omitempty"`
 	StartDate *string `json:"startDate,omitempty"`
 	Summary *string `json:"summary,omitempty"`
 	TeamIDs []string `json:"teamIDs,omitempty"`
-	TeamNames []string `json:"teamNames,omitempty"`
 	Title *string `json:"title,omitempty"`
 	Types []string `json:"types,omitempty"`
 	UserNames []string `json:"userNames,omitempty"`
@@ -345,20 +712,6 @@ type EndpointsPatchChatSessionOutput struct {
 	Success *bool `json:"success,omitempty"`
 }
 
-type EndpointsPatchCustomerQuestionAnswerInput struct {
-	Answer json.RawMessage `json:"answer"`
-}
-
-type EndpointsPatchCustomerQuestionAnswerOutput struct {
-	Success bool `json:"success"`
-	Version *string `json:"version,omitempty"`
-}
-
-type EndpointsPatchEscalationsInput struct {
-	Reasoning *string `json:"reasoning,omitempty"`
-	Status *ModelsEscalationStatus `json:"status,omitempty"`
-}
-
 type EndpointsPatchGroundRulesInput struct {
 	GroundRules *ModelsManagerGroundRules `json:"groundRules,omitempty"`
 }
@@ -368,14 +721,33 @@ type EndpointsPatchGroundRulesOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPatchSecurityProgramInput struct {
+	AnnounceWindowDays int `json:"announceWindowDays"`
+	Autonomy string `json:"autonomy"`
+	CapacityPerWeek *int `json:"capacityPerWeek,omitempty"`
+	DefaultCampaignDays int `json:"defaultCampaignDays"`
+	MaxConcurrentCampaigns int `json:"maxConcurrentCampaigns"`
+	MinCoveragePerGoal int `json:"minCoveragePerGoal"`
+	ReviewCadenceDays int `json:"reviewCadenceDays"`
+}
+
+type EndpointsPatchSecurityProgramOutput struct {
+	Program *ModelsSecurityProgram `json:"program,omitempty"`
+}
+
 type EndpointsPatchStrategyInput struct {
 	Quarters []ModelsStrategyQuarterGoal `json:"quarters,omitempty"`
 }
 
 type EndpointsPatchStrategyOutput struct {
+	AcceptedAt *string `json:"acceptedAt,omitempty"`
+	AcceptedBy *string `json:"acceptedBy,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
+	EditSource *string `json:"editSource,omitempty"`
+	EditedBy *string `json:"editedBy,omitempty"`
 	ID *string `json:"id,omitempty"`
 	Quarters []ModelsStrategyQuarterGoal `json:"quarters,omitempty"`
+	Status *string `json:"status,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 	Version *int `json:"version,omitempty"`
 }
@@ -394,6 +766,7 @@ type EndpointsPostCampaignInput struct {
 	CreatedBefore *string `json:"createdBefore,omitempty"`
 	Description *string `json:"description,omitempty"`
 	EndDate *string `json:"endDate,omitempty"`
+	ExploitValidated *bool `json:"exploitValidated,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
 	GeneratedReasoning *string `json:"generatedReasoning,omitempty"`
 	IsActive *bool `json:"isActive,omitempty"`
@@ -402,14 +775,15 @@ type EndpointsPostCampaignInput struct {
 	MinPriority *float64 `json:"minPriority,omitempty"`
 	NoEndDate *bool `json:"noEndDate,omitempty"`
 	Owner *string `json:"owner,omitempty"`
+	PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 	PriorityLabels []string `json:"priorityLabels,omitempty"`
-	RepositoryNames []string `json:"repositoryNames,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	SeverityConfidence []string `json:"severityConfidence,omitempty"`
 	SortByColumns *string `json:"sortByColumns,omitempty"`
 	SortByDirection *string `json:"sortByDirection,omitempty"`
 	StartDate *string `json:"startDate,omitempty"`
 	Summary *string `json:"summary,omitempty"`
 	TeamIDs []string `json:"teamIDs,omitempty"`
-	TeamNames []string `json:"teamNames,omitempty"`
 	Title *string `json:"title,omitempty"`
 	Types []string `json:"types,omitempty"`
 	UserNames []string `json:"userNames,omitempty"`
@@ -420,15 +794,7 @@ type EndpointsPostCampaignInput struct {
 type EndpointsPostCampaignOutput struct {
 	Campaign *ModelsCampaign `json:"campaign,omitempty"`
 	CampaignID string `json:"campaignId"`
-	Version string `json:"version"`
-}
-
-type EndpointsPostCreditsInput struct {
-	Credits ModelsCreditsUpdate `json:"credits"`
-}
-
-type EndpointsPostCreditsOutput struct {
-	Credits ModelsCredits `json:"credits"`
+	MappedFindingCount int `json:"mappedFindingCount"`
 	Version string `json:"version"`
 }
 
@@ -448,6 +814,7 @@ type EndpointsPostDeduplicateEventsOutput struct {
 	TotalDeleted *int64 `json:"totalDeleted,omitempty"`
 	TotalDupes *int64 `json:"totalDupes,omitempty"`
 	TotalOmitted *int64 `json:"totalOmitted,omitempty"`
+	TotalProtected *int64 `json:"totalProtected,omitempty"`
 	TotalScanned *int64 `json:"totalScanned,omitempty"`
 	TotalUnique *int64 `json:"totalUnique,omitempty"`
 	Version *string `json:"version,omitempty"`
@@ -463,12 +830,35 @@ type EndpointsPostManagerConfigOutput struct {
 }
 
 type EndpointsPostManagerGroundRulesInput struct {
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
 	GroundRules *ModelsManagerGroundRules `json:"groundRules,omitempty"`
 }
 
 type EndpointsPostManagerGroundRulesOutput struct {
 	GroundRules *ModelsManagerGroundRules `json:"groundRules,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostProposalDecisionInput struct {
+	Decision string `json:"decision"`
+	ProposalID string `json:"proposalId"`
+}
+
+type EndpointsPostProposalDecisionOutput struct {
+	Proposal *ModelsProposal `json:"proposal,omitempty"`
+}
+
+type EndpointsPostStrategyProposalDecisionInput struct {
+	Decision string `json:"decision"`
+	StrategyID string `json:"strategyId"`
+}
+
+type EndpointsPostStrategyProposalDecisionOutput struct {
+	Strategy *ModelsStrategy `json:"strategy,omitempty"`
+}
+
+type EndpointsPostThreatCatalogInvestigationInput struct {
+	Action string `json:"action"`
 }
 
 type EndpointsPostThreatInvestigationInput struct {
@@ -490,19 +880,160 @@ type EndpointsPostThreatInvestigationOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostThreatReportInput struct {
+	AdvisoryURL *string `json:"advisoryUrl,omitempty"`
+	Campaign *EndpointsThreatReportCampaign `json:"campaign,omitempty"`
+	CveID *string `json:"cveId,omitempty"`
+	Ecosystem *string `json:"ecosystem,omitempty"`
+	PackageName *string `json:"packageName,omitempty"`
+	RequestID string `json:"requestId"`
+}
+
+type EndpointsPostThreatReportOutput struct {
+	AdvisoryID string `json:"advisoryId"`
+	Aliases []string `json:"aliases,omitempty"`
+	Existing bool `json:"existing"`
+	InvestigationID *string `json:"investigationId,omitempty"`
+	ResearchVersion *string `json:"researchVersion,omitempty"`
+	Resubmittable *bool `json:"resubmittable,omitempty"`
+	Significance *string `json:"significance,omitempty"`
+	Status string `json:"status"`
+	ThreatID string `json:"threatId"`
+	Verification string `json:"verification"`
+	VerificationReason *string `json:"verificationReason,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPutActionItemChatOutput struct {
+	ChatID *string `json:"chatId,omitempty"`
+}
+
+type EndpointsPutGeneralChatOutput struct {
+	ChatID *string `json:"chatId,omitempty"`
+}
+
+type EndpointsPutManagerEscalationConfigInput struct {
+	Escalation ModelsEscalationRouting `json:"escalation"`
+}
+
+type EndpointsPutManagerEscalationConfigOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsReopenActionItemInput struct {
+	Reason string `json:"reason"`
+}
+
+type EndpointsReopenActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
+type EndpointsRevokeIdentityClassificationOutput struct {
+	ReopenedActionItemID *string `json:"reopenedActionItemId,omitempty"`
+	Version string `json:"version"`
+}
+
+type EndpointsSnoozeActionItemInput struct {
+	DurationDays int `json:"durationDays"`
+	Reason string `json:"reason"`
+}
+
+type EndpointsSnoozeActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Version string `json:"version"`
+}
+
+type EndpointsThreatCatalogEntry struct {
+	FailureCategory *string `json:"failureCategory,omitempty"`
+	FailureMessage *string `json:"failureMessage,omitempty"`
+	InventoryFreshness string `json:"inventoryFreshness"`
+	InvestigationID *string `json:"investigationId,omitempty"`
+	IsOutdated bool `json:"isOutdated"`
+	JobStatus *string `json:"jobStatus,omitempty"`
+	ResearchVersion *string `json:"researchVersion,omitempty"`
+	RunStatus *string `json:"runStatus,omitempty"`
+	Status string `json:"status"`
+	Threat EndpointsVulnDBThreatSummary `json:"threat"`
+}
+
+type EndpointsThreatInvestigationProgressCounts struct {
+	AffectedRepositories *int `json:"affectedRepositories,omitempty"`
+	Packages *int `json:"packages,omitempty"`
+	RepositoriesChecked *int `json:"repositoriesChecked,omitempty"`
+}
+
+type EndpointsThreatInvestigationProgressStage struct {
+	Attempt *int32 `json:"attempt,omitempty"`
+	Counts EndpointsThreatInvestigationProgressCounts `json:"counts"`
+	CreatedAt string `json:"createdAt"`
+	FailureCategory *string `json:"failureCategory,omitempty"`
+	FailureMessage *string `json:"failureMessage,omitempty"`
+	ID string `json:"id"`
+	RunID string `json:"runId"`
+	Stage string `json:"stage"`
+}
+
+type EndpointsThreatReportCampaign struct {
+	CveIds []string `json:"cveIds,omitempty"`
+	Description string `json:"description"`
+	Packages []EndpointsThreatReportPackage `json:"packages,omitempty"`
+	ReferenceUrls []string `json:"referenceUrls,omitempty"`
+	Title string `json:"title"`
+}
+
+type EndpointsThreatReportEntry struct {
+	AdvisoryID string `json:"advisoryId"`
+	AdvisoryURL string `json:"advisoryUrl"`
+	Aliases []string `json:"aliases,omitempty"`
+	Existing bool `json:"existing"`
+	InvestigationID *string `json:"investigationId,omitempty"`
+	Kind string `json:"kind"`
+	RequestID string `json:"requestId"`
+	ResearchVersion string `json:"researchVersion"`
+	Resubmittable *bool `json:"resubmittable,omitempty"`
+	Significance *string `json:"significance,omitempty"`
+	Status string `json:"status"`
+	SubmittedAt string `json:"submittedAt"`
+	ThreatID string `json:"threatId"`
+	Title *string `json:"title,omitempty"`
+	Verification string `json:"verification"`
+	VerificationReason *string `json:"verificationReason,omitempty"`
+}
+
+type EndpointsThreatReportPackage struct {
+	Ecosystem string `json:"ecosystem"`
+	Name string `json:"name"`
+	Versions *string `json:"versions,omitempty"`
+}
+
 type EndpointsTriggerCampaignsOrchestratorInput struct {
 	CampaignID *string `json:"campaignId,omitempty"`
+	EvaluationTime *string `json:"evaluationTime,omitempty"`
 	Mode *string `json:"mode,omitempty"`
 }
 
 type EndpointsTriggerCampaignsOrchestratorOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
 	Message string `json:"message"`
 	Response *string `json:"response,omitempty"`
+	RunID *string `json:"runId,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsTriggerManagerDailySummaryInput struct {
+	Audience string `json:"audience"`
+}
+
+type EndpointsTriggerManagerDailySummaryOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	RunID string `json:"runId"`
+}
+
 type EndpointsTriggerStrategyOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
 	Message *string `json:"message,omitempty"`
+	RunID *string `json:"runId,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -511,8 +1042,123 @@ type EndpointsTriggerTacitKnowledgeOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsVulnDBThreatSummary struct {
+	AdvisoryIds []ModelsAdvisoryReference `json:"advisory_ids,omitempty"`
+	AliasCveIds []string `json:"alias_cve_ids,omitempty"`
+	CreatedAt *string `json:"created_at,omitempty"`
+	CveIds []string `json:"cve_ids,omitempty"`
+	Cvss *float64 `json:"cvss,omitempty"`
+	DiscoveredAt *string `json:"discovered_at,omitempty"`
+	Ecosystem *string `json:"ecosystem,omitempty"`
+	EnrichmentPending *bool `json:"enrichment_pending,omitempty"`
+	EvidenceComplete *bool `json:"evidence_complete,omitempty"`
+	EvidenceDegraded *bool `json:"evidence_degraded,omitempty"`
+	EvidenceQuarantine *string `json:"evidence_quarantine,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Kind *string `json:"kind,omitempty"`
+	NullifyAdvisoryID *string `json:"nullify_advisory_id,omitempty"`
+	ResearchVersion *string `json:"research_version,omitempty"`
+	Severity *string `json:"severity,omitempty"`
+	SourceLinks []ModelsThreatSource `json:"source_links,omitempty"`
+	Title *string `json:"title,omitempty"`
+	TriggerReason *string `json:"trigger_reason,omitempty"`
+	Withdrawn *bool `json:"withdrawn,omitempty"`
+}
+
+type EndpointsWizardProgressInput struct {
+	Detail *string `json:"detail,omitempty"`
+	Step ModelsOnboardingWizardStep `json:"step"`
+}
+
+type EndpointsWizardProgressOutput struct {
+	Posted bool `json:"posted"`
+	SkipReason string `json:"skipReason"`
+	Version string `json:"version"`
+}
+
+type ModelsActionItemKind string
+
+const (
+	ModelsActionItemKindEscalatedFinding ModelsActionItemKind = "ESCALATED_FINDING"
+	ModelsActionItemKindTacitKnowledge ModelsActionItemKind = "TACIT_KNOWLEDGE"
+	ModelsActionItemKindUnmappedUser ModelsActionItemKind = "UNMAPPED_USER"
+	ModelsActionItemKindUnassignedTeam ModelsActionItemKind = "UNASSIGNED_TEAM"
+	ModelsActionItemKindContextClarification ModelsActionItemKind = "CONTEXT_CLARIFICATION"
+	ModelsActionItemKindStrategyProposal ModelsActionItemKind = "STRATEGY_PROPOSAL"
+	ModelsActionItemKindCampaignProposal ModelsActionItemKind = "CAMPAIGN_PROPOSAL"
+)
+
+type ModelsActionItemLinkType string
+
+const (
+	ModelsActionItemLinkTypeSast ModelsActionItemLinkType = "sast"
+	ModelsActionItemLinkTypeScaDependency ModelsActionItemLinkType = "sca_dependency"
+	ModelsActionItemLinkTypeScaContainerfile ModelsActionItemLinkType = "sca_containerfile"
+	ModelsActionItemLinkTypeSecretsCredentials ModelsActionItemLinkType = "secrets_credentials"
+	ModelsActionItemLinkTypeSecretsSensitiveData ModelsActionItemLinkType = "secrets_sensitive_data"
+	ModelsActionItemLinkTypeCspm ModelsActionItemLinkType = "cspm"
+	ModelsActionItemLinkTypeDastBughunt ModelsActionItemLinkType = "dast_bughunt"
+	ModelsActionItemLinkTypeDastPentest ModelsActionItemLinkType = "dast_pentest"
+	ModelsActionItemLinkTypeScpm ModelsActionItemLinkType = "scpm"
+)
+
+type ModelsActionItemResolutionMode string
+
+const (
+	ModelsActionItemResolutionModeChat ModelsActionItemResolutionMode = "CHAT"
+	ModelsActionItemResolutionModeWidgetTeamPicker ModelsActionItemResolutionMode = "WIDGET_TEAM_PICKER"
+	ModelsActionItemResolutionModeWidgetUserMapping ModelsActionItemResolutionMode = "WIDGET_USER_MAPPING"
+)
+
+type ModelsActionItemStatus string
+
+const (
+	ModelsActionItemStatusOpen ModelsActionItemStatus = "OPEN"
+	ModelsActionItemStatusResolving ModelsActionItemStatus = "RESOLVING"
+	ModelsActionItemStatusCompleted ModelsActionItemStatus = "COMPLETED"
+	ModelsActionItemStatusDismissed ModelsActionItemStatus = "DISMISSED"
+)
+
+type ModelsActorKind string
+
+const (
+	ModelsActorKindCustomer ModelsActorKind = "customer"
+	ModelsActorKindNullifyStaff ModelsActorKind = "nullify_staff"
+	ModelsActorKindAgent ModelsActorKind = "agent"
+)
+
+type ModelsAdvisoryIDSource string
+
+const (
+	ModelsAdvisoryIDSourceNullify ModelsAdvisoryIDSource = "NULLIFY"
+	ModelsAdvisoryIDSourceCve ModelsAdvisoryIDSource = "CVE"
+	ModelsAdvisoryIDSourceGhsa ModelsAdvisoryIDSource = "GHSA"
+	ModelsAdvisoryIDSourceMal ModelsAdvisoryIDSource = "MAL"
+	ModelsAdvisoryIDSourceOsv ModelsAdvisoryIDSource = "OSV"
+	ModelsAdvisoryIDSourceVendor ModelsAdvisoryIDSource = "VENDOR"
+)
+
+type ModelsAdvisoryReference struct {
+	ID string `json:"id"`
+	Source ModelsAdvisoryIDSource `json:"source"`
+}
+
+type ModelsAsanaCommentProvider struct {
+	StoryGid string `json:"storyGid"`
+}
+
+type ModelsAutonomyPolicy string
+
+const (
+	ModelsAutonomyPolicyExplicit ModelsAutonomyPolicy = "explicit"
+	ModelsAutonomyPolicyAnnounceWithWindow ModelsAutonomyPolicy = "announce_with_window"
+	ModelsAutonomyPolicyAutoWithinBoundaries ModelsAutonomyPolicy = "auto_within_boundaries"
+)
+
 type ModelsAzureCommentProvider struct {
 	CommentID int `json:"commentId"`
+	PullRequestID *int `json:"pullRequestId,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
 	ThreadID int `json:"threadId"`
 }
 
@@ -527,9 +1173,10 @@ type ModelsCampaign struct {
 	Events []ModelsManagerEvent `json:"events,omitempty"`
 	Generated *bool `json:"generated,omitempty"`
 	GeneratedReasoning *string `json:"generatedReasoning,omitempty"`
+	Grounding *ModelsCampaignGrounding `json:"grounding,omitempty"`
 	ID *string `json:"id,omitempty"`
-	ImmediateRemediation *bool `json:"immediateRemediation,omitempty"`
 	IsActive *bool `json:"isActive,omitempty"`
+	Lifecycle *ModelsCampaignLifecycle `json:"lifecycle,omitempty"`
 	Metrics *ModelsMetrics `json:"metrics,omitempty"`
 	NoEndDate *bool `json:"noEndDate,omitempty"`
 	Owner *string `json:"owner,omitempty"`
@@ -541,9 +1188,55 @@ type ModelsCampaign struct {
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
 
+type ModelsCampaignCounts struct {
+	Accepted int64 `json:"accepted"`
+	Backlog int64 `json:"backlog"`
+	ComputedAt string `json:"computedAt"`
+	Dismissed int64 `json:"dismissed"`
+	Duplicate int64 `json:"duplicate"`
+	FindingsWithOpenPullRequest int64 `json:"findingsWithOpenPullRequest"`
+	FixPendingVerification int64 `json:"fixPendingVerification"`
+	Fixed int64 `json:"fixed"`
+	FixedRatio MetricdefsRatio `json:"fixedRatio"`
+	InProgress int64 `json:"inProgress"`
+	MatchedAtLastRun int64 `json:"matchedAtLastRun"`
+	NoLongerDetected int64 `json:"noLongerDetected"`
+	PullRequests ModelsCampaignPullRequestCounts `json:"pullRequests"`
+	ResolvedRatio MetricdefsRatio `json:"resolvedRatio"`
+	Scope int64 `json:"scope"`
+	TimeToFix ModelsDurationStats `json:"timeToFix"`
+}
+
+type ModelsCampaignGrounding struct {
+	EvaluatedAt *string `json:"evaluatedAt,omitempty"`
+	GoalKey *string `json:"goalKey,omitempty"`
+	StrategyID *string `json:"strategyId,omitempty"`
+}
+
+type ModelsCampaignLifecycle string
+
+const (
+	ModelsCampaignLifecycleDraft ModelsCampaignLifecycle = "DRAFT"
+	ModelsCampaignLifecycleProposed ModelsCampaignLifecycle = "PROPOSED"
+	ModelsCampaignLifecycleScheduled ModelsCampaignLifecycle = "SCHEDULED"
+	ModelsCampaignLifecycleActive ModelsCampaignLifecycle = "ACTIVE"
+	ModelsCampaignLifecycleCompleted ModelsCampaignLifecycle = "COMPLETED"
+	ModelsCampaignLifecycleExpired ModelsCampaignLifecycle = "EXPIRED"
+	ModelsCampaignLifecyclePaused ModelsCampaignLifecycle = "PAUSED"
+	ModelsCampaignLifecycleCancelled ModelsCampaignLifecycle = "CANCELLED"
+	ModelsCampaignLifecycleSuperseded ModelsCampaignLifecycle = "SUPERSEDED"
+)
+
+type ModelsCampaignPortfolio struct {
+	Campaigns int64 `json:"campaigns"`
+	Counts ModelsCampaignCounts `json:"counts"`
+	Lifecycles []ModelsCampaignLifecycle `json:"lifecycles,omitempty"`
+}
+
 type ModelsCampaignPreview struct {
 	AutofixTimeTotal *int `json:"autofixTimeTotal,omitempty"`
 	BacklogSearches *int `json:"backlogSearches,omitempty"`
+	Counts *ModelsCampaignCounts `json:"counts,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
 	Description string `json:"description"`
 	DetectionTimeTotal *int `json:"detectionTimeTotal,omitempty"`
@@ -552,38 +1245,32 @@ type ModelsCampaignPreview struct {
 	Escalations *int `json:"escalations,omitempty"`
 	EstimatedBacklogStoryPoints *int `json:"estimatedBacklogStoryPoints,omitempty"`
 	FindingTypes []string `json:"findingTypes,omitempty"`
-	FindingsAllowlistedCount *int `json:"findingsAllowlistedCount,omitempty"`
-	FindingsCount *int `json:"findingsCount,omitempty"`
-	FindingsInBacklogCount *int `json:"findingsInBacklogCount,omitempty"`
-	FindingsResolvedCount *int `json:"findingsResolvedCount,omitempty"`
 	FindingsWithAllowlistPRCount *int `json:"findingsWithAllowlistPRCount,omitempty"`
-	FindingsWithOpenAutoFixPRCount *int `json:"findingsWithOpenAutoFixPRCount,omitempty"`
 	FindingsWithOpenTicketCount *int `json:"findingsWithOpenTicketCount,omitempty"`
 	Generated *bool `json:"generated,omitempty"`
 	GeneratedReasoning string `json:"generatedReasoning"`
 	ID *string `json:"id,omitempty"`
 	InternetSearchCount *int `json:"internetSearchCount,omitempty"`
 	IsActive bool `json:"isActive"`
+	Lifecycle *ModelsCampaignLifecycle `json:"lifecycle,omitempty"`
 	MappedFindingIds []string `json:"mappedFindingIds,omitempty"`
 	MaxStoryPoints *int `json:"maxStoryPoints,omitempty"`
 	MeanTimeToDetectAndTriage *int `json:"meanTimeToDetectAndTriage,omitempty"`
 	MeanTimeToMerge *int `json:"meanTimeToMerge,omitempty"`
 	MeanTimeToPullRequestCreation *int `json:"meanTimeToPullRequestCreation,omitempty"`
-	MeanTimeToResolve *int `json:"meanTimeToResolve,omitempty"`
 	MeanTimeToReview *int `json:"meanTimeToReview,omitempty"`
 	MedianTimeToDetectAndTriage *int `json:"medianTimeToDetectAndTriage,omitempty"`
 	MedianTimeToMerge *int `json:"medianTimeToMerge,omitempty"`
 	MedianTimeToPullRequestCreation *int `json:"medianTimeToPullRequestCreation,omitempty"`
-	MedianTimeToResolve *int `json:"medianTimeToResolve,omitempty"`
 	MedianTimeToReview *int `json:"medianTimeToReview,omitempty"`
 	MessageCount *int `json:"messageCount,omitempty"`
 	NoEndDate *bool `json:"noEndDate,omitempty"`
 	PlansGenerated *int `json:"plansGenerated,omitempty"`
-	PrCloseCount *int `json:"prCloseCount,omitempty"`
+	PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 	PrCommentCount *int `json:"prCommentCount,omitempty"`
-	PrCreateCount *int `json:"prCreateCount,omitempty"`
 	PreviewMessageCount *int `json:"previewMessageCount,omitempty"`
 	PriorityLabels []ModelsPriorityLabel `json:"priorityLabels,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
 	RepositoryNames []string `json:"repositoryNames,omitempty"`
 	StartDate *string `json:"startDate,omitempty"`
 	Status string `json:"status"`
@@ -592,7 +1279,6 @@ type ModelsCampaignPreview struct {
 	TicketCloseCount *int `json:"ticketCloseCount,omitempty"`
 	TicketCommentCount *int `json:"ticketCommentCount,omitempty"`
 	TicketCreateCount *int `json:"ticketCreateCount,omitempty"`
-	TimeSaved *int `json:"timeSaved,omitempty"`
 	TimeSavedAssigning *int `json:"timeSavedAssigning,omitempty"`
 	Title string `json:"title"`
 	TriageTimeTotal *int `json:"triageTimeTotal,omitempty"`
@@ -600,82 +1286,65 @@ type ModelsCampaignPreview struct {
 	Users []string `json:"users,omitempty"`
 }
 
-type ModelsComment struct {
-	Body string `json:"body"`
-	CommentProvider *ModelsCommentProvider `json:"commentProvider,omitempty"`
-	CreatedAt string `json:"createdAt"`
-	ID *string `json:"id,omitempty"`
-	IsNullify bool `json:"isNullify"`
-	UpdatedAt string `json:"updatedAt"`
+type ModelsCampaignPullRequestCounts struct {
+	ClosedUnmerged int64 `json:"closedUnmerged"`
+	MergeRate MetricdefsRatio `json:"mergeRate"`
+	MergeReady MetricdefsRatio `json:"mergeReady"`
+	Merged int64 `json:"merged"`
+	MergedUnclassified int64 `json:"mergedUnclassified"`
+	Opened int64 `json:"opened"`
+	StillOpen int64 `json:"stillOpen"`
+}
+
+type ModelsCampaignTouchLedger struct {
+	GithubCount *int `json:"githubCount,omitempty"`
+	GlanceCount *int `json:"glanceCount,omitempty"`
+	HandsOnCount *int `json:"handsOnCount,omitempty"`
+	MergedCount *int `json:"mergedCount,omitempty"`
+	MergedReviewedCount *int `json:"mergedReviewedCount,omitempty"`
+	MergedUnclassifiedCount *int `json:"mergedUnclassifiedCount,omitempty"`
+	RejectedCount *int `json:"rejectedCount,omitempty"`
+	ReviewCount *int `json:"reviewCount,omitempty"`
+	StillOpenCount *int `json:"stillOpenCount,omitempty"`
+	TotalCount *int `json:"totalCount,omitempty"`
+	UnresolvedReviewedCount *int `json:"unresolvedReviewedCount,omitempty"`
+}
+
+type ModelsChatHistoryFrame struct {
+	MessageID string `json:"messageId"`
+	Payload string `json:"payload"`
+}
+
+type ModelsDeveloperEngagement struct {
+	AwaitingReply bool `json:"awaitingReply"`
+	ClosedItems int64 `json:"closedItems"`
+	DisplayName string `json:"displayName"`
+	DmsFailed int64 `json:"dmsFailed"`
+	DmsSent int64 `json:"dmsSent"`
+	DmsSuppressed int64 `json:"dmsSuppressed"`
+	LastInteractionAt *string `json:"lastInteractionAt,omitempty"`
+	LastReplyAt *string `json:"lastReplyAt,omitempty"`
+	LastSentAt *string `json:"lastSentAt,omitempty"`
+	NudgesReceived int64 `json:"nudgesReceived"`
+	OpenItems int64 `json:"openItems"`
+	Replies int64 `json:"replies"`
 	UserID string `json:"userId"`
-	UserName string `json:"userName"`
+	Username string `json:"username"`
 }
 
-type ModelsCommentProvider struct {
-	Azure *ModelsAzureCommentProvider `json:"azure,omitempty"`
-	Bitbucket *ModelsBitbucketCommentProvider `json:"bitbucket,omitempty"`
-	Github *ModelsGitHubCommentProvider `json:"github,omitempty"`
-	Gitlab *ModelsGitLabCommentProvider `json:"gitlab,omitempty"`
-	ID *ModelsProviderID `json:"id,omitempty"`
-	Jira *ModelsJiraCommentProvider `json:"jira,omitempty"`
-	Linear *ModelsLinearCommentProvider `json:"linear,omitempty"`
-	Slack *ModelsSlackCommentProvider `json:"slack,omitempty"`
-	Teams *ModelsTeamsCommentProvider `json:"teams,omitempty"`
-}
-
-type ModelsCredits struct {
-	Balance int `json:"balance"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
-}
-
-type ModelsCreditsUpdate struct {
-	Increment *int64 `json:"increment,omitempty"`
-}
-
-type ModelsEscalation struct {
-	CampaignIds []string `json:"campaignIds,omitempty"`
-	CreatedAt string `json:"createdAt"`
-	FindingID string `json:"findingId"`
-	ID *string `json:"id,omitempty"`
-	PullRequestIds []string `json:"pullRequestIds,omitempty"`
-	Reasoning string `json:"reasoning"`
-	Status ModelsEscalationStatus `json:"status"`
-	TicketIds []string `json:"ticketIds,omitempty"`
-	UpdatedAt string `json:"updatedAt"`
-}
-
-type ModelsEscalationStatus string
+type ModelsEscalationMode string
 
 const (
-	ModelsEscalationStatusOpen ModelsEscalationStatus = "OPEN"
-	ModelsEscalationStatusResolved ModelsEscalationStatus = "RESOLVED"
+	ModelsEscalationModeDm ModelsEscalationMode = "dm"
+	ModelsEscalationModeChannel ModelsEscalationMode = "channel"
+	ModelsEscalationModeBoth ModelsEscalationMode = "both"
 )
 
-type ModelsFindingProgress struct {
-	AutofixDuration *int `json:"autofixDuration,omitempty"`
-	AutofixedAt *string `json:"autofixedAt,omitempty"`
-	CreatedAt string `json:"createdAt"`
-	DetectionDuration *int `json:"detectionDuration,omitempty"`
-	DiscoveredAt *string `json:"discoveredAt,omitempty"`
-	FindingID string `json:"findingId"`
-	FindingType ModelsFindingType `json:"findingType"`
-	InProgressAt *string `json:"inProgressAt,omitempty"`
-	ResolvedAt *string `json:"resolvedAt,omitempty"`
-	Status ModelsFindingStatus `json:"status"`
-	TimeSaved *int `json:"timeSaved,omitempty"`
-	TotalRemediationDuration *int `json:"totalRemediationDuration,omitempty"`
-	TriageDuration *int `json:"triageDuration,omitempty"`
-	TriagedAt *string `json:"triagedAt,omitempty"`
-	UpdatedAt string `json:"updatedAt"`
+type ModelsEscalationRouting struct {
+	ChannelID *string `json:"channelId,omitempty"`
+	ChannelName *string `json:"channelName,omitempty"`
+	Mode *ModelsEscalationMode `json:"mode,omitempty"`
 }
-
-type ModelsFindingStatus string
-
-const (
-	ModelsFindingStatusBacklog ModelsFindingStatus = "BACKLOG"
-	ModelsFindingStatusInProgress ModelsFindingStatus = "IN_PROGRESS"
-	ModelsFindingStatusResolved ModelsFindingStatus = "RESOLVED"
-)
 
 type ModelsGitHubCommentProvider struct {
 	CommentID int64 `json:"commentId"`
@@ -753,14 +1422,41 @@ type ModelsMetrics struct {
 	PrCloseCount *int `json:"prCloseCount,omitempty"`
 	PrCommentCount *int `json:"prCommentCount,omitempty"`
 	PrCreateCount *int `json:"prCreateCount,omitempty"`
+	PrMergedCount *int `json:"prMergedCount,omitempty"`
 	PreviewMessageCount *int `json:"previewMessageCount,omitempty"`
 	StoryPointsConsumed *int `json:"storyPointsConsumed,omitempty"`
 	TasksAssigned *int `json:"tasksAssigned,omitempty"`
 	TicketCloseCount *int `json:"ticketCloseCount,omitempty"`
 	TicketCommentCount *int `json:"ticketCommentCount,omitempty"`
 	TicketCreateCount *int `json:"ticketCreateCount,omitempty"`
+	TicketsResolvedCount *int `json:"ticketsResolvedCount,omitempty"`
 	TimeSavedAssigning *int `json:"timeSavedAssigning,omitempty"`
 }
+
+type ModelsOnboardingWizardStep string
+
+const (
+	ModelsOnboardingWizardStepConnectCodebases ModelsOnboardingWizardStep = "connect-codebases"
+	ModelsOnboardingWizardStepSelectRepositories ModelsOnboardingWizardStep = "select-repositories"
+	ModelsOnboardingWizardStepConnectWorkflows ModelsOnboardingWizardStep = "connect-workflows"
+	ModelsOnboardingWizardStepConfigureCloud ModelsOnboardingWizardStep = "configure-cloud"
+	ModelsOnboardingWizardStepQuestionnaire ModelsOnboardingWizardStep = "questionnaire"
+	ModelsOnboardingWizardStepReadyToStart ModelsOnboardingWizardStep = "ready-to-start"
+)
+
+type ModelsPaceEstimate struct {
+	ObservedPerWeek *float64 `json:"observedPerWeek,omitempty"`
+	RequiredPerWeek *float64 `json:"requiredPerWeek,omitempty"`
+	Verdict *ModelsPaceVerdict `json:"verdict,omitempty"`
+}
+
+type ModelsPaceVerdict string
+
+const (
+	ModelsPaceVerdictAchievable ModelsPaceVerdict = "ACHIEVABLE"
+	ModelsPaceVerdictStretch ModelsPaceVerdict = "STRETCH"
+	ModelsPaceVerdictUnrealistic ModelsPaceVerdict = "UNREALISTIC"
+)
 
 type ModelsPlan struct {
 	CreatedAt string `json:"createdAt"`
@@ -793,6 +1489,7 @@ type ModelsPlanResponseActionsExecuted struct {
 }
 
 type ModelsPlanResponseCampaignSummary struct {
+	CampaignDeleted *bool `json:"campaignDeleted,omitempty"`
 	CampaignID string `json:"campaignId"`
 	Content string `json:"content"`
 	Status string `json:"status"`
@@ -909,23 +1606,106 @@ type ModelsProjectedSendDirectMessage struct {
 	UserID string `json:"userId"`
 }
 
+type ModelsProposal struct {
+	ActorKind *ModelsActorKind `json:"actorKind,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CreatedBy *string `json:"createdBy,omitempty"`
+	DecidedAt *string `json:"decidedAt,omitempty"`
+	DecidedBy *string `json:"decidedBy,omitempty"`
+	DecisionReason *string `json:"decisionReason,omitempty"`
+	EditSource *string `json:"editSource,omitempty"`
+	GoalKeys []string `json:"goalKeys,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Kind *ModelsProposalKind `json:"kind,omitempty"`
+	Ordinal *int `json:"ordinal,omitempty"`
+	Pace *ModelsPaceEstimate `json:"pace,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
+	Revision *int `json:"revision,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	Status *ModelsProposalStatus `json:"status,omitempty"`
+	StrategyID *string `json:"strategyId,omitempty"`
+	Title *string `json:"title,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type ModelsProposalCampaign struct {
+	FindingsTotal *int `json:"findingsTotal,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Repositories []string `json:"repositories,omitempty"`
+	Severities []ModelsSeverityCount `json:"severities,omitempty"`
+}
+
+type ModelsProposalGoal struct {
+	Objective *string `json:"objective,omitempty"`
+	Quarter *string `json:"quarter,omitempty"`
+}
+
+type ModelsProposalKind string
+
+const (
+	ModelsProposalKindStrategy ModelsProposalKind = "STRATEGY"
+	ModelsProposalKindCampaign ModelsProposalKind = "CAMPAIGN"
+)
+
+type ModelsProposalStatus string
+
+const (
+	ModelsProposalStatusProposed ModelsProposalStatus = "PROPOSED"
+	ModelsProposalStatusRevised ModelsProposalStatus = "REVISED"
+	ModelsProposalStatusAccepted ModelsProposalStatus = "ACCEPTED"
+	ModelsProposalStatusRejected ModelsProposalStatus = "REJECTED"
+	ModelsProposalStatusSuperseded ModelsProposalStatus = "SUPERSEDED"
+	ModelsProposalStatusExpired ModelsProposalStatus = "EXPIRED"
+)
+
+type ModelsProposalView struct {
+	Campaign *ModelsProposalCampaign `json:"campaign,omitempty"`
+	Goal *ModelsProposalGoal `json:"goal,omitempty"`
+	Proposal *ModelsProposal `json:"proposal,omitempty"`
+}
+
+type ModelsSecurityProgram struct {
+	AcceptedStrategyID *string `json:"acceptedStrategyId,omitempty"`
+	ActorKind *ModelsActorKind `json:"actorKind,omitempty"`
+	AnnounceWindowDays *int `json:"announceWindowDays,omitempty"`
+	Autonomy *ModelsAutonomyPolicy `json:"autonomy,omitempty"`
+	CapacityPerWeek *int `json:"capacityPerWeek,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CreatedBy *string `json:"createdBy,omitempty"`
+	DefaultCampaignDays *int `json:"defaultCampaignDays,omitempty"`
+	EditSource *string `json:"editSource,omitempty"`
+	ID *string `json:"id,omitempty"`
+	MaxConcurrentCampaigns *int `json:"maxConcurrentCampaigns,omitempty"`
+	MinCoveragePerGoal *int `json:"minCoveragePerGoal,omitempty"`
+	ReviewCadenceDays *int `json:"reviewCadenceDays,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
 type ModelsSelectionCriteria struct {
 	CreatedAfter *string `json:"createdAfter,omitempty"`
 	CreatedBefore *string `json:"createdBefore,omitempty"`
+	ExploitValidated *bool `json:"exploitValidated,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
 	LimitPerType *int `json:"limitPerType,omitempty"`
 	MaxStoryPoints *int `json:"maxStoryPoints,omitempty"`
 	MinPriority *float64 `json:"minPriority,omitempty"`
+	PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 	PriorityLabels []ModelsPriorityLabel `json:"priorityLabels,omitempty"`
-	RepositoryNames []string `json:"repositoryNames,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	SeverityConfidence []string `json:"severityConfidence,omitempty"`
 	SortByColumns *string `json:"sortByColumns,omitempty"`
 	SortByDirection *string `json:"sortByDirection,omitempty"`
 	TeamIDs []string `json:"teamIDs,omitempty"`
-	TeamNames []string `json:"teamNames,omitempty"`
 	Types []ModelsFindingType `json:"types,omitempty"`
 	UserNames []string `json:"userNames,omitempty"`
 	VulnerabilityCVEIds []string `json:"vulnerabilityCVEIds,omitempty"`
 	VulnerabilityCWEIds []string `json:"vulnerabilityCWEIds,omitempty"`
+}
+
+type ModelsSeverityCount struct {
+	Count *int `json:"count,omitempty"`
+	Severity *string `json:"severity,omitempty"`
 }
 
 type ModelsSlackCommentProvider struct {
@@ -934,9 +1714,14 @@ type ModelsSlackCommentProvider struct {
 }
 
 type ModelsStrategy struct {
+	AcceptedAt *string `json:"acceptedAt,omitempty"`
+	AcceptedBy *string `json:"acceptedBy,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
+	EditSource *string `json:"editSource,omitempty"`
+	EditedBy *string `json:"editedBy,omitempty"`
 	ID *string `json:"id,omitempty"`
 	Quarters []ModelsStrategyQuarterGoal `json:"quarters,omitempty"`
+	Status *string `json:"status,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 	Version *int `json:"version,omitempty"`
 }
@@ -952,23 +1737,58 @@ type ModelsTeamsCommentProvider struct {
 	MessageID string `json:"messageId"`
 }
 
+type ModelsThreatCILogCheck struct {
+	CheckedAt string `json:"checkedAt"`
+	OmittedRepos *int `json:"omittedRepos,omitempty"`
+	Repos []ModelsThreatCILogRepo `json:"repos,omitempty"`
+	Version int `json:"version"`
+}
+
+type ModelsThreatCILogRepo struct {
+	CiProvider *string `json:"ciProvider,omitempty"`
+	LogsRead *int `json:"logsRead,omitempty"`
+	Reasons []string `json:"reasons,omitempty"`
+	Repository string `json:"repository"`
+	Runs *int `json:"runs,omitempty"`
+	Verdict string `json:"verdict"`
+	WindowFrom *string `json:"windowFrom,omitempty"`
+	WindowTo *string `json:"windowTo,omitempty"`
+}
+
 type ModelsThreatInvestigation struct {
 	Advice *string `json:"advice,omitempty"`
 	ClientImpact *ModelsThreatInvestigationClientImpact `json:"clientImpact,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
+	CurrentStage *string `json:"currentStage,omitempty"`
+	CurrentStageAt *string `json:"currentStageAt,omitempty"`
+	FailureCategory *string `json:"failureCategory,omitempty"`
+	FailureMessage *string `json:"failureMessage,omitempty"`
 	GeneralInfo *ModelsThreatInvestigationGeneralInfo `json:"generalInfo,omitempty"`
 	ID *string `json:"id,omitempty"`
+	InvestigationVersion *string `json:"investigationVersion,omitempty"`
 	Keywords *string `json:"keywords,omitempty"`
+	LegacyAssessment *bool `json:"legacyAssessment,omitempty"`
+	LegacyAssessmentID *string `json:"legacyAssessmentId,omitempty"`
+	LegacyCveInvestigations []ModelsThreatInvestigationLegacyCVE `json:"legacyCveInvestigations,omitempty"`
 	Remediation *ModelsThreatInvestigationRemediation `json:"remediation,omitempty"`
 	Report *ModelsThreatInvestigationReport `json:"report,omitempty"`
+	RequestedBy *string `json:"requestedBy,omitempty"`
+	ResearchVersion *string `json:"researchVersion,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	RunQueued *bool `json:"runQueued,omitempty"`
+	RunRetryAt *string `json:"runRetryAt,omitempty"`
+	RunStatus *string `json:"runStatus,omitempty"`
+	SourceVulnDbThreatID *string `json:"sourceVulnDbThreatId,omitempty"`
 	Status string `json:"status"`
 	Timeline *ModelsThreatInvestigationTimeline `json:"timeline,omitempty"`
+	TriggerReason *string `json:"triggerReason,omitempty"`
 	Type string `json:"type"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
 
 type ModelsThreatInvestigationAffectedPackage struct {
 	AffectedRange *string `json:"affectedRange,omitempty"`
+	AttributionProvenance *string `json:"attributionProvenance,omitempty"`
 	AttributionType *string `json:"attributionType,omitempty"`
 	Ecosystem *string `json:"ecosystem,omitempty"`
 	Name *string `json:"name,omitempty"`
@@ -979,12 +1799,15 @@ type ModelsThreatInvestigationAffectedPackage struct {
 
 type ModelsThreatInvestigationAffectedRepo struct {
 	CiActivity *ModelsThreatInvestigationCIActivity `json:"ciActivity,omitempty"`
+	EvidenceSource *string `json:"evidenceSource,omitempty"`
 	FindingID *string `json:"findingId,omitempty"`
 	FirstSeen *string `json:"firstSeen,omitempty"`
 	IntroducedCommit *string `json:"introducedCommit,omitempty"`
+	IsArchived *bool `json:"isArchived,omitempty"`
 	IsAutoFixable *bool `json:"isAutoFixable,omitempty"`
 	IsDirect *bool `json:"isDirect,omitempty"`
 	IsRemediated *bool `json:"isRemediated,omitempty"`
+	LastScannedAt *string `json:"lastScannedAt,omitempty"`
 	LastSeen *string `json:"lastSeen,omitempty"`
 	ManifestFile *string `json:"manifestFile,omitempty"`
 	ManifestPath *string `json:"manifestPath,omitempty"`
@@ -993,6 +1816,7 @@ type ModelsThreatInvestigationAffectedRepo struct {
 	RepositoryID *string `json:"repositoryId,omitempty"`
 	RepositoryName *string `json:"repositoryName,omitempty"`
 	RepositoryOwner *string `json:"repositoryOwner,omitempty"`
+	ResolvedWithoutLockfile *bool `json:"resolvedWithoutLockfile,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -1006,12 +1830,24 @@ type ModelsThreatInvestigationCIActivity struct {
 type ModelsThreatInvestigationClientImpact struct {
 	AffectedRepoCount *int `json:"affectedRepoCount,omitempty"`
 	AffectedRepos []ModelsThreatInvestigationAffectedRepo `json:"affectedRepos,omitempty"`
+	AssessedRepoCount *int `json:"assessedRepoCount,omitempty"`
+	CiLogCheck *ModelsThreatCILogCheck `json:"ciLogCheck,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
+	ImpactIncomplete *bool `json:"impactIncomplete,omitempty"`
+	ImpactIncompleteReason *string `json:"impactIncompleteReason,omitempty"`
+	InventoryCheckedAt *string `json:"inventoryCheckedAt,omitempty"`
+	InventoryFreshUntil *string `json:"inventoryFreshUntil,omitempty"`
+	InventoryFreshness *string `json:"inventoryFreshness,omitempty"`
+	OutOfScopeRepoCount *int `json:"outOfScopeRepoCount,omitempty"`
+	PackageVerdicts []ModelsThreatInvestigationPackageVerdict `json:"packageVerdicts,omitempty"`
+	PendingFindingRepoCount *int `json:"pendingFindingRepoCount,omitempty"`
 	TotalRepoCount *int `json:"totalRepoCount,omitempty"`
 	UnaffectedRepoCount *int `json:"unaffectedRepoCount,omitempty"`
+	UnknownRepoCount *int `json:"unknownRepoCount,omitempty"`
 }
 
 type ModelsThreatInvestigationGeneralInfo struct {
+	AdvisoryIds []ModelsAdvisoryReference `json:"advisoryIds,omitempty"`
 	AffectedPackages []ModelsThreatInvestigationAffectedPackage `json:"affectedPackages,omitempty"`
 	ArticleLinks []string `json:"articleLinks,omitempty"`
 	CveIds []string `json:"cveIds,omitempty"`
@@ -1021,8 +1857,27 @@ type ModelsThreatInvestigationGeneralInfo struct {
 	Ecosystem *string `json:"ecosystem,omitempty"`
 	Exploitability *string `json:"exploitability,omitempty"`
 	History *string `json:"history,omitempty"`
+	NullifyAdvisoryID *string `json:"nullifyAdvisoryId,omitempty"`
 	Severity *ModelsSeverity `json:"severity,omitempty"`
 	Title *string `json:"title,omitempty"`
+	Withdrawn *bool `json:"withdrawn,omitempty"`
+}
+
+type ModelsThreatInvestigationLegacyCVE struct {
+	CveID string `json:"cveId"`
+	FailureCategory *string `json:"failureCategory,omitempty"`
+	InvestigationID string `json:"investigationId"`
+	RunStatus *string `json:"runStatus,omitempty"`
+	Status string `json:"status"`
+}
+
+type ModelsThreatInvestigationPackageVerdict struct {
+	CheckedAt *string `json:"checkedAt,omitempty"`
+	Ecosystem *string `json:"ecosystem,omitempty"`
+	Error *string `json:"error,omitempty"`
+	PackageName *string `json:"packageName,omitempty"`
+	UnknownReason *string `json:"unknownReason,omitempty"`
+	Verdict *string `json:"verdict,omitempty"`
 }
 
 type ModelsThreatInvestigationRemediation struct {
@@ -1046,7 +1901,9 @@ type ModelsThreatInvestigationReport struct {
 }
 
 type ModelsThreatInvestigationTimeline struct {
+	CustomerNotifiedAt *string `json:"customerNotifiedAt,omitempty"`
 	ImpactAssessedAt *string `json:"impactAssessedAt,omitempty"`
+	InternalNotifiedAt *string `json:"internalNotifiedAt,omitempty"`
 	InvestigationCompletedAt *string `json:"investigationCompletedAt,omitempty"`
 	InvestigationCreatedAt *string `json:"investigationCreatedAt,omitempty"`
 	RemediationStartedAt *string `json:"remediationStartedAt,omitempty"`
@@ -1057,5 +1914,21 @@ type ModelsThreatInvestigationTimeline struct {
 	ThreatDiscoveredAt *string `json:"threatDiscoveredAt,omitempty"`
 }
 
+type ModelsThreatSource struct {
+	ContentSha256 *string `json:"content_sha256,omitempty"`
+	Domain *string `json:"domain,omitempty"`
+	Extraction *string `json:"extraction,omitempty"`
+	FetchedAt *string `json:"fetched_at,omitempty"`
+	Title *string `json:"title,omitempty"`
+	URL *string `json:"url,omitempty"`
+}
+
 type SessionsChatSession struct {
+	CreatedAt string `json:"createdAt"`
+	ID string `json:"id"`
+	PlatformID *string `json:"platformId,omitempty"`
+	TenantID string `json:"tenantId"`
+	Title *string `json:"title,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+	UserID string `json:"userId"`
 }

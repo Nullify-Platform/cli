@@ -3,6 +3,14 @@ package models
 
 import "encoding/json"
 
+type EndpointsDeleteTicketSecretsFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsDeleteTicketSecretsSensitiveDataFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsGetSecretsEventsOutput struct {
 	Events []ModelsSecretsEventInterface `json:"events,omitempty"`
 	NextToken string `json:"nextToken"`
@@ -12,6 +20,7 @@ type EndpointsGetSecretsEventsOutput struct {
 
 type EndpointsGetSecretsFindingEventsOutput struct {
 	Events []ModelsSecretsEventInterface `json:"events,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
 	NumItems int `json:"numItems"`
 	Version *string `json:"version,omitempty"`
 }
@@ -25,6 +34,7 @@ type EndpointsGetSecretsFindingOutput struct {
 type EndpointsGetSecretsFindingTriageOutput struct {
 	Finding *ModelsTriagedSecretsCredentialsFinding `json:"finding,omitempty"`
 	Version *string `json:"version,omitempty"`
+	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
 }
 
 type EndpointsGetSecretsFindingUsersOutput struct {
@@ -55,6 +65,7 @@ type EndpointsGetSecretsSensitiveDataFindingOutput struct {
 type EndpointsGetSecretsSensitiveDataFindingTriageOutput struct {
 	Finding *ModelsTriagedSecretsSensitiveDataFinding `json:"finding,omitempty"`
 	Version *string `json:"version,omitempty"`
+	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
 }
 
 type EndpointsGetSecretsSensitiveDataFindingUsersOutput struct {
@@ -199,6 +210,7 @@ type ModelsSecretsCredentialsFinding struct {
 	RepositoryName string `json:"repositoryName"`
 	ResolvedAt *string `json:"resolvedAt,omitempty"`
 	RuleID string `json:"ruleId"`
+	ScannedCommitSha *string `json:"scannedCommitSha,omitempty"`
 	Scanner string `json:"scanner"`
 	Scopes []string `json:"scopes,omitempty"`
 	SecretHash string `json:"secretHash"`
@@ -217,11 +229,10 @@ type ModelsSecretsCredentialsFinding struct {
 	TriageAgentVersion *string `json:"triageAgentVersion,omitempty"`
 	TriageDurationSeconds *int `json:"triageDurationSeconds,omitempty"`
 	TriageEnd *string `json:"triageEnd,omitempty"`
-	TriageLangfuseSessionID *string `json:"triageLangfuseSessionId,omitempty"`
-	TriageLangfuseTraceID *string `json:"triageLangfuseTraceId,omitempty"`
 	TriageLlmCostUsd *float64 `json:"triageLlmCostUsd,omitempty"`
 	TriageMaxInputTokens *int `json:"triageMaxInputTokens,omitempty"`
 	TriageStart *string `json:"triageStart,omitempty"`
+	TriageStopReason *string `json:"triageStopReason,omitempty"`
 	TriageTokenCount *int `json:"triageTokenCount,omitempty"`
 	TriageTraceID *string `json:"triageTraceId,omitempty"`
 	UpdatedAt string `json:"updatedAt"`
@@ -359,6 +370,7 @@ type ModelsSecretsSensitiveDataFinding struct {
 	IsDuplicate bool `json:"isDuplicate"`
 	IsFalsePositive bool `json:"isFalsePositive"`
 	IsResolved bool `json:"isResolved"`
+	IsTriaged *bool `json:"isTriaged,omitempty"`
 	Owner string `json:"owner"`
 	OwnerType string `json:"ownerType"`
 	Platform string `json:"platform"`
@@ -371,6 +383,7 @@ type ModelsSecretsSensitiveDataFinding struct {
 	RepositoryID string `json:"repositoryId"`
 	RepositoryName string `json:"repositoryName"`
 	ResolvedAt *string `json:"resolvedAt,omitempty"`
+	ScannedCommitSha *string `json:"scannedCommitSha,omitempty"`
 	SecretValue *string `json:"secretValue,omitempty"`
 	TenantID string `json:"tenantId"`
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
@@ -378,7 +391,10 @@ type ModelsSecretsSensitiveDataFinding struct {
 	TriageAgentVersion string `json:"triageAgentVersion"`
 	TriageDurationSeconds int `json:"triageDurationSeconds"`
 	TriageEnd *string `json:"triageEnd,omitempty"`
+	TriageLlmCostUsd *float64 `json:"triageLlmCostUsd,omitempty"`
 	TriageStart *string `json:"triageStart,omitempty"`
+	TriageStopReason *string `json:"triageStopReason,omitempty"`
+	TriageTokenCount *int `json:"triageTokenCount,omitempty"`
 	UpdatedAt string `json:"updatedAt"`
 	UserID string `json:"userId"`
 	UserNotes string `json:"userNotes"`
@@ -424,14 +440,6 @@ type ModelsSecretsValidation struct {
 	Permissions *string `json:"permissions,omitempty"`
 	Result *ModelsSecretsValidationResult `json:"result,omitempty"`
 }
-
-type ModelsSecretsValidationResult string
-
-const (
-	ModelsSecretsValidationResultInvalid ModelsSecretsValidationResult = "INVALID"
-	ModelsSecretsValidationResultUnknown ModelsSecretsValidationResult = "UNKNOWN"
-	ModelsSecretsValidationResultValid ModelsSecretsValidationResult = "VALID"
-)
 
 type ModelsTriagedSecretsCredentialsFinding struct {
 	AgentVersion string `json:"agentVersion"`

@@ -57,6 +57,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					x := string(v)
 					in.FromTime = &x
 				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
 						return fmt.Errorf("limit"+": %w", err)
@@ -85,10 +93,12 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/events")
 		cmd.Flags().String("event-type", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
 		cmd.Flags().String("finding-id", "", "")
 		cmd.Flags().String("from-time", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		cmd.Flags().String("sort", "", "")
@@ -111,7 +121,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					in.AiGenerated = &b
 				}
 				if v, _ := cmd.Flags().GetString("auto-fix-state"); v != "" {
-					x := string(v)
+					x := models.ModelsAutoFixState(v)
 					in.AutoFixState = &x
 				}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
@@ -121,6 +131,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("has-pull-request"); v != "" {
@@ -200,10 +218,12 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings")
 		cmd.Flags().String("ai-generated", "", "true = AI code-review only, false = rule-only, omitted = both")
 		cmd.Flags().String("auto-fix-state", "", "filter by AutoFixState (e.g. 'none' for findings with no cached fix)")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("has-pull-request", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-archived", "", "")
@@ -263,6 +283,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 						}
 					}
 				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSastFindingsAllowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -271,6 +299,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sast/findings/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -298,6 +328,19 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("file-path"); v != "" {
+					for _, s := range strings.Split(v, ",") {
+						in.FilePath = append(in.FilePath, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("has-pull-request"); v != "" {
@@ -344,6 +387,10 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					x := string(v)
 					in.PriorityLabel = &x
 				}
+				if v, _ := cmd.Flags().GetString("repository-id"); v != "" {
+					x := string(v)
+					in.RepositoryID = &x
+				}
 				if v, _ := cmd.Flags().GetString("severity"); v != "" {
 					x := string(v)
 					in.Severity = &x
@@ -372,9 +419,12 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/detailed")
 		cmd.Flags().String("ai-generated", "", "true = AI code-review only, false = rule-only, omitted = both")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("file-path", "", "if set, only findings in one of these files are returned")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("has-pull-request", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-archived", "", "")
@@ -385,6 +435,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		cmd.Flags().String("priority-label", "", "")
+		cmd.Flags().String("repository-id", "", "if set, only findings for this repository are returned")
 		cmd.Flags().String("severity", "", "")
 		cmd.Flags().String("sort", "", "")
 		cmd.Flags().String("sort-by", "", "")
@@ -408,7 +459,7 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					in.AiGenerated = &b
 				}
 				if v, _ := cmd.Flags().GetString("auto-fix-state"); v != "" {
-					x := string(v)
+					x := models.ModelsAutoFixState(v)
 					in.AutoFixState = &x
 				}
 				if v, _ := cmd.Flags().GetString("branch"); v != "" {
@@ -418,6 +469,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("file-owner-name"); v != "" {
 					for _, s := range strings.Split(v, ",") {
 						in.FileOwnerName = append(in.FileOwnerName, string(s))
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("has-pull-request"); v != "" {
@@ -497,10 +556,12 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/preview")
 		cmd.Flags().String("ai-generated", "", "true = AI code-review only, false = rule-only, omitted = both")
 		cmd.Flags().String("auto-fix-state", "", "filter by AutoFixState (e.g. 'none' for findings with no cached fix)")
 		cmd.Flags().String("branch", "", "")
 		cmd.Flags().String("file-owner-name", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("has-pull-request", "", "")
 		cmd.Flags().String("is-allowlisted", "", "")
 		cmd.Flags().String("is-archived", "", "")
@@ -532,6 +593,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.GetSastFindingsFindingIdInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.GetSastFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -544,6 +613,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -590,6 +661,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.PatchSastFindingsFindingId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -602,6 +681,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "PATCH /sast/findings/{findingId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -650,6 +731,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.CreateSastFindingsFindingIdAllowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -662,6 +751,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sast/findings/{findingId}/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -680,6 +771,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSastFindingsFindingIdAutofixActivityInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
 						return fmt.Errorf("limit"+": %w", err)
@@ -704,6 +803,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}/autofix/activity")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("since-id", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -722,6 +823,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSastFindingsFindingIdAutofixCacheDiffInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSastFindingsFindingIdAutofixCacheDiff(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -734,6 +843,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}/autofix/cache/diff")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -780,6 +891,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.CreateSastFindingsFindingIdAutofixFix(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -792,6 +911,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sast/findings/{findingId}/autofix/fix")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -810,6 +931,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSastFindingsFindingIdAutofixStateInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSastFindingsFindingIdAutofixState(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -822,6 +951,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}/autofix/state")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -838,6 +969,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSastFindingsFindingIdAutofixStatusInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSastFindingsFindingIdAutofixStatus(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -850,6 +989,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}/autofix/status")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -866,6 +1007,18 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSastFindingsFindingIdEventsInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("next-token"); v != "" {
+					x := string(v)
+					in.NextToken = &x
+				}
 				out, err := client.ListSastFindingsFindingIdEvents(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -878,6 +1031,47 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}/events")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("next-token", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-ticket <findingId>",
+			Short: "Delete Ticket",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.DeleteSastFindingsFindingIdTicketInput{}
+				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.DeleteSastFindingsFindingIdTicket(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "DELETE /sast/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -924,6 +1118,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.CreateSastFindingsFindingIdTicket(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -936,6 +1138,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sast/findings/{findingId}/ticket")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -954,6 +1158,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSastFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSastFindingsFindingIdTriage(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -966,6 +1178,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}/triage")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1012,6 +1226,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					}
 				}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				data, err := client.CreateSastFindingsFindingIdUnallowlist(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1020,6 +1242,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sast/findings/{findingId}/unallowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("data", "", "Request body as a raw JSON string")
 		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
@@ -1038,6 +1262,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListSastFindingsFindingIdUsersInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.ListSastFindingsFindingIdUsers(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1050,6 +1282,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/findings/{findingId}/users")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1064,6 +1298,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					return err
 				}
 				in := api.ListSastRepositoriesInput{}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
 						return fmt.Errorf("limit"+": %w", err)
@@ -1088,6 +1330,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/repositories")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "")
 		cmd.Flags().String("next-token", "", "")
 		serviceCmd.AddCommand(cmd)
@@ -1106,6 +1350,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.GetSastRepositoriesRepositoryIdInput{}
 				in.RepositoryID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				out, err := client.GetSastRepositoriesRepositoryId(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1118,6 +1370,8 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/repositories/{repositoryId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1132,6 +1386,18 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					return err
 				}
 				in := api.ListSastScanRunsInput{}
+				if v, _ := cmd.Flags().GetString("from"); v != "" {
+					x := string(v)
+					in.From = &x
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
 						return fmt.Errorf("limit"+": %w", err)
@@ -1156,6 +1422,10 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 					x := string(v)
 					in.Sort = &x
 				}
+				if v, _ := cmd.Flags().GetString("to"); v != "" {
+					x := string(v)
+					in.To = &x
+				}
 				out, err := client.ListSastScanRuns(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1168,10 +1438,14 @@ func RegisterSastCommands(parent *cobra.Command, getClient ClientFactory) {
 			},
 		}
 		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /sast/scan-runs")
+		cmd.Flags().String("from", "", "Only include scan runs started at or after this RFC3339 timestamp")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "Max scan runs per page (default 10, max 50)")
 		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
 		cmd.Flags().String("repository-id", "", "Repository ID to list scan runs for")
 		cmd.Flags().String("sort", "", "Sort order by start time (default newest)")
+		cmd.Flags().String("to", "", "Only include scan runs started at or before this RFC3339 timestamp")
 		serviceCmd.AddCommand(cmd)
 	}
 

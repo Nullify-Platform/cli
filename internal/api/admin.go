@@ -21,11 +21,270 @@ var _ = fmt.Sprintf
 var _ = url.PathEscape
 var _ = models.RequestScope{}
 
+// ListAdminAccessMeInput is the input for ListAdminAccessMe — Get Caller Access.
+type ListAdminAccessMeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminAccessMe - Get Caller Access
+// GET /admin/access/me
+func (c *Client) ListAdminAccessMe(ctx context.Context, in ListAdminAccessMeInput) (*models.EndpointsAdminGetCallerAccessOutput, error) {
+	path := "/admin/access/me"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetCallerAccessOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminAccessPreferencesInput is the input for ListAdminAccessPreferences — Get RBAC Preferences.
+type ListAdminAccessPreferencesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminAccessPreferences - Get RBAC Preferences
+// GET /admin/access/preferences
+func (c *Client) ListAdminAccessPreferences(ctx context.Context, in ListAdminAccessPreferencesInput) (*models.EndpointsAdminGetRBACPreferencesOutput, error) {
+	path := "/admin/access/preferences"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetRBACPreferencesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminAccessPreferencesInput is the input for UpdateAdminAccessPreferences — Set RBAC Preferences.
+type UpdateAdminAccessPreferencesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DefaultInviteeRole string `json:"defaultInviteeRole"`
+	TeamScopedRoles []string `json:"teamScopedRoles,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminAccessPreferences - Set RBAC Preferences
+// PUT /admin/access/preferences
+func (c *Client) UpdateAdminAccessPreferences(ctx context.Context, in UpdateAdminAccessPreferencesInput) (*models.EndpointsAdminPutRBACPreferencesOutput, error) {
+	path := "/admin/access/preferences"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DefaultInviteeRole string `json:"defaultInviteeRole"`
+		TeamScopedRoles []string `json:"teamScopedRoles,omitempty"`
+	}{
+		DefaultInviteeRole: in.DefaultInviteeRole,
+		TeamScopedRoles: in.TeamScopedRoles,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPutRBACPreferencesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminAccessUsersInput is the input for ListAdminAccessUsers — List User Roles.
+type ListAdminAccessUsersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	Offset *int32 `url:"offset,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	StartKey *string `url:"startKey,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminAccessUsers - List User Roles
+// GET /admin/access/users
+func (c *Client) ListAdminAccessUsers(ctx context.Context, in ListAdminAccessUsersInput) (*models.EndpointsAdminListUserRolesOutput, error) {
+	path := "/admin/access/users"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.StartKey != nil {
+		query.Set("startKey", string(*in.StartKey))
+	}
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminListUserRolesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminAccessUsersOrgOwnersInput is the input for ListAdminAccessUsersOrgOwners — List Organization Owners.
+type ListAdminAccessUsersOrgOwnersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminAccessUsersOrgOwners - List Organization Owners
+// GET /admin/access/users/org-owners
+func (c *Client) ListAdminAccessUsersOrgOwners(ctx context.Context, in ListAdminAccessUsersOrgOwnersInput) (*models.EndpointsAdminListOrgOwnersOutput, error) {
+	path := "/admin/access/users/org-owners"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminListOrgOwnersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminAccessUsersRolesInput is the input for UpdateAdminAccessUsersRoles — Set User Roles.
+type UpdateAdminAccessUsersRolesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Role string `json:"role"`
+	Users []models.EndpointsAdminSetUserRoleTarget `json:"users,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminAccessUsersRoles - Set User Roles
+// PUT /admin/access/users/roles
+func (c *Client) UpdateAdminAccessUsersRoles(ctx context.Context, in UpdateAdminAccessUsersRolesInput) (*models.EndpointsAdminBatchSetUserRolesOutput, error) {
+	path := "/admin/access/users/roles"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Role string `json:"role"`
+		Users []models.EndpointsAdminSetUserRoleTarget `json:"users,omitempty"`
+	}{
+		Role: in.Role,
+		Users: in.Users,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminBatchSetUserRolesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminAssessmentsScanCoverageInput is the input for ListAdminAssessmentsScanCoverage — Get Scan Coverage.
 type ListAdminAssessmentsScanCoverageInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	Search *string `url:"search,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	SortOrder *string `url:"sortOrder,omitempty" json:"-"`
 	Type *string `url:"type,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -51,6 +310,15 @@ func (c *Client) ListAdminAssessmentsScanCoverage(ctx context.Context, in ListAd
 	if in.Search != nil {
 		query.Set("search", string(*in.Search))
 	}
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
+	}
+	if in.SortOrder != nil {
+		query.Set("sortOrder", string(*in.SortOrder))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -71,6 +339,7 @@ func (c *Client) ListAdminAssessmentsScanCoverage(ctx context.Context, in ListAd
 
 // ListAdminAssessmentsScanCoverageFindingsInput is the input for ListAdminAssessmentsScanCoverageFindings — Get Scan Coverage Findings.
 type ListAdminAssessmentsScanCoverageFindingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
@@ -99,6 +368,9 @@ func (c *Client) ListAdminAssessmentsScanCoverageFindings(ctx context.Context, i
 	if in.Offset != nil {
 		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -119,6 +391,7 @@ func (c *Client) ListAdminAssessmentsScanCoverageFindings(ctx context.Context, i
 
 // ListAdminChecklistInput is the input for ListAdminChecklist — Get Checklist.
 type ListAdminChecklistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -130,6 +403,9 @@ func (c *Client) ListAdminChecklist(ctx context.Context, in ListAdminChecklistIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -149,8 +425,174 @@ func (c *Client) ListAdminChecklist(ctx context.Context, in ListAdminChecklistIn
 	return &out, nil
 }
 
+// ListAdminConfigRoutingExclusionsInput is the input for ListAdminConfigRoutingExclusions — Get Routing Exclusions.
+type ListAdminConfigRoutingExclusionsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminConfigRoutingExclusions - Get Routing Exclusions
+// GET /admin/config/routing-exclusions
+func (c *Client) ListAdminConfigRoutingExclusions(ctx context.Context, in ListAdminConfigRoutingExclusionsInput) (*models.EndpointsAdminRoutingExclusionsOutput, error) {
+	path := "/admin/config/routing-exclusions"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminRoutingExclusionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminConfigRoutingExclusionsInput is the input for UpdateAdminConfigRoutingExclusions — Set Routing Exclusions.
+type UpdateAdminConfigRoutingExclusionsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Users []models.EndpointsAdminRoutingExclusionUser `json:"users,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminConfigRoutingExclusions - Set Routing Exclusions
+// PUT /admin/config/routing-exclusions
+func (c *Client) UpdateAdminConfigRoutingExclusions(ctx context.Context, in UpdateAdminConfigRoutingExclusionsInput) (*models.EndpointsAdminRoutingExclusionsOutput, error) {
+	path := "/admin/config/routing-exclusions"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Users []models.EndpointsAdminRoutingExclusionUser `json:"users,omitempty"`
+	}{
+		Users: in.Users,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminRoutingExclusionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminConfigSecurityOwnerInput is the input for ListAdminConfigSecurityOwner — Get Security Owner.
+type ListAdminConfigSecurityOwnerInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminConfigSecurityOwner - Get Security Owner
+// GET /admin/config/security-owner
+func (c *Client) ListAdminConfigSecurityOwner(ctx context.Context, in ListAdminConfigSecurityOwnerInput) (*models.EndpointsAdminSecurityOwnerOutput, error) {
+	path := "/admin/config/security-owner"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminSecurityOwnerOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminConfigSecurityOwnerInput is the input for UpdateAdminConfigSecurityOwner — Set Security Owner.
+type UpdateAdminConfigSecurityOwnerInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	TeamID string `json:"teamId"`
+	UserID string `json:"userId"`
+	models.RequestScope
+}
+
+// UpdateAdminConfigSecurityOwner - Set Security Owner
+// PUT /admin/config/security-owner
+func (c *Client) UpdateAdminConfigSecurityOwner(ctx context.Context, in UpdateAdminConfigSecurityOwnerInput) (*models.EndpointsAdminSecurityOwnerOutput, error) {
+	path := "/admin/config/security-owner"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		TeamID string `json:"teamId"`
+		UserID string `json:"userId"`
+	}{
+		TeamID: in.TeamID,
+		UserID: in.UserID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminSecurityOwnerOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminContextIngestInput is the input for CreateAdminContextIngest — Get Context Upload Credentials.
 type CreateAdminContextIngestInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Branch *string `json:"branch,omitempty"`
 	CommitSha *string `json:"commitSha,omitempty"`
 	ContextType string `json:"contextType"`
@@ -159,6 +601,7 @@ type CreateAdminContextIngestInput struct {
 	Name string `json:"name"`
 	PrNumber *int `json:"prNumber,omitempty"`
 	Repository string `json:"repository"`
+	models.RequestScope
 }
 
 // CreateAdminContextIngest - Get Context Upload Credentials
@@ -170,6 +613,10 @@ func (c *Client) CreateAdminContextIngest(ctx context.Context, in CreateAdminCon
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
@@ -211,15 +658,21 @@ func (c *Client) CreateAdminContextIngest(ctx context.Context, in CreateAdminCon
 
 // CreateAdminEventsInput is the input for CreateAdminEvents — List Unified Events.
 type CreateAdminEventsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AfterID *string `json:"afterId,omitempty"`
 	AfterTimeUnix *int `json:"afterTimeUnix,omitempty"`
 	AutofixID *string `json:"autofixId,omitempty"`
 	BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	EventTypes []string `json:"eventTypes,omitempty"`
+	ExcludeEventTypes []string `json:"excludeEventTypes,omitempty"`
+	ExcludeServices []string `json:"excludeServices,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
+	HideNoise *bool `json:"hideNoise,omitempty"`
 	Limit *int `json:"limit,omitempty"`
 	PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+	Query *string `json:"query,omitempty"`
+	QueryEventTypes []string `json:"queryEventTypes,omitempty"`
 	RunID *string `json:"runId,omitempty"`
 	Services []string `json:"services,omitempty"`
 	models.RequestScope
@@ -233,6 +686,9 @@ func (c *Client) CreateAdminEvents(ctx context.Context, in CreateAdminEventsInpu
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -248,9 +704,14 @@ func (c *Client) CreateAdminEvents(ctx context.Context, in CreateAdminEventsInpu
 		BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
 		CampaignID *string `json:"campaignId,omitempty"`
 		EventTypes []string `json:"eventTypes,omitempty"`
+		ExcludeEventTypes []string `json:"excludeEventTypes,omitempty"`
+		ExcludeServices []string `json:"excludeServices,omitempty"`
 		FindingIds []string `json:"findingIds,omitempty"`
+		HideNoise *bool `json:"hideNoise,omitempty"`
 		Limit *int `json:"limit,omitempty"`
 		PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+		Query *string `json:"query,omitempty"`
+		QueryEventTypes []string `json:"queryEventTypes,omitempty"`
 		RunID *string `json:"runId,omitempty"`
 		Services []string `json:"services,omitempty"`
 	}{
@@ -260,9 +721,14 @@ func (c *Client) CreateAdminEvents(ctx context.Context, in CreateAdminEventsInpu
 		BeforeTimeUnix: in.BeforeTimeUnix,
 		CampaignID: in.CampaignID,
 		EventTypes: in.EventTypes,
+		ExcludeEventTypes: in.ExcludeEventTypes,
+		ExcludeServices: in.ExcludeServices,
 		FindingIds: in.FindingIds,
+		HideNoise: in.HideNoise,
 		Limit: in.Limit,
 		PrCanonicalID: in.PrCanonicalID,
+		Query: in.Query,
+		QueryEventTypes: in.QueryEventTypes,
 		RunID: in.RunID,
 		Services: in.Services,
 	})
@@ -280,11 +746,108 @@ func (c *Client) CreateAdminEvents(ctx context.Context, in CreateAdminEventsInpu
 	return &out, nil
 }
 
+// ListAdminExternalWritesInput is the input for ListAdminExternalWrites — Read External Writes.
+type ListAdminExternalWritesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminExternalWrites - Read External Writes
+// GET /admin/external-writes
+func (c *Client) ListAdminExternalWrites(ctx context.Context, in ListAdminExternalWritesInput) (*models.EndpointsExternalWritesOutput, error) {
+	path := "/admin/external-writes"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsExternalWritesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminExternalWritesInput is the input for UpdateAdminExternalWrites — Change External Writes.
+type UpdateAdminExternalWritesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	GitWrites *bool `json:"gitWrites,omitempty"`
+	Messaging *bool `json:"messaging,omitempty"`
+	PullRequestReviews *bool `json:"pullRequestReviews,omitempty"`
+	PullRequests *bool `json:"pullRequests,omitempty"`
+	Tickets *bool `json:"tickets,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminExternalWrites - Change External Writes
+// PUT /admin/external-writes
+func (c *Client) UpdateAdminExternalWrites(ctx context.Context, in UpdateAdminExternalWritesInput) (*models.EndpointsExternalWritesOutput, error) {
+	path := "/admin/external-writes"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		GitWrites *bool `json:"gitWrites,omitempty"`
+		Messaging *bool `json:"messaging,omitempty"`
+		PullRequestReviews *bool `json:"pullRequestReviews,omitempty"`
+		PullRequests *bool `json:"pullRequests,omitempty"`
+		Tickets *bool `json:"tickets,omitempty"`
+	}{
+		GitWrites: in.GitWrites,
+		Messaging: in.Messaging,
+		PullRequestReviews: in.PullRequestReviews,
+		PullRequests: in.PullRequests,
+		Tickets: in.Tickets,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsExternalWritesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // GetAdminFindingFindingIdInput is the input for GetAdminFindingFindingId — Get Finding.
 type GetAdminFindingFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetAdminFindingFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetAdminFindingFindingId - Get Finding
 // GET /admin/finding/{findingId}
@@ -295,6 +858,9 @@ func (c *Client) GetAdminFindingFindingId(ctx context.Context, in GetAdminFindin
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -316,6 +882,7 @@ func (c *Client) GetAdminFindingFindingId(ctx context.Context, in GetAdminFindin
 
 // CreateAdminFindingsInput is the input for CreateAdminFindings — Query Findings.
 type CreateAdminFindingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Query models.ModelsUnifiedFindingsQuery `json:"query"`
 	models.RequestScope
 }
@@ -328,6 +895,9 @@ func (c *Client) CreateAdminFindings(ctx context.Context, in CreateAdminFindings
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -357,6 +927,7 @@ func (c *Client) CreateAdminFindings(ctx context.Context, in CreateAdminFindings
 
 // CreateAdminFindingsDownloadInput is the input for CreateAdminFindingsDownload — Download Findings.
 type CreateAdminFindingsDownloadInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Query models.ModelsUnifiedFindingsQuery `json:"query"`
 	models.RequestScope
 }
@@ -369,6 +940,9 @@ func (c *Client) CreateAdminFindingsDownload(ctx context.Context, in CreateAdmin
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -396,8 +970,108 @@ func (c *Client) CreateAdminFindingsDownload(ctx context.Context, in CreateAdmin
 	return &out, nil
 }
 
+// CreateAdminFindingsGroupsInput is the input for CreateAdminFindingsGroups — Group Findings.
+type CreateAdminFindingsGroupsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	GroupBy models.ModelsFindingsGroupBy `json:"groupBy"`
+	Limit *int `json:"limit,omitempty"`
+	Page *int `json:"page,omitempty"`
+	Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
+}
+
+// CreateAdminFindingsGroups - Group Findings
+// POST /admin/findings/groups
+func (c *Client) CreateAdminFindingsGroups(ctx context.Context, in CreateAdminFindingsGroupsInput) (*models.EndpointsAdminFindingsGroupsOutput, error) {
+	path := "/admin/findings/groups"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		GroupBy models.ModelsFindingsGroupBy `json:"groupBy"`
+		Limit *int `json:"limit,omitempty"`
+		Page *int `json:"page,omitempty"`
+		Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	}{
+		GroupBy: in.GroupBy,
+		Limit: in.Limit,
+		Page: in.Page,
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminFindingsGroupsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminFindingsProgressInput is the input for CreateAdminFindingsProgress — Post Findings Progress.
+type CreateAdminFindingsProgressInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
+}
+
+// CreateAdminFindingsProgress - Post Findings Progress
+// POST /admin/findings/progress
+func (c *Client) CreateAdminFindingsProgress(ctx context.Context, in CreateAdminFindingsProgressInput) (*models.EndpointsAdminQueryFindingsProgressOutput, error) {
+	path := "/admin/findings/progress"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsUnifiedFindingsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryFindingsProgressOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminFixEffortInput is the input for ListAdminFixEffort — Get Fix Effort Mapping.
 type ListAdminFixEffortInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -409,6 +1083,9 @@ func (c *Client) ListAdminFixEffort(ctx context.Context, in ListAdminFixEffortIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -430,6 +1107,7 @@ func (c *Client) ListAdminFixEffort(ctx context.Context, in ListAdminFixEffortIn
 
 // UpdateAdminFixEffortInput is the input for UpdateAdminFixEffort — Put Fix Effort Mapping.
 type UpdateAdminFixEffortInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	FixEffort models.EndpointsAdminFixEffortMapInput `json:"fixEffort"`
 	models.RequestScope
 }
@@ -442,6 +1120,9 @@ func (c *Client) UpdateAdminFixEffort(ctx context.Context, in UpdateAdminFixEffo
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -473,9 +1154,11 @@ func (c *Client) UpdateAdminFixEffort(ctx context.Context, in UpdateAdminFixEffo
 type ListAdminGetFileContentsInput struct {
 	EndLine *int `url:"endLine,omitempty" json:"-"`
 	FilePath *string `url:"filePath,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ProjectID *string `url:"projectId,omitempty" json:"-"`
 	Reference *string `url:"reference,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	ScanFamily *string `url:"scanFamily,omitempty" json:"-"`
 	StartLine *int `url:"startLine,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -488,6 +1171,9 @@ func (c *Client) ListAdminGetFileContents(ctx context.Context, in ListAdminGetFi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.RepositoryID != nil {
 		query.Set("repositoryId", string(*in.RepositoryID))
@@ -506,6 +1192,9 @@ func (c *Client) ListAdminGetFileContents(ctx context.Context, in ListAdminGetFi
 	}
 	if in.EndLine != nil {
 		query.Set("endLine", strconv.Itoa(int(*in.EndLine)))
+	}
+	if in.ScanFamily != nil {
+		query.Set("scanFamily", string(*in.ScanFamily))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -527,6 +1216,7 @@ func (c *Client) ListAdminGetFileContents(ctx context.Context, in ListAdminGetFi
 
 // CreateAdminGetFileOwnersInput is the input for CreateAdminGetFileOwners — Get File Owners.
 type CreateAdminGetFileOwnersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Files []models.EndpointsFileOwnersRequest `json:"files,omitempty"`
 	models.RequestScope
 }
@@ -539,6 +1229,9 @@ func (c *Client) CreateAdminGetFileOwners(ctx context.Context, in CreateAdminGet
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -568,6 +1261,7 @@ func (c *Client) CreateAdminGetFileOwners(ctx context.Context, in CreateAdminGet
 
 // ListAdminGetPullRequestInput is the input for ListAdminGetPullRequest — Get PR State.
 type ListAdminGetPullRequestInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PrID *string `url:"prId,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	models.RequestScope
@@ -588,6 +1282,9 @@ func (c *Client) ListAdminGetPullRequest(ctx context.Context, in ListAdminGetPul
 	if in.PrID != nil {
 		query.Set("prId", string(*in.PrID))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -606,8 +1303,494 @@ func (c *Client) ListAdminGetPullRequest(ctx context.Context, in ListAdminGetPul
 	return &out, nil
 }
 
+// DeleteAdminIdentityEntraInput is the input for DeleteAdminIdentityEntra — Disconnect Microsoft Entra directory binding.
+type DeleteAdminIdentityEntraInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIdentityEntra - Disconnect Microsoft Entra directory binding
+// DELETE /admin/identity/entra
+func (c *Client) DeleteAdminIdentityEntra(ctx context.Context, in DeleteAdminIdentityEntraInput) ([]byte, error) {
+	path := "/admin/identity/entra"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	return data, err
+}
+
+// ListAdminIdentityEntraInput is the input for ListAdminIdentityEntra — Get Microsoft Entra directory binding status.
+type ListAdminIdentityEntraInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIdentityEntra - Get Microsoft Entra directory binding status
+// GET /admin/identity/entra
+func (c *Client) ListAdminIdentityEntra(ctx context.Context, in ListAdminIdentityEntraInput) (*models.EndpointsIdentityEntraGetOutput, error) {
+	path := "/admin/identity/entra"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsIdentityEntraGetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIdentityEntraConnectInput is the input for CreateAdminIdentityEntraConnect — Start Microsoft Entra connect.
+type CreateAdminIdentityEntraConnectInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIdentityEntraConnect - Start Microsoft Entra connect
+// POST /admin/identity/entra/connect
+func (c *Client) CreateAdminIdentityEntraConnect(ctx context.Context, in CreateAdminIdentityEntraConnectInput) (*models.EndpointsIdentityEntraConnectPostOutput, error) {
+	path := "/admin/identity/entra/connect"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsIdentityEntraConnectPostOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIdentityEntraHandoffInput is the input for ListAdminIdentityEntraHandoff — List Microsoft Entra consent links.
+type ListAdminIdentityEntraHandoffInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIdentityEntraHandoff - List Microsoft Entra consent links
+// GET /admin/identity/entra/handoff
+func (c *Client) ListAdminIdentityEntraHandoff(ctx context.Context, in ListAdminIdentityEntraHandoffInput) (*models.EndpointsIdentityEntraHandoffListOutput, error) {
+	path := "/admin/identity/entra/handoff"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsIdentityEntraHandoffListOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIdentityEntraHandoffInput is the input for CreateAdminIdentityEntraHandoff — Delegate Microsoft Entra directory consent.
+type CreateAdminIdentityEntraHandoffInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DirectoryID string `json:"directoryId"`
+	models.RequestScope
+}
+
+// CreateAdminIdentityEntraHandoff - Delegate Microsoft Entra directory consent
+// POST /admin/identity/entra/handoff
+func (c *Client) CreateAdminIdentityEntraHandoff(ctx context.Context, in CreateAdminIdentityEntraHandoffInput) (*models.EndpointsIdentityEntraHandoffPostOutput, error) {
+	path := "/admin/identity/entra/handoff"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DirectoryID string `json:"directoryId"`
+	}{
+		DirectoryID: in.DirectoryID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsIdentityEntraHandoffPostOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIdentityEntraHandoffIdInput is the input for DeleteAdminIdentityEntraHandoffId — Revoke a Microsoft Entra consent link.
+type DeleteAdminIdentityEntraHandoffIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIdentityEntraHandoffId - Revoke a Microsoft Entra consent link
+// DELETE /admin/identity/entra/handoff/{id}
+func (c *Client) DeleteAdminIdentityEntraHandoffId(ctx context.Context, in DeleteAdminIdentityEntraHandoffIdInput) ([]byte, error) {
+	path := "/admin/identity/entra/handoff/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	return data, err
+}
+
+// CreateAdminIdentityEntraLinkInput is the input for CreateAdminIdentityEntraLink — Start Microsoft Entra self-service account link.
+type CreateAdminIdentityEntraLinkInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIdentityEntraLink - Start Microsoft Entra self-service account link
+// POST /admin/identity/entra/link
+func (c *Client) CreateAdminIdentityEntraLink(ctx context.Context, in CreateAdminIdentityEntraLinkInput) (*models.EndpointsIdentityEntraLinkPostOutput, error) {
+	path := "/admin/identity/entra/link"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsIdentityEntraLinkPostOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIdentityEntraPolicyInput is the input for ListAdminIdentityEntraPolicy — Create Interactor [].
+type ListAdminIdentityEntraPolicyInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIdentityEntraPolicy - Create Interactor []
+// GET /admin/identity/entra/policy
+func (c *Client) ListAdminIdentityEntraPolicy(ctx context.Context, in ListAdminIdentityEntraPolicyInput) (*models.EndpointsWorkspaceEntraSSOPolicyOutput, error) {
+	path := "/admin/identity/entra/policy"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsWorkspaceEntraSSOPolicyOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminIdentityEntraPolicyInput is the input for UpdateAdminIdentityEntraPolicy — Create Interactor [].
+type UpdateAdminIdentityEntraPolicyInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedUpdatedAt string `json:"expectedUpdatedAt"`
+	Reason string `json:"reason"`
+	Required *bool `json:"required,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminIdentityEntraPolicy - Create Interactor []
+// PUT /admin/identity/entra/policy
+func (c *Client) UpdateAdminIdentityEntraPolicy(ctx context.Context, in UpdateAdminIdentityEntraPolicyInput) (*models.EndpointsWorkspaceEntraSSOPolicyOutput, error) {
+	path := "/admin/identity/entra/policy"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DryRun *bool `json:"dryRun,omitempty"`
+		ExpectedUpdatedAt string `json:"expectedUpdatedAt"`
+		Reason string `json:"reason"`
+		Required *bool `json:"required,omitempty"`
+	}{
+		DryRun: in.DryRun,
+		ExpectedUpdatedAt: in.ExpectedUpdatedAt,
+		Reason: in.Reason,
+		Required: in.Required,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsWorkspaceEntraSSOPolicyOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIdentityEntraSignInInput is the input for CreateAdminIdentityEntraSignIn — Record a Microsoft sign-in.
+type CreateAdminIdentityEntraSignInInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIdentityEntraSignIn - Record a Microsoft sign-in
+// POST /admin/identity/entra/sign-in
+func (c *Client) CreateAdminIdentityEntraSignIn(ctx context.Context, in CreateAdminIdentityEntraSignInInput) (*models.EndpointsIdentityEntraSignInPostOutput, error) {
+	path := "/admin/identity/entra/sign-in"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsIdentityEntraSignInPostOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIdentityScimInput is the input for ListAdminIdentityScim — Get SCIM Identity Settings.
+type ListAdminIdentityScimInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIdentityScim - Get SCIM Identity Settings
+// GET /admin/identity/scim
+func (c *Client) ListAdminIdentityScim(ctx context.Context, in ListAdminIdentityScimInput) (*models.EndpointsGetIdentityScimOutput, error) {
+	path := "/admin/identity/scim"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetIdentityScimOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIdentityScimCredentialsInput is the input for CreateAdminIdentityScimCredentials — Create SCIM Credential.
+type CreateAdminIdentityScimCredentialsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIdentityScimCredentials - Create SCIM Credential
+// POST /admin/identity/scim/credentials
+func (c *Client) CreateAdminIdentityScimCredentials(ctx context.Context, in CreateAdminIdentityScimCredentialsInput) (*models.EndpointsPostIdentityScimCredentialOutput, error) {
+	path := "/admin/identity/scim/credentials"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostIdentityScimCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIdentityScimCredentialsIdInput is the input for DeleteAdminIdentityScimCredentialsId — Revoke SCIM Credential.
+type DeleteAdminIdentityScimCredentialsIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIdentityScimCredentialsId - Revoke SCIM Credential
+// DELETE /admin/identity/scim/credentials/{id}
+func (c *Client) DeleteAdminIdentityScimCredentialsId(ctx context.Context, in DeleteAdminIdentityScimCredentialsIdInput) (*models.EndpointsDeleteIdentityScimCredentialOutput, error) {
+	path := "/admin/identity/scim/credentials/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteIdentityScimCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminInstallationsInput is the input for ListAdminInstallations — Get App Installations.
 type ListAdminInstallationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -619,6 +1802,9 @@ func (c *Client) ListAdminInstallations(ctx context.Context, in ListAdminInstall
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -638,8 +1824,183 @@ func (c *Client) ListAdminInstallations(ctx context.Context, in ListAdminInstall
 	return &out, nil
 }
 
+// ListAdminIntegrationsAsanaOauthInput is the input for ListAdminIntegrationsAsanaOauth — Get Asana install status.
+type ListAdminIntegrationsAsanaOauthInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsAsanaOauth - Get Asana install status
+// GET /admin/integrations/asana/oauth
+func (c *Client) ListAdminIntegrationsAsanaOauth(ctx context.Context, in ListAdminIntegrationsAsanaOauthInput) (*models.EndpointsGetAsanaStatusOutput, error) {
+	path := "/admin/integrations/asana/oauth"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAsanaStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAsanaTicketConfigInput is the input for CreateAdminIntegrationsAsanaTicketConfig — Set Asana Ticket Configuration.
+type CreateAdminIntegrationsAsanaTicketConfigInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AccessToken string `json:"accessToken"`
+	ProjectGid string `json:"projectGid"`
+	WorkspaceID string `json:"workspaceId"`
+	WorkspaceName *string `json:"workspaceName,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAsanaTicketConfig - Set Asana Ticket Configuration
+// POST /admin/integrations/asana/ticket-config
+func (c *Client) CreateAdminIntegrationsAsanaTicketConfig(ctx context.Context, in CreateAdminIntegrationsAsanaTicketConfigInput) (*models.EndpointsAdminPostAsanaTicketConfigOutput, error) {
+	path := "/admin/integrations/asana/ticket-config"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AccessToken string `json:"accessToken"`
+		ProjectGid string `json:"projectGid"`
+		WorkspaceID string `json:"workspaceId"`
+		WorkspaceName *string `json:"workspaceName,omitempty"`
+	}{
+		AccessToken: in.AccessToken,
+		ProjectGid: in.ProjectGid,
+		WorkspaceID: in.WorkspaceID,
+		WorkspaceName: in.WorkspaceName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostAsanaTicketConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsAtlassianInput is the input for ListAdminIntegrationsAtlassian — Get Atlassian integration.
+type ListAdminIntegrationsAtlassianInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsAtlassian - Get Atlassian integration
+// GET /admin/integrations/atlassian
+func (c *Client) ListAdminIntegrationsAtlassian(ctx context.Context, in ListAdminIntegrationsAtlassianInput) (*models.EndpointsGetAtlassianInstallationOutput, error) {
+	path := "/admin/integrations/atlassian"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAtlassianInstallationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAtlassianInput is the input for CreateAdminIntegrationsAtlassian — Update Atlassian integration choices.
+type CreateAdminIntegrationsAtlassianInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InstallationID *string `json:"installationId,omitempty"`
+	Settings *models.ModelsForgeProductSettings `json:"settings,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAtlassian - Update Atlassian integration choices
+// POST /admin/integrations/atlassian
+func (c *Client) CreateAdminIntegrationsAtlassian(ctx context.Context, in CreateAdminIntegrationsAtlassianInput) (*models.EndpointsPostAtlassianSettingsOutput, error) {
+	path := "/admin/integrations/atlassian"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		InstallationID *string `json:"installationId,omitempty"`
+		Settings *models.ModelsForgeProductSettings `json:"settings,omitempty"`
+	}{
+		InstallationID: in.InstallationID,
+		Settings: in.Settings,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAtlassianSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminIntegrationsAzureInput is the input for ListAdminIntegrationsAzure — Get Azure Configuration.
 type ListAdminIntegrationsAzureInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -651,6 +2012,9 @@ func (c *Client) ListAdminIntegrationsAzure(ctx context.Context, in ListAdminInt
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -670,12 +2034,15 @@ func (c *Client) ListAdminIntegrationsAzure(ctx context.Context, in ListAdminInt
 	return &out, nil
 }
 
-// CreateAdminIntegrationsAzureInput is the input for CreateAdminIntegrationsAzure — Install Azure DevOps Integration.
+// CreateAdminIntegrationsAzureInput is the input for CreateAdminIntegrationsAzure — Repair Azure DevOps Service Hooks.
 type CreateAdminIntegrationsAzureInput struct {
+	DryRun *bool `url:"dryRun,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reconcile *bool `url:"reconcile,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// CreateAdminIntegrationsAzure - Install Azure DevOps Integration
+// CreateAdminIntegrationsAzure - Repair Azure DevOps Service Hooks
 // POST /admin/integrations/azure
 func (c *Client) CreateAdminIntegrationsAzure(ctx context.Context, in CreateAdminIntegrationsAzureInput) (*models.EndpointsAdminPostAzureInstallOutput, error) {
 	path := "/admin/integrations/azure"
@@ -683,6 +2050,15 @@ func (c *Client) CreateAdminIntegrationsAzure(ctx context.Context, in CreateAdmi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.Reconcile != nil {
+		query.Set("reconcile", strconv.FormatBool(*in.Reconcile))
+	}
+	if in.DryRun != nil {
+		query.Set("dryRun", strconv.FormatBool(*in.DryRun))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -702,11 +2078,348 @@ func (c *Client) CreateAdminIntegrationsAzure(ctx context.Context, in CreateAdmi
 	return &out, nil
 }
 
+// CreateAdminIntegrationsAzureCodeownersPreviewInput is the input for CreateAdminIntegrationsAzureCodeownersPreview — Preview CODEOWNERS as Azure DevOps required-reviewer policies.
+type CreateAdminIntegrationsAzureCodeownersPreviewInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationID string `json:"organizationId"`
+	Path *string `json:"path,omitempty"`
+	ProjectID string `json:"projectId"`
+	Ref *string `json:"ref,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureCodeownersPreview - Preview CODEOWNERS as Azure DevOps required-reviewer policies
+// POST /admin/integrations/azure/codeowners/preview
+func (c *Client) CreateAdminIntegrationsAzureCodeownersPreview(ctx context.Context, in CreateAdminIntegrationsAzureCodeownersPreviewInput) (*models.EndpointsAdminPostAzureCodeownersPreviewOutput, error) {
+	path := "/admin/integrations/azure/codeowners/preview"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		OrganizationID string `json:"organizationId"`
+		Path *string `json:"path,omitempty"`
+		ProjectID string `json:"projectId"`
+		Ref *string `json:"ref,omitempty"`
+		RepositoryID string `json:"repositoryId"`
+	}{
+		OrganizationID: in.OrganizationID,
+		Path: in.Path,
+		ProjectID: in.ProjectID,
+		Ref: in.Ref,
+		RepositoryID: in.RepositoryID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostAzureCodeownersPreviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsAzureConnectInput is the input for DeleteAdminIntegrationsAzureConnect — Disconnect an Azure DevOps organization.
+type DeleteAdminIntegrationsAzureConnectInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationID *string `url:"organizationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsAzureConnect - Disconnect an Azure DevOps organization
+// DELETE /admin/integrations/azure/connect
+func (c *Client) DeleteAdminIntegrationsAzureConnect(ctx context.Context, in DeleteAdminIntegrationsAzureConnectInput) (*models.EndpointsAdminDeleteAzureConnectOutput, error) {
+	path := "/admin/integrations/azure/connect"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.OrganizationID != nil {
+		query.Set("organizationId", string(*in.OrganizationID))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeleteAzureConnectOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureConnectInput is the input for CreateAdminIntegrationsAzureConnect — Start Azure DevOps connect.
+type CreateAdminIntegrationsAzureConnectInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AlsoEnableSignIn *bool `json:"alsoEnableSignIn,omitempty"`
+	EnableBuildGate *bool `json:"enableBuildGate,omitempty"`
+	EnableWorkItems *bool `json:"enableWorkItems,omitempty"`
+	OrganizationName *string `json:"organizationName,omitempty"`
+	ReauthorizeHandle *string `json:"reauthorizeHandle,omitempty"`
+	RequestAdminConsent *bool `json:"requestAdminConsent,omitempty"`
+	ReturnPath *string `json:"returnPath,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureConnect - Start Azure DevOps connect
+// POST /admin/integrations/azure/connect
+func (c *Client) CreateAdminIntegrationsAzureConnect(ctx context.Context, in CreateAdminIntegrationsAzureConnectInput) (*models.EndpointsAdminPostAzureConnectOutput, error) {
+	path := "/admin/integrations/azure/connect"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AlsoEnableSignIn *bool `json:"alsoEnableSignIn,omitempty"`
+		EnableBuildGate *bool `json:"enableBuildGate,omitempty"`
+		EnableWorkItems *bool `json:"enableWorkItems,omitempty"`
+		OrganizationName *string `json:"organizationName,omitempty"`
+		ReauthorizeHandle *string `json:"reauthorizeHandle,omitempty"`
+		RequestAdminConsent *bool `json:"requestAdminConsent,omitempty"`
+		ReturnPath *string `json:"returnPath,omitempty"`
+	}{
+		AlsoEnableSignIn: in.AlsoEnableSignIn,
+		EnableBuildGate: in.EnableBuildGate,
+		EnableWorkItems: in.EnableWorkItems,
+		OrganizationName: in.OrganizationName,
+		ReauthorizeHandle: in.ReauthorizeHandle,
+		RequestAdminConsent: in.RequestAdminConsent,
+		ReturnPath: in.ReturnPath,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostAzureConnectOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsAzureConnectHandleInput is the input for ListAdminIntegrationsAzureConnectHandle — Get Azure DevOps connect status.
+type ListAdminIntegrationsAzureConnectHandleInput struct {
+	Handle string `path:"handle" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsAzureConnectHandle - Get Azure DevOps connect status
+// GET /admin/integrations/azure/connect/{handle}
+func (c *Client) ListAdminIntegrationsAzureConnectHandle(ctx context.Context, in ListAdminIntegrationsAzureConnectHandleInput) (*models.EndpointsAdminGetAzureConnectStatusOutput, error) {
+	path := "/admin/integrations/azure/connect/{handle}"
+	path = strings.Replace(path, "{handle}", url.PathEscape(in.Handle), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetAzureConnectStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureConnectHandleConfirmInput is the input for CreateAdminIntegrationsAzureConnectHandleConfirm — Confirm Azure DevOps connect.
+type CreateAdminIntegrationsAzureConnectHandleConfirmInput struct {
+	Handle string `path:"handle" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationIds []string `json:"organizationIds,omitempty"`
+	Projects string `json:"projects"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureConnectHandleConfirm - Confirm Azure DevOps connect
+// POST /admin/integrations/azure/connect/{handle}/confirm
+func (c *Client) CreateAdminIntegrationsAzureConnectHandleConfirm(ctx context.Context, in CreateAdminIntegrationsAzureConnectHandleConfirmInput) (*models.EndpointsAdminPostAzureConnectConfirmOutput, error) {
+	path := "/admin/integrations/azure/connect/{handle}/confirm"
+	path = strings.Replace(path, "{handle}", url.PathEscape(in.Handle), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		OrganizationIds []string `json:"organizationIds,omitempty"`
+		Projects string `json:"projects"`
+	}{
+		OrganizationIds: in.OrganizationIds,
+		Projects: in.Projects,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostAzureConnectConfirmOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureConnectHandleRecheckInput is the input for CreateAdminIntegrationsAzureConnectHandleRecheck — Recheck Azure DevOps permissions.
+type CreateAdminIntegrationsAzureConnectHandleRecheckInput struct {
+	Handle string `path:"handle" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureConnectHandleRecheck - Recheck Azure DevOps permissions
+// POST /admin/integrations/azure/connect/{handle}/recheck
+func (c *Client) CreateAdminIntegrationsAzureConnectHandleRecheck(ctx context.Context, in CreateAdminIntegrationsAzureConnectHandleRecheckInput) (*models.EndpointsAdminGetAzureConnectStatusOutput, error) {
+	path := "/admin/integrations/azure/connect/{handle}/recheck"
+	path = strings.Replace(path, "{handle}", url.PathEscape(in.Handle), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetAzureConnectStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureConnectHandleRetryInput is the input for CreateAdminIntegrationsAzureConnectHandleRetry — Retry Azure DevOps connect.
+type CreateAdminIntegrationsAzureConnectHandleRetryInput struct {
+	Handle string `path:"handle" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationID string `json:"organizationId"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureConnectHandleRetry - Retry Azure DevOps connect
+// POST /admin/integrations/azure/connect/{handle}/retry
+func (c *Client) CreateAdminIntegrationsAzureConnectHandleRetry(ctx context.Context, in CreateAdminIntegrationsAzureConnectHandleRetryInput) (*models.EndpointsAdminPostAzureConnectRetryOutput, error) {
+	path := "/admin/integrations/azure/connect/{handle}/retry"
+	path = strings.Replace(path, "{handle}", url.PathEscape(in.Handle), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		OrganizationID string `json:"organizationId"`
+	}{
+		OrganizationID: in.OrganizationID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostAzureConnectRetryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminIntegrationsAzureCredentialsInput is the input for CreateAdminIntegrationsAzureCredentials — Set Azure Credentials.
 type CreateAdminIntegrationsAzureCredentialsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ClientID string `json:"clientId"`
 	ClientSecret *string `json:"clientSecret,omitempty"`
+	Organization *string `json:"organization,omitempty"`
+	ProjectName *string `json:"projectName,omitempty"`
 	TenantID string `json:"tenantId"`
+	WorkItemType *string `json:"workItemType,omitempty"`
 	models.RequestScope
 }
 
@@ -719,6 +2432,9 @@ func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, in
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -729,11 +2445,17 @@ func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, in
 	bodyBytes, err := json.Marshal(struct {
 		ClientID string `json:"clientId"`
 		ClientSecret *string `json:"clientSecret,omitempty"`
+		Organization *string `json:"organization,omitempty"`
+		ProjectName *string `json:"projectName,omitempty"`
 		TenantID string `json:"tenantId"`
+		WorkItemType *string `json:"workItemType,omitempty"`
 	}{
 		ClientID: in.ClientID,
 		ClientSecret: in.ClientSecret,
+		Organization: in.Organization,
+		ProjectName: in.ProjectName,
 		TenantID: in.TenantID,
+		WorkItemType: in.WorkItemType,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -749,8 +2471,230 @@ func (c *Client) CreateAdminIntegrationsAzureCredentials(ctx context.Context, in
 	return &out, nil
 }
 
+// DeleteAdminIntegrationsAzureInstallationsInput is the input for DeleteAdminIntegrationsAzureInstallations — Delete Azure DevOps webhook installation.
+type DeleteAdminIntegrationsAzureInstallationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationID *string `url:"organizationId,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsAzureInstallations - Delete Azure DevOps webhook installation
+// DELETE /admin/integrations/azure/installations
+func (c *Client) DeleteAdminIntegrationsAzureInstallations(ctx context.Context, in DeleteAdminIntegrationsAzureInstallationsInput) (*models.EndpointsAdminDeleteAzureInstallationOutput, error) {
+	path := "/admin/integrations/azure/installations"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.OrganizationID != nil {
+		query.Set("organizationId", string(*in.OrganizationID))
+	}
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeleteAzureInstallationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsAzureInstallationsInput is the input for ListAdminIntegrationsAzureInstallations — List Azure DevOps webhook installations.
+type ListAdminIntegrationsAzureInstallationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsAzureInstallations - List Azure DevOps webhook installations
+// GET /admin/integrations/azure/installations
+func (c *Client) ListAdminIntegrationsAzureInstallations(ctx context.Context, in ListAdminIntegrationsAzureInstallationsInput) (*models.EndpointsAdminListAzureInstallationsOutput, error) {
+	path := "/admin/integrations/azure/installations"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminListAzureInstallationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureInstallationsInput is the input for CreateAdminIntegrationsAzureInstallations — Register Azure DevOps webhook installation.
+type CreateAdminIntegrationsAzureInstallationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationID string `json:"organizationId"`
+	ProjectID string `json:"projectId"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureInstallations - Register Azure DevOps webhook installation
+// POST /admin/integrations/azure/installations
+func (c *Client) CreateAdminIntegrationsAzureInstallations(ctx context.Context, in CreateAdminIntegrationsAzureInstallationsInput) (*models.EndpointsAdminUpsertAzureInstallationOutput, error) {
+	path := "/admin/integrations/azure/installations"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		OrganizationID string `json:"organizationId"`
+		ProjectID string `json:"projectId"`
+	}{
+		OrganizationID: in.OrganizationID,
+		ProjectID: in.ProjectID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUpsertAzureInstallationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureInstallationsSuspendInput is the input for CreateAdminIntegrationsAzureInstallationsSuspend — Suspend or resume an Azure DevOps organization's installations.
+type CreateAdminIntegrationsAzureInstallationsSuspendInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationID string `json:"organizationId"`
+	Suspended bool `json:"suspended"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureInstallationsSuspend - Suspend or resume an Azure DevOps organization's installations
+// POST /admin/integrations/azure/installations/suspend
+func (c *Client) CreateAdminIntegrationsAzureInstallationsSuspend(ctx context.Context, in CreateAdminIntegrationsAzureInstallationsSuspendInput) (*models.EndpointsAdminSuspendAzureInstallationOutput, error) {
+	path := "/admin/integrations/azure/installations/suspend"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		OrganizationID string `json:"organizationId"`
+		Suspended bool `json:"suspended"`
+	}{
+		OrganizationID: in.OrganizationID,
+		Suspended: in.Suspended,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminSuspendAzureInstallationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsAzureInstallationsTestInput is the input for CreateAdminIntegrationsAzureInstallationsTest — Test an Azure DevOps organization's provisioning state.
+type CreateAdminIntegrationsAzureInstallationsTestInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	OrganizationID string `json:"organizationId"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsAzureInstallationsTest - Test an Azure DevOps organization's provisioning state
+// POST /admin/integrations/azure/installations/test
+func (c *Client) CreateAdminIntegrationsAzureInstallationsTest(ctx context.Context, in CreateAdminIntegrationsAzureInstallationsTestInput) (*models.EndpointsAdminTestAzureInstallationOutput, error) {
+	path := "/admin/integrations/azure/installations/test"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		OrganizationID string `json:"organizationId"`
+	}{
+		OrganizationID: in.OrganizationID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminTestAzureInstallationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // DeleteAdminIntegrationsBuildkiteInput is the input for DeleteAdminIntegrationsBuildkite — Delete Buildkite Integration.
 type DeleteAdminIntegrationsBuildkiteInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -762,6 +2706,9 @@ func (c *Client) DeleteAdminIntegrationsBuildkite(ctx context.Context, in Delete
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -783,6 +2730,7 @@ func (c *Client) DeleteAdminIntegrationsBuildkite(ctx context.Context, in Delete
 
 // ListAdminIntegrationsBuildkiteInput is the input for ListAdminIntegrationsBuildkite — Get Buildkite Integration Status.
 type ListAdminIntegrationsBuildkiteInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -794,6 +2742,9 @@ func (c *Client) ListAdminIntegrationsBuildkite(ctx context.Context, in ListAdmi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -813,10 +2764,56 @@ func (c *Client) ListAdminIntegrationsBuildkite(ctx context.Context, in ListAdmi
 	return &out, nil
 }
 
+// CreateAdminIntegrationsBuildkiteOrganizationsInput is the input for CreateAdminIntegrationsBuildkiteOrganizations — List Buildkite Organizations For Token.
+type CreateAdminIntegrationsBuildkiteOrganizationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ApiToken string `json:"apiToken"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsBuildkiteOrganizations - List Buildkite Organizations For Token
+// POST /admin/integrations/buildkite/organizations
+func (c *Client) CreateAdminIntegrationsBuildkiteOrganizations(ctx context.Context, in CreateAdminIntegrationsBuildkiteOrganizationsInput) (*models.EndpointsPostBuildkiteOrganizationsOutput, error) {
+	path := "/admin/integrations/buildkite/organizations"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ApiToken string `json:"apiToken"`
+	}{
+		ApiToken: in.ApiToken,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBuildkiteOrganizationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminIntegrationsBuildkiteTokenInput is the input for CreateAdminIntegrationsBuildkiteToken — Set Buildkite API Token.
 type CreateAdminIntegrationsBuildkiteTokenInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ApiToken string `json:"apiToken"`
-	OrgSlug string `json:"orgSlug"`
+	OrgSlug *string `json:"orgSlug,omitempty"`
 	models.RequestScope
 }
 
@@ -829,6 +2826,9 @@ func (c *Client) CreateAdminIntegrationsBuildkiteToken(ctx context.Context, in C
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -838,7 +2838,7 @@ func (c *Client) CreateAdminIntegrationsBuildkiteToken(ctx context.Context, in C
 
 	bodyBytes, err := json.Marshal(struct {
 		ApiToken string `json:"apiToken"`
-		OrgSlug string `json:"orgSlug"`
+		OrgSlug *string `json:"orgSlug,omitempty"`
 	}{
 		ApiToken: in.ApiToken,
 		OrgSlug: in.OrgSlug,
@@ -857,8 +2857,45 @@ func (c *Client) CreateAdminIntegrationsBuildkiteToken(ctx context.Context, in C
 	return &out, nil
 }
 
+// ListAdminIntegrationsCatalogInput is the input for ListAdminIntegrationsCatalog — Get Integrations Catalog.
+type ListAdminIntegrationsCatalogInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsCatalog - Get Integrations Catalog
+// GET /admin/integrations/catalog
+func (c *Client) ListAdminIntegrationsCatalog(ctx context.Context, in ListAdminIntegrationsCatalogInput) (*models.EndpointsAdminGetIntegrationsCatalogOutput, error) {
+	path := "/admin/integrations/catalog"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetIntegrationsCatalogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // DeleteAdminIntegrationsCircleciInput is the input for DeleteAdminIntegrationsCircleci — Delete CircleCI Integration.
 type DeleteAdminIntegrationsCircleciInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -870,6 +2907,9 @@ func (c *Client) DeleteAdminIntegrationsCircleci(ctx context.Context, in DeleteA
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -891,6 +2931,7 @@ func (c *Client) DeleteAdminIntegrationsCircleci(ctx context.Context, in DeleteA
 
 // ListAdminIntegrationsCircleciInput is the input for ListAdminIntegrationsCircleci — Get CircleCI Integration Status.
 type ListAdminIntegrationsCircleciInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -902,6 +2943,9 @@ func (c *Client) ListAdminIntegrationsCircleci(ctx context.Context, in ListAdmin
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -923,6 +2967,7 @@ func (c *Client) ListAdminIntegrationsCircleci(ctx context.Context, in ListAdmin
 
 // CreateAdminIntegrationsCircleciTokenInput is the input for CreateAdminIntegrationsCircleciToken — Set CircleCI API Token.
 type CreateAdminIntegrationsCircleciTokenInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ApiToken string `json:"apiToken"`
 	models.RequestScope
 }
@@ -935,6 +2980,9 @@ func (c *Client) CreateAdminIntegrationsCircleciToken(ctx context.Context, in Cr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -964,6 +3012,7 @@ func (c *Client) CreateAdminIntegrationsCircleciToken(ctx context.Context, in Cr
 
 // DeleteAdminIntegrationsCloudAwsSettingsInput is the input for DeleteAdminIntegrationsCloudAwsSettings — Delete Cloud AWS Settings.
 type DeleteAdminIntegrationsCloudAwsSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -975,6 +3024,9 @@ func (c *Client) DeleteAdminIntegrationsCloudAwsSettings(ctx context.Context, in
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -996,6 +3048,7 @@ func (c *Client) DeleteAdminIntegrationsCloudAwsSettings(ctx context.Context, in
 
 // ListAdminIntegrationsCloudAwsSettingsInput is the input for ListAdminIntegrationsCloudAwsSettings — Get Cloud AWS Settings.
 type ListAdminIntegrationsCloudAwsSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1007,6 +3060,9 @@ func (c *Client) ListAdminIntegrationsCloudAwsSettings(ctx context.Context, in L
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1028,6 +3084,7 @@ func (c *Client) ListAdminIntegrationsCloudAwsSettings(ctx context.Context, in L
 
 // CreateAdminIntegrationsCloudAwsSettingsInput is the input for CreateAdminIntegrationsCloudAwsSettings — Upsert Cloud AWS Settings.
 type CreateAdminIntegrationsCloudAwsSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AwsAccounts []models.ModelsAWSAccount `json:"awsAccounts,omitempty"`
 	ExternalID *string `json:"externalId,omitempty"`
 	IamRoleName string `json:"iamRoleName"`
@@ -1043,6 +3100,9 @@ func (c *Client) CreateAdminIntegrationsCloudAwsSettings(ctx context.Context, in
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1078,6 +3138,7 @@ func (c *Client) CreateAdminIntegrationsCloudAwsSettings(ctx context.Context, in
 
 // CreateAdminIntegrationsCloudAwsValidateRoleInput is the input for CreateAdminIntegrationsCloudAwsValidateRole — Validate AWS Role.
 type CreateAdminIntegrationsCloudAwsValidateRoleInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AccountIds []string `json:"accountIds,omitempty"`
 	Onboarding *bool `json:"onboarding,omitempty"`
 	RoleNameToAssume *string `json:"roleNameToAssume,omitempty"`
@@ -1092,6 +3153,9 @@ func (c *Client) CreateAdminIntegrationsCloudAwsValidateRole(ctx context.Context
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1125,6 +3189,7 @@ func (c *Client) CreateAdminIntegrationsCloudAwsValidateRole(ctx context.Context
 
 // DeleteAdminIntegrationsCloudAzureSettingsInput is the input for DeleteAdminIntegrationsCloudAzureSettings — Delete Cloud Azure Settings.
 type DeleteAdminIntegrationsCloudAzureSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1136,6 +3201,9 @@ func (c *Client) DeleteAdminIntegrationsCloudAzureSettings(ctx context.Context, 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1157,6 +3225,7 @@ func (c *Client) DeleteAdminIntegrationsCloudAzureSettings(ctx context.Context, 
 
 // ListAdminIntegrationsCloudAzureSettingsInput is the input for ListAdminIntegrationsCloudAzureSettings — Get Cloud Azure Settings.
 type ListAdminIntegrationsCloudAzureSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1168,6 +3237,9 @@ func (c *Client) ListAdminIntegrationsCloudAzureSettings(ctx context.Context, in
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1189,12 +3261,13 @@ func (c *Client) ListAdminIntegrationsCloudAzureSettings(ctx context.Context, in
 
 // CreateAdminIntegrationsCloudAzureSettingsInput is the input for CreateAdminIntegrationsCloudAzureSettings — Upsert Cloud Azure Settings.
 type CreateAdminIntegrationsCloudAzureSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AuthMode string `json:"authMode"`
 	ClientID *string `json:"clientId,omitempty"`
 	ClientSecret *string `json:"clientSecret,omitempty"`
 	DisplayName *string `json:"displayName,omitempty"`
 	Subscriptions []models.ModelsAzureSubscriptionInput `json:"subscriptions,omitempty"`
 	TenantID string `json:"tenantId"`
-	UseManagedIdentity *bool `json:"useManagedIdentity,omitempty"`
 	models.RequestScope
 }
 
@@ -1207,6 +3280,9 @@ func (c *Client) CreateAdminIntegrationsCloudAzureSettings(ctx context.Context, 
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1215,19 +3291,19 @@ func (c *Client) CreateAdminIntegrationsCloudAzureSettings(ctx context.Context, 
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		AuthMode string `json:"authMode"`
 		ClientID *string `json:"clientId,omitempty"`
 		ClientSecret *string `json:"clientSecret,omitempty"`
 		DisplayName *string `json:"displayName,omitempty"`
 		Subscriptions []models.ModelsAzureSubscriptionInput `json:"subscriptions,omitempty"`
 		TenantID string `json:"tenantId"`
-		UseManagedIdentity *bool `json:"useManagedIdentity,omitempty"`
 	}{
+		AuthMode: in.AuthMode,
 		ClientID: in.ClientID,
 		ClientSecret: in.ClientSecret,
 		DisplayName: in.DisplayName,
 		Subscriptions: in.Subscriptions,
 		TenantID: in.TenantID,
-		UseManagedIdentity: in.UseManagedIdentity,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -1243,8 +3319,90 @@ func (c *Client) CreateAdminIntegrationsCloudAzureSettings(ctx context.Context, 
 	return &out, nil
 }
 
+// CreateAdminIntegrationsCloudAzureValidateInput is the input for CreateAdminIntegrationsCloudAzureValidate — Validate Azure Credentials.
+type CreateAdminIntegrationsCloudAzureValidateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	SubscriptionIds []string `json:"subscriptionIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsCloudAzureValidate - Validate Azure Credentials
+// POST /admin/integrations/cloud/azure/validate
+func (c *Client) CreateAdminIntegrationsCloudAzureValidate(ctx context.Context, in CreateAdminIntegrationsCloudAzureValidateInput) (*models.EndpointsAdminValidateAzureOutput, error) {
+	path := "/admin/integrations/cloud/azure/validate"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		SubscriptionIds []string `json:"subscriptionIds,omitempty"`
+	}{
+		SubscriptionIds: in.SubscriptionIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminValidateAzureOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudGcpAccessTokenInput is the input for CreateAdminIntegrationsCloudGcpAccessToken — Mint GCP Access Token.
+type CreateAdminIntegrationsCloudGcpAccessTokenInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsCloudGcpAccessToken - Mint GCP Access Token
+// POST /admin/integrations/cloud/gcp/access-token
+func (c *Client) CreateAdminIntegrationsCloudGcpAccessToken(ctx context.Context, in CreateAdminIntegrationsCloudGcpAccessTokenInput) (*models.EndpointsAdminMintGCPAccessTokenOutput, error) {
+	path := "/admin/integrations/cloud/gcp/access-token"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminMintGCPAccessTokenOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // DeleteAdminIntegrationsCloudGcpSettingsInput is the input for DeleteAdminIntegrationsCloudGcpSettings — Delete Cloud GCP Settings.
 type DeleteAdminIntegrationsCloudGcpSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1256,6 +3414,9 @@ func (c *Client) DeleteAdminIntegrationsCloudGcpSettings(ctx context.Context, in
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1277,6 +3438,7 @@ func (c *Client) DeleteAdminIntegrationsCloudGcpSettings(ctx context.Context, in
 
 // ListAdminIntegrationsCloudGcpSettingsInput is the input for ListAdminIntegrationsCloudGcpSettings — Get Cloud GCP Settings.
 type ListAdminIntegrationsCloudGcpSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1288,6 +3450,9 @@ func (c *Client) ListAdminIntegrationsCloudGcpSettings(ctx context.Context, in L
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1309,9 +3474,13 @@ func (c *Client) ListAdminIntegrationsCloudGcpSettings(ctx context.Context, in L
 
 // CreateAdminIntegrationsCloudGcpSettingsInput is the input for CreateAdminIntegrationsCloudGcpSettings — Upsert Cloud GCP Settings.
 type CreateAdminIntegrationsCloudGcpSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DiscoveryScope *string `json:"discoveryScope,omitempty"`
 	DisplayName *string `json:"displayName,omitempty"`
+	FolderID *string `json:"folderId,omitempty"`
 	GkeClusterOidcIssuerUrls []string `json:"gkeClusterOidcIssuerUrls,omitempty"`
 	GkeServiceAccountUniqueID *string `json:"gkeServiceAccountUniqueId,omitempty"`
+	OrganizationID *string `json:"organizationId,omitempty"`
 	Projects []models.ModelsGCPProjectInput `json:"projects,omitempty"`
 	WorkloadIdentityProvider string `json:"workloadIdentityProvider"`
 	WorkloadIdentityServiceAccountEmail string `json:"workloadIdentityServiceAccountEmail"`
@@ -1327,6 +3496,9 @@ func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, in
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1335,16 +3507,22 @@ func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, in
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		DiscoveryScope *string `json:"discoveryScope,omitempty"`
 		DisplayName *string `json:"displayName,omitempty"`
+		FolderID *string `json:"folderId,omitempty"`
 		GkeClusterOidcIssuerUrls []string `json:"gkeClusterOidcIssuerUrls,omitempty"`
 		GkeServiceAccountUniqueID *string `json:"gkeServiceAccountUniqueId,omitempty"`
+		OrganizationID *string `json:"organizationId,omitempty"`
 		Projects []models.ModelsGCPProjectInput `json:"projects,omitempty"`
 		WorkloadIdentityProvider string `json:"workloadIdentityProvider"`
 		WorkloadIdentityServiceAccountEmail string `json:"workloadIdentityServiceAccountEmail"`
 	}{
+		DiscoveryScope: in.DiscoveryScope,
 		DisplayName: in.DisplayName,
+		FolderID: in.FolderID,
 		GkeClusterOidcIssuerUrls: in.GkeClusterOidcIssuerUrls,
 		GkeServiceAccountUniqueID: in.GkeServiceAccountUniqueID,
+		OrganizationID: in.OrganizationID,
 		Projects: in.Projects,
 		WorkloadIdentityProvider: in.WorkloadIdentityProvider,
 		WorkloadIdentityServiceAccountEmail: in.WorkloadIdentityServiceAccountEmail,
@@ -1363,8 +3541,45 @@ func (c *Client) CreateAdminIntegrationsCloudGcpSettings(ctx context.Context, in
 	return &out, nil
 }
 
+// ListAdminIntegrationsCloudGcpSetupInput is the input for ListAdminIntegrationsCloudGcpSetup — Get Cloud GCP Setup.
+type ListAdminIntegrationsCloudGcpSetupInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsCloudGcpSetup - Get Cloud GCP Setup
+// GET /admin/integrations/cloud/gcp/setup
+func (c *Client) ListAdminIntegrationsCloudGcpSetup(ctx context.Context, in ListAdminIntegrationsCloudGcpSetupInput) (*models.EndpointsAdminGetGCPSetupOutput, error) {
+	path := "/admin/integrations/cloud/gcp/setup"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetGCPSetupOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminIntegrationsCloudGcpValidateInput is the input for CreateAdminIntegrationsCloudGcpValidate — Validate GCP Credentials.
 type CreateAdminIntegrationsCloudGcpValidateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ProjectIds []string `json:"projectIds,omitempty"`
 	models.RequestScope
 }
@@ -1377,6 +3592,9 @@ func (c *Client) CreateAdminIntegrationsCloudGcpValidate(ctx context.Context, in
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1404,9 +3622,272 @@ func (c *Client) CreateAdminIntegrationsCloudGcpValidate(ctx context.Context, in
 	return &out, nil
 }
 
+// CreateAdminIntegrationsCloudK8sClustersInput is the input for CreateAdminIntegrationsCloudK8sClusters — Add or Update a K8s Cluster.
+type CreateAdminIntegrationsCloudK8sClustersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	CloudAccountID *string `json:"cloudAccountId,omitempty"`
+	ClusterName string `json:"clusterName"`
+	ClusterType string `json:"clusterType"`
+	CollectConfigMaps *bool `json:"collectConfigMaps,omitempty"`
+	CollectSecrets *bool `json:"collectSecrets,omitempty"`
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	Region *string `json:"region,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsCloudK8sClusters - Add or Update a K8s Cluster
+// POST /admin/integrations/cloud/k8s/clusters
+func (c *Client) CreateAdminIntegrationsCloudK8sClusters(ctx context.Context, in CreateAdminIntegrationsCloudK8sClustersInput) (*models.EndpointsAdminUpsertK8SClusterOutput, error) {
+	path := "/admin/integrations/cloud/k8s/clusters"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		CloudAccountID *string `json:"cloudAccountId,omitempty"`
+		ClusterName string `json:"clusterName"`
+		ClusterType string `json:"clusterType"`
+		CollectConfigMaps *bool `json:"collectConfigMaps,omitempty"`
+		CollectSecrets *bool `json:"collectSecrets,omitempty"`
+		IsEnabled *bool `json:"isEnabled,omitempty"`
+		Region *string `json:"region,omitempty"`
+		ResourceID *string `json:"resourceId,omitempty"`
+	}{
+		CloudAccountID: in.CloudAccountID,
+		ClusterName: in.ClusterName,
+		ClusterType: in.ClusterType,
+		CollectConfigMaps: in.CollectConfigMaps,
+		CollectSecrets: in.CollectSecrets,
+		IsEnabled: in.IsEnabled,
+		Region: in.Region,
+		ResourceID: in.ResourceID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUpsertK8SClusterOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsCloudK8sClustersClusterIdInput is the input for DeleteAdminIntegrationsCloudK8sClustersClusterId — Remove a K8s Cluster.
+type DeleteAdminIntegrationsCloudK8sClustersClusterIdInput struct {
+	ClusterID string `path:"clusterId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsCloudK8sClustersClusterId - Remove a K8s Cluster
+// DELETE /admin/integrations/cloud/k8s/clusters/{clusterId}
+func (c *Client) DeleteAdminIntegrationsCloudK8sClustersClusterId(ctx context.Context, in DeleteAdminIntegrationsCloudK8sClustersClusterIdInput) (*models.EndpointsAdminDeleteK8SClusterOutput, error) {
+	path := "/admin/integrations/cloud/k8s/clusters/{clusterId}"
+	path = strings.Replace(path, "{clusterId}", url.PathEscape(in.ClusterID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeleteK8SClusterOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsCloudK8sSettingsInput is the input for DeleteAdminIntegrationsCloudK8sSettings — Delete Cloud K8s Settings.
+type DeleteAdminIntegrationsCloudK8sSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsCloudK8sSettings - Delete Cloud K8s Settings
+// DELETE /admin/integrations/cloud/k8s/settings
+func (c *Client) DeleteAdminIntegrationsCloudK8sSettings(ctx context.Context, in DeleteAdminIntegrationsCloudK8sSettingsInput) (*models.EndpointsAdminDeleteK8SSettingsOutput, error) {
+	path := "/admin/integrations/cloud/k8s/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeleteK8SSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsCloudK8sSettingsInput is the input for ListAdminIntegrationsCloudK8sSettings — Get Cloud K8s Settings.
+type ListAdminIntegrationsCloudK8sSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsCloudK8sSettings - Get Cloud K8s Settings
+// GET /admin/integrations/cloud/k8s/settings
+func (c *Client) ListAdminIntegrationsCloudK8sSettings(ctx context.Context, in ListAdminIntegrationsCloudK8sSettingsInput) (*models.EndpointsAdminGetK8SSettingsOutput, error) {
+	path := "/admin/integrations/cloud/k8s/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetK8SSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsCloudK8sSettingsInput is the input for CreateAdminIntegrationsCloudK8sSettings — Upsert Cloud K8s Settings.
+type CreateAdminIntegrationsCloudK8sSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Clusters []models.ModelsK8SClusterInput `json:"clusters,omitempty"`
+	NullifyRoleArn *string `json:"nullifyRoleArn,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsCloudK8sSettings - Upsert Cloud K8s Settings
+// POST /admin/integrations/cloud/k8s/settings
+func (c *Client) CreateAdminIntegrationsCloudK8sSettings(ctx context.Context, in CreateAdminIntegrationsCloudK8sSettingsInput) (*models.EndpointsAdminUpsertK8SSettingsOutput, error) {
+	path := "/admin/integrations/cloud/k8s/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Clusters []models.ModelsK8SClusterInput `json:"clusters,omitempty"`
+		NullifyRoleArn *string `json:"nullifyRoleArn,omitempty"`
+	}{
+		Clusters: in.Clusters,
+		NullifyRoleArn: in.NullifyRoleArn,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminUpsertK8SSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsCloudK8sWhitelistInput is the input for ListAdminIntegrationsCloudK8sWhitelist — Read collector account access.
+type ListAdminIntegrationsCloudK8sWhitelistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsCloudK8sWhitelist - Read collector account access
+// GET /admin/integrations/cloud/k8s/whitelist
+func (c *Client) ListAdminIntegrationsCloudK8sWhitelist(ctx context.Context, in ListAdminIntegrationsCloudK8sWhitelistInput) (*models.EndpointsAdminGetK8SCollectorAccountsOutput, error) {
+	path := "/admin/integrations/cloud/k8s/whitelist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetK8SCollectorAccountsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminIntegrationsCloudK8sWhitelistInput is the input for CreateAdminIntegrationsCloudK8sWhitelist — Whitelist K8s Connector Accounts.
 type CreateAdminIntegrationsCloudK8sWhitelistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AccountIds []string `json:"accountIds,omitempty"`
+	ExpectedRevision *int `json:"expectedRevision,omitempty"`
+	ExpectedStateID *string `json:"expectedStateId,omitempty"`
 	models.RequestScope
 }
 
@@ -1419,6 +3900,9 @@ func (c *Client) CreateAdminIntegrationsCloudK8sWhitelist(ctx context.Context, i
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1428,8 +3912,12 @@ func (c *Client) CreateAdminIntegrationsCloudK8sWhitelist(ctx context.Context, i
 
 	bodyBytes, err := json.Marshal(struct {
 		AccountIds []string `json:"accountIds,omitempty"`
+		ExpectedRevision *int `json:"expectedRevision,omitempty"`
+		ExpectedStateID *string `json:"expectedStateId,omitempty"`
 	}{
 		AccountIds: in.AccountIds,
+		ExpectedRevision: in.ExpectedRevision,
+		ExpectedStateID: in.ExpectedStateID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -1445,8 +3933,220 @@ func (c *Client) CreateAdminIntegrationsCloudK8sWhitelist(ctx context.Context, i
 	return &out, nil
 }
 
+// ListAdminIntegrationsConnectionsInput is the input for ListAdminIntegrationsConnections — List Integration Connections.
+type ListAdminIntegrationsConnectionsInput struct {
+	Capability *string `url:"capability,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsConnections - List Integration Connections
+// GET /admin/integrations/connections
+func (c *Client) ListAdminIntegrationsConnections(ctx context.Context, in ListAdminIntegrationsConnectionsInput) (*models.EndpointsAdminListIntegrationConnectionsOutput, error) {
+	path := "/admin/integrations/connections"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Capability != nil {
+		query.Set("capability", string(*in.Capability))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminListIntegrationConnectionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsConnectionsConnectionIdInput is the input for DeleteAdminIntegrationsConnectionsConnectionId — Disconnect Integration Connection.
+type DeleteAdminIntegrationsConnectionsConnectionIdInput struct {
+	ConnectionID string `path:"connectionId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsConnectionsConnectionId - Disconnect Integration Connection
+// DELETE /admin/integrations/connections/{connectionId}
+func (c *Client) DeleteAdminIntegrationsConnectionsConnectionId(ctx context.Context, in DeleteAdminIntegrationsConnectionsConnectionIdInput) (*models.EndpointsAdminDisconnectIntegrationConnectionOutput, error) {
+	path := "/admin/integrations/connections/{connectionId}"
+	path = strings.Replace(path, "{connectionId}", url.PathEscape(in.ConnectionID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDisconnectIntegrationConnectionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminIntegrationsConnectionsConnectionIdRotateInput is the input for UpdateAdminIntegrationsConnectionsConnectionIdRotate — Rotate Integration Connection.
+type UpdateAdminIntegrationsConnectionsConnectionIdRotateInput struct {
+	ConnectionID string `path:"connectionId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ExpectedAuthorityRevision *int `json:"expectedAuthorityRevision,omitempty"`
+	Fields map[string]string `json:"fields,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminIntegrationsConnectionsConnectionIdRotate - Rotate Integration Connection
+// PUT /admin/integrations/connections/{connectionId}/rotate
+func (c *Client) UpdateAdminIntegrationsConnectionsConnectionIdRotate(ctx context.Context, in UpdateAdminIntegrationsConnectionsConnectionIdRotateInput) (*models.EndpointsAdminRotateIntegrationConnectionOutput, error) {
+	path := "/admin/integrations/connections/{connectionId}/rotate"
+	path = strings.Replace(path, "{connectionId}", url.PathEscape(in.ConnectionID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ExpectedAuthorityRevision *int `json:"expectedAuthorityRevision,omitempty"`
+		Fields map[string]string `json:"fields,omitempty"`
+	}{
+		ExpectedAuthorityRevision: in.ExpectedAuthorityRevision,
+		Fields: in.Fields,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminRotateIntegrationConnectionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsConnectionsConnectionIdTestInput is the input for CreateAdminIntegrationsConnectionsConnectionIdTest — Test Integration Connection.
+type CreateAdminIntegrationsConnectionsConnectionIdTestInput struct {
+	ConnectionID string `path:"connectionId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsConnectionsConnectionIdTest - Test Integration Connection
+// POST /admin/integrations/connections/{connectionId}/test
+func (c *Client) CreateAdminIntegrationsConnectionsConnectionIdTest(ctx context.Context, in CreateAdminIntegrationsConnectionsConnectionIdTestInput) (*models.EndpointsAdminTestIntegrationConnectionOutput, error) {
+	path := "/admin/integrations/connections/{connectionId}/test"
+	path = strings.Replace(path, "{connectionId}", url.PathEscape(in.ConnectionID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminTestIntegrationConnectionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsGithubPackagesDiscoverInput is the input for CreateAdminIntegrationsGithubPackagesDiscover — Discover GitHub Packages Identity.
+type CreateAdminIntegrationsGithubPackagesDiscoverInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Token string `json:"token"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsGithubPackagesDiscover - Discover GitHub Packages Identity
+// POST /admin/integrations/github-packages/discover
+func (c *Client) CreateAdminIntegrationsGithubPackagesDiscover(ctx context.Context, in CreateAdminIntegrationsGithubPackagesDiscoverInput) (*models.EndpointsAdminDiscoverGitHubPackagesCredentialOutput, error) {
+	path := "/admin/integrations/github-packages/discover"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Token string `json:"token"`
+	}{
+		Token: in.Token,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDiscoverGitHubPackagesCredentialOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminIntegrationsGithubAppSettingsInput is the input for ListAdminIntegrationsGithubAppSettings — Get GitHub App Settings.
 type ListAdminIntegrationsGithubAppSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1458,6 +4158,9 @@ func (c *Client) ListAdminIntegrationsGithubAppSettings(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1477,8 +4180,130 @@ func (c *Client) ListAdminIntegrationsGithubAppSettings(ctx context.Context, in 
 	return &out, nil
 }
 
+// CreateAdminIntegrationsGitlabConnectInput is the input for CreateAdminIntegrationsGitlabConnect — Connect GitLab.
+type CreateAdminIntegrationsGitlabConnectInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsGitlabConnect - Connect GitLab
+// POST /admin/integrations/gitlab/connect
+func (c *Client) CreateAdminIntegrationsGitlabConnect(ctx context.Context, in CreateAdminIntegrationsGitlabConnectInput) (*models.EndpointsAdminGitLabConnectOutput, error) {
+	path := "/admin/integrations/gitlab/connect"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGitLabConnectOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsGitlabConnectConfirmInput is the input for CreateAdminIntegrationsGitlabConnectConfirm — Finish GitLab connection.
+type CreateAdminIntegrationsGitlabConnectConfirmInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Handle string `json:"handle"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsGitlabConnectConfirm - Finish GitLab connection
+// POST /admin/integrations/gitlab/connect/confirm
+func (c *Client) CreateAdminIntegrationsGitlabConnectConfirm(ctx context.Context, in CreateAdminIntegrationsGitlabConnectConfirmInput) (*models.EndpointsAdminGitLabConnectStatusOutput, error) {
+	path := "/admin/integrations/gitlab/connect/confirm"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Handle string `json:"handle"`
+	}{
+		Handle: in.Handle,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGitLabConnectStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsGitlabConnectStatusInput is the input for ListAdminIntegrationsGitlabConnectStatus — GitLab connection status.
+type ListAdminIntegrationsGitlabConnectStatusInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Handle *string `url:"handle,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsGitlabConnectStatus - GitLab connection status
+// GET /admin/integrations/gitlab/connect/status
+func (c *Client) ListAdminIntegrationsGitlabConnectStatus(ctx context.Context, in ListAdminIntegrationsGitlabConnectStatusInput) (*models.EndpointsAdminGitLabConnectStatusOutput, error) {
+	path := "/admin/integrations/gitlab/connect/status"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Handle != nil {
+		query.Set("handle", string(*in.Handle))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGitLabConnectStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // DeleteAdminIntegrationsJenkinsInput is the input for DeleteAdminIntegrationsJenkins — Delete Jenkins Integration.
 type DeleteAdminIntegrationsJenkinsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1490,6 +4315,9 @@ func (c *Client) DeleteAdminIntegrationsJenkins(ctx context.Context, in DeleteAd
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1511,6 +4339,7 @@ func (c *Client) DeleteAdminIntegrationsJenkins(ctx context.Context, in DeleteAd
 
 // ListAdminIntegrationsJenkinsInput is the input for ListAdminIntegrationsJenkins — Get Jenkins Integration Status.
 type ListAdminIntegrationsJenkinsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1522,6 +4351,9 @@ func (c *Client) ListAdminIntegrationsJenkins(ctx context.Context, in ListAdminI
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1543,6 +4375,7 @@ func (c *Client) ListAdminIntegrationsJenkins(ctx context.Context, in ListAdminI
 
 // CreateAdminIntegrationsJenkinsTokenInput is the input for CreateAdminIntegrationsJenkinsToken — Set Jenkins API Token.
 type CreateAdminIntegrationsJenkinsTokenInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ApiToken string `json:"apiToken"`
 	URL string `json:"url"`
 	Username string `json:"username"`
@@ -1557,6 +4390,9 @@ func (c *Client) CreateAdminIntegrationsJenkinsToken(ctx context.Context, in Cre
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1590,6 +4426,7 @@ func (c *Client) CreateAdminIntegrationsJenkinsToken(ctx context.Context, in Cre
 
 // ListAdminIntegrationsJiraInput is the input for ListAdminIntegrationsJira — Get Jira Configuration.
 type ListAdminIntegrationsJiraInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1601,6 +4438,9 @@ func (c *Client) ListAdminIntegrationsJira(ctx context.Context, in ListAdminInte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1622,10 +4462,13 @@ func (c *Client) ListAdminIntegrationsJira(ctx context.Context, in ListAdminInte
 
 // CreateAdminIntegrationsJiraInput is the input for CreateAdminIntegrationsJira — Update Jira Configuration.
 type CreateAdminIntegrationsJiraInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AutoCreate bool `json:"autoCreate"`
+	DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+	EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
 	IssueType string `json:"issueType"`
+	PriorityThreshold string `json:"priorityThreshold"`
 	ProjectKey string `json:"projectKey"`
-	SeverityThreshold string `json:"severityThreshold"`
 	models.RequestScope
 }
 
@@ -1638,6 +4481,9 @@ func (c *Client) CreateAdminIntegrationsJira(ctx context.Context, in CreateAdmin
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1647,14 +4493,18 @@ func (c *Client) CreateAdminIntegrationsJira(ctx context.Context, in CreateAdmin
 
 	bodyBytes, err := json.Marshal(struct {
 		AutoCreate bool `json:"autoCreate"`
+		DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+		EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
 		IssueType string `json:"issueType"`
+		PriorityThreshold string `json:"priorityThreshold"`
 		ProjectKey string `json:"projectKey"`
-		SeverityThreshold string `json:"severityThreshold"`
 	}{
 		AutoCreate: in.AutoCreate,
+		DefaultAssigneeID: in.DefaultAssigneeID,
+		EnabledFindingTypes: in.EnabledFindingTypes,
 		IssueType: in.IssueType,
+		PriorityThreshold: in.PriorityThreshold,
 		ProjectKey: in.ProjectKey,
-		SeverityThreshold: in.SeverityThreshold,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -1670,8 +4520,121 @@ func (c *Client) CreateAdminIntegrationsJira(ctx context.Context, in CreateAdmin
 	return &out, nil
 }
 
+// ListAdminIntegrationsJiraForgeInput is the input for ListAdminIntegrationsJiraForge — Get Jira Forge connection status.
+type ListAdminIntegrationsJiraForgeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsJiraForge - Get Jira Forge connection status
+// GET /admin/integrations/jira/forge
+func (c *Client) ListAdminIntegrationsJiraForge(ctx context.Context, in ListAdminIntegrationsJiraForgeInput) (*models.EndpointsGetJiraForgeStatusOutput, error) {
+	path := "/admin/integrations/jira/forge"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetJiraForgeStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsJiraInstallInput is the input for ListAdminIntegrationsJiraInstall — Start Jira Forge OAuth connect.
+type ListAdminIntegrationsJiraInstallInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	SiteURL *string `url:"siteUrl,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsJiraInstall - Start Jira Forge OAuth connect
+// GET /admin/integrations/jira/install
+func (c *Client) ListAdminIntegrationsJiraInstall(ctx context.Context, in ListAdminIntegrationsJiraInstallInput) (*models.EndpointsGetJiraInstallOutput, error) {
+	path := "/admin/integrations/jira/install"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.SiteURL != nil {
+		query.Set("siteUrl", string(*in.SiteURL))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetJiraInstallOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsLinearInput is the input for ListAdminIntegrationsLinear — Get Linear Configuration.
+type ListAdminIntegrationsLinearInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsLinear - Get Linear Configuration
+// GET /admin/integrations/linear
+func (c *Client) ListAdminIntegrationsLinear(ctx context.Context, in ListAdminIntegrationsLinearInput) (*models.EndpointsAdminGetLinearConfigOutput, error) {
+	path := "/admin/integrations/linear"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetLinearConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminIntegrationsLinearInstallInput is the input for ListAdminIntegrationsLinearInstall — Start Linear OAuth install.
 type ListAdminIntegrationsLinearInstallInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1683,6 +4646,9 @@ func (c *Client) ListAdminIntegrationsLinearInstall(ctx context.Context, in List
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1702,8 +4668,53 @@ func (c *Client) ListAdminIntegrationsLinearInstall(ctx context.Context, in List
 	return &out, nil
 }
 
+// ListAdminIntegrationsLinearMembersInput is the input for ListAdminIntegrationsLinearMembers — List Linear Team Members.
+type ListAdminIntegrationsLinearMembersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	TeamID *string `url:"teamId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsLinearMembers - List Linear Team Members
+// GET /admin/integrations/linear/members
+func (c *Client) ListAdminIntegrationsLinearMembers(ctx context.Context, in ListAdminIntegrationsLinearMembersInput) (*models.EndpointsAdminGetLinearMembersOutput, error) {
+	path := "/admin/integrations/linear/members"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.TeamID != nil {
+		query.Set("teamId", string(*in.TeamID))
+	}
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetLinearMembersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminIntegrationsLinearOauthInput is the input for ListAdminIntegrationsLinearOauth — Get Linear OAuth install status.
 type ListAdminIntegrationsLinearOauthInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1715,6 +4726,9 @@ func (c *Client) ListAdminIntegrationsLinearOauth(ctx context.Context, in ListAd
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1734,8 +4748,102 @@ func (c *Client) ListAdminIntegrationsLinearOauth(ctx context.Context, in ListAd
 	return &out, nil
 }
 
+// ListAdminIntegrationsLinearTeamsInput is the input for ListAdminIntegrationsLinearTeams — List Linear Teams.
+type ListAdminIntegrationsLinearTeamsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsLinearTeams - List Linear Teams
+// GET /admin/integrations/linear/teams
+func (c *Client) ListAdminIntegrationsLinearTeams(ctx context.Context, in ListAdminIntegrationsLinearTeamsInput) (*models.EndpointsAdminGetLinearTeamsOutput, error) {
+	path := "/admin/integrations/linear/teams"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetLinearTeamsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsLinearTicketConfigInput is the input for CreateAdminIntegrationsLinearTicketConfig — Set Linear Ticket Configuration.
+type CreateAdminIntegrationsLinearTicketConfigInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AutoCreate *bool `json:"autoCreate,omitempty"`
+	DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+	EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
+	PriorityThreshold *string `json:"priorityThreshold,omitempty"`
+	TeamID string `json:"teamId"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsLinearTicketConfig - Set Linear Ticket Configuration
+// POST /admin/integrations/linear/ticket-config
+func (c *Client) CreateAdminIntegrationsLinearTicketConfig(ctx context.Context, in CreateAdminIntegrationsLinearTicketConfigInput) (*models.EndpointsAdminPostLinearTicketConfigOutput, error) {
+	path := "/admin/integrations/linear/ticket-config"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AutoCreate *bool `json:"autoCreate,omitempty"`
+		DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+		EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
+		PriorityThreshold *string `json:"priorityThreshold,omitempty"`
+		TeamID string `json:"teamId"`
+	}{
+		AutoCreate: in.AutoCreate,
+		DefaultAssigneeID: in.DefaultAssigneeID,
+		EnabledFindingTypes: in.EnabledFindingTypes,
+		PriorityThreshold: in.PriorityThreshold,
+		TeamID: in.TeamID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPostLinearTicketConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminIntegrationsNotificationsInput is the input for ListAdminIntegrationsNotifications — Get Notification Config.
 type ListAdminIntegrationsNotificationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1747,6 +4855,9 @@ func (c *Client) ListAdminIntegrationsNotifications(ctx context.Context, in List
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1768,6 +4879,8 @@ func (c *Client) ListAdminIntegrationsNotifications(ctx context.Context, in List
 
 // UpdateAdminIntegrationsNotificationsInput is the input for UpdateAdminIntegrationsNotifications — Put Notification Config.
 type UpdateAdminIntegrationsNotificationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	CentralSecurityChannel *models.ModelsMessageChannelProvider `json:"centralSecurityChannel,omitempty"`
 	Notifications []models.ModelsNotification `json:"notifications,omitempty"`
 	models.RequestScope
 }
@@ -1781,6 +4894,9 @@ func (c *Client) UpdateAdminIntegrationsNotifications(ctx context.Context, in Up
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1789,8 +4905,10 @@ func (c *Client) UpdateAdminIntegrationsNotifications(ctx context.Context, in Up
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		CentralSecurityChannel *models.ModelsMessageChannelProvider `json:"centralSecurityChannel,omitempty"`
 		Notifications []models.ModelsNotification `json:"notifications,omitempty"`
 	}{
+		CentralSecurityChannel: in.CentralSecurityChannel,
 		Notifications: in.Notifications,
 	})
 	if err != nil {
@@ -1809,6 +4927,7 @@ func (c *Client) UpdateAdminIntegrationsNotifications(ctx context.Context, in Up
 
 // ListAdminIntegrationsSlackInput is the input for ListAdminIntegrationsSlack — Get Slack Configuration.
 type ListAdminIntegrationsSlackInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1820,6 +4939,9 @@ func (c *Client) ListAdminIntegrationsSlack(ctx context.Context, in ListAdminInt
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1841,6 +4963,7 @@ func (c *Client) ListAdminIntegrationsSlack(ctx context.Context, in ListAdminInt
 
 // ListAdminIntegrationsSlackInstallInput is the input for ListAdminIntegrationsSlackInstall — Start Slack distributed install.
 type ListAdminIntegrationsSlackInstallInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1852,6 +4975,9 @@ func (c *Client) ListAdminIntegrationsSlackInstall(ctx context.Context, in ListA
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1873,6 +4999,7 @@ func (c *Client) ListAdminIntegrationsSlackInstall(ctx context.Context, in ListA
 
 // CreateAdminIntegrationsSlackKeyInput is the input for CreateAdminIntegrationsSlackKey — Set Slack API Key.
 type CreateAdminIntegrationsSlackKeyInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ApiKey string `json:"apiKey"`
 	models.RequestScope
 }
@@ -1885,6 +5012,9 @@ func (c *Client) CreateAdminIntegrationsSlackKey(ctx context.Context, in CreateA
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1914,6 +5044,7 @@ func (c *Client) CreateAdminIntegrationsSlackKey(ctx context.Context, in CreateA
 
 // ListAdminIntegrationsTeamsInput is the input for ListAdminIntegrationsTeams — Get Integration Teams.
 type ListAdminIntegrationsTeamsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Provider *string `url:"provider,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1929,6 +5060,9 @@ func (c *Client) ListAdminIntegrationsTeams(ctx context.Context, in ListAdminInt
 	}
 	if in.Provider != nil {
 		query.Set("provider", string(*in.Provider))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1948,8 +5082,96 @@ func (c *Client) ListAdminIntegrationsTeams(ctx context.Context, in ListAdminInt
 	return &out, nil
 }
 
+// ListAdminIntegrationsThreatIntelDestinationsInput is the input for ListAdminIntegrationsThreatIntelDestinations — Get Threat Investigation Destinations.
+type ListAdminIntegrationsThreatIntelDestinationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsThreatIntelDestinations - Get Threat Investigation Destinations
+// GET /admin/integrations/threat-intel/destinations
+func (c *Client) ListAdminIntegrationsThreatIntelDestinations(ctx context.Context, in ListAdminIntegrationsThreatIntelDestinationsInput) (*models.EndpointsAdminGetThreatNotificationDestinationsOutput, error) {
+	path := "/admin/integrations/threat-intel/destinations"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetThreatNotificationDestinationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminIntegrationsThreatIntelDestinationsInput is the input for UpdateAdminIntegrationsThreatIntelDestinations — Update Threat Investigation Destinations.
+type UpdateAdminIntegrationsThreatIntelDestinationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	MicrosoftTeamsWebhookURL *string `json:"microsoftTeamsWebhookUrl,omitempty"`
+	NullifySharedSlack *bool `json:"nullifySharedSlack,omitempty"`
+	TenantSlackChannelID *string `json:"tenantSlackChannelId,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminIntegrationsThreatIntelDestinations - Update Threat Investigation Destinations
+// PUT /admin/integrations/threat-intel/destinations
+func (c *Client) UpdateAdminIntegrationsThreatIntelDestinations(ctx context.Context, in UpdateAdminIntegrationsThreatIntelDestinationsInput) (*models.EndpointsAdminPutThreatNotificationDestinationsOutput, error) {
+	path := "/admin/integrations/threat-intel/destinations"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		MicrosoftTeamsWebhookURL *string `json:"microsoftTeamsWebhookUrl,omitempty"`
+		NullifySharedSlack *bool `json:"nullifySharedSlack,omitempty"`
+		TenantSlackChannelID *string `json:"tenantSlackChannelId,omitempty"`
+	}{
+		MicrosoftTeamsWebhookURL: in.MicrosoftTeamsWebhookURL,
+		NullifySharedSlack: in.NullifySharedSlack,
+		TenantSlackChannelID: in.TenantSlackChannelID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPutThreatNotificationDestinationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminIntegrationsUsersInput is the input for ListAdminIntegrationsUsers — Get Integration Users.
 type ListAdminIntegrationsUsersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Provider *string `url:"provider,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1965,6 +5187,9 @@ func (c *Client) ListAdminIntegrationsUsers(ctx context.Context, in ListAdminInt
 	}
 	if in.Provider != nil {
 		query.Set("provider", string(*in.Provider))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1984,8 +5209,376 @@ func (c *Client) ListAdminIntegrationsUsers(ctx context.Context, in ListAdminInt
 	return &out, nil
 }
 
+// UpdateAdminIntegrationsProviderIdCapabilityConfigureInput is the input for UpdateAdminIntegrationsProviderIdCapabilityConfigure — Configure Integration.
+type UpdateAdminIntegrationsProviderIdCapabilityConfigureInput struct {
+	ProviderID string `path:"providerId" json:"-"`
+	Capability string `path:"capability" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Fields map[string]string `json:"fields,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminIntegrationsProviderIdCapabilityConfigure - Configure Integration
+// PUT /admin/integrations/{providerId}/{capability}/configure
+func (c *Client) UpdateAdminIntegrationsProviderIdCapabilityConfigure(ctx context.Context, in UpdateAdminIntegrationsProviderIdCapabilityConfigureInput) (*models.EndpointsAdminConfigureIntegrationOutput, error) {
+	path := "/admin/integrations/{providerId}/{capability}/configure"
+	path = strings.Replace(path, "{providerId}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{capability}", url.PathEscape(in.Capability), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Fields map[string]string `json:"fields,omitempty"`
+	}{
+		Fields: in.Fields,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminConfigureIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsProviderIdCapabilityConnectInput is the input for CreateAdminIntegrationsProviderIdCapabilityConnect — Connect Integration.
+type CreateAdminIntegrationsProviderIdCapabilityConnectInput struct {
+	ProviderID string `path:"providerId" json:"-"`
+	Capability string `path:"capability" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Fields map[string]string `json:"fields,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsProviderIdCapabilityConnect - Connect Integration
+// POST /admin/integrations/{providerId}/{capability}/connect
+func (c *Client) CreateAdminIntegrationsProviderIdCapabilityConnect(ctx context.Context, in CreateAdminIntegrationsProviderIdCapabilityConnectInput) (*models.EndpointsAdminConnectIntegrationOutput, error) {
+	path := "/admin/integrations/{providerId}/{capability}/connect"
+	path = strings.Replace(path, "{providerId}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{capability}", url.PathEscape(in.Capability), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Fields map[string]string `json:"fields,omitempty"`
+	}{
+		Fields: in.Fields,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminConnectIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsProviderIdCapabilityConnectionsInput is the input for CreateAdminIntegrationsProviderIdCapabilityConnections — Create Integration Connection.
+type CreateAdminIntegrationsProviderIdCapabilityConnectionsInput struct {
+	ProviderID string `path:"providerId" json:"-"`
+	Capability string `path:"capability" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DisplayName *string `json:"displayName,omitempty"`
+	Fields map[string]string `json:"fields,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsProviderIdCapabilityConnections - Create Integration Connection
+// POST /admin/integrations/{providerId}/{capability}/connections
+func (c *Client) CreateAdminIntegrationsProviderIdCapabilityConnections(ctx context.Context, in CreateAdminIntegrationsProviderIdCapabilityConnectionsInput) (*models.EndpointsAdminCreateIntegrationConnectionOutput, error) {
+	path := "/admin/integrations/{providerId}/{capability}/connections"
+	path = strings.Replace(path, "{providerId}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{capability}", url.PathEscape(in.Capability), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DisplayName *string `json:"displayName,omitempty"`
+		Fields map[string]string `json:"fields,omitempty"`
+	}{
+		DisplayName: in.DisplayName,
+		Fields: in.Fields,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminCreateIntegrationConnectionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIntegrationsProviderIdCapabilityDisconnectInput is the input for DeleteAdminIntegrationsProviderIdCapabilityDisconnect — Disconnect Integration.
+type DeleteAdminIntegrationsProviderIdCapabilityDisconnectInput struct {
+	ProviderID string `path:"providerId" json:"-"`
+	Capability string `path:"capability" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIntegrationsProviderIdCapabilityDisconnect - Disconnect Integration
+// DELETE /admin/integrations/{providerId}/{capability}/disconnect
+func (c *Client) DeleteAdminIntegrationsProviderIdCapabilityDisconnect(ctx context.Context, in DeleteAdminIntegrationsProviderIdCapabilityDisconnectInput) (*models.EndpointsAdminDisconnectIntegrationOutput, error) {
+	path := "/admin/integrations/{providerId}/{capability}/disconnect"
+	path = strings.Replace(path, "{providerId}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{capability}", url.PathEscape(in.Capability), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDisconnectIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIntegrationsProviderIdCapabilityInstallInput is the input for ListAdminIntegrationsProviderIdCapabilityInstall — Start Integration OAuth install.
+type ListAdminIntegrationsProviderIdCapabilityInstallInput struct {
+	ProviderID string `path:"providerId" json:"-"`
+	Capability string `path:"capability" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsProviderIdCapabilityInstall - Start Integration OAuth install
+// GET /admin/integrations/{providerId}/{capability}/install
+func (c *Client) ListAdminIntegrationsProviderIdCapabilityInstall(ctx context.Context, in ListAdminIntegrationsProviderIdCapabilityInstallInput) (*models.EndpointsGetIntegrationOAuthInstallOutput, error) {
+	path := "/admin/integrations/{providerId}/{capability}/install"
+	path = strings.Replace(path, "{providerId}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{capability}", url.PathEscape(in.Capability), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetIntegrationOAuthInstallOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIntegrationsProviderIdCapabilityTestInput is the input for CreateAdminIntegrationsProviderIdCapabilityTest — Test Integration.
+type CreateAdminIntegrationsProviderIdCapabilityTestInput struct {
+	ProviderID string `path:"providerId" json:"-"`
+	Capability string `path:"capability" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminIntegrationsProviderIdCapabilityTest - Test Integration
+// POST /admin/integrations/{providerId}/{capability}/test
+func (c *Client) CreateAdminIntegrationsProviderIdCapabilityTest(ctx context.Context, in CreateAdminIntegrationsProviderIdCapabilityTestInput) (*models.EndpointsAdminTestIntegrationOutput, error) {
+	path := "/admin/integrations/{providerId}/{capability}/test"
+	path = strings.Replace(path, "{providerId}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{capability}", url.PathEscape(in.Capability), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminTestIntegrationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminManagerSettingsInput is the input for ListAdminManagerSettings — Get Manager Settings.
+type ListAdminManagerSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminManagerSettings - Get Manager Settings
+// GET /admin/manager/settings
+func (c *Client) ListAdminManagerSettings(ctx context.Context, in ListAdminManagerSettingsInput) (*models.EndpointsGetManagerSettingsOutput, error) {
+	path := "/admin/manager/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetManagerSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminManagerSettingsInput is the input for UpdateAdminManagerSettings — Update Manager Settings.
+type UpdateAdminManagerSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AutomatedThreatInvestigations *bool `json:"automatedThreatInvestigations,omitempty"`
+	BlockedActionTypes []string `json:"blockedActionTypes,omitempty"`
+	DailyUpdatesEnabled *bool `json:"dailyUpdatesEnabled,omitempty"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+	GroundRules *string `json:"groundRules,omitempty"`
+	WeeklyUpdatesEnabled *bool `json:"weeklyUpdatesEnabled,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminManagerSettings - Update Manager Settings
+// PUT /admin/manager/settings
+func (c *Client) UpdateAdminManagerSettings(ctx context.Context, in UpdateAdminManagerSettingsInput) (*models.EndpointsPutManagerSettingsOutput, error) {
+	path := "/admin/manager/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AutomatedThreatInvestigations *bool `json:"automatedThreatInvestigations,omitempty"`
+		BlockedActionTypes []string `json:"blockedActionTypes,omitempty"`
+		DailyUpdatesEnabled *bool `json:"dailyUpdatesEnabled,omitempty"`
+		ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+		GroundRules *string `json:"groundRules,omitempty"`
+		WeeklyUpdatesEnabled *bool `json:"weeklyUpdatesEnabled,omitempty"`
+	}{
+		AutomatedThreatInvestigations: in.AutomatedThreatInvestigations,
+		BlockedActionTypes: in.BlockedActionTypes,
+		DailyUpdatesEnabled: in.DailyUpdatesEnabled,
+		ExpectedUpdatedAt: in.ExpectedUpdatedAt,
+		GroundRules: in.GroundRules,
+		WeeklyUpdatesEnabled: in.WeeklyUpdatesEnabled,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutManagerSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminMetricsFindingsInput is the input for CreateAdminMetricsFindings — Post Findings Metrics.
 type CreateAdminMetricsFindingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeFunnel *bool `json:"includeFunnel,omitempty"`
 	Query models.ModelsLimitedUnifiedFindingsQuery `json:"query"`
 	models.RequestScope
 }
@@ -1998,6 +5591,56 @@ func (c *Client) CreateAdminMetricsFindings(ctx context.Context, in CreateAdminM
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		IncludeFunnel *bool `json:"includeFunnel,omitempty"`
+		Query models.ModelsLimitedUnifiedFindingsQuery `json:"query"`
+	}{
+		IncludeFunnel: in.IncludeFunnel,
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryFindingsMetricsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminMetricsFindingsByRepositoryInput is the input for CreateAdminMetricsFindingsByRepository — Post Findings Metrics By Repository.
+type CreateAdminMetricsFindingsByRepositoryInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Query models.ModelsLimitedUnifiedFindingsQuery `json:"query"`
+	models.RequestScope
+}
+
+// CreateAdminMetricsFindingsByRepository - Post Findings Metrics By Repository
+// POST /admin/metrics/findings/by-repository
+func (c *Client) CreateAdminMetricsFindingsByRepository(ctx context.Context, in CreateAdminMetricsFindingsByRepositoryInput) (*models.EndpointsAdminQueryFindingsMetricsByRepositoryOutput, error) {
+	path := "/admin/metrics/findings/by-repository"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2018,7 +5661,43 @@ func (c *Client) CreateAdminMetricsFindings(ctx context.Context, in CreateAdminM
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsAdminQueryFindingsMetricsOutput
+	var out models.EndpointsAdminQueryFindingsMetricsByRepositoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminMetricsFindingsFrameworksInput is the input for CreateAdminMetricsFindingsFrameworks — Post Findings Compliance Frameworks.
+type CreateAdminMetricsFindingsFrameworksInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminMetricsFindingsFrameworks - Post Findings Compliance Frameworks
+// POST /admin/metrics/findings/frameworks
+func (c *Client) CreateAdminMetricsFindingsFrameworks(ctx context.Context, in CreateAdminMetricsFindingsFrameworksInput) (*models.EndpointsAdminQueryFindingsFrameworksOutput, error) {
+	path := "/admin/metrics/findings/frameworks"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryFindingsFrameworksOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -2027,6 +5706,9 @@ func (c *Client) CreateAdminMetricsFindings(ctx context.Context, in CreateAdminM
 
 // ListAdminMetricsInteractionsInput is the input for ListAdminMetricsInteractions — Get Interactions.
 type ListAdminMetricsInteractionsInput struct {
+	FromDate *string `url:"fromDate,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ToDate *string `url:"toDate,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2038,6 +5720,15 @@ func (c *Client) ListAdminMetricsInteractions(ctx context.Context, in ListAdminM
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.FromDate != nil {
+		query.Set("fromDate", string(*in.FromDate))
+	}
+	if in.ToDate != nil {
+		query.Set("toDate", string(*in.ToDate))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2059,6 +5750,7 @@ func (c *Client) ListAdminMetricsInteractions(ctx context.Context, in ListAdminM
 
 // CreateAdminMetricsOverTimeInput is the input for CreateAdminMetricsOverTime — Get Metrics Over Time.
 type CreateAdminMetricsOverTimeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Resolution *string `url:"resolution,omitempty" json:"-"`
 	Query models.ModelsUnifiedFindingsQuery `json:"query"`
 	models.RequestScope
@@ -2075,6 +5767,9 @@ func (c *Client) CreateAdminMetricsOverTime(ctx context.Context, in CreateAdminM
 	}
 	if in.Resolution != nil {
 		query.Set("resolution", string(*in.Resolution))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2104,6 +5799,7 @@ func (c *Client) CreateAdminMetricsOverTime(ctx context.Context, in CreateAdminM
 
 // CreateAdminMetricsOverviewInput is the input for CreateAdminMetricsOverview — Query Overview.
 type CreateAdminMetricsOverviewInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Query models.ModelsUnifiedFindingsQuery `json:"query"`
 	models.RequestScope
 }
@@ -2116,6 +5812,9 @@ func (c *Client) CreateAdminMetricsOverview(ctx context.Context, in CreateAdminM
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2143,8 +5842,54 @@ func (c *Client) CreateAdminMetricsOverview(ctx context.Context, in CreateAdminM
 	return &out, nil
 }
 
+// CreateAdminMetricsPullrequestsInput is the input for CreateAdminMetricsPullrequests — Post Pull Request Metrics.
+type CreateAdminMetricsPullrequestsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Query models.ModelsPullRequestMetricsQuery `json:"query"`
+	models.RequestScope
+}
+
+// CreateAdminMetricsPullrequests - Post Pull Request Metrics
+// POST /admin/metrics/pullrequests
+func (c *Client) CreateAdminMetricsPullrequests(ctx context.Context, in CreateAdminMetricsPullrequestsInput) (*models.EndpointsAdminQueryPullRequestMetricsOutput, error) {
+	path := "/admin/metrics/pullrequests"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsPullRequestMetricsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryPullRequestMetricsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminMetricsRawInput is the input for CreateAdminMetricsRaw — Query Raw Metrics.
 type CreateAdminMetricsRawInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Query models.ModelsUnifiedFindingsMetricsQuery `json:"query"`
 	models.RequestScope
 }
@@ -2157,6 +5902,9 @@ func (c *Client) CreateAdminMetricsRaw(ctx context.Context, in CreateAdminMetric
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2184,12 +5932,58 @@ func (c *Client) CreateAdminMetricsRaw(ctx context.Context, in CreateAdminMetric
 	return &out, nil
 }
 
+// CreateAdminMetricsTicketsInput is the input for CreateAdminMetricsTickets — Post Ticket Metrics.
+type CreateAdminMetricsTicketsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Query models.ModelsTicketMetricsQuery `json:"query"`
+	models.RequestScope
+}
+
+// CreateAdminMetricsTickets - Post Ticket Metrics
+// POST /admin/metrics/tickets
+func (c *Client) CreateAdminMetricsTickets(ctx context.Context, in CreateAdminMetricsTicketsInput) (*models.EndpointsAdminQueryTicketMetricsOutput, error) {
+	path := "/admin/metrics/tickets"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Query models.ModelsTicketMetricsQuery `json:"query"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryTicketMetricsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminMetricsUsageAggregateInput is the input for ListAdminMetricsUsageAggregate — Usage Aggregate.
 type ListAdminMetricsUsageAggregateInput struct {
 	Agent *string `url:"agent,omitempty" json:"-"`
 	BranchType *string `url:"branchType,omitempty" json:"-"`
 	Class *string `url:"class,omitempty" json:"-"`
 	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	To *string `url:"to,omitempty" json:"-"`
 	Window *string `url:"window,omitempty" json:"-"`
 	models.RequestScope
@@ -2222,6 +6016,9 @@ func (c *Client) ListAdminMetricsUsageAggregate(ctx context.Context, in ListAdmi
 	if in.To != nil {
 		query.Set("to", string(*in.To))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2248,7 +6045,9 @@ type ListAdminMetricsUsageLedgerInput struct {
 	Cursor *string `url:"cursor,omitempty" json:"-"`
 	FindingID []string `url:"findingId,omitempty" json:"-"`
 	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
+	Query *string `url:"query,omitempty" json:"-"`
 	RunID *string `url:"runId,omitempty" json:"-"`
 	To *string `url:"to,omitempty" json:"-"`
 	models.RequestScope
@@ -2262,6 +6061,9 @@ func (c *Client) ListAdminMetricsUsageLedger(ctx context.Context, in ListAdminMe
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.Query != nil {
+		query.Set("query", string(*in.Query))
 	}
 	if in.Class != nil {
 		query.Set("class", string(*in.Class))
@@ -2290,6 +6092,9 @@ func (c *Client) ListAdminMetricsUsageLedger(ctx context.Context, in ListAdminMe
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2313,6 +6118,7 @@ type ListAdminMetricsUsageTimeseriesInput struct {
 	Agent *string `url:"agent,omitempty" json:"-"`
 	Class *string `url:"class,omitempty" json:"-"`
 	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Granularity *string `url:"granularity,omitempty" json:"-"`
 	To *string `url:"to,omitempty" json:"-"`
 	models.RequestScope
@@ -2342,6 +6148,9 @@ func (c *Client) ListAdminMetricsUsageTimeseries(ctx context.Context, in ListAdm
 	if in.Agent != nil {
 		query.Set("agent", string(*in.Agent))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2360,8 +6169,1018 @@ func (c *Client) ListAdminMetricsUsageTimeseries(ctx context.Context, in ListAdm
 	return &out, nil
 }
 
+// ListAdminNetworkIpAllowlistInput is the input for ListAdminNetworkIpAllowlist — Get IP Allowlist.
+type ListAdminNetworkIpAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminNetworkIpAllowlist - Get IP Allowlist
+// GET /admin/network/ip-allowlist
+func (c *Client) ListAdminNetworkIpAllowlist(ctx context.Context, in ListAdminNetworkIpAllowlistInput) (*models.EndpointsNetworkIPAllowlistOutput, error) {
+	path := "/admin/network/ip-allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsNetworkIPAllowlistOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminNetworkIpAllowlistInput is the input for UpdateAdminNetworkIpAllowlist — Replace IP Allowlist.
+type UpdateAdminNetworkIpAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Entries []models.EndpointsIPAllowlistEntryInput `json:"entries,omitempty"`
+	ExpectedCidrs []string `json:"expectedCidrs,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminNetworkIpAllowlist - Replace IP Allowlist
+// PUT /admin/network/ip-allowlist
+func (c *Client) UpdateAdminNetworkIpAllowlist(ctx context.Context, in UpdateAdminNetworkIpAllowlistInput) (*models.EndpointsNetworkIPAllowlistOutput, error) {
+	path := "/admin/network/ip-allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Entries []models.EndpointsIPAllowlistEntryInput `json:"entries,omitempty"`
+		ExpectedCidrs []string `json:"expectedCidrs,omitempty"`
+	}{
+		Entries: in.Entries,
+		ExpectedCidrs: in.ExpectedCidrs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsNetworkIPAllowlistOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminNetworkIpAllowlistPreviewInput is the input for CreateAdminNetworkIpAllowlistPreview — Preview IP Allowlist.
+type CreateAdminNetworkIpAllowlistPreviewInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Entries []models.EndpointsIPAllowlistEntryInput `json:"entries,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminNetworkIpAllowlistPreview - Preview IP Allowlist
+// POST /admin/network/ip-allowlist/preview
+func (c *Client) CreateAdminNetworkIpAllowlistPreview(ctx context.Context, in CreateAdminNetworkIpAllowlistPreviewInput) (*models.EndpointsNetworkIPAllowlistOutput, error) {
+	path := "/admin/network/ip-allowlist/preview"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Entries []models.EndpointsIPAllowlistEntryInput `json:"entries,omitempty"`
+	}{
+		Entries: in.Entries,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsNetworkIPAllowlistOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorExternalWritesInitializeInput is the input for CreateAdminOperatorExternalWritesInitialize — Initialize External Write Defaults.
+type CreateAdminOperatorExternalWritesInitializeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Reason string `json:"reason"`
+	TenantID string `json:"tenantId"`
+	models.RequestScope
+}
+
+// CreateAdminOperatorExternalWritesInitialize - Initialize External Write Defaults
+// POST /admin/operator/external-writes/initialize
+func (c *Client) CreateAdminOperatorExternalWritesInitialize(ctx context.Context, in CreateAdminOperatorExternalWritesInitializeInput) (*models.EndpointsInitializeExternalWritesOutput, error) {
+	path := "/admin/operator/external-writes/initialize"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DryRun *bool `json:"dryRun,omitempty"`
+		Reason string `json:"reason"`
+		TenantID string `json:"tenantId"`
+	}{
+		DryRun: in.DryRun,
+		Reason: in.Reason,
+		TenantID: in.TenantID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsInitializeExternalWritesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorGithubTenantRouteInput is the input for CreateAdminOperatorGithubTenantRoute — Preview, write or inspect a GitHub tenant route born paused.
+type CreateAdminOperatorGithubTenantRouteInput struct {
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedBaseDomain *string `json:"expectedBaseDomain,omitempty"`
+	ExpectedRegion *string `json:"expectedRegion,omitempty"`
+	ExpectedStackOwnerIds []int64 `json:"expectedStackOwnerIds,omitempty"`
+	GithubOwnerID *int64 `json:"githubOwnerId,omitempty"`
+	Inspect *bool `json:"inspect,omitempty"`
+	InstallationID *int64 `json:"installationId,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	PrepareBeforeInstallation *bool `json:"prepareBeforeInstallation,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+// CreateAdminOperatorGithubTenantRoute - Preview, write or inspect a GitHub tenant route born paused
+// POST /admin/operator/github-tenant/route
+func (c *Client) CreateAdminOperatorGithubTenantRoute(ctx context.Context, in CreateAdminOperatorGithubTenantRouteInput) (*models.ServiceGitHubTenantRouteResult, error) {
+	path := "/admin/operator/github-tenant/route"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DeploymentID *string `json:"deploymentId,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		ExpectedBaseDomain *string `json:"expectedBaseDomain,omitempty"`
+		ExpectedRegion *string `json:"expectedRegion,omitempty"`
+		ExpectedStackOwnerIds []int64 `json:"expectedStackOwnerIds,omitempty"`
+		GithubOwnerID *int64 `json:"githubOwnerId,omitempty"`
+		Inspect *bool `json:"inspect,omitempty"`
+		InstallationID *int64 `json:"installationId,omitempty"`
+		OperationID *string `json:"operationId,omitempty"`
+		PrepareBeforeInstallation *bool `json:"prepareBeforeInstallation,omitempty"`
+		Reason *string `json:"reason,omitempty"`
+	}{
+		DeploymentID: in.DeploymentID,
+		DryRun: in.DryRun,
+		ExpectedBaseDomain: in.ExpectedBaseDomain,
+		ExpectedRegion: in.ExpectedRegion,
+		ExpectedStackOwnerIds: in.ExpectedStackOwnerIds,
+		GithubOwnerID: in.GithubOwnerID,
+		Inspect: in.Inspect,
+		InstallationID: in.InstallationID,
+		OperationID: in.OperationID,
+		PrepareBeforeInstallation: in.PrepareBeforeInstallation,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.ServiceGitHubTenantRouteResult
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorNativeTenantRouteInput is the input for CreateAdminOperatorNativeTenantRoute — Preview or write a native Azure workspace route.
+type CreateAdminOperatorNativeTenantRouteInput struct {
+	Administrators []models.ServiceNativeBootstrapAdministrator `json:"administrators,omitempty"`
+	BaseDomain *string `json:"baseDomain,omitempty"`
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DirectoryID *string `json:"directoryId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	Inspect *bool `json:"inspect,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Operator *string `json:"operator,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Region *string `json:"region,omitempty"`
+	Stage *string `json:"stage,omitempty"`
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// CreateAdminOperatorNativeTenantRoute - Preview or write a native Azure workspace route
+// POST /admin/operator/native-tenant/route
+func (c *Client) CreateAdminOperatorNativeTenantRoute(ctx context.Context, in CreateAdminOperatorNativeTenantRouteInput) (*models.ServiceNativeTenantBootstrapResult, error) {
+	path := "/admin/operator/native-tenant/route"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Administrators []models.ServiceNativeBootstrapAdministrator `json:"administrators,omitempty"`
+		BaseDomain *string `json:"baseDomain,omitempty"`
+		DeploymentID *string `json:"deploymentId,omitempty"`
+		DirectoryID *string `json:"directoryId,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		ExpectedState *string `json:"expectedState,omitempty"`
+		Inspect *bool `json:"inspect,omitempty"`
+		OperationID *string `json:"operationId,omitempty"`
+		Operator *string `json:"operator,omitempty"`
+		Reason *string `json:"reason,omitempty"`
+		Region *string `json:"region,omitempty"`
+		Stage *string `json:"stage,omitempty"`
+		TenantID *string `json:"tenantId,omitempty"`
+	}{
+		Administrators: in.Administrators,
+		BaseDomain: in.BaseDomain,
+		DeploymentID: in.DeploymentID,
+		DirectoryID: in.DirectoryID,
+		DryRun: in.DryRun,
+		ExpectedState: in.ExpectedState,
+		Inspect: in.Inspect,
+		OperationID: in.OperationID,
+		Operator: in.Operator,
+		Reason: in.Reason,
+		Region: in.Region,
+		Stage: in.Stage,
+		TenantID: in.TenantID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.ServiceNativeTenantBootstrapResult
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminOperatorPackageFeedsInput is the input for ListAdminOperatorPackageFeeds — Read Staff Package Feeds.
+type ListAdminOperatorPackageFeedsInput struct {
+	ConnectionID *string `url:"connectionId,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminOperatorPackageFeeds - Read Staff Package Feeds
+// GET /admin/operator/package-feeds
+func (c *Client) ListAdminOperatorPackageFeeds(ctx context.Context, in ListAdminOperatorPackageFeedsInput) (*models.EndpointsAdminCLIPackageFeedsOutput, error) {
+	path := "/admin/operator/package-feeds"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.ConnectionID != nil {
+		query.Set("connectionId", string(*in.ConnectionID))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminCLIPackageFeedsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorPackageFeedsInput is the input for CreateAdminOperatorPackageFeeds — Control Staff Package Feed.
+type CreateAdminOperatorPackageFeedsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConnectionID *string `json:"connectionId,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	Fields map[string]string `json:"fields,omitempty"`
+	Operation string `json:"operation"`
+	ProviderID *string `json:"providerId,omitempty"`
+	Reason string `json:"reason"`
+	models.RequestScope
+}
+
+// CreateAdminOperatorPackageFeeds - Control Staff Package Feed
+// POST /admin/operator/package-feeds
+func (c *Client) CreateAdminOperatorPackageFeeds(ctx context.Context, in CreateAdminOperatorPackageFeedsInput) (*models.EndpointsAdminCLIPackageFeedControlOutput, error) {
+	path := "/admin/operator/package-feeds"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConnectionID *string `json:"connectionId,omitempty"`
+		DisplayName *string `json:"displayName,omitempty"`
+		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+		Fields map[string]string `json:"fields,omitempty"`
+		Operation string `json:"operation"`
+		ProviderID *string `json:"providerId,omitempty"`
+		Reason string `json:"reason"`
+	}{
+		ConnectionID: in.ConnectionID,
+		DisplayName: in.DisplayName,
+		ExpectedRevision: in.ExpectedRevision,
+		Fields: in.Fields,
+		Operation: in.Operation,
+		ProviderID: in.ProviderID,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminCLIPackageFeedControlOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminOperatorScanEntitlementInput is the input for ListAdminOperatorScanEntitlement — Read Staff Scan Entitlement.
+type ListAdminOperatorScanEntitlementInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminOperatorScanEntitlement - Read Staff Scan Entitlement
+// GET /admin/operator/scan-entitlement
+func (c *Client) ListAdminOperatorScanEntitlement(ctx context.Context, in ListAdminOperatorScanEntitlementInput) (*models.EndpointsOperatorScanEntitlementOutput, error) {
+	path := "/admin/operator/scan-entitlement"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsOperatorScanEntitlementOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminOperatorScanEntitlementInput is the input for UpdateAdminOperatorScanEntitlement — Replace Staff Scan Entitlement.
+type UpdateAdminOperatorScanEntitlementInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	CodeRepositoryCap *int `json:"codeRepositoryCap,omitempty"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+	Reason string `json:"reason"`
+	ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
+	SecretsMode *string `json:"secretsMode,omitempty"`
+	SecretsRepositoryCap *int `json:"secretsRepositoryCap,omitempty"`
+	StaffRepositoryAllowlist *bool `json:"staffRepositoryAllowlist,omitempty"`
+	TenantID string `json:"tenantId"`
+	models.RequestScope
+}
+
+// UpdateAdminOperatorScanEntitlement - Replace Staff Scan Entitlement
+// PUT /admin/operator/scan-entitlement
+func (c *Client) UpdateAdminOperatorScanEntitlement(ctx context.Context, in UpdateAdminOperatorScanEntitlementInput) (*models.EndpointsOperatorScanEntitlementOutput, error) {
+	path := "/admin/operator/scan-entitlement"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		CodeRepositoryCap *int `json:"codeRepositoryCap,omitempty"`
+		ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+		Reason string `json:"reason"`
+		ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
+		SecretsMode *string `json:"secretsMode,omitempty"`
+		SecretsRepositoryCap *int `json:"secretsRepositoryCap,omitempty"`
+		StaffRepositoryAllowlist *bool `json:"staffRepositoryAllowlist,omitempty"`
+		TenantID string `json:"tenantId"`
+	}{
+		CodeRepositoryCap: in.CodeRepositoryCap,
+		ExpectedUpdatedAt: in.ExpectedUpdatedAt,
+		Reason: in.Reason,
+		ScopingEnabled: in.ScopingEnabled,
+		SecretsMode: in.SecretsMode,
+		SecretsRepositoryCap: in.SecretsRepositoryCap,
+		StaffRepositoryAllowlist: in.StaffRepositoryAllowlist,
+		TenantID: in.TenantID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsOperatorScanEntitlementOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminOperatorScanScopeRepositoriesInput is the input for ListAdminOperatorScanScopeRepositories — Read Staff Repository Scan Scopes.
+type ListAdminOperatorScanScopeRepositoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminOperatorScanScopeRepositories - Read Staff Repository Scan Scopes
+// GET /admin/operator/scan-scope/repositories
+func (c *Client) ListAdminOperatorScanScopeRepositories(ctx context.Context, in ListAdminOperatorScanScopeRepositoriesInput) (*models.EndpointsOperatorRepositoryScanScopesOutput, error) {
+	path := "/admin/operator/scan-scope/repositories"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsOperatorRepositoryScanScopesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminOperatorScanScopeRepositoriesInput is the input for UpdateAdminOperatorScanScopeRepositories — Set Staff Repository Scan Limits.
+type UpdateAdminOperatorScanScopeRepositoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reason string `json:"reason"`
+	Repositories []models.EndpointsRepositoryStaffScopeChange `json:"repositories,omitempty"`
+	TenantID string `json:"tenantId"`
+	models.RequestScope
+}
+
+// UpdateAdminOperatorScanScopeRepositories - Set Staff Repository Scan Limits
+// PUT /admin/operator/scan-scope/repositories
+func (c *Client) UpdateAdminOperatorScanScopeRepositories(ctx context.Context, in UpdateAdminOperatorScanScopeRepositoriesInput) (*models.EndpointsOperatorRepositoryStaffScopesOutput, error) {
+	path := "/admin/operator/scan-scope/repositories"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Reason string `json:"reason"`
+		Repositories []models.EndpointsRepositoryStaffScopeChange `json:"repositories,omitempty"`
+		TenantID string `json:"tenantId"`
+	}{
+		Reason: in.Reason,
+		Repositories: in.Repositories,
+		TenantID: in.TenantID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsOperatorRepositoryStaffScopesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminOperatorTenantCapabilitiesInput is the input for ListAdminOperatorTenantCapabilities — Read Staff Tenant Capabilities.
+type ListAdminOperatorTenantCapabilitiesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminOperatorTenantCapabilities - Read Staff Tenant Capabilities
+// GET /admin/operator/tenant-capabilities
+func (c *Client) ListAdminOperatorTenantCapabilities(ctx context.Context, in ListAdminOperatorTenantCapabilitiesInput) (*models.EndpointsOperatorTenantCapabilitiesOutput, error) {
+	path := "/admin/operator/tenant-capabilities"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsOperatorTenantCapabilitiesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminOperatorTenantCapabilitiesInput is the input for UpdateAdminOperatorTenantCapabilities — Force Tenant Capability.
+type UpdateAdminOperatorTenantCapabilitiesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Capability string `json:"capability"`
+	ExpectedStaffUpdatedAt *string `json:"expectedStaffUpdatedAt,omitempty"`
+	LockReason *string `json:"lockReason,omitempty"`
+	Reason string `json:"reason"`
+	Repository *string `json:"repository,omitempty"`
+	SeedCustomerEnabled *bool `json:"seedCustomerEnabled,omitempty"`
+	SeedRepositoryDisabled *bool `json:"seedRepositoryDisabled,omitempty"`
+	SeedStaffIfAbsent *bool `json:"seedStaffIfAbsent,omitempty"`
+	StaffState string `json:"staffState"`
+	TenantID string `json:"tenantId"`
+	models.RequestScope
+}
+
+// UpdateAdminOperatorTenantCapabilities - Force Tenant Capability
+// PUT /admin/operator/tenant-capabilities
+func (c *Client) UpdateAdminOperatorTenantCapabilities(ctx context.Context, in UpdateAdminOperatorTenantCapabilitiesInput) (*models.EndpointsOperatorTenantCapabilityPutOutput, error) {
+	path := "/admin/operator/tenant-capabilities"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Capability string `json:"capability"`
+		ExpectedStaffUpdatedAt *string `json:"expectedStaffUpdatedAt,omitempty"`
+		LockReason *string `json:"lockReason,omitempty"`
+		Reason string `json:"reason"`
+		Repository *string `json:"repository,omitempty"`
+		SeedCustomerEnabled *bool `json:"seedCustomerEnabled,omitempty"`
+		SeedRepositoryDisabled *bool `json:"seedRepositoryDisabled,omitempty"`
+		SeedStaffIfAbsent *bool `json:"seedStaffIfAbsent,omitempty"`
+		StaffState string `json:"staffState"`
+		TenantID string `json:"tenantId"`
+	}{
+		Capability: in.Capability,
+		ExpectedStaffUpdatedAt: in.ExpectedStaffUpdatedAt,
+		LockReason: in.LockReason,
+		Reason: in.Reason,
+		Repository: in.Repository,
+		SeedCustomerEnabled: in.SeedCustomerEnabled,
+		SeedRepositoryDisabled: in.SeedRepositoryDisabled,
+		SeedStaffIfAbsent: in.SeedStaffIfAbsent,
+		StaffState: in.StaffState,
+		TenantID: in.TenantID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsOperatorTenantCapabilityPutOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorWorkspaceBootstrapApproveInput is the input for CreateAdminOperatorWorkspaceBootstrapApprove — Approve an exact provisioning request.
+type CreateAdminOperatorWorkspaceBootstrapApproveInput struct {
+	Action *string `json:"action,omitempty"`
+	Confirm *bool `json:"confirm,omitempty"`
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	ExpectedOperationRevision *int64 `json:"expectedOperationRevision,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	RequestID *string `json:"requestId,omitempty"`
+	SetupKind *string `json:"setupKind,omitempty"`
+}
+
+// CreateAdminOperatorWorkspaceBootstrapApprove - Approve an exact provisioning request
+// POST /admin/operator/workspace-bootstrap/approve
+func (c *Client) CreateAdminOperatorWorkspaceBootstrapApprove(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapApproveInput) (*models.EndpointsWorkspaceProvisioningApproveOutput, error) {
+	path := "/admin/operator/workspace-bootstrap/approve"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Action *string `json:"action,omitempty"`
+		Confirm *bool `json:"confirm,omitempty"`
+		DeploymentID *string `json:"deploymentId,omitempty"`
+		ExpectedOperationRevision *int64 `json:"expectedOperationRevision,omitempty"`
+		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+		Reason *string `json:"reason,omitempty"`
+		RequestID *string `json:"requestId,omitempty"`
+		SetupKind *string `json:"setupKind,omitempty"`
+	}{
+		Action: in.Action,
+		Confirm: in.Confirm,
+		DeploymentID: in.DeploymentID,
+		ExpectedOperationRevision: in.ExpectedOperationRevision,
+		ExpectedRevision: in.ExpectedRevision,
+		Reason: in.Reason,
+		RequestID: in.RequestID,
+		SetupKind: in.SetupKind,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsWorkspaceProvisioningApproveOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorWorkspaceBootstrapInvitationInput is the input for CreateAdminOperatorWorkspaceBootstrapInvitation — Preview or issue a workspace bootstrap invitation.
+type CreateAdminOperatorWorkspaceBootstrapInvitationInput struct {
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedDirectoryID *string `json:"expectedDirectoryId,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Recipient *string `json:"recipient,omitempty"`
+}
+
+// CreateAdminOperatorWorkspaceBootstrapInvitation - Preview or issue a workspace bootstrap invitation
+// POST /admin/operator/workspace-bootstrap/invitation
+func (c *Client) CreateAdminOperatorWorkspaceBootstrapInvitation(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapInvitationInput) (*models.EndpointsWorkspaceBootstrapOperatorOutput, error) {
+	path := "/admin/operator/workspace-bootstrap/invitation"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DeploymentID *string `json:"deploymentId,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		ExpectedDirectoryID *string `json:"expectedDirectoryId,omitempty"`
+		ExpectedState *string `json:"expectedState,omitempty"`
+		Reason *string `json:"reason,omitempty"`
+		Recipient *string `json:"recipient,omitempty"`
+	}{
+		DeploymentID: in.DeploymentID,
+		DryRun: in.DryRun,
+		ExpectedDirectoryID: in.ExpectedDirectoryID,
+		ExpectedState: in.ExpectedState,
+		Reason: in.Reason,
+		Recipient: in.Recipient,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsWorkspaceBootstrapOperatorOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminOperatorWorkspaceBootstrapOperationInput is the input for ListAdminOperatorWorkspaceBootstrapOperation — Inspect a durable workspace claim.
+type ListAdminOperatorWorkspaceBootstrapOperationInput struct {
+	OperationID *string `url:"operationId,omitempty" json:"-"`
+}
+
+// ListAdminOperatorWorkspaceBootstrapOperation - Inspect a durable workspace claim
+// GET /admin/operator/workspace-bootstrap/operation
+func (c *Client) ListAdminOperatorWorkspaceBootstrapOperation(ctx context.Context, in ListAdminOperatorWorkspaceBootstrapOperationInput) (*models.WorkspacebootstrapOperatorInspection, error) {
+	path := "/admin/operator/workspace-bootstrap/operation"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.OperationID != nil {
+		query.Set("operationId", string(*in.OperationID))
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.WorkspacebootstrapOperatorInspection
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorWorkspaceBootstrapRenewInput is the input for CreateAdminOperatorWorkspaceBootstrapRenew — Preview or renew an organization-pinned workspace invitation.
+type CreateAdminOperatorWorkspaceBootstrapRenewInput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+// CreateAdminOperatorWorkspaceBootstrapRenew - Preview or renew an organization-pinned workspace invitation
+// POST /admin/operator/workspace-bootstrap/renew
+func (c *Client) CreateAdminOperatorWorkspaceBootstrapRenew(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapRenewInput) (*models.WorkspacebootstrapOperatorInspection, error) {
+	path := "/admin/operator/workspace-bootstrap/renew"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DryRun *bool `json:"dryRun,omitempty"`
+		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+		ExpectedState *string `json:"expectedState,omitempty"`
+		OperationID *string `json:"operationId,omitempty"`
+		Reason *string `json:"reason,omitempty"`
+	}{
+		DryRun: in.DryRun,
+		ExpectedRevision: in.ExpectedRevision,
+		ExpectedState: in.ExpectedState,
+		OperationID: in.OperationID,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.WorkspacebootstrapOperatorInspection
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminOperatorWorkspaceBootstrapRequestsInput is the input for ListAdminOperatorWorkspaceBootstrapRequests — List provisioning requests.
+type ListAdminOperatorWorkspaceBootstrapRequestsInput struct {
+	BeforeRequestID *string `url:"beforeRequestId,omitempty" json:"-"`
+}
+
+// ListAdminOperatorWorkspaceBootstrapRequests - List provisioning requests
+// GET /admin/operator/workspace-bootstrap/requests
+func (c *Client) ListAdminOperatorWorkspaceBootstrapRequests(ctx context.Context, in ListAdminOperatorWorkspaceBootstrapRequestsInput) (*models.EndpointsWorkspaceProvisioningQueueOutput, error) {
+	path := "/admin/operator/workspace-bootstrap/requests"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.BeforeRequestID != nil {
+		query.Set("beforeRequestId", string(*in.BeforeRequestID))
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsWorkspaceProvisioningQueueOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminOperatorWorkspaceBootstrapRevokeInput is the input for CreateAdminOperatorWorkspaceBootstrapRevoke — Preview or revoke a workspace claim without stage receipts.
+type CreateAdminOperatorWorkspaceBootstrapRevokeInput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+// CreateAdminOperatorWorkspaceBootstrapRevoke - Preview or revoke a workspace claim without stage receipts
+// POST /admin/operator/workspace-bootstrap/revoke
+func (c *Client) CreateAdminOperatorWorkspaceBootstrapRevoke(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapRevokeInput) (*models.WorkspacebootstrapOperatorInspection, error) {
+	path := "/admin/operator/workspace-bootstrap/revoke"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DryRun *bool `json:"dryRun,omitempty"`
+		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+		ExpectedState *string `json:"expectedState,omitempty"`
+		OperationID *string `json:"operationId,omitempty"`
+		Reason *string `json:"reason,omitempty"`
+	}{
+		DryRun: in.DryRun,
+		ExpectedRevision: in.ExpectedRevision,
+		ExpectedState: in.ExpectedState,
+		OperationID: in.OperationID,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.WorkspacebootstrapOperatorInspection
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminOrganizationInput is the input for ListAdminOrganization — Get Organization.
 type ListAdminOrganizationInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeDirectory *bool `url:"includeDirectory,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2373,6 +7192,12 @@ func (c *Client) ListAdminOrganization(ctx context.Context, in ListAdminOrganiza
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.IncludeDirectory != nil {
+		query.Set("includeDirectory", strconv.FormatBool(*in.IncludeDirectory))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2392,8 +7217,129 @@ func (c *Client) ListAdminOrganization(ctx context.Context, in ListAdminOrganiza
 	return &out, nil
 }
 
+// ListAdminPrGateSettingsInput is the input for ListAdminPrGateSettings — Get PR Gate Settings.
+type ListAdminPrGateSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminPrGateSettings - Get PR Gate Settings
+// GET /admin/pr-gate-settings
+func (c *Client) ListAdminPrGateSettings(ctx context.Context, in ListAdminPrGateSettingsInput) (*models.EndpointsAdminGetPRGateSettingsOutput, error) {
+	path := "/admin/pr-gate-settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetPRGateSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminPrGateSettingsInput is the input for UpdateAdminPrGateSettings — Put PR Gate Settings.
+type UpdateAdminPrGateSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowApprovingReviews *bool `json:"allowApprovingReviews,omitempty"`
+	AllowRequestChangesReviews *bool `json:"allowRequestChangesReviews,omitempty"`
+	CvssEnforcement *bool `json:"cvssEnforcement,omitempty"`
+	Enabled bool `json:"enabled"`
+	ExpectedPrScansEnabled *bool `json:"expectedPrScansEnabled,omitempty"`
+	ExpectedPushScansEnabled *bool `json:"expectedPushScansEnabled,omitempty"`
+	FailOnIncompleteCoverage *bool `json:"failOnIncompleteCoverage,omitempty"`
+	FindingsPolicy *models.EndpointsPRGateFindingsPolicy `json:"findingsPolicy,omitempty"`
+	MinPriority models.ModelsPriorityEnum `json:"minPriority"`
+	Mode *string `json:"mode,omitempty"`
+	PrReviewsEnabled *bool `json:"prReviewsEnabled,omitempty"`
+	PrScansEnabled *bool `json:"prScansEnabled,omitempty"`
+	PushScansEnabled *bool `json:"pushScansEnabled,omitempty"`
+	ScaBlockCvssThreshold *float64 `json:"scaBlockCvssThreshold,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminPrGateSettings - Put PR Gate Settings
+// PUT /admin/pr-gate-settings
+func (c *Client) UpdateAdminPrGateSettings(ctx context.Context, in UpdateAdminPrGateSettingsInput) (*models.EndpointsAdminPutPRGateSettingsOutput, error) {
+	path := "/admin/pr-gate-settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowApprovingReviews *bool `json:"allowApprovingReviews,omitempty"`
+		AllowRequestChangesReviews *bool `json:"allowRequestChangesReviews,omitempty"`
+		CvssEnforcement *bool `json:"cvssEnforcement,omitempty"`
+		Enabled bool `json:"enabled"`
+		ExpectedPrScansEnabled *bool `json:"expectedPrScansEnabled,omitempty"`
+		ExpectedPushScansEnabled *bool `json:"expectedPushScansEnabled,omitempty"`
+		FailOnIncompleteCoverage *bool `json:"failOnIncompleteCoverage,omitempty"`
+		FindingsPolicy *models.EndpointsPRGateFindingsPolicy `json:"findingsPolicy,omitempty"`
+		MinPriority models.ModelsPriorityEnum `json:"minPriority"`
+		Mode *string `json:"mode,omitempty"`
+		PrReviewsEnabled *bool `json:"prReviewsEnabled,omitempty"`
+		PrScansEnabled *bool `json:"prScansEnabled,omitempty"`
+		PushScansEnabled *bool `json:"pushScansEnabled,omitempty"`
+		ScaBlockCvssThreshold *float64 `json:"scaBlockCvssThreshold,omitempty"`
+	}{
+		AllowApprovingReviews: in.AllowApprovingReviews,
+		AllowRequestChangesReviews: in.AllowRequestChangesReviews,
+		CvssEnforcement: in.CvssEnforcement,
+		Enabled: in.Enabled,
+		ExpectedPrScansEnabled: in.ExpectedPrScansEnabled,
+		ExpectedPushScansEnabled: in.ExpectedPushScansEnabled,
+		FailOnIncompleteCoverage: in.FailOnIncompleteCoverage,
+		FindingsPolicy: in.FindingsPolicy,
+		MinPriority: in.MinPriority,
+		Mode: in.Mode,
+		PrReviewsEnabled: in.PrReviewsEnabled,
+		PrScansEnabled: in.PrScansEnabled,
+		PushScansEnabled: in.PushScansEnabled,
+		ScaBlockCvssThreshold: in.ScaBlockCvssThreshold,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminPutPRGateSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminPrivacyAcknowledgmentInput is the input for ListAdminPrivacyAcknowledgment — Get Privacy Acknowledgment.
 type ListAdminPrivacyAcknowledgmentInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PolicyVersion *string `url:"policyVersion,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -2409,6 +7355,9 @@ func (c *Client) ListAdminPrivacyAcknowledgment(ctx context.Context, in ListAdmi
 	}
 	if in.PolicyVersion != nil {
 		query.Set("policyVersion", string(*in.PolicyVersion))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2430,6 +7379,7 @@ func (c *Client) ListAdminPrivacyAcknowledgment(ctx context.Context, in ListAdmi
 
 // CreateAdminPrivacyAcknowledgmentInput is the input for CreateAdminPrivacyAcknowledgment — Post Privacy Acknowledgment.
 type CreateAdminPrivacyAcknowledgmentInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PolicyVersion string `json:"policyVersion"`
 	models.RequestScope
 }
@@ -2442,6 +7392,9 @@ func (c *Client) CreateAdminPrivacyAcknowledgment(ctx context.Context, in Create
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2469,10 +7422,145 @@ func (c *Client) CreateAdminPrivacyAcknowledgment(ctx context.Context, in Create
 	return &out, nil
 }
 
+// ListAdminPullrequestsInput is the input for ListAdminPullrequests — Get Pull Request Record.
+type ListAdminPullrequestsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ID *string `url:"id,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminPullrequests - Get Pull Request Record
+// GET /admin/pullrequests
+func (c *Client) ListAdminPullrequests(ctx context.Context, in ListAdminPullrequestsInput) (*models.EndpointsAdminGetPullRequestRecordOutput, error) {
+	path := "/admin/pullrequests"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.ID != nil {
+		query.Set("id", string(*in.ID))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetPullRequestRecordOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminPullrequestsInput is the input for CreateAdminPullrequests — Query Pull Requests.
+type CreateAdminPullrequestsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Query *models.ModelsFindingPullRequestQuery `json:"query,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminPullrequests - Query Pull Requests
+// POST /admin/pullrequests
+func (c *Client) CreateAdminPullrequests(ctx context.Context, in CreateAdminPullrequestsInput) (*models.EndpointsAdminQueryPullRequestsOutput, error) {
+	path := "/admin/pullrequests"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Query *models.ModelsFindingPullRequestQuery `json:"query,omitempty"`
+	}{
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminQueryPullRequestsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminPullrequestsRefreshCiInput is the input for CreateAdminPullrequestsRefreshCi — Refresh Pull Request CI.
+type CreateAdminPullrequestsRefreshCiInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Ids []string `json:"ids,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminPullrequestsRefreshCi - Refresh Pull Request CI
+// POST /admin/pullrequests/refresh-ci
+func (c *Client) CreateAdminPullrequestsRefreshCi(ctx context.Context, in CreateAdminPullrequestsRefreshCiInput) (*models.EndpointsAdminRefreshPullRequestsCIOutput, error) {
+	path := "/admin/pullrequests/refresh-ci"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Ids []string `json:"ids,omitempty"`
+	}{
+		Ids: in.Ids,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminRefreshPullRequestsCIOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminRepositoriesInput is the input for ListAdminRepositories — Get Repositories.
 type ListAdminRepositoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Ids []string `url:"ids,omitempty" json:"-"`
+	IncludeArchived *bool `url:"includeArchived,omitempty" json:"-"`
+	IncludeArchivedEnrolled []string `url:"includeArchivedEnrolled,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
 	Search *string `url:"search,omitempty" json:"-"`
 	TeamIDs []string `url:"teamIDs,omitempty" json:"-"`
 	models.RequestScope
@@ -2490,6 +7578,9 @@ func (c *Client) ListAdminRepositories(ctx context.Context, in ListAdminReposito
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
 	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
@@ -2498,6 +7589,18 @@ func (c *Client) ListAdminRepositories(ctx context.Context, in ListAdminReposito
 	}
 	for _, v := range in.TeamIDs {
 		query.Add("teamIDs", string(v))
+	}
+	if in.IncludeArchived != nil {
+		query.Set("includeArchived", strconv.FormatBool(*in.IncludeArchived))
+	}
+	for _, v := range in.IncludeArchivedEnrolled {
+		query.Add("includeArchivedEnrolled", string(v))
+	}
+	for _, v := range in.Ids {
+		query.Add("ids", string(v))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2517,20 +7620,23 @@ func (c *Client) ListAdminRepositories(ctx context.Context, in ListAdminReposito
 	return &out, nil
 }
 
-// CreateAdminRepositoriesInitializeInput is the input for CreateAdminRepositoriesInitialize — Initialize Repositories.
-type CreateAdminRepositoriesInitializeInput struct {
-	Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
+// ListAdminRepositoriesRecommendationsInput is the input for ListAdminRepositoriesRecommendations — Get Repository PoV Recommendations.
+type ListAdminRepositoriesRecommendationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// CreateAdminRepositoriesInitialize - Initialize Repositories
-// POST /admin/repositories/initialize
-func (c *Client) CreateAdminRepositoriesInitialize(ctx context.Context, in CreateAdminRepositoriesInitializeInput) (*models.EndpointsPostInitializeRepositoriesOutput, error) {
-	path := "/admin/repositories/initialize"
+// ListAdminRepositoriesRecommendations - Get Repository PoV Recommendations
+// GET /admin/repositories/recommendations
+func (c *Client) ListAdminRepositoriesRecommendations(ctx context.Context, in ListAdminRepositoriesRecommendationsInput) (*models.EndpointsAdminGetRepoRecommendationsOutput, error) {
+	path := "/admin/repositories/recommendations"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2539,39 +7645,35 @@ func (c *Client) CreateAdminRepositoriesInitialize(ctx context.Context, in Creat
 		fullURL += "?" + query.Encode()
 	}
 
-	bodyBytes, err := json.Marshal(struct {
-		Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
-	}{
-		Repositories: in.Repositories,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	data, err := c.do(ctx, "GET", fullURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsPostInitializeRepositoriesOutput
+	var out models.EndpointsAdminGetRepoRecommendationsOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
 }
 
-// CreateAdminRepositoriesUninitializeInput is the input for CreateAdminRepositoriesUninitialize — Uninitialize Repositories.
-type CreateAdminRepositoriesUninitializeInput struct {
-	Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
+// UpdateAdminRepositoriesScanScopeInput is the input for UpdateAdminRepositoriesScanScope — Update Repository Scan Scopes.
+type UpdateAdminRepositoriesScanScopeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Repositories []models.EndpointsRepositoryScanScopeChange `json:"repositories,omitempty"`
 	models.RequestScope
 }
 
-// CreateAdminRepositoriesUninitialize - Uninitialize Repositories
-// POST /admin/repositories/uninitialize
-func (c *Client) CreateAdminRepositoriesUninitialize(ctx context.Context, in CreateAdminRepositoriesUninitializeInput) (*models.EndpointsPostUninitializeRepositoriesOutput, error) {
-	path := "/admin/repositories/uninitialize"
+// UpdateAdminRepositoriesScanScope - Update Repository Scan Scopes
+// PUT /admin/repositories/scan-scope
+func (c *Client) UpdateAdminRepositoriesScanScope(ctx context.Context, in UpdateAdminRepositoriesScanScopeInput) (*models.EndpointsPutRepositoryScanScopesOutput, error) {
+	path := "/admin/repositories/scan-scope"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2581,18 +7683,60 @@ func (c *Client) CreateAdminRepositoriesUninitialize(ctx context.Context, in Cre
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		Repositories []models.ModelsGitRepositoryProvider `json:"repositories,omitempty"`
+		Repositories []models.EndpointsRepositoryScanScopeChange `json:"repositories,omitempty"`
 	}{
 		Repositories: in.Repositories,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
 	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsPostUninitializeRepositoriesOutput
+	var out models.EndpointsPutRepositoryScanScopesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminRepositoriesRepositoryIdDirectoriesInput is the input for ListAdminRepositoriesRepositoryIdDirectories — List Repository Directories.
+type ListAdminRepositoriesRepositoryIdDirectoriesInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Path *string `url:"path,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminRepositoriesRepositoryIdDirectories - List Repository Directories
+// GET /admin/repositories/{repositoryId}/directories
+func (c *Client) ListAdminRepositoriesRepositoryIdDirectories(ctx context.Context, in ListAdminRepositoriesRepositoryIdDirectoriesInput) (*models.EndpointsGetRepositoryDirectoriesOutput, error) {
+	path := "/admin/repositories/{repositoryId}/directories"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Path != nil {
+		query.Set("path", string(*in.Path))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetRepositoryDirectoriesOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -2601,6 +7745,7 @@ func (c *Client) CreateAdminRepositoriesUninitialize(ctx context.Context, in Cre
 
 // DeleteAdminRepositoryPropertyTeamKeysInput is the input for DeleteAdminRepositoryPropertyTeamKeys — Delete Repository Property Team Key.
 type DeleteAdminRepositoryPropertyTeamKeysInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	KeyID *string `url:"keyId,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -2616,6 +7761,9 @@ func (c *Client) DeleteAdminRepositoryPropertyTeamKeys(ctx context.Context, in D
 	}
 	if in.KeyID != nil {
 		query.Set("keyId", string(*in.KeyID))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2637,6 +7785,7 @@ func (c *Client) DeleteAdminRepositoryPropertyTeamKeys(ctx context.Context, in D
 
 // ListAdminRepositoryPropertyTeamKeysInput is the input for ListAdminRepositoryPropertyTeamKeys — List Repository Property Team Keys.
 type ListAdminRepositoryPropertyTeamKeysInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2648,6 +7797,9 @@ func (c *Client) ListAdminRepositoryPropertyTeamKeys(ctx context.Context, in Lis
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2669,6 +7821,7 @@ func (c *Client) ListAdminRepositoryPropertyTeamKeys(ctx context.Context, in Lis
 
 // CreateAdminRepositoryPropertyTeamKeysInput is the input for CreateAdminRepositoryPropertyTeamKeys — Create Repository Property Team Key.
 type CreateAdminRepositoryPropertyTeamKeysInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PropertyKey string `json:"propertyKey"`
 	ProviderID models.ModelsProviderID `json:"providerId"`
 	models.RequestScope
@@ -2682,6 +7835,9 @@ func (c *Client) CreateAdminRepositoryPropertyTeamKeys(ctx context.Context, in C
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2711,8 +7867,193 @@ func (c *Client) CreateAdminRepositoryPropertyTeamKeys(ctx context.Context, in C
 	return &out, nil
 }
 
+// GetAdminRunsKindIdInput is the input for GetAdminRunsKindId — Get Run Snapshot.
+type GetAdminRunsKindIdInput struct {
+	Kind string `path:"kind" json:"-"`
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetAdminRunsKindId - Get Run Snapshot
+// GET /admin/runs/{kind}/{id}
+func (c *Client) GetAdminRunsKindId(ctx context.Context, in GetAdminRunsKindIdInput) (*models.RunsnapshotSnapshot, error) {
+	path := "/admin/runs/{kind}/{id}"
+	path = strings.Replace(path, "{kind}", url.PathEscape(in.Kind), 1)
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.RunsnapshotSnapshot
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminScanScopeInput is the input for ListAdminScanScope — Get Scan Scope.
+type ListAdminScanScopeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminScanScope - Get Scan Scope
+// GET /admin/scan-scope
+func (c *Client) ListAdminScanScope(ctx context.Context, in ListAdminScanScopeInput) (*models.EndpointsScanScopeOutput, error) {
+	path := "/admin/scan-scope"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsScanScopeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminScanScopeInput is the input for UpdateAdminScanScope — Update Scan Scope Settings.
+type UpdateAdminScanScopeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
+	SecretsMode *string `json:"secretsMode,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminScanScope - Update Scan Scope Settings
+// PUT /admin/scan-scope
+func (c *Client) UpdateAdminScanScope(ctx context.Context, in UpdateAdminScanScopeInput) (*models.EndpointsPutScanScopeOutput, error) {
+	path := "/admin/scan-scope"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
+		SecretsMode *string `json:"secretsMode,omitempty"`
+	}{
+		ScopingEnabled: in.ScopingEnabled,
+		SecretsMode: in.SecretsMode,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutScanScopeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminScansOrchestratorInput is the input for ListAdminScansOrchestrator — List Orchestrator Scans.
+type ListAdminScansOrchestratorInput struct {
+	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	ScanType []string `url:"scanType,omitempty" json:"-"`
+	Status []string `url:"status,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminScansOrchestrator - List Orchestrator Scans
+// GET /admin/scans/orchestrator
+func (c *Client) ListAdminScansOrchestrator(ctx context.Context, in ListAdminScansOrchestratorInput) (*models.EndpointsListMergedScansOutput, error) {
+	path := "/admin/scans/orchestrator"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	for _, v := range in.ScanType {
+		query.Add("scanType", string(v))
+	}
+	for _, v := range in.Status {
+		query.Add("status", string(v))
+	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListMergedScansOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // DeleteAdminServiceAccountsInput is the input for DeleteAdminServiceAccounts — Delete Service Account.
 type DeleteAdminServiceAccountsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ServiceAccountID *string `url:"serviceAccountId,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -2728,6 +8069,9 @@ func (c *Client) DeleteAdminServiceAccounts(ctx context.Context, in DeleteAdminS
 	}
 	if in.ServiceAccountID != nil {
 		query.Set("serviceAccountId", string(*in.ServiceAccountID))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2749,6 +8093,7 @@ func (c *Client) DeleteAdminServiceAccounts(ctx context.Context, in DeleteAdminS
 
 // ListAdminServiceAccountsInput is the input for ListAdminServiceAccounts — Get Service Accounts.
 type ListAdminServiceAccountsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2760,6 +8105,9 @@ func (c *Client) ListAdminServiceAccounts(ctx context.Context, in ListAdminServi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2781,8 +8129,10 @@ func (c *Client) ListAdminServiceAccounts(ctx context.Context, in ListAdminServi
 
 // CreateAdminServiceAccountsInput is the input for CreateAdminServiceAccounts — Create Service Account.
 type CreateAdminServiceAccountsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name string `json:"name"`
 	Platform models.ModelsProviderID `json:"platform"`
+	Role *string `json:"role,omitempty"`
 	models.RequestScope
 }
 
@@ -2795,6 +8145,9 @@ func (c *Client) CreateAdminServiceAccounts(ctx context.Context, in CreateAdminS
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2805,9 +8158,11 @@ func (c *Client) CreateAdminServiceAccounts(ctx context.Context, in CreateAdminS
 	bodyBytes, err := json.Marshal(struct {
 		Name string `json:"name"`
 		Platform models.ModelsProviderID `json:"platform"`
+		Role *string `json:"role,omitempty"`
 	}{
 		Name: in.Name,
 		Platform: in.Platform,
+		Role: in.Role,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -2823,8 +8178,171 @@ func (c *Client) CreateAdminServiceAccounts(ctx context.Context, in CreateAdminS
 	return &out, nil
 }
 
+// ListAdminSettingsCspmScanCadenceInput is the input for ListAdminSettingsCspmScanCadence — Get CSPM Scan Cadence.
+type ListAdminSettingsCspmScanCadenceInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminSettingsCspmScanCadence - Get CSPM Scan Cadence
+// GET /admin/settings/cspm-scan-cadence
+func (c *Client) ListAdminSettingsCspmScanCadence(ctx context.Context, in ListAdminSettingsCspmScanCadenceInput) (*models.EndpointsCSPMScanCadenceOutput, error) {
+	path := "/admin/settings/cspm-scan-cadence"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsCSPMScanCadenceOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminSettingsCspmScanCadenceInput is the input for UpdateAdminSettingsCspmScanCadence — Set CSPM Scan Cadence.
+type UpdateAdminSettingsCspmScanCadenceInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	CspmScanCadence *string `json:"cspmScanCadence,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminSettingsCspmScanCadence - Set CSPM Scan Cadence
+// PUT /admin/settings/cspm-scan-cadence
+func (c *Client) UpdateAdminSettingsCspmScanCadence(ctx context.Context, in UpdateAdminSettingsCspmScanCadenceInput) (*models.EndpointsCSPMScanCadenceOutput, error) {
+	path := "/admin/settings/cspm-scan-cadence"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		CspmScanCadence *string `json:"cspmScanCadence,omitempty"`
+	}{
+		CspmScanCadence: in.CspmScanCadence,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsCSPMScanCadenceOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminSettingsInferenceRegionInput is the input for ListAdminSettingsInferenceRegion — Get Inference Region.
+type ListAdminSettingsInferenceRegionInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminSettingsInferenceRegion - Get Inference Region
+// GET /admin/settings/inference-region
+func (c *Client) ListAdminSettingsInferenceRegion(ctx context.Context, in ListAdminSettingsInferenceRegionInput) (*models.EndpointsInferenceRegionOutput, error) {
+	path := "/admin/settings/inference-region"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsInferenceRegionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminSettingsInferenceRegionInput is the input for UpdateAdminSettingsInferenceRegion — Set Inference Region.
+type UpdateAdminSettingsInferenceRegionInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InferenceRegion models.ModelsInferenceRegion `json:"inferenceRegion"`
+	models.RequestScope
+}
+
+// UpdateAdminSettingsInferenceRegion - Set Inference Region
+// PUT /admin/settings/inference-region
+func (c *Client) UpdateAdminSettingsInferenceRegion(ctx context.Context, in UpdateAdminSettingsInferenceRegionInput) (*models.EndpointsInferenceRegionOutput, error) {
+	path := "/admin/settings/inference-region"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		InferenceRegion models.ModelsInferenceRegion `json:"inferenceRegion"`
+	}{
+		InferenceRegion: in.InferenceRegion,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsInferenceRegionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminSlaInput is the input for ListAdminSla — Get SLAs.
 type ListAdminSlaInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2836,6 +8354,9 @@ func (c *Client) ListAdminSla(ctx context.Context, in ListAdminSlaInput) (*model
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2857,6 +8378,7 @@ func (c *Client) ListAdminSla(ctx context.Context, in ListAdminSlaInput) (*model
 
 // CreateAdminSlaInput is the input for CreateAdminSla — Post SLA.
 type CreateAdminSlaInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowExtensions bool `json:"allowExtensions"`
 	MaxDaysToFix int `json:"maxDaysToFix"`
 	Priority models.ModelsPriorityLabel `json:"priority"`
@@ -2872,6 +8394,9 @@ func (c *Client) CreateAdminSla(ctx context.Context, in CreateAdminSlaInput) (*m
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2907,6 +8432,7 @@ func (c *Client) CreateAdminSla(ctx context.Context, in CreateAdminSlaInput) (*m
 
 // UpdateAdminSlaBulkInput is the input for UpdateAdminSlaBulk — Put Bulk SLA.
 type UpdateAdminSlaBulkInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Slas []models.ModelsSLA `json:"slas,omitempty"`
 	models.RequestScope
 }
@@ -2919,6 +8445,9 @@ func (c *Client) UpdateAdminSlaBulk(ctx context.Context, in UpdateAdminSlaBulkIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2949,6 +8478,7 @@ func (c *Client) UpdateAdminSlaBulk(ctx context.Context, in UpdateAdminSlaBulkIn
 // PatchAdminSlaSlaIdInput is the input for PatchAdminSlaSlaId — Patch SLA.
 type PatchAdminSlaSlaIdInput struct {
 	SlaID string `path:"slaId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowExtensions *bool `json:"allowExtensions,omitempty"`
 	MaxDaysToFix *int `json:"maxDaysToFix,omitempty"`
 	Priority *models.ModelsPriorityLabel `json:"priority,omitempty"`
@@ -2965,6 +8495,9 @@ func (c *Client) PatchAdminSlaSlaId(ctx context.Context, in PatchAdminSlaSlaIdIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2998,8 +8531,136 @@ func (c *Client) PatchAdminSlaSlaId(ctx context.Context, in PatchAdminSlaSlaIdIn
 	return &out, nil
 }
 
+// DeleteAdminSupportAccessInput is the input for DeleteAdminSupportAccess — Revoke Support Access.
+type DeleteAdminSupportAccessInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminSupportAccess - Revoke Support Access
+// DELETE /admin/support-access
+func (c *Client) DeleteAdminSupportAccess(ctx context.Context, in DeleteAdminSupportAccessInput) (*models.EndpointsAdminRevokeSupportAccessOutput, error) {
+	path := "/admin/support-access"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminRevokeSupportAccessOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminSupportAccessInput is the input for ListAdminSupportAccess — Get Support Access.
+type ListAdminSupportAccessInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminSupportAccess - Get Support Access
+// GET /admin/support-access
+func (c *Client) ListAdminSupportAccess(ctx context.Context, in ListAdminSupportAccessInput) (*models.EndpointsAdminGetSupportAccessOutput, error) {
+	path := "/admin/support-access"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminGetSupportAccessOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminSupportAccessInput is the input for CreateAdminSupportAccess — Elevate Support Access.
+type CreateAdminSupportAccessInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Agent *string `json:"agent,omitempty"`
+	Reason string `json:"reason"`
+	TtlSeconds *int64 `json:"ttlSeconds,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminSupportAccess - Elevate Support Access
+// POST /admin/support-access
+func (c *Client) CreateAdminSupportAccess(ctx context.Context, in CreateAdminSupportAccessInput) (*models.EndpointsAdminElevateSupportAccessOutput, error) {
+	path := "/admin/support-access"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Agent *string `json:"agent,omitempty"`
+		Reason string `json:"reason"`
+		TtlSeconds *int64 `json:"ttlSeconds,omitempty"`
+	}{
+		Agent: in.Agent,
+		Reason: in.Reason,
+		TtlSeconds: in.TtlSeconds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminElevateSupportAccessOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminTeamSourcePreferencesInput is the input for ListAdminTeamSourcePreferences — Get Team Source Preferences.
 type ListAdminTeamSourcePreferencesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3011,6 +8672,9 @@ func (c *Client) ListAdminTeamSourcePreferences(ctx context.Context, in ListAdmi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3032,6 +8696,7 @@ func (c *Client) ListAdminTeamSourcePreferences(ctx context.Context, in ListAdmi
 
 // UpdateAdminTeamSourcePreferencesInput is the input for UpdateAdminTeamSourcePreferences — Update Team Source Preferences.
 type UpdateAdminTeamSourcePreferencesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	GithubTeamsEnabled bool `json:"githubTeamsEnabled"`
 	RepositoryPropertyEnabled bool `json:"repositoryPropertyEnabled"`
 	models.RequestScope
@@ -3045,6 +8710,9 @@ func (c *Client) UpdateAdminTeamSourcePreferences(ctx context.Context, in Update
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3076,6 +8744,7 @@ func (c *Client) UpdateAdminTeamSourcePreferences(ctx context.Context, in Update
 
 // ListAdminTeamSyncRunsInput is the input for ListAdminTeamSyncRuns — List Team Sync Runs.
 type ListAdminTeamSyncRunsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int32 `url:"limit,omitempty" json:"-"`
 	Source *string `url:"source,omitempty" json:"-"`
 	models.RequestScope
@@ -3095,6 +8764,9 @@ func (c *Client) ListAdminTeamSyncRuns(ctx context.Context, in ListAdminTeamSync
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3116,6 +8788,7 @@ func (c *Client) ListAdminTeamSyncRuns(ctx context.Context, in ListAdminTeamSync
 
 // CreateAdminTeamSyncRunsInput is the input for CreateAdminTeamSyncRuns — Trigger Team Sync.
 type CreateAdminTeamSyncRunsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Source *string `json:"source,omitempty"`
 	models.RequestScope
 }
@@ -3128,6 +8801,9 @@ func (c *Client) CreateAdminTeamSyncRuns(ctx context.Context, in CreateAdminTeam
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3158,6 +8834,7 @@ func (c *Client) CreateAdminTeamSyncRuns(ctx context.Context, in CreateAdminTeam
 // GetAdminTeamTeamIDInput is the input for GetAdminTeamTeamID — Get Team.
 type GetAdminTeamTeamIDInput struct {
 	TeamID string `path:"teamID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3170,6 +8847,9 @@ func (c *Client) GetAdminTeamTeamID(ctx context.Context, in GetAdminTeamTeamIDIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3191,9 +8871,13 @@ func (c *Client) GetAdminTeamTeamID(ctx context.Context, in GetAdminTeamTeamIDIn
 
 // ListAdminTeamsInput is the input for ListAdminTeams — Get All Teams.
 type ListAdminTeamsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	Search *string `url:"search,omitempty" json:"-"`
+	SkipUserEnrichment *bool `url:"skipUserEnrichment,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3206,14 +8890,26 @@ func (c *Client) ListAdminTeams(ctx context.Context, in ListAdminTeamsInput) (*m
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
 	}
 	if in.Search != nil {
 		query.Set("search", string(*in.Search))
+	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	if in.SkipUserEnrichment != nil {
+		query.Set("skipUserEnrichment", strconv.FormatBool(*in.SkipUserEnrichment))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3235,6 +8931,7 @@ func (c *Client) ListAdminTeams(ctx context.Context, in ListAdminTeamsInput) (*m
 
 // CreateAdminTeamsInput is the input for CreateAdminTeams — Post Team.
 type CreateAdminTeamsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
 	Github *models.ModelsTeamProviderGitHub `json:"github,omitempty"`
 	Gitlab *models.ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
@@ -3258,6 +8955,9 @@ func (c *Client) CreateAdminTeams(ctx context.Context, in CreateAdminTeamsInput)
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3309,6 +9009,7 @@ func (c *Client) CreateAdminTeams(ctx context.Context, in CreateAdminTeamsInput)
 
 // ListAdminTeamsAppzipInput is the input for ListAdminTeamsAppzip — Get Teams App Zip.
 type ListAdminTeamsAppzipInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3320,6 +9021,9 @@ func (c *Client) ListAdminTeamsAppzip(ctx context.Context, in ListAdminTeamsAppz
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3341,6 +9045,7 @@ func (c *Client) ListAdminTeamsAppzip(ctx context.Context, in ListAdminTeamsAppz
 
 // CreateAdminTeamsCompassInput is the input for CreateAdminTeamsCompass — Post Compass/Atlassian Team.
 type CreateAdminTeamsCompassInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	DisplayName string `json:"displayName"`
 	Lead string `json:"lead"`
 	Members []string `json:"members,omitempty"`
@@ -3358,6 +9063,9 @@ func (c *Client) CreateAdminTeamsCompass(ctx context.Context, in CreateAdminTeam
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3397,6 +9105,7 @@ func (c *Client) CreateAdminTeamsCompass(ctx context.Context, in CreateAdminTeam
 
 // ListAdminTeamsFindingsInput is the input for ListAdminTeamsFindings — Get All Team Findings mapping.
 type ListAdminTeamsFindingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3408,6 +9117,9 @@ func (c *Client) ListAdminTeamsFindings(ctx context.Context, in ListAdminTeamsFi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3429,6 +9141,8 @@ func (c *Client) ListAdminTeamsFindings(ctx context.Context, in ListAdminTeamsFi
 
 // CreateAdminTeamsFindingsInput is the input for CreateAdminTeamsFindings — Manual Team Findings Assignment.
 type CreateAdminTeamsFindingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Actor *string `json:"actor,omitempty"`
 	Mappings []models.EndpointsPostTeamFindingsMapping `json:"mappings,omitempty"`
 	models.RequestScope
 }
@@ -3442,6 +9156,9 @@ func (c *Client) CreateAdminTeamsFindings(ctx context.Context, in CreateAdminTea
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -3450,8 +9167,10 @@ func (c *Client) CreateAdminTeamsFindings(ctx context.Context, in CreateAdminTea
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		Actor *string `json:"actor,omitempty"`
 		Mappings []models.EndpointsPostTeamFindingsMapping `json:"mappings,omitempty"`
 	}{
+		Actor: in.Actor,
 		Mappings: in.Mappings,
 	})
 	if err != nil {
@@ -3470,6 +9189,7 @@ func (c *Client) CreateAdminTeamsFindings(ctx context.Context, in CreateAdminTea
 
 // CreateAdminTeamsFindingsSyncInput is the input for CreateAdminTeamsFindingsSync — Sync Team Findings.
 type CreateAdminTeamsFindingsSyncInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Async *bool `json:"async,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
 	FindingTypes []string `json:"findingTypes,omitempty"`
@@ -3486,6 +9206,9 @@ func (c *Client) CreateAdminTeamsFindingsSync(ctx context.Context, in CreateAdmi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3523,6 +9246,7 @@ func (c *Client) CreateAdminTeamsFindingsSync(ctx context.Context, in CreateAdmi
 
 // CreateAdminTeamsMergeInput is the input for CreateAdminTeamsMerge — Merge Teams.
 type CreateAdminTeamsMergeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Sources []models.EndpointsTeamMergeSource `json:"sources,omitempty"`
 	TargetTeamID *string `json:"targetTeamId,omitempty"`
 	models.RequestScope
@@ -3536,6 +9260,9 @@ func (c *Client) CreateAdminTeamsMerge(ctx context.Context, in CreateAdminTeamsM
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3565,9 +9292,55 @@ func (c *Client) CreateAdminTeamsMerge(ctx context.Context, in CreateAdminTeamsM
 	return &out, nil
 }
 
+// CreateAdminTeamsSlaBreakdownInput is the input for CreateAdminTeamsSlaBreakdown — Get Team SLA Breakdown.
+type CreateAdminTeamsSlaBreakdownInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIDs []string `json:"findingIDs,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTeamsSlaBreakdown - Get Team SLA Breakdown
+// POST /admin/teams/sla-breakdown
+func (c *Client) CreateAdminTeamsSlaBreakdown(ctx context.Context, in CreateAdminTeamsSlaBreakdownInput) (*models.EndpointsPostTeamSLABreakdownOutput, error) {
+	path := "/admin/teams/sla-breakdown"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIDs []string `json:"findingIDs,omitempty"`
+	}{
+		FindingIDs: in.FindingIDs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTeamSLABreakdownOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // DeleteAdminTeamsTeamIDInput is the input for DeleteAdminTeamsTeamID — Delete Manual Team.
 type DeleteAdminTeamsTeamIDInput struct {
 	TeamID string `path:"teamID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3580,6 +9353,9 @@ func (c *Client) DeleteAdminTeamsTeamID(ctx context.Context, in DeleteAdminTeams
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3602,6 +9378,9 @@ func (c *Client) DeleteAdminTeamsTeamID(ctx context.Context, in DeleteAdminTeams
 // PatchAdminTeamsTeamIDInput is the input for PatchAdminTeamsTeamID — Patch Team.
 type PatchAdminTeamsTeamIDInput struct {
 	TeamID string `path:"teamID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AddMemberIds []string `json:"addMemberIds,omitempty"`
+	ClearLead *bool `json:"clearLead,omitempty"`
 	CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
 	Github *models.ModelsTeamProviderGitHub `json:"github,omitempty"`
 	Gitlab *models.ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
@@ -3612,7 +9391,9 @@ type PatchAdminTeamsTeamIDInput struct {
 	MessageChannelProvider *models.ModelsMessageChannelProvider `json:"messageChannelProvider,omitempty"`
 	Name *string `json:"name,omitempty"`
 	Privacy *models.ModelsTeamPrivacy `json:"privacy,omitempty"`
+	RemoveMemberIds []string `json:"removeMemberIds,omitempty"`
 	Slug *string `json:"slug,omitempty"`
+	TicketBoardID *string `json:"ticketBoardId,omitempty"`
 	TicketProjectProvider *models.ModelsTicketProjectProvider `json:"ticketProjectProvider,omitempty"`
 	models.RequestScope
 }
@@ -3627,6 +9408,9 @@ func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTe
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -3635,6 +9419,8 @@ func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTe
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		AddMemberIds []string `json:"addMemberIds,omitempty"`
+		ClearLead *bool `json:"clearLead,omitempty"`
 		CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
 		Github *models.ModelsTeamProviderGitHub `json:"github,omitempty"`
 		Gitlab *models.ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
@@ -3645,9 +9431,13 @@ func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTe
 		MessageChannelProvider *models.ModelsMessageChannelProvider `json:"messageChannelProvider,omitempty"`
 		Name *string `json:"name,omitempty"`
 		Privacy *models.ModelsTeamPrivacy `json:"privacy,omitempty"`
+		RemoveMemberIds []string `json:"removeMemberIds,omitempty"`
 		Slug *string `json:"slug,omitempty"`
+		TicketBoardID *string `json:"ticketBoardId,omitempty"`
 		TicketProjectProvider *models.ModelsTicketProjectProvider `json:"ticketProjectProvider,omitempty"`
 	}{
+		AddMemberIds: in.AddMemberIds,
+		ClearLead: in.ClearLead,
 		CodeOwnerships: in.CodeOwnerships,
 		Github: in.Github,
 		Gitlab: in.Gitlab,
@@ -3658,7 +9448,9 @@ func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTe
 		MessageChannelProvider: in.MessageChannelProvider,
 		Name: in.Name,
 		Privacy: in.Privacy,
+		RemoveMemberIds: in.RemoveMemberIds,
 		Slug: in.Slug,
+		TicketBoardID: in.TicketBoardID,
 		TicketProjectProvider: in.TicketProjectProvider,
 	})
 	if err != nil {
@@ -3675,18 +9467,74 @@ func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTe
 	return &out, nil
 }
 
+// CreateAdminTeamsTeamIDCodeOwnershipInput is the input for CreateAdminTeamsTeamIDCodeOwnership — Make Team The Owner Of A Repository.
+type CreateAdminTeamsTeamIDCodeOwnershipInput struct {
+	TeamID string `path:"teamID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Actor *string `json:"actor,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	models.RequestScope
+}
+
+// CreateAdminTeamsTeamIDCodeOwnership - Make Team The Owner Of A Repository
+// POST /admin/teams/{teamID}/code-ownership
+func (c *Client) CreateAdminTeamsTeamIDCodeOwnership(ctx context.Context, in CreateAdminTeamsTeamIDCodeOwnershipInput) (*models.EndpointsPostTeamCodeOwnershipOutput, error) {
+	path := "/admin/teams/{teamID}/code-ownership"
+	path = strings.Replace(path, "{teamID}", url.PathEscape(in.TeamID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Actor *string `json:"actor,omitempty"`
+		RepositoryID string `json:"repositoryId"`
+	}{
+		Actor: in.Actor,
+		RepositoryID: in.RepositoryID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTeamCodeOwnershipOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminTeamsTeamIDEventsInput is the input for CreateAdminTeamsTeamIDEvents — List Team Unified Events.
 type CreateAdminTeamsTeamIDEventsInput struct {
 	TeamID string `path:"teamID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AfterID *string `json:"afterId,omitempty"`
 	AfterTimeUnix *int `json:"afterTimeUnix,omitempty"`
 	AutofixID *string `json:"autofixId,omitempty"`
 	BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	EventTypes []string `json:"eventTypes,omitempty"`
+	ExcludeEventTypes []string `json:"excludeEventTypes,omitempty"`
+	ExcludeServices []string `json:"excludeServices,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
+	HideNoise *bool `json:"hideNoise,omitempty"`
 	Limit *int `json:"limit,omitempty"`
 	PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+	Query *string `json:"query,omitempty"`
+	QueryEventTypes []string `json:"queryEventTypes,omitempty"`
 	RunID *string `json:"runId,omitempty"`
 	Services []string `json:"services,omitempty"`
 	models.RequestScope
@@ -3702,6 +9550,9 @@ func (c *Client) CreateAdminTeamsTeamIDEvents(ctx context.Context, in CreateAdmi
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -3716,9 +9567,14 @@ func (c *Client) CreateAdminTeamsTeamIDEvents(ctx context.Context, in CreateAdmi
 		BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
 		CampaignID *string `json:"campaignId,omitempty"`
 		EventTypes []string `json:"eventTypes,omitempty"`
+		ExcludeEventTypes []string `json:"excludeEventTypes,omitempty"`
+		ExcludeServices []string `json:"excludeServices,omitempty"`
 		FindingIds []string `json:"findingIds,omitempty"`
+		HideNoise *bool `json:"hideNoise,omitempty"`
 		Limit *int `json:"limit,omitempty"`
 		PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+		Query *string `json:"query,omitempty"`
+		QueryEventTypes []string `json:"queryEventTypes,omitempty"`
 		RunID *string `json:"runId,omitempty"`
 		Services []string `json:"services,omitempty"`
 	}{
@@ -3728,9 +9584,14 @@ func (c *Client) CreateAdminTeamsTeamIDEvents(ctx context.Context, in CreateAdmi
 		BeforeTimeUnix: in.BeforeTimeUnix,
 		CampaignID: in.CampaignID,
 		EventTypes: in.EventTypes,
+		ExcludeEventTypes: in.ExcludeEventTypes,
+		ExcludeServices: in.ExcludeServices,
 		FindingIds: in.FindingIds,
+		HideNoise: in.HideNoise,
 		Limit: in.Limit,
 		PrCanonicalID: in.PrCanonicalID,
+		Query: in.Query,
+		QueryEventTypes: in.QueryEventTypes,
 		RunID: in.RunID,
 		Services: in.Services,
 	})
@@ -3751,6 +9612,7 @@ func (c *Client) CreateAdminTeamsTeamIDEvents(ctx context.Context, in CreateAdmi
 // ListAdminTeamsTeamIDFindingsInput is the input for ListAdminTeamsTeamIDFindings — Get Team Findings mapping.
 type ListAdminTeamsTeamIDFindingsInput struct {
 	TeamID string `path:"teamID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3763,6 +9625,9 @@ func (c *Client) ListAdminTeamsTeamIDFindings(ctx context.Context, in ListAdminT
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3782,8 +9647,1390 @@ func (c *Client) ListAdminTeamsTeamIDFindings(ctx context.Context, in ListAdminT
 	return &out, nil
 }
 
+// ListAdminTenantCapabilitiesInput is the input for ListAdminTenantCapabilities — List Tenant Capabilities.
+type ListAdminTenantCapabilitiesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminTenantCapabilities - List Tenant Capabilities
+// GET /admin/tenant-capabilities
+func (c *Client) ListAdminTenantCapabilities(ctx context.Context, in ListAdminTenantCapabilitiesInput) (*models.EndpointsTenantCapabilitiesOutput, error) {
+	path := "/admin/tenant-capabilities"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsTenantCapabilitiesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminTenantCapabilitiesCapabilityInput is the input for UpdateAdminTenantCapabilitiesCapability — Set Tenant Capability.
+type UpdateAdminTenantCapabilitiesCapabilityInput struct {
+	Capability string `path:"capability" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Enabled *bool `json:"enabled,omitempty"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminTenantCapabilitiesCapability - Set Tenant Capability
+// PUT /admin/tenant-capabilities/{capability}
+func (c *Client) UpdateAdminTenantCapabilitiesCapability(ctx context.Context, in UpdateAdminTenantCapabilitiesCapabilityInput) (*models.EndpointsPutTenantCapabilityOutput, error) {
+	path := "/admin/tenant-capabilities/{capability}"
+	path = strings.Replace(path, "{capability}", url.PathEscape(in.Capability), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Enabled *bool `json:"enabled,omitempty"`
+		ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+	}{
+		Enabled: in.Enabled,
+		ExpectedUpdatedAt: in.ExpectedUpdatedAt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutTenantCapabilityOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTicketingActivityInput is the input for ListAdminTicketingActivity — List Ticketing Activity.
+type ListAdminTicketingActivityInput struct {
+	Actor *string `url:"actor,omitempty" json:"-"`
+	EventType *string `url:"eventType,omitempty" json:"-"`
+	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	Offset *int32 `url:"offset,omitempty" json:"-"`
+	ToTime *string `url:"toTime,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminTicketingActivity - List Ticketing Activity
+// GET /admin/ticketing/activity
+func (c *Client) ListAdminTicketingActivity(ctx context.Context, in ListAdminTicketingActivityInput) (*models.EndpointsGetTicketActivityOutput, error) {
+	path := "/admin/ticketing/activity"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.EventType != nil {
+		query.Set("eventType", string(*in.EventType))
+	}
+	if in.Actor != nil {
+		query.Set("actor", string(*in.Actor))
+	}
+	if in.FromTime != nil {
+		query.Set("fromTime", string(*in.FromTime))
+	}
+	if in.ToTime != nil {
+		query.Set("toTime", string(*in.ToTime))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTicketActivityOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminTicketingBulkOperationsOperationIdInput is the input for GetAdminTicketingBulkOperationsOperationId — Get Bulk Operation Status.
+type GetAdminTicketingBulkOperationsOperationIdInput struct {
+	OperationID string `path:"operationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetAdminTicketingBulkOperationsOperationId - Get Bulk Operation Status
+// GET /admin/ticketing/bulk-operations/{operationId}
+func (c *Client) GetAdminTicketingBulkOperationsOperationId(ctx context.Context, in GetAdminTicketingBulkOperationsOperationIdInput) (*models.EndpointsGetBulkOperationOutput, error) {
+	path := "/admin/ticketing/bulk-operations/{operationId}"
+	path = strings.Replace(path, "{operationId}", url.PathEscape(in.OperationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetBulkOperationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingBulkOperationsOperationIdCancelInput is the input for CreateAdminTicketingBulkOperationsOperationIdCancel — Request Bulk Operation Cancellation.
+type CreateAdminTicketingBulkOperationsOperationIdCancelInput struct {
+	OperationID string `path:"operationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingBulkOperationsOperationIdCancel - Request Bulk Operation Cancellation
+// POST /admin/ticketing/bulk-operations/{operationId}/cancel
+func (c *Client) CreateAdminTicketingBulkOperationsOperationIdCancel(ctx context.Context, in CreateAdminTicketingBulkOperationsOperationIdCancelInput) (*models.EndpointsPostBulkOperationCancelOutput, error) {
+	path := "/admin/ticketing/bulk-operations/{operationId}/cancel"
+	path = strings.Replace(path, "{operationId}", url.PathEscape(in.OperationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkOperationCancelOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTicketingSavedFiltersInput is the input for ListAdminTicketingSavedFilters — List Saved Ticket Filters.
+type ListAdminTicketingSavedFiltersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminTicketingSavedFilters - List Saved Ticket Filters
+// GET /admin/ticketing/saved-filters
+func (c *Client) ListAdminTicketingSavedFilters(ctx context.Context, in ListAdminTicketingSavedFiltersInput) (*models.EndpointsGetTicketSavedFiltersOutput, error) {
+	path := "/admin/ticketing/saved-filters"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTicketSavedFiltersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingSavedFiltersInput is the input for CreateAdminTicketingSavedFilters — Create Saved Ticket Filter.
+type CreateAdminTicketingSavedFiltersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Name string `json:"name"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingSavedFilters - Create Saved Ticket Filter
+// POST /admin/ticketing/saved-filters
+func (c *Client) CreateAdminTicketingSavedFilters(ctx context.Context, in CreateAdminTicketingSavedFiltersInput) (*models.EndpointsPostTicketSavedFilterOutput, error) {
+	path := "/admin/ticketing/saved-filters"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Name string `json:"name"`
+	}{
+		Filter: in.Filter,
+		Name: in.Name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTicketSavedFilterOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminTicketingSavedFiltersIdInput is the input for DeleteAdminTicketingSavedFiltersId — Delete Saved Ticket Filter.
+type DeleteAdminTicketingSavedFiltersIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminTicketingSavedFiltersId - Delete Saved Ticket Filter
+// DELETE /admin/ticketing/saved-filters/{id}
+func (c *Client) DeleteAdminTicketingSavedFiltersId(ctx context.Context, in DeleteAdminTicketingSavedFiltersIdInput) (*models.EndpointsDeleteTicketSavedFilterOutput, error) {
+	path := "/admin/ticketing/saved-filters/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSavedFilterOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchAdminTicketingSavedFiltersIdInput is the input for PatchAdminTicketingSavedFiltersId — Update Saved Ticket Filter.
+type PatchAdminTicketingSavedFiltersIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Filter *models.EndpointsTicketWorkbenchFilter `json:"filter,omitempty"`
+	Name *string `json:"name,omitempty"`
+	models.RequestScope
+}
+
+// PatchAdminTicketingSavedFiltersId - Update Saved Ticket Filter
+// PATCH /admin/ticketing/saved-filters/{id}
+func (c *Client) PatchAdminTicketingSavedFiltersId(ctx context.Context, in PatchAdminTicketingSavedFiltersIdInput) (*models.EndpointsPatchTicketSavedFilterOutput, error) {
+	path := "/admin/ticketing/saved-filters/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Filter *models.EndpointsTicketWorkbenchFilter `json:"filter,omitempty"`
+		Name *string `json:"name,omitempty"`
+	}{
+		Filter: in.Filter,
+		Name: in.Name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchTicketSavedFilterOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingSettingsFindingTypeInput is the input for CreateAdminTicketingSettingsFindingType — Save Ticket Settings.
+type CreateAdminTicketingSettingsFindingTypeInput struct {
+	FindingType string `path:"findingType" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	MigrationAction *models.DatabaseTicketMigrationAction `json:"migrationAction,omitempty"`
+	Proposal models.EndpointsTicketSettingsProposal `json:"proposal"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingSettingsFindingType - Save Ticket Settings
+// POST /admin/ticketing/settings/{findingType}
+func (c *Client) CreateAdminTicketingSettingsFindingType(ctx context.Context, in CreateAdminTicketingSettingsFindingTypeInput) (*models.EndpointsPostTicketSettingsOutput, error) {
+	path := "/admin/ticketing/settings/{findingType}"
+	path = strings.Replace(path, "{findingType}", url.PathEscape(in.FindingType), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		MigrationAction *models.DatabaseTicketMigrationAction `json:"migrationAction,omitempty"`
+		Proposal models.EndpointsTicketSettingsProposal `json:"proposal"`
+		UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+	}{
+		MigrationAction: in.MigrationAction,
+		Proposal: in.Proposal,
+		UserCanonicalID: in.UserCanonicalID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTicketSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTicketingSettingsFindingTypeHistoryInput is the input for ListAdminTicketingSettingsFindingTypeHistory — List Ticket Settings History.
+type ListAdminTicketingSettingsFindingTypeHistoryInput struct {
+	FindingType string `path:"findingType" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	Offset *int32 `url:"offset,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminTicketingSettingsFindingTypeHistory - List Ticket Settings History
+// GET /admin/ticketing/settings/{findingType}/history
+func (c *Client) ListAdminTicketingSettingsFindingTypeHistory(ctx context.Context, in ListAdminTicketingSettingsFindingTypeHistoryInput) (*models.EndpointsGetTicketSettingsHistoryOutput, error) {
+	path := "/admin/ticketing/settings/{findingType}/history"
+	path = strings.Replace(path, "{findingType}", url.PathEscape(in.FindingType), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTicketSettingsHistoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingSettingsFindingTypePreviewInput is the input for CreateAdminTicketingSettingsFindingTypePreview — Preview Ticket Settings Impact.
+type CreateAdminTicketingSettingsFindingTypePreviewInput struct {
+	FindingType string `path:"findingType" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Proposal models.EndpointsTicketSettingsProposal `json:"proposal"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingSettingsFindingTypePreview - Preview Ticket Settings Impact
+// POST /admin/ticketing/settings/{findingType}/preview
+func (c *Client) CreateAdminTicketingSettingsFindingTypePreview(ctx context.Context, in CreateAdminTicketingSettingsFindingTypePreviewInput) (*models.EndpointsPostTicketSettingsPreviewOutput, error) {
+	path := "/admin/ticketing/settings/{findingType}/preview"
+	path = strings.Replace(path, "{findingType}", url.PathEscape(in.FindingType), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Proposal models.EndpointsTicketSettingsProposal `json:"proposal"`
+		UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+	}{
+		Proposal: in.Proposal,
+		UserCanonicalID: in.UserCanonicalID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostTicketSettingsPreviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTicketingTicketsInput is the input for ListAdminTicketingTickets — List Tickets (Power-User Workbench).
+type ListAdminTicketingTicketsInput struct {
+	BoardID *string `url:"boardId,omitempty" json:"-"`
+	ClosedAfter *string `url:"closedAfter,omitempty" json:"-"`
+	ClosedBefore *string `url:"closedBefore,omitempty" json:"-"`
+	CreatedAfter *string `url:"createdAfter,omitempty" json:"-"`
+	CreatedBefore *string `url:"createdBefore,omitempty" json:"-"`
+	FindingType []string `url:"findingType,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	HasSyncError *string `url:"hasSyncError,omitempty" json:"-"`
+	LastSyncedBefore *string `url:"lastSyncedBefore,omitempty" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	Offset *int32 `url:"offset,omitempty" json:"-"`
+	OutOfEligibilitySinceAfter *string `url:"outOfEligibilitySinceAfter,omitempty" json:"-"`
+	Platform []string `url:"platform,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	SavedFilterID *string `url:"savedFilterId,omitempty" json:"-"`
+	Source []string `url:"source,omitempty" json:"-"`
+	Status []string `url:"status,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminTicketingTickets - List Tickets (Power-User Workbench)
+// GET /admin/ticketing/tickets
+func (c *Client) ListAdminTicketingTickets(ctx context.Context, in ListAdminTicketingTicketsInput) (*models.EndpointsGetTicketWorkbenchListOutput, error) {
+	path := "/admin/ticketing/tickets"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	for _, v := range in.Source {
+		query.Add("source", string(v))
+	}
+	for _, v := range in.Status {
+		query.Add("status", string(v))
+	}
+	for _, v := range in.FindingType {
+		query.Add("findingType", string(v))
+	}
+	for _, v := range in.Platform {
+		query.Add("platform", string(v))
+	}
+	if in.BoardID != nil {
+		query.Set("boardId", string(*in.BoardID))
+	}
+	if in.CreatedAfter != nil {
+		query.Set("createdAfter", string(*in.CreatedAfter))
+	}
+	if in.CreatedBefore != nil {
+		query.Set("createdBefore", string(*in.CreatedBefore))
+	}
+	if in.ClosedAfter != nil {
+		query.Set("closedAfter", string(*in.ClosedAfter))
+	}
+	if in.ClosedBefore != nil {
+		query.Set("closedBefore", string(*in.ClosedBefore))
+	}
+	if in.LastSyncedBefore != nil {
+		query.Set("lastSyncedBefore", string(*in.LastSyncedBefore))
+	}
+	if in.OutOfEligibilitySinceAfter != nil {
+		query.Set("outOfEligibilitySinceAfter", string(*in.OutOfEligibilitySinceAfter))
+	}
+	if in.HasSyncError != nil {
+		query.Set("hasSyncError", string(*in.HasSyncError))
+	}
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
+	}
+	if in.SavedFilterID != nil {
+		query.Set("savedFilterId", string(*in.SavedFilterID))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTicketWorkbenchListOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkAddCommentInput is the input for CreateAdminTicketingTicketsBulkAddComment — Bulk Add Comment To Tickets.
+type CreateAdminTicketingTicketsBulkAddCommentInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkAddCommentParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkAddComment - Bulk Add Comment To Tickets
+// POST /admin/ticketing/tickets/bulk-add-comment
+func (c *Client) CreateAdminTicketingTicketsBulkAddComment(ctx context.Context, in CreateAdminTicketingTicketsBulkAddCommentInput) (*models.EndpointsPostBulkAddCommentOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-add-comment"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkAddCommentParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkAddCommentOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkCloseInput is the input for CreateAdminTicketingTicketsBulkClose — Bulk Close Tickets.
+type CreateAdminTicketingTicketsBulkCloseInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkCloseParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkClose - Bulk Close Tickets
+// POST /admin/ticketing/tickets/bulk-close
+func (c *Client) CreateAdminTicketingTicketsBulkClose(ctx context.Context, in CreateAdminTicketingTicketsBulkCloseInput) (*models.EndpointsPostBulkCloseOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-close"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkCloseParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkCloseOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkMoveInput is the input for CreateAdminTicketingTicketsBulkMove — Bulk Move Tickets.
+type CreateAdminTicketingTicketsBulkMoveInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkMoveParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkMove - Bulk Move Tickets
+// POST /admin/ticketing/tickets/bulk-move
+func (c *Client) CreateAdminTicketingTicketsBulkMove(ctx context.Context, in CreateAdminTicketingTicketsBulkMoveInput) (*models.EndpointsPostBulkMoveOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-move"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkMoveParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkMoveOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkReassignAssigneeInput is the input for CreateAdminTicketingTicketsBulkReassignAssignee — Bulk Reassign Ticket Assignee.
+type CreateAdminTicketingTicketsBulkReassignAssigneeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkReassignAssigneeParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkReassignAssignee - Bulk Reassign Ticket Assignee
+// POST /admin/ticketing/tickets/bulk-reassign-assignee
+func (c *Client) CreateAdminTicketingTicketsBulkReassignAssignee(ctx context.Context, in CreateAdminTicketingTicketsBulkReassignAssigneeInput) (*models.EndpointsPostBulkReassignAssigneeOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-reassign-assignee"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkReassignAssigneeParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkReassignAssigneeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkReassignTeamInput is the input for CreateAdminTicketingTicketsBulkReassignTeam — Bulk Reassign Tickets to Team.
+type CreateAdminTicketingTicketsBulkReassignTeamInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkReassignTeamParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkReassignTeam - Bulk Reassign Tickets to Team
+// POST /admin/ticketing/tickets/bulk-reassign-team
+func (c *Client) CreateAdminTicketingTicketsBulkReassignTeam(ctx context.Context, in CreateAdminTicketingTicketsBulkReassignTeamInput) (*models.EndpointsPostBulkReassignTeamOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-reassign-team"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkReassignTeamParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkReassignTeamOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkRelabelInput is the input for CreateAdminTicketingTicketsBulkRelabel — Bulk Relabel Tickets.
+type CreateAdminTicketingTicketsBulkRelabelInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkRelabelParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkRelabel - Bulk Relabel Tickets
+// POST /admin/ticketing/tickets/bulk-relabel
+func (c *Client) CreateAdminTicketingTicketsBulkRelabel(ctx context.Context, in CreateAdminTicketingTicketsBulkRelabelInput) (*models.EndpointsPostBulkRelabelOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-relabel"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkRelabelParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkRelabelOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkReopenInput is the input for CreateAdminTicketingTicketsBulkReopen — Bulk Reopen Tickets.
+type CreateAdminTicketingTicketsBulkReopenInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkReopenParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkReopen - Bulk Reopen Tickets
+// POST /admin/ticketing/tickets/bulk-reopen
+func (c *Client) CreateAdminTicketingTicketsBulkReopen(ctx context.Context, in CreateAdminTicketingTicketsBulkReopenInput) (*models.EndpointsPostBulkReopenOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-reopen"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkReopenParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkReopenOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkResyncInput is the input for CreateAdminTicketingTicketsBulkResync — Bulk Re-Sync Tickets.
+type CreateAdminTicketingTicketsBulkResyncInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkResyncParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkResync - Bulk Re-Sync Tickets
+// POST /admin/ticketing/tickets/bulk-resync
+func (c *Client) CreateAdminTicketingTicketsBulkResync(ctx context.Context, in CreateAdminTicketingTicketsBulkResyncInput) (*models.EndpointsPostBulkResyncOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-resync"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkResyncParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkResyncOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTicketingTicketsBulkSetPriorityInput is the input for CreateAdminTicketingTicketsBulkSetPriority — Bulk Set Ticket Priority.
+type CreateAdminTicketingTicketsBulkSetPriorityInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *models.EndpointsBulkSetPriorityParams `json:"params,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTicketingTicketsBulkSetPriority - Bulk Set Ticket Priority
+// POST /admin/ticketing/tickets/bulk-set-priority
+func (c *Client) CreateAdminTicketingTicketsBulkSetPriority(ctx context.Context, in CreateAdminTicketingTicketsBulkSetPriorityInput) (*models.EndpointsPostBulkSetPriorityOutput, error) {
+	path := "/admin/ticketing/tickets/bulk-set-priority"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmationToken *string `json:"confirmationToken,omitempty"`
+		DryRun *bool `json:"dryRun,omitempty"`
+		Filter models.EndpointsTicketWorkbenchFilter `json:"filter"`
+		Params *models.EndpointsBulkSetPriorityParams `json:"params,omitempty"`
+	}{
+		ConfirmationToken: in.ConfirmationToken,
+		DryRun: in.DryRun,
+		Filter: in.Filter,
+		Params: in.Params,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostBulkSetPriorityOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminTicketingTicketsCountsInput is the input for ListAdminTicketingTicketsCounts — Get Ticket Facet Counts.
+type ListAdminTicketingTicketsCountsInput struct {
+	FindingType []string `url:"findingType,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Platform []string `url:"platform,omitempty" json:"-"`
+	Source []string `url:"source,omitempty" json:"-"`
+	Status []string `url:"status,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminTicketingTicketsCounts - Get Ticket Facet Counts
+// GET /admin/ticketing/tickets/counts
+func (c *Client) ListAdminTicketingTicketsCounts(ctx context.Context, in ListAdminTicketingTicketsCountsInput) (*models.EndpointsGetTicketWorkbenchCountsOutput, error) {
+	path := "/admin/ticketing/tickets/counts"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	for _, v := range in.Source {
+		query.Add("source", string(v))
+	}
+	for _, v := range in.Status {
+		query.Add("status", string(v))
+	}
+	for _, v := range in.FindingType {
+		query.Add("findingType", string(v))
+	}
+	for _, v := range in.Platform {
+		query.Add("platform", string(v))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTicketWorkbenchCountsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminTicketingTicketsTicketIdInput is the input for GetAdminTicketingTicketsTicketId — Get Ticket Drill-Down.
+type GetAdminTicketingTicketsTicketIdInput struct {
+	TicketID string `path:"ticketId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetAdminTicketingTicketsTicketId - Get Ticket Drill-Down
+// GET /admin/ticketing/tickets/{ticketId}
+func (c *Client) GetAdminTicketingTicketsTicketId(ctx context.Context, in GetAdminTicketingTicketsTicketIdInput) (*models.EndpointsGetTicketWorkbenchDrilldownOutput, error) {
+	path := "/admin/ticketing/tickets/{ticketId}"
+	path = strings.Replace(path, "{ticketId}", url.PathEscape(in.TicketID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTicketWorkbenchDrilldownOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminTriageContextCensusInput is the input for CreateAdminTriageContextCensus — Post Triage Context Census.
+type CreateAdminTriageContextCensusInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminTriageContextCensus - Post Triage Context Census
+// POST /admin/triage/context-census
+func (c *Client) CreateAdminTriageContextCensus(ctx context.Context, in CreateAdminTriageContextCensusInput) (*models.EndpointsAdminTriageContextCensusOutput, error) {
+	path := "/admin/triage/context-census"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminTriageContextCensusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminUiPreferencesInput is the input for DeleteAdminUiPreferences — Delete UI Preferences.
+type DeleteAdminUiPreferencesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminUiPreferences - Delete UI Preferences
+// DELETE /admin/ui/preferences
+func (c *Client) DeleteAdminUiPreferences(ctx context.Context, in DeleteAdminUiPreferencesInput) (*models.EndpointsDeleteUIPreferencesOutput, error) {
+	path := "/admin/ui/preferences"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteUIPreferencesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminUiPreferencesInput is the input for ListAdminUiPreferences — Get UI Preferences.
+type ListAdminUiPreferencesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminUiPreferences - Get UI Preferences
+// GET /admin/ui/preferences
+func (c *Client) ListAdminUiPreferences(ctx context.Context, in ListAdminUiPreferencesInput) (*models.EndpointsGetUIPreferencesOutput, error) {
+	path := "/admin/ui/preferences"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUIPreferencesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminUiPreferencesInput is the input for UpdateAdminUiPreferences — Put UI Preferences.
+type UpdateAdminUiPreferencesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Preferences map[string]json.RawMessage `json:"preferences,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminUiPreferences - Put UI Preferences
+// PUT /admin/ui/preferences
+func (c *Client) UpdateAdminUiPreferences(ctx context.Context, in UpdateAdminUiPreferencesInput) (*models.EndpointsPutUIPreferencesOutput, error) {
+	path := "/admin/ui/preferences"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Preferences map[string]json.RawMessage `json:"preferences,omitempty"`
+	}{
+		Preferences: in.Preferences,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutUIPreferencesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminUiSavedViewsInput is the input for ListAdminUiSavedViews — Get UI Saved Views.
 type ListAdminUiSavedViewsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3795,6 +11042,9 @@ func (c *Client) ListAdminUiSavedViews(ctx context.Context, in ListAdminUiSavedV
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3816,6 +11066,7 @@ func (c *Client) ListAdminUiSavedViews(ctx context.Context, in ListAdminUiSavedV
 
 // CreateAdminUiSavedViewsInput is the input for CreateAdminUiSavedViews — Post UI Saved View.
 type CreateAdminUiSavedViewsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	SavedView models.ModelsUISavedViewAPIInput `json:"savedView"`
 	models.RequestScope
 }
@@ -3828,6 +11079,9 @@ func (c *Client) CreateAdminUiSavedViews(ctx context.Context, in CreateAdminUiSa
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3858,6 +11112,7 @@ func (c *Client) CreateAdminUiSavedViews(ctx context.Context, in CreateAdminUiSa
 // DeleteAdminUiSavedViewsSavedViewIdInput is the input for DeleteAdminUiSavedViewsSavedViewId — Delete UI Saved View.
 type DeleteAdminUiSavedViewsSavedViewIdInput struct {
 	SavedViewID string `path:"savedViewId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3870,6 +11125,9 @@ func (c *Client) DeleteAdminUiSavedViewsSavedViewId(ctx context.Context, in Dele
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3892,6 +11150,7 @@ func (c *Client) DeleteAdminUiSavedViewsSavedViewId(ctx context.Context, in Dele
 // PatchAdminUiSavedViewsSavedViewIdInput is the input for PatchAdminUiSavedViewsSavedViewId — Patch UI Saved View.
 type PatchAdminUiSavedViewsSavedViewIdInput struct {
 	SavedViewID string `path:"savedViewId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	SavedView models.ModelsUISavedViewAPIInput `json:"savedView"`
 	models.RequestScope
 }
@@ -3905,6 +11164,9 @@ func (c *Client) PatchAdminUiSavedViewsSavedViewId(ctx context.Context, in Patch
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3934,6 +11196,7 @@ func (c *Client) PatchAdminUiSavedViewsSavedViewId(ctx context.Context, in Patch
 
 // ListAdminUserCurrentInput is the input for ListAdminUserCurrent — Get Current User.
 type ListAdminUserCurrentInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3945,6 +11208,9 @@ func (c *Client) ListAdminUserCurrent(ctx context.Context, in ListAdminUserCurre
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3966,6 +11232,7 @@ func (c *Client) ListAdminUserCurrent(ctx context.Context, in ListAdminUserCurre
 
 // ListAdminUserMappingInput is the input for ListAdminUserMapping — Get User Mapping.
 type ListAdminUserMappingInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ProviderID *string `url:"providerId,omitempty" json:"-"`
 	UserID *string `url:"userId,omitempty" json:"-"`
 	models.RequestScope
@@ -3979,6 +11246,9 @@ func (c *Client) ListAdminUserMapping(ctx context.Context, in ListAdminUserMappi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.ProviderID != nil {
 		query.Set("providerId", string(*in.ProviderID))
@@ -4006,6 +11276,7 @@ func (c *Client) ListAdminUserMapping(ctx context.Context, in ListAdminUserMappi
 
 // CreateAdminUserMappingInput is the input for CreateAdminUserMapping — Post Add User Mappings.
 type CreateAdminUserMappingInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UseSuggestions bool `json:"useSuggestions"`
 	UserMappings []models.EndpointsUserMappingInput `json:"userMappings,omitempty"`
 	models.RequestScope
@@ -4019,6 +11290,9 @@ func (c *Client) CreateAdminUserMapping(ctx context.Context, in CreateAdminUserM
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4050,6 +11324,7 @@ func (c *Client) CreateAdminUserMapping(ctx context.Context, in CreateAdminUserM
 
 // ListAdminUserMappingSuggestionsInput is the input for ListAdminUserMappingSuggestions — Get User Mapping Suggestions.
 type ListAdminUserMappingSuggestionsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4061,6 +11336,9 @@ func (c *Client) ListAdminUserMappingSuggestions(ctx context.Context, in ListAdm
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4083,18 +11361,26 @@ func (c *Client) ListAdminUserMappingSuggestions(ctx context.Context, in ListAdm
 // DeleteAdminUserMappingUserIdInput is the input for DeleteAdminUserMappingUserId — Delete User Mapping.
 type DeleteAdminUserMappingUserIdInput struct {
 	UserID string `path:"userId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Hard *bool `url:"hard,omitempty" json:"-"`
 	models.RequestScope
 }
 
 // DeleteAdminUserMappingUserId - Delete User Mapping
 // DELETE /admin/user/mapping/{userId}
-func (c *Client) DeleteAdminUserMappingUserId(ctx context.Context, in DeleteAdminUserMappingUserIdInput) ([]byte, error) {
+func (c *Client) DeleteAdminUserMappingUserId(ctx context.Context, in DeleteAdminUserMappingUserIdInput) (*models.EndpointsDeleteUserMappingOutput, error) {
 	path := "/admin/user/mapping/{userId}"
 	path = strings.Replace(path, "{userId}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Hard != nil {
+		query.Set("hard", strconv.FormatBool(*in.Hard))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4104,14 +11390,24 @@ func (c *Client) DeleteAdminUserMappingUserId(ctx context.Context, in DeleteAdmi
 	}
 
 	data, err := c.do(ctx, "DELETE", fullURL, nil)
-	return data, err
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteUserMappingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
 // UpdateAdminUserMappingUserIdInput is the input for UpdateAdminUserMappingUserId — Edit User Mapping.
 type UpdateAdminUserMappingUserIdInput struct {
 	UserID string `path:"userId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Azure *models.ModelsAzureUserProvider `json:"azure,omitempty"`
 	Bitbucket *models.ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
+	ClearSlack *bool `json:"clearSlack,omitempty"`
+	ClearTeams *bool `json:"clearTeams,omitempty"`
 	Github *models.ModelsGitHubUserProvider `json:"github,omitempty"`
 	Gitlab *models.ModelsGitLabUserProvider `json:"gitlab,omitempty"`
 	Jira *models.ModelsJiraUserProvider `json:"jira,omitempty"`
@@ -4123,13 +11419,16 @@ type UpdateAdminUserMappingUserIdInput struct {
 
 // UpdateAdminUserMappingUserId - Edit User Mapping
 // PUT /admin/user/mapping/{userId}
-func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdminUserMappingUserIdInput) ([]byte, error) {
+func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdminUserMappingUserIdInput) (*models.EndpointsPutEditUserMappingOutput, error) {
 	path := "/admin/user/mapping/{userId}"
 	path = strings.Replace(path, "{userId}", url.PathEscape(in.UserID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4141,6 +11440,8 @@ func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdmi
 	bodyBytes, err := json.Marshal(struct {
 		Azure *models.ModelsAzureUserProvider `json:"azure,omitempty"`
 		Bitbucket *models.ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
+		ClearSlack *bool `json:"clearSlack,omitempty"`
+		ClearTeams *bool `json:"clearTeams,omitempty"`
 		Github *models.ModelsGitHubUserProvider `json:"github,omitempty"`
 		Gitlab *models.ModelsGitLabUserProvider `json:"gitlab,omitempty"`
 		Jira *models.ModelsJiraUserProvider `json:"jira,omitempty"`
@@ -4150,6 +11451,8 @@ func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdmi
 	}{
 		Azure: in.Azure,
 		Bitbucket: in.Bitbucket,
+		ClearSlack: in.ClearSlack,
+		ClearTeams: in.ClearTeams,
 		Github: in.Github,
 		Gitlab: in.Gitlab,
 		Jira: in.Jira,
@@ -4161,11 +11464,19 @@ func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdmi
 		return nil, fmt.Errorf("marshal body: %w", err)
 	}
 	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
-	return data, err
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutEditUserMappingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
 // ListAdminUserMappingsInput is the input for ListAdminUserMappings — Get User Mappings.
 type ListAdminUserMappingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4177,6 +11488,9 @@ func (c *Client) ListAdminUserMappings(ctx context.Context, in ListAdminUserMapp
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4199,6 +11513,7 @@ func (c *Client) ListAdminUserMappings(ctx context.Context, in ListAdminUserMapp
 // GetAdminUserUserIDInput is the input for GetAdminUserUserID — Get User.
 type GetAdminUserUserIDInput struct {
 	UserID string `path:"userID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4211,6 +11526,9 @@ func (c *Client) GetAdminUserUserID(ctx context.Context, in GetAdminUserUserIDIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4232,6 +11550,7 @@ func (c *Client) GetAdminUserUserID(ctx context.Context, in GetAdminUserUserIDIn
 
 // ListAdminUsersInput is the input for ListAdminUsers — Get All Users.
 type ListAdminUsersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4243,6 +11562,9 @@ func (c *Client) ListAdminUsers(ctx context.Context, in ListAdminUsersInput) (*m
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4264,6 +11586,7 @@ func (c *Client) ListAdminUsers(ctx context.Context, in ListAdminUsersInput) (*m
 
 // CreateAdminUsersInput is the input for CreateAdminUsers — Post User.
 type CreateAdminUsersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	User models.EndpointsUserInput `json:"user"`
 	models.RequestScope
 }
@@ -4276,6 +11599,9 @@ func (c *Client) CreateAdminUsers(ctx context.Context, in CreateAdminUsersInput)
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4303,8 +11629,54 @@ func (c *Client) CreateAdminUsers(ctx context.Context, in CreateAdminUsersInput)
 	return &out, nil
 }
 
+// CreateAdminUsersActivateInput is the input for CreateAdminUsersActivate — Activate Users.
+type CreateAdminUsersActivateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Users []models.EndpointsAdminActivateUserTarget `json:"users,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminUsersActivate - Activate Users
+// POST /admin/users/activate
+func (c *Client) CreateAdminUsersActivate(ctx context.Context, in CreateAdminUsersActivateInput) (*models.EndpointsAdminActivateUsersOutput, error) {
+	path := "/admin/users/activate"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Users []models.EndpointsAdminActivateUserTarget `json:"users,omitempty"`
+	}{
+		Users: in.Users,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminActivateUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateAdminUsersBulkSearchMappingsInput is the input for CreateAdminUsersBulkSearchMappings — Post Bulk Get User Mappings.
 type CreateAdminUsersBulkSearchMappingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	GitCanonicalUserIds []string `json:"gitCanonicalUserIds,omitempty"`
 	GithubCanonicalUserIds []string `json:"githubCanonicalUserIds,omitempty"`
 	models.RequestScope
@@ -4318,6 +11690,9 @@ func (c *Client) CreateAdminUsersBulkSearchMappings(ctx context.Context, in Crea
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4347,9 +11722,140 @@ func (c *Client) CreateAdminUsersBulkSearchMappings(ctx context.Context, in Crea
 	return &out, nil
 }
 
+// CreateAdminUsersDeactivateInput is the input for CreateAdminUsersDeactivate — Deactivate User.
+type CreateAdminUsersDeactivateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	UserID string `json:"userId"`
+	models.RequestScope
+}
+
+// CreateAdminUsersDeactivate - Deactivate User
+// POST /admin/users/deactivate
+func (c *Client) CreateAdminUsersDeactivate(ctx context.Context, in CreateAdminUsersDeactivateInput) (*models.EndpointsAdminDeactivateUserOutput, error) {
+	path := "/admin/users/deactivate"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		UserID string `json:"userId"`
+	}{
+		UserID: in.UserID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminDeactivateUserOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetAdminUsersIdentityProviderIDProviderUserIDInput is the input for GetAdminUsersIdentityProviderIDProviderUserID — Get User By Git Identity.
+type GetAdminUsersIdentityProviderIDProviderUserIDInput struct {
+	ProviderID string `path:"providerID" json:"-"`
+	ProviderUserID string `path:"providerUserID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetAdminUsersIdentityProviderIDProviderUserID - Get User By Git Identity
+// GET /admin/users/identity/{providerID}/{providerUserID}
+func (c *Client) GetAdminUsersIdentityProviderIDProviderUserID(ctx context.Context, in GetAdminUsersIdentityProviderIDProviderUserIDInput) (*models.EndpointsGetUserOutput, error) {
+	path := "/admin/users/identity/{providerID}/{providerUserID}"
+	path = strings.Replace(path, "{providerID}", url.PathEscape(in.ProviderID), 1)
+	path = strings.Replace(path, "{providerUserID}", url.PathEscape(in.ProviderUserID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetUserOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminUsersReactivateInput is the input for CreateAdminUsersReactivate — Reactivate User.
+type CreateAdminUsersReactivateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	UserID string `json:"userId"`
+	models.RequestScope
+}
+
+// CreateAdminUsersReactivate - Reactivate User
+// POST /admin/users/reactivate
+func (c *Client) CreateAdminUsersReactivate(ctx context.Context, in CreateAdminUsersReactivateInput) (*models.EndpointsAdminReactivateUserOutput, error) {
+	path := "/admin/users/reactivate"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		UserID string `json:"userId"`
+	}{
+		UserID: in.UserID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAdminReactivateUserOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // GetAdminUsersProviderIDInput is the input for GetAdminUsersProviderID — Get Provider Users.
 type GetAdminUsersProviderIDInput struct {
 	ProviderID string `path:"providerID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4362,6 +11868,9 @@ func (c *Client) GetAdminUsersProviderID(ctx context.Context, in GetAdminUsersPr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4385,6 +11894,7 @@ func (c *Client) GetAdminUsersProviderID(ctx context.Context, in GetAdminUsersPr
 type GetAdminUsersProviderIDUserIDInput struct {
 	ProviderID string `path:"providerID" json:"-"`
 	UserID string `path:"userID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4398,6 +11908,9 @@ func (c *Client) GetAdminUsersProviderIDUserID(ctx context.Context, in GetAdminU
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4420,6 +11933,7 @@ func (c *Client) GetAdminUsersProviderIDUserID(ctx context.Context, in GetAdminU
 // DeleteAdminUsersUserIdErasureInput is the input for DeleteAdminUsersUserIdErasure — Delete User Erasure (GDPR Art. 17).
 type DeleteAdminUsersUserIdErasureInput struct {
 	UserID string `path:"userId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4432,6 +11946,9 @@ func (c *Client) DeleteAdminUsersUserIdErasure(ctx context.Context, in DeleteAdm
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -4455,6 +11972,7 @@ func (c *Client) DeleteAdminUsersUserIdErasure(ctx context.Context, in DeleteAdm
 type ListAdminUsersUserIdExportInput struct {
 	UserID string `path:"userId" json:"-"`
 	Format *string `url:"format,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4470,6 +11988,9 @@ func (c *Client) ListAdminUsersUserIdExport(ctx context.Context, in ListAdminUse
 	}
 	if in.Format != nil {
 		query.Set("format", string(*in.Format))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 

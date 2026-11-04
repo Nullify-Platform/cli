@@ -38,7 +38,7 @@ lint-docker:
 # monorepo; we pin a commit and vendor the bundle into spec/ so generation is
 # reproducible and offline. To update: bump SPEC_REF, run `make fetch-spec`,
 # then `make generate-api`, and commit both spec/ and the regenerated code.
-SPEC_REF ?= 7b34970bbbeeabf665cd71fa0eb0e07eaac534a3
+SPEC_REF ?= 1b9c3dd0cf497030de8646ae1b8e1f407d25e04a
 SPEC_REPO ?= nullify-platform/nullify
 SPEC_PATH_IN_REPO ?= public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml
 SPEC_LOCAL ?= spec/nullify-openapi-bundle.yaml
