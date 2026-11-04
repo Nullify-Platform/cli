@@ -29,17 +29,16 @@ func DomainStep() Step {
 		},
 		Execute: func(ctx context.Context) error {
 			if !stdinIsTTY() {
-				return fmt.Errorf("not a terminal; configure a host non-interactively with 'nullify auth login --host <your-instance>.nullify.ai'")
+				return fmt.Errorf("not a terminal; configure a host non-interactively with 'nullify auth login'")
 			}
 			reader := bufio.NewReader(os.Stdin)
-			fmt.Print("  Enter your Nullify customer name (e.g., 'acme'): ")
+			fmt.Print("  Enter your Nullify customer name (e.g., 'acme'), or press Enter to sign in through nullify.ai: ")
 			input, err := reader.ReadString('\n')
 			if err != nil {
 				return fmt.Errorf("failed to read input: %w", err)
 			}
 
-			input = strings.TrimSpace(input)
-			host, err := lib.ParseCustomerDomain(input)
+			host, err := domainFromInput(input)
 			if err != nil {
 				return fmt.Errorf("invalid domain: %w", err)
 			}
@@ -55,7 +54,15 @@ func DomainStep() Step {
 	}
 }
 
-// AuthStep checks if valid credentials exist and runs login if not.
+func domainFromInput(input string) (string, error) {
+	input = strings.TrimSpace(input)
+	if input == "" || auth.IsRouterHost(input) {
+		return auth.RouterHost, nil
+	}
+	return lib.ParseCustomerDomain(input)
+}
+
+// AuthStep checks if a usable session exists and runs login if not.
 func AuthStep() Step {
 	return Step{
 		Name: "Authenticate with Nullify",
@@ -64,8 +71,7 @@ func AuthStep() Step {
 			if err != nil || cfg.Host == "" {
 				return false
 			}
-			_, err = auth.GetValidToken(ctx, cfg.Host)
-			return err == nil
+			return auth.CheckSession(ctx, cfg.Host) == nil
 		},
 		Execute: func(ctx context.Context) error {
 			cfg, err := auth.LoadConfig()
@@ -73,7 +79,11 @@ func AuthStep() Step {
 				return fmt.Errorf("no host configured - complete the domain step first")
 			}
 
-			return auth.Login(ctx, cfg.Host)
+			return auth.Login(ctx, cfg.Host, auth.InstallationPicker{
+				Interactive: stdinIsTTY(),
+				In:          os.Stdin,
+				Out:         os.Stdout,
+			})
 		},
 	}
 }
@@ -215,8 +225,7 @@ func SummaryStep() Step {
 				return nil
 			}
 
-			_, err = auth.GetValidToken(ctx, cfg.Host)
-			if err != nil {
+			if err := auth.CheckSession(ctx, cfg.Host); err != nil {
 				fmt.Println("  Skipped - authentication required to fetch security posture.")
 				return nil
 			}

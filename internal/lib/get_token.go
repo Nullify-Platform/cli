@@ -18,6 +18,8 @@ import (
 
 var ErrNoToken = errors.New("no token detected")
 
+var errRouterGitHubExchange = errors.New("GitHub Actions token exchange is not available through nullify.ai - set --host or NULLIFY_HOST to <instance>.nullify.ai")
+
 type githubToken struct {
 	Token string `json:"accessToken"`
 }
@@ -76,6 +78,10 @@ func resolveNullifyToken(
 	if os.Getenv("GITHUB_ACTIONS") == "true" &&
 		githubTokenFlag != "" &&
 		os.Getenv("GITHUB_REPOSITORY") != "" {
+		if auth.IsRouterHost(nullifyHost) {
+			return "", errRouterGitHubExchange
+		}
+
 		repo := os.Getenv("GITHUB_REPOSITORY")
 
 		logger.L(ctx).Debug(

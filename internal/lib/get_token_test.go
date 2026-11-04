@@ -87,3 +87,19 @@ func TestRefreshNullifyTokenRejectsFixedSources(t *testing.T) {
 		})
 	}
 }
+
+func TestGetNullifyTokenRefusesGitHubExchangeOnRouter(t *testing.T) {
+	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "error")
+	require.NoError(t, err)
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("NULLIFY_TOKEN", "")
+	t.Setenv("GITHUB_ACTIONS", "true")
+	t.Setenv("GITHUB_REPOSITORY", "acme/repo")
+
+	for _, host := range []string{"nullify.ai", "api.nullify.ai", "app.nullify.ai"} {
+		t.Run(host, func(t *testing.T) {
+			_, err := GetNullifyToken(ctx, host, "", "gh-token")
+			require.ErrorIs(t, err, errRouterGitHubExchange)
+		})
+	}
+}
