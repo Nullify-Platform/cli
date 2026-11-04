@@ -1,0 +1,103 @@
+# Opens a pull request when the OpenAPI pin in the Makefile is behind the bundle
+# published in the monorepo. It only pushes a branch and opens a pull request:
+# it never merges, and release.yml runs only on a push to main.
+name: Spec Drift
+on:
+  schedule:
+    - cron: '0 20 * * 1-5'
+  workflow_dispatch:
+run-name: Spec Drift by @${{ github.actor }}
+permissions:
+  contents: read
+concurrency:
+  group: spec-drift
+  cancel-in-progress: false
+env:
+  SPEC_REPO: nullify-platform/nullify
+  SPEC_PATH: public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml
+  BRANCH: automation/spec-sync
+jobs:
+  open-sync-pr:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Mint a token that reads the monorepo and writes pull requests
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: 359904
+          private-key: ${{ secrets.SPEC_SYNC_GITHUB_APP_KEY }}
+          owner: Nullify-Platform
+          repositories: nullify,cli
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.token.outputs.token }}
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Compare the pin with the newest bundle commit
+        id: drift
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          latest=$(gh api "repos/$SPEC_REPO/commits?path=$SPEC_PATH&sha=main&per_page=1" --jq '.[0].sha')
+          pinned=$(sed -n 's/^SPEC_REF ?= //p' Makefile)
+          proposed=$(gh api "repos/$GITHUB_REPOSITORY/contents/Makefile?ref=$BRANCH" -H "Accept: application/vnd.github.raw" 2>/dev/null | sed -n 's/^SPEC_REF ?= //p' || true)
+          test -n "$latest"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "pinned=$pinned" >> "$GITHUB_OUTPUT"
+          if [ "$latest" = "$pinned" ] || [ "$latest" = "$proposed" ]; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Regenerate from the newest bundle
+        if: steps.drift.outputs.drifted == 'true'
+        id: regen
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          LATEST: ${{ steps.drift.outputs.latest }}
+        run: |
+          sed -i "s/^SPEC_REF ?= .*/SPEC_REF ?= $LATEST/" Makefile
+          make fetch-spec generate-api
+          if make command-surface > surface.log 2>&1; then
+            echo "surface_ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "surface_ok=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open or update the pull request
+        if: steps.drift.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          LATEST: ${{ steps.drift.outputs.latest }}
+          PINNED: ${{ steps.drift.outputs.pinned }}
+          SURFACE_OK: ${{ steps.regen.outputs.surface_ok }}
+        run: |
+          {
+            echo "The published OpenAPI bundle moved from \`$PINNED\` to \`$LATEST\`."
+            echo
+            if [ "$SURFACE_OK" = "true" ]; then
+              echo "No command disappeared. New commands and any spec changes are in the diff."
+            else
+              echo "A command or flag disappeared. Record each one in \`internal/commands/surface_decisions.go\` and run \`make command-surface\`:"
+              echo
+              echo '```'
+              cat surface.log
+              echo '```'
+            fi
+            echo
+            echo "This pull request needs a person to review and merge it. A merge to main releases to customers."
+          } > "$RUNNER_TEMP/body.md"
+          rm -f surface.log
+
+          git config user.name "nullify-spec-sync[bot]"
+          git config user.email "nullify-spec-sync[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git add -A
+          git commit -m "feat(api): sync the OpenAPI spec to ${LATEST:0:12}"
+          git push --force origin "$BRANCH"
+
+          if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq length)" = "0" ]; then
+            gh pr create --draft --head "$BRANCH" --title "feat(api): sync the OpenAPI spec" --body-file "$RUNNER_TEMP/body.md"
+          else
+            gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/body.md"
+          fi
