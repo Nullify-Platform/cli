@@ -18,6 +18,7 @@ list_applications	read-only	admin,all,default
 list_campaigns	read-only	admin,all
 list_cspm_scans	read-only	all
 list_dependencies	read-only	admin,all,default
+list_organizations	read-only	admin,all,default,findings,findings-write,minimal
 list_pentest_scans	read-only	all
 list_repositories	read-only	admin,all,default
 list_sla_policies	read-only	admin,all

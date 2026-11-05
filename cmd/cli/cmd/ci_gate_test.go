@@ -8,9 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
-	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,8 +54,7 @@ func TestCIGateRequestsAndExitCodes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("HOME", t.TempDir())
 			t.Setenv("NULLIFY_HOST", "acme.nullify.ai")
-			t.Setenv("NULLIFY_TOKEN", "")
-			require.ErrorIs(t, auth.SaveHostCredentials("acme.nullify.ai", auth.HostCredentials{AccessToken: "token", RefreshToken: "r", ExpiresAt: time.Now().Add(time.Hour).Unix()}), nil)
+			t.Setenv("NULLIFY_TOKEN", "synthetic")
 
 			var mu sync.Mutex
 			var requests []string

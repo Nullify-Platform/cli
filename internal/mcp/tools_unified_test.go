@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func callTool(t *testing.T, s *server.MCPServer, name string, args map[string]any) mcp.CallToolResult {
+func callFindingTool(t *testing.T, s *server.MCPServer, name string, args map[string]any) mcp.CallToolResult {
 	t.Helper()
 	message, err := json.Marshal(map[string]any{
 		"jsonrpc": "2.0",
@@ -93,7 +93,7 @@ func TestFindingTools(t *testing.T) {
 			registerUnifiedTools(s, testClient(ft))
 			registerOptInFindingTools(s, testClient(ft))
 
-			result := callTool(t, s, tt.tool, tt.args)
+			result := callFindingTool(t, s, tt.tool, tt.args)
 
 			require.Equal(t, tt.isError, result.IsError)
 			require.Equal(t, tt.requests, ft.requests)
@@ -130,7 +130,7 @@ func TestSearchToolReportsCompleteness(t *testing.T) {
 			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
 			registerUnifiedTools(s, testClient(ft))
 
-			result := callTool(t, s, "nullify_search_findings", tt.args)
+			result := callFindingTool(t, s, "nullify_search_findings", tt.args)
 
 			require.False(t, result.IsError)
 			text, ok := result.Content[0].(mcp.TextContent)
@@ -158,7 +158,7 @@ func TestFixToolStartsTheRunAndReturns(t *testing.T) {
 	s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
 	registerUnifiedTools(s, testClient(ft))
 
-	result := callTool(t, s, "nullify_fix_finding", map[string]any{"type": "sast", "id": "f1"})
+	result := callFindingTool(t, s, "nullify_fix_finding", map[string]any{"type": "sast", "id": "f1"})
 
 	require.False(t, result.IsError)
 	require.JSONEq(t, `{"state":"in_progress_requested","run_id":"r1","check_with":"nullify_get_fix_status"}`, result.Content[0].(mcp.TextContent).Text)
@@ -183,7 +183,7 @@ func TestFindingsForRepo(t *testing.T) {
 			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
 			registerCompositeTools(s, testClient(ft))
 
-			result := callTool(t, s, "get_findings_for_repo", map[string]any{"repository": "acme/app", "limit": 1})
+			result := callFindingTool(t, s, "get_findings_for_repo", map[string]any{"repository": "acme/app", "limit": 1})
 
 			text := result.Content[0].(mcp.TextContent).Text
 			for _, want := range tt.want {

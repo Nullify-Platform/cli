@@ -201,7 +201,7 @@ func TestRunFix(t *testing.T) {
 	}{
 		{name: "no-wait starts the run and exits 0", noWait: true, status: failed, exit: ExitSuccess, requests: []string{"POST /sast/findings/f1/autofix/fix"}},
 		{name: "a failed run exits 1", status: failed, timeout: time.Minute, exit: 1, requests: []string{"POST /sast/findings/f1/autofix/fix", "GET /sast/findings/f1/autofix/status"}},
-		{name: "a timed-out run exits 1", status: running, timeout: time.Nanosecond, exit: 1, requests: []string{"POST /sast/findings/f1/autofix/fix", "GET /sast/findings/f1/autofix/status"}},
+		{name: "a timed-out run exits 1", status: running, timeout: time.Nanosecond, exit: 1, requests: []string{"POST /sast/findings/f1/autofix/fix"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -264,6 +264,9 @@ func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 			t.Cleanup(func() { http.DefaultTransport = transport })
 			http.DefaultTransport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 				switch {
+				case r.URL.Path == "/admin/installations":
+					require.Equal(t, "Bearer old", r.Header.Get("Authorization"))
+					return respond(http.StatusOK, `{"installations":[{"name":"acme","provider":{"id":"GitHub","github":{}},"queryParameters":{"githubOwnerId":"1001001"}}]}`)
 				case strings.HasSuffix(r.URL.Path, "/auth/refresh_token"):
 					refreshes++
 					return respond(tt.refreshCode, `{"accessToken":"new","expiresIn":3600}`)

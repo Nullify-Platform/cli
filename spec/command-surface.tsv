@@ -1,4 +1,4 @@
-nullify			debug,github-token,host,no-color,nullify-token,output,quiet,verbose	active
+nullify			debug,github-token,host,no-color,nullify-token,org,output,quiet,verbose	active
 nullify api				active
 nullify api admin				active
 nullify api admin create-access-token		POST /admin/integrations/cloud/gcp/access-token	github-installation-id	active
@@ -931,6 +931,9 @@ nullify init				active
 nullify mcp				active
 nullify mcp serve			repo,tools	active
 nullify open				active
+nullify org				active
+nullify org list				active
+nullify org use	<name|id>			active
 nullify pentest			app-name,auth-config,force-pull,github-owner,github-repo,header,image-label,local,spec-path,target-host,use-host-network	active
 nullify pentest create-allowlist-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify pentest create-applications		POST /dast/pentest/applications	data,data-file,github-installation-id	active
@@ -1003,6 +1006,8 @@ nullify scan				active
 nullify scan runs			limit,repository-id,type	active
 nullify scan start				active
 nullify scan status	<scanId>			active
+nullify secrets				active
+nullify secrets scan-file	[path]		path,repository,stdin	active
 nullify status				active
 nullify threat				active
 nullify threat create			advice,article-links,cve-ids,cvss,description,ecosystem,keywords,severity,title	active
