@@ -6,6 +6,7 @@ on:
       - '**.go'
       - go.*
       - Makefile
+      - spec/**
 run-name: CI Go by @${{ github.actor }} ${{ github.sha }}
 jobs:
   build-test:
@@ -31,5 +32,19 @@ jobs:
         with:
           version: ${{ steps.extract_version.outputs.golangci_lint_version }}
           args: ./cmd/... ./internal/...
+      - name: generated code matches the spec
+        run: |
+          make generate-api
+          git status --porcelain internal/api internal/commands spec
+          test -z "$(git status --porcelain internal/api internal/commands spec)"
+      - name: command surface keeps every command in the base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --depth=1 origin "$BASE_REF"
+          git show FETCH_HEAD:spec/mcp-tools.tsv > "$RUNNER_TEMP/base-tools.tsv" || : > "$RUNNER_TEMP/base-tools.tsv"
+          if git show FETCH_HEAD:spec/command-surface.tsv > "$RUNNER_TEMP/base-surface.tsv"; then
+            go run ./scripts/commandsurface --base "$RUNNER_TEMP/base-surface.tsv" --base-tools "$RUNNER_TEMP/base-tools.tsv"
+          fi
       - name: test
         run: make unit

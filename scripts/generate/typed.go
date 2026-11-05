@@ -687,7 +687,7 @@ func emitInputStruct(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 				_, required := reqSet[p]
 				typ := r.goFieldType(ref, required, "models.")
 				tag := jsonTag(p, required, ref.Nullable)
-				fmt.Fprintf(sb, "\t%s %s %s\n", fieldName(p), typ, tag)
+				fmt.Fprintf(sb, "\t%s %s %s\n", bodyFieldName(ep, p), typ, tag)
 			}
 		}
 	}
@@ -698,6 +698,26 @@ func emitInputStruct(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 	}
 
 	sb.WriteString("}\n\n")
+
+	if p, ok := pathLookup["findingId"]; ok && pathParamGoType(p) == "string" {
+		fmt.Fprintf(sb, "// SetFindingID sets the finding that the request targets.\nfunc (in *%s) SetFindingID(id string) { in.FindingID = id }\n\n", inputStructName(ep))
+	}
+}
+
+// bodyFieldName returns the input struct field for a body property. A property
+// that shares its name with a path or query parameter takes a "Body" suffix,
+// because both must be separate fields on one struct.
+func bodyFieldName(ep Endpoint, prop string) string {
+	name := fieldName(prop)
+	for _, p := range ep.Parameters {
+		if _, scope := requestScopeParams[p.Name]; scope && p.In == "query" {
+			continue
+		}
+		if fieldName(p.Name) == name {
+			return name + "Body"
+		}
+	}
+	return name
 }
 
 // pathParamGoType picks the Go type for a path param. Most are string; a few
@@ -880,7 +900,7 @@ func emitBodyMarshal(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 	}
 	sb.WriteString("\t}{\n")
 	for _, p := range props {
-		fmt.Fprintf(sb, "\t\t%s: in.%s,\n", fieldName(p), fieldName(p))
+		fmt.Fprintf(sb, "\t\t%s: in.%s,\n", fieldName(p), bodyFieldName(ep, p))
 	}
 	sb.WriteString("\t})\n")
 	sb.WriteString("\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"marshal body: %w\", err)\n\t}\n")

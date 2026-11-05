@@ -3,20 +3,16 @@ package models
 
 import "encoding/json"
 
-type AgentsAgentLogs = []json.RawMessage
-
-type AgentsGroupedAgentLog struct {
-	Logs *AgentsAgentLogs `json:"logs,omitempty"`
-	Summary *string `json:"summary,omitempty"`
-}
-
-type AgentsGroupedAgentLogs = []AgentsGroupedAgentLog
-
 type EndpointsBugHuntConfigInput struct {
+	Cadence *ModelsCadence `json:"cadence,omitempty"`
 	Credentials []ModelsCredentialBinding `json:"credentials,omitempty"`
 	Enabled bool `json:"enabled"`
 	Intensity ModelsBugHuntScanIntensity `json:"intensity"`
+	OwnershipProof *ModelsOwnershipProof `json:"ownershipProof,omitempty"`
+	RoeAcknowledged *bool `json:"roeAcknowledged,omitempty"`
+	RulesOfEngagement *ModelsRulesOfEngagement `json:"rulesOfEngagement,omitempty"`
 	Scope ModelsScopePolicy `json:"scope"`
+	ScopeProvenance *ModelsScopeProvenance `json:"scopeProvenance,omitempty"`
 	Suites []ModelsTestSuitePolicy `json:"suites,omitempty"`
 	VulnClasses []ModelsVulnClassRule `json:"vulnClasses,omitempty"`
 }
@@ -28,12 +24,189 @@ type EndpointsBugHuntFindingEvent struct {
 	Type string `json:"type"`
 }
 
+type EndpointsBugHuntScanCostSummary struct {
+	TotalCost float64 `json:"totalCost"`
+	TotalInputTokens int `json:"totalInputTokens"`
+	TotalOutputTokens int `json:"totalOutputTokens"`
+}
+
+type EndpointsBugHuntScanStatusOutput struct {
+	Cost *EndpointsBugHuntScanCostSummary `json:"cost,omitempty"`
+	CurrentActivity *string `json:"currentActivity,omitempty"`
+	FindingsCount int `json:"findingsCount"`
+	LastActivityAt *string `json:"lastActivityAt,omitempty"`
+	Phases []EndpointsBugHuntScanStatusPhase `json:"phases,omitempty"`
+	Progress int `json:"progress"`
+	Stage ModelsBugHuntScanStage `json:"stage"`
+	Status ModelsScanStatus `json:"status"`
+	Terminal bool `json:"terminal"`
+}
+
+type EndpointsBugHuntScanStatusPhase struct {
+	DurationSeconds *float64 `json:"durationSeconds,omitempty"`
+	Name string `json:"name"`
+	Status string `json:"status"`
+}
+
+type EndpointsCreateDASTApplicationFromContextInput struct {
+	ContextApplicationID string `json:"contextApplicationId"`
+	Name *string `json:"name,omitempty"`
+	WebServices []EndpointsDASTAssessmentWebService `json:"webServices,omitempty"`
+}
+
+type EndpointsCreateDASTApplicationFromContextOutput struct {
+	Application ModelsDASTApplication `json:"application"`
+	Created bool `json:"created"`
+	Readiness EndpointsDASTApplicationReadiness `json:"readiness"`
+	Targets []ModelsDASTTarget `json:"targets,omitempty"`
+}
+
+type EndpointsDASTApplicationReadiness struct {
+	ApplicationID string `json:"applicationId"`
+	Blockers []EndpointsDASTReadinessIssue `json:"blockers,omitempty"`
+	Deployments int `json:"deployments"`
+	Ready bool `json:"ready"`
+	Warnings []EndpointsDASTReadinessIssue `json:"warnings,omitempty"`
+}
+
+type EndpointsDASTAssessmentTarget struct {
+	Hostname string `json:"hostname"`
+	Name *string `json:"name,omitempty"`
+	Path *string `json:"path,omitempty"`
+	Port *int `json:"port,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
+}
+
+type EndpointsDASTAssessmentWebService struct {
+	ApiType *ModelsAPIType `json:"apiType,omitempty"`
+	Name *string `json:"name,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	RepoPath *string `json:"repoPath,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	Targets []EndpointsDASTAssessmentTarget `json:"targets,omitempty"`
+}
+
+type EndpointsDASTCredentialValidationRun struct {
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	Outcome *string `json:"outcome,omitempty"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
+	RetryAt *string `json:"retryAt,omitempty"`
+	RunID string `json:"runId"`
+	RunStatus string `json:"runStatus"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Validation *ModelsDASTValidation `json:"validation,omitempty"`
+}
+
+type EndpointsDASTReadinessCode string
+
+const (
+	EndpointsDASTReadinessCodeDastApplicationMissing EndpointsDASTReadinessCode = "dast_application_missing"
+	EndpointsDASTReadinessCodeNoWebServices EndpointsDASTReadinessCode = "no_web_services"
+	EndpointsDASTReadinessCodeWebServiceNoTargets EndpointsDASTReadinessCode = "web_service_no_targets"
+	EndpointsDASTReadinessCodeTargetMissing EndpointsDASTReadinessCode = "target_missing"
+	EndpointsDASTReadinessCodeInvalidConfiguration EndpointsDASTReadinessCode = "invalid_configuration"
+	EndpointsDASTReadinessCodeDeploymentSelectionRequired EndpointsDASTReadinessCode = "deployment_selection_required"
+	EndpointsDASTReadinessCodeNoCredentials EndpointsDASTReadinessCode = "no_credentials"
+	EndpointsDASTReadinessCodeCredentialsUnvalidated EndpointsDASTReadinessCode = "credentials_unvalidated"
+)
+
+type EndpointsDASTReadinessIssue struct {
+	Code EndpointsDASTReadinessCode `json:"code"`
+	Message string `json:"message"`
+}
+
 type EndpointsDeleteCredentialOutput struct {
+	Success bool `json:"success"`
+}
+
+type EndpointsDeleteDASTApplicationOutput struct {
+	Success bool `json:"success"`
+}
+
+type EndpointsDeleteDASTExploitValidationPolicyOutput struct {
+	Deleted bool `json:"deleted"`
+}
+
+type EndpointsDeleteDASTTargetOutput struct {
+	Success bool `json:"success"`
+}
+
+type EndpointsDeleteDASTWebServiceCredentialOutput struct {
+	Success bool `json:"success"`
+}
+
+type EndpointsDeleteDASTWebServiceOutput struct {
 	Success bool `json:"success"`
 }
 
 type EndpointsDeletePentestAppConfigOutput struct {
 	Success bool `json:"success"`
+}
+
+type EndpointsDeleteTicketBugHuntFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsDeleteTicketPentestFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsExploitValidationAttempt struct {
+	AttemptedCves []string `json:"attemptedCves,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	Confidence *float64 `json:"confidence,omitempty"`
+	CostUsd *float64 `json:"costUsd,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DurationSeconds *float64 `json:"durationSeconds,omitempty"`
+	ExploitedCve *string `json:"exploitedCve,omitempty"`
+	FindingID string `json:"findingId"`
+	FindingTitle *string `json:"findingTitle,omitempty"`
+	FindingType string `json:"findingType"`
+	HasEndpointProof *bool `json:"hasEndpointProof,omitempty"`
+	ID string `json:"id"`
+	Outcome *string `json:"outcome,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status string `json:"status"`
+	StatusReason *string `json:"statusReason,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type EndpointsExploitValidationConsentOutput struct {
+	AcceptedAt *string `json:"acceptedAt,omitempty"`
+	AcceptedBy *string `json:"acceptedBy,omitempty"`
+	AcceptedByKind *string `json:"acceptedByKind,omitempty"`
+	AcceptedByName *string `json:"acceptedByName,omitempty"`
+	AcceptedWarningVersion *string `json:"acceptedWarningVersion,omitempty"`
+	BlockedReason *string `json:"blockedReason,omitempty"`
+	CanAccept bool `json:"canAccept"`
+	Classification string `json:"classification"`
+	CurrentWarningVersion string `json:"currentWarningVersion"`
+	EffectiveForNewRuns bool `json:"effectiveForNewRuns"`
+	Endpoint string `json:"endpoint"`
+	EvidenceURL *string `json:"evidenceUrl,omitempty"`
+	OnBehalfOf *string `json:"onBehalfOf,omitempty"`
+	OnBehalfRequired *bool `json:"onBehalfRequired,omitempty"`
+	State string `json:"state"`
+	TargetID string `json:"targetId"`
+	WarningText string `json:"warningText"`
+}
+
+type EndpointsExploitValidationRunAttempt struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	Confidence *float64 `json:"confidence,omitempty"`
+	DecidedAt *string `json:"decidedAt,omitempty"`
+	Decision string `json:"decision"`
+	Error *string `json:"error,omitempty"`
+	ExploitedCve *string `json:"exploitedCve,omitempty"`
+	FindingID string `json:"findingId"`
+	FindingType string `json:"findingType"`
+	Outcome *string `json:"outcome,omitempty"`
+	Reason string `json:"reason"`
+	Report *string `json:"report,omitempty"`
+	ReproductionScript *string `json:"reproductionScript,omitempty"`
+	State EndpointsRunState `json:"state"`
+	TargetURL *string `json:"targetUrl,omitempty"`
+	WebServiceID *string `json:"webServiceId,omitempty"`
 }
 
 type EndpointsGetAuthMatrixHypothesesOutput struct {
@@ -55,6 +228,7 @@ type EndpointsGetBugHuntFindingOutput struct {
 
 type EndpointsGetBugHuntFindingTriageOutput struct {
 	Triage *ModelsTriage `json:"triage,omitempty"`
+	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
 }
 
 type EndpointsGetBugHuntFindingsOutput struct {
@@ -70,6 +244,7 @@ type EndpointsGetBugHuntScanDiffOutput struct {
 
 type EndpointsGetBugHuntScanFindingsOutput struct {
 	Findings []ModelsBugHuntFinding `json:"findings,omitempty"`
+	TotalCount int `json:"totalCount"`
 }
 
 type EndpointsGetBugHuntScanOutput struct {
@@ -77,7 +252,9 @@ type EndpointsGetBugHuntScanOutput struct {
 }
 
 type EndpointsGetBugHuntScansOutput struct {
+	NextToken string `json:"nextToken"`
 	Scans []ModelsBugHuntScan `json:"scans,omitempty"`
+	TotalCount int `json:"totalCount"`
 }
 
 type EndpointsGetBugHuntSuiteRunsOutput struct {
@@ -90,6 +267,28 @@ type EndpointsGetCredentialOutput struct {
 
 type EndpointsGetCredentialsOutput struct {
 	Credentials []ModelsCredential `json:"credentials,omitempty"`
+	TotalCount int `json:"totalCount"`
+}
+
+type EndpointsGetDASTApplicationOutput struct {
+	Application ModelsDASTApplication `json:"application"`
+}
+
+type EndpointsGetDASTApplicationReadinessInput struct {
+	ApplicationIds []string `json:"applicationIds,omitempty"`
+}
+
+type EndpointsGetDASTApplicationReadinessOutput struct {
+	Applications []EndpointsDASTApplicationReadiness `json:"applications,omitempty"`
+}
+
+type EndpointsGetDASTApplicationsOutput struct {
+	Applications []ModelsDASTApplication `json:"applications,omitempty"`
+	NextToken string `json:"nextToken"`
+}
+
+type EndpointsGetDASTExploitValidationPoliciesOutput struct {
+	Policies []ModelsDASTExploitValidationPolicy `json:"policies,omitempty"`
 }
 
 type EndpointsGetDASTFindingAutofixStateOutput struct {
@@ -107,8 +306,54 @@ type EndpointsGetDASTLastScanStatusesOutput struct {
 	Bughunt *EndpointsLastScanStatus `json:"bughunt,omitempty"`
 }
 
+type EndpointsGetDASTTargetOutput struct {
+	Target ModelsDASTTarget `json:"target"`
+}
+
+type EndpointsGetDASTTargetsOutput struct {
+	NextToken string `json:"nextToken"`
+	Targets []ModelsDASTTarget `json:"targets,omitempty"`
+}
+
+type EndpointsGetDASTWebServiceCredentialsOutput struct {
+	CredentialIds []string `json:"credentialIds,omitempty"`
+}
+
+type EndpointsGetDASTWebServiceOutput struct {
+	WebService ModelsDASTWebService `json:"webService"`
+}
+
+type EndpointsGetDASTWebServicesOutput struct {
+	NextToken string `json:"nextToken"`
+	WebServices []ModelsDASTWebService `json:"webServices,omitempty"`
+}
+
+type EndpointsGetExploitEvidenceOutput struct {
+	ContentType string `json:"contentType"`
+	EvidenceID string `json:"evidenceId"`
+	ExpiresAt string `json:"expiresAt"`
+	Kind string `json:"kind"`
+	URL string `json:"url"`
+}
+
+type EndpointsGetExploitValidationRunOutput struct {
+	Attempts []EndpointsExploitValidationRunAttempt `json:"attempts,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	Error *string `json:"error,omitempty"`
+	RunID string `json:"runId"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	State string `json:"state"`
+	Terminal *bool `json:"terminal,omitempty"`
+}
+
 type EndpointsGetLatestPentestPreflightOutput struct {
 	Preflight *ModelsPentestPreflight `json:"preflight,omitempty"`
+	Stale *bool `json:"stale,omitempty"`
+}
+
+type EndpointsGetMutationWarningOutput struct {
+	Text string `json:"text"`
+	Version string `json:"version"`
 }
 
 type EndpointsGetPentestAppConfigOutput struct {
@@ -120,13 +365,35 @@ type EndpointsGetPentestAppConfigsOutput struct {
 	NextToken string `json:"nextToken"`
 }
 
-type EndpointsGetPentestFindingAutofixDiffOutput struct {
-	Commit string `json:"commit"`
-	Diffs []ModelsDiffFile `json:"diffs,omitempty"`
-	Explanation string `json:"explanation"`
-	PullRequestBody string `json:"pullRequestBody"`
-	PullRequestTitle string `json:"pullRequestTitle"`
+type EndpointsGetPentestAuthMatrixCasesOutput struct {
+	Cases []EndpointsPentestAuthMatrixCase `json:"cases,omitempty"`
+	Limit int `json:"limit"`
+	Offset int `json:"offset"`
+	Total int `json:"total"`
+}
+
+type EndpointsGetPentestAuthMatrixEvidenceOutput struct {
+	Complete bool `json:"complete"`
+	Diagnostic *string `json:"diagnostic,omitempty"`
+	Evidence []EndpointsPentestAuthMatrixEvidenceRecord `json:"evidence,omitempty"`
+	ExcludedUnavailableMetadata *int `json:"excludedUnavailableMetadata,omitempty"`
+	NextCursor *string `json:"nextCursor,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetPentestBudgetOutput struct {
+	ConsumedUsd float64 `json:"consumedUsd"`
+	Frozen bool `json:"frozen"`
+	HeldUsd float64 `json:"heldUsd"`
+	LimitUsd float64 `json:"limitUsd"`
+	RemainingUsd float64 `json:"remainingUsd"`
+	TimeWindow *string `json:"timeWindow,omitempty"`
+	Unlimited bool `json:"unlimited"`
+	WindowEnd *string `json:"windowEnd,omitempty"`
+}
+
+type EndpointsGetPentestEstimateOutput struct {
+	Estimate EndpointsPentestEstimateResult `json:"estimate"`
 }
 
 type EndpointsGetPentestFindingEventsOutput struct {
@@ -137,6 +404,7 @@ type EndpointsGetPentestFindingEventsOutput struct {
 type EndpointsGetPentestFindingFullOutput struct {
 	Finding ModelsPentestFinding `json:"finding"`
 	Version *string `json:"version,omitempty"`
+	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
 }
 
 type EndpointsGetPentestFindingOutput struct {
@@ -146,6 +414,7 @@ type EndpointsGetPentestFindingOutput struct {
 
 type EndpointsGetPentestFindingsOutput struct {
 	Findings []ModelsPentestFinding `json:"findings,omitempty"`
+	Groups []ModelsPentestFindingGroup `json:"groups,omitempty"`
 	NextToken string `json:"nextToken"`
 	NumItems int `json:"numItems"`
 	Version *string `json:"version,omitempty"`
@@ -167,8 +436,39 @@ type EndpointsGetPentestPreflightQuotaOutput struct {
 	WindowResetAt string `json:"windowResetAt"`
 }
 
+type EndpointsGetPentestScanActivityOutput struct {
+	Entries []EndpointsPentestScanActivityLogEntry `json:"entries,omitempty"`
+	NextCursor *string `json:"nextCursor,omitempty"`
+}
+
+type EndpointsGetPentestScanEventsOutput struct {
+	Events []ModelsDASTEventInterface `json:"events,omitempty"`
+	HighestSeq int64 `json:"highestSeq"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetPentestScanFindingLinksOutput struct {
+	MappedFindings []ModelsPentestMappedFinding `json:"mappedFindings,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsGetPentestScanFindingsOutput struct {
 	Findings []ModelsPentestFinding `json:"findings,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetPentestScanNetworkTransactionsOutput struct {
+	Attempts []EndpointsPentestCaptureAttempt `json:"attempts,omitempty"`
+	CaptureState string `json:"captureState"`
+	Complete bool `json:"complete"`
+	CorrelationAvailability string `json:"correlationAvailability"`
+	Diagnostic *string `json:"diagnostic,omitempty"`
+	ExcludedMissingTime int `json:"excludedMissingTime"`
+	NextCursor *string `json:"nextCursor,omitempty"`
+	Phase string `json:"phase"`
+	RetryLater bool `json:"retryLater"`
+	Transactions []ModelsNetworkTransaction `json:"transactions,omitempty"`
+	UnmatchedAttribution string `json:"unmatchedAttribution"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -177,24 +477,43 @@ type EndpointsGetPentestScanOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetPentestScanProgressStatusOutput struct {
+	CurrentActivity *string `json:"currentActivity,omitempty"`
+	CurrentPhase *string `json:"currentPhase,omitempty"`
+	LastActivityAt *string `json:"lastActivityAt,omitempty"`
+	Progress int `json:"progress"`
+	Status ModelsScanStatus `json:"status"`
+	Terminal bool `json:"terminal"`
+}
+
 type EndpointsGetPentestScanReportDownloadURLOutput struct {
 	DownloadURL string `json:"downloadUrl"`
+	Partial *bool `json:"partial,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetPentestScanReportExternalPDFOutput struct {
+	DownloadURL string `json:"downloadUrl"`
+	Partial *bool `json:"partial,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetPentestScanReportOutput struct {
+	Partial *bool `json:"partial,omitempty"`
 	Report ModelsPentestReport `json:"report"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetPentestScanReportPDFOutput struct {
 	DownloadURL string `json:"downloadUrl"`
+	Partial *bool `json:"partial,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetPentestScansOutput struct {
 	NextToken string `json:"nextToken"`
 	Scans []ModelsPentestScan `json:"scans,omitempty"`
+	TotalCount int `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -204,7 +523,7 @@ type EndpointsGetSourceIPsOutput struct {
 }
 
 type EndpointsGetSubAgentNetworkLogOutput struct {
-	NetworkLog ModelsNetworkLog `json:"networkLog"`
+	DownloadURL string `json:"downloadUrl"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -222,6 +541,17 @@ type EndpointsLastScanStatus struct {
 	Status string `json:"status"`
 }
 
+type EndpointsListExploitValidationAttemptsOutput struct {
+	Attempts []EndpointsExploitValidationAttempt `json:"attempts,omitempty"`
+	NextToken string `json:"nextToken"`
+	NumItems int `json:"numItems"`
+}
+
+type EndpointsPaginatedValidations struct {
+	NextToken string `json:"nextToken"`
+	Validations []ModelsDASTValidation `json:"validations,omitempty"`
+}
+
 type EndpointsPatchBugHuntFindingAllowlistInput struct {
 	Allow bool `json:"allow"`
 	Reason string `json:"reason"`
@@ -230,6 +560,97 @@ type EndpointsPatchBugHuntFindingAllowlistInput struct {
 type EndpointsPatchBugHuntFindingAllowlistOutput struct {
 	Success bool `json:"success"`
 }
+
+type EndpointsPatchPentestAppConfigInput struct {
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	Targets []ModelsApplicationPentestTarget `json:"targets,omitempty"`
+}
+
+type EndpointsPatchPentestAppConfigOutput struct {
+	Application ModelsApplicationPentestConfig `json:"application"`
+}
+
+type EndpointsPentestAuthMatrixCase struct {
+	CandidateID string `json:"candidateId"`
+	EndpointID string `json:"endpointId"`
+	EvidenceRefs []string `json:"evidenceRefs,omitempty"`
+	Key string `json:"key"`
+	Lifecycle string `json:"lifecycle"`
+	Method string `json:"method"`
+	OperationID string `json:"operationId"`
+	Outcome string `json:"outcome"`
+	OwnerID string `json:"ownerId"`
+	Path string `json:"path"`
+	Reason string `json:"reason"`
+	Relationship string `json:"relationship"`
+}
+
+type EndpointsPentestAuthMatrixEvidenceRecord struct {
+	AssessmentDigest *string `json:"assessmentDigest,omitempty"`
+	Attempt EndpointsPentestCaptureAttempt `json:"attempt"`
+	BodyState string `json:"bodyState"`
+	Bytes int64 `json:"bytes"`
+	ContentType *string `json:"contentType,omitempty"`
+	Diagnostic *string `json:"diagnostic,omitempty"`
+	DownloadHeaders map[string]string `json:"downloadHeaders,omitempty"`
+	DownloadURL *string `json:"downloadUrl,omitempty"`
+	Method *string `json:"method,omitempty"`
+	Path *string `json:"path,omitempty"`
+	Preview *string `json:"preview,omitempty"`
+	RedactionVersion *string `json:"redactionVersion,omitempty"`
+	RepresentationVersion *string `json:"representationVersion,omitempty"`
+	SelectedResult bool `json:"selectedResult"`
+	StoredDigest *string `json:"storedDigest,omitempty"`
+	Truncation *string `json:"truncation,omitempty"`
+}
+
+type EndpointsPentestCaptureAttempt struct {
+	AttemptEvidenceRef string `json:"attemptEvidenceRef"`
+	AttemptNumber int32 `json:"attemptNumber"`
+	CreatedAt string `json:"createdAt"`
+	ErrorCode string `json:"errorCode"`
+	FinalEvidenceRef *string `json:"finalEvidenceRef,omitempty"`
+	FinishedAt *string `json:"finishedAt,omitempty"`
+	HttpStatus *int `json:"httpStatus,omitempty"`
+	ID string `json:"id"`
+	IdentityID string `json:"identityId"`
+	Outcome string `json:"outcome"`
+	ReplayID string `json:"replayId"`
+	SessionGeneration int64 `json:"sessionGeneration"`
+	TransactionID *string `json:"transactionId,omitempty"`
+}
+
+type EndpointsPentestEstimateResult struct {
+	BasedOnHistoricalRuns int `json:"basedOnHistoricalRuns"`
+	Confidence ModelsPentestPreflightConfidence `json:"confidence"`
+	DurationSeconds int `json:"durationSeconds"`
+	InputTokens int64 `json:"inputTokens"`
+	LlmCostUsdCents int64 `json:"llmCostUsdCents"`
+	OutputTokens int64 `json:"outputTokens"`
+	Source EndpointsPentestEstimateSource `json:"source"`
+}
+
+type EndpointsPentestEstimateSource string
+
+const (
+	EndpointsPentestEstimateSourcePreflight EndpointsPentestEstimateSource = "preflight"
+	EndpointsPentestEstimateSourceHeuristic EndpointsPentestEstimateSource = "heuristic"
+)
+
+type EndpointsPentestScanActivityLogEntry struct {
+	Content *string `json:"content,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	EventType *string `json:"eventType,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Metadata *string `json:"metadata,omitempty"`
+}
+
+type EndpointsPentestStartMode string
+
+const (
+	EndpointsPentestStartModeSelfServeStarted EndpointsPentestStartMode = "self_serve_started"
+	EndpointsPentestStartModeManualRequested EndpointsPentestStartMode = "manual_requested"
+)
 
 type EndpointsPostAllowlistPentestFindingInput struct {
 	AllowlistReason string `json:"allowlistReason"`
@@ -246,7 +667,19 @@ type EndpointsPostAutofixDASTPentestFindingInput struct {
 type EndpointsPostAutofixDASTPentestFindingOutput struct {
 	AutoFixState ModelsAutoFixState `json:"autoFixState"`
 	Error *string `json:"error,omitempty"`
+	RunID *string `json:"runId,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostBugHuntProgramImportInput struct {
+	ProgramType string `json:"programType"`
+	ProgramURL string `json:"programUrl"`
+}
+
+type EndpointsPostBugHuntProgramImportOutput struct {
+	RulesOfEngagement ModelsRulesOfEngagement `json:"rulesOfEngagement"`
+	Scope ModelsScopePolicy `json:"scope"`
+	ScopeProvenance ModelsScopeProvenance `json:"scopeProvenance"`
 }
 
 type EndpointsPostBugHuntScanInput struct {
@@ -264,6 +697,17 @@ type EndpointsPostBugHuntSuiteRunNowInput struct {
 
 type EndpointsPostBugHuntSuiteRunNowOutput struct {
 	ScanID string `json:"scanId"`
+}
+
+type EndpointsPostCreateTicketBugHuntFindingInput struct {
+	Assignees []ModelsUser `json:"assignees,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+}
+
+type EndpointsPostCreateTicketBugHuntFindingOutput struct {
+	Ticket ModelsTicketProvider `json:"ticket"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsPostCreateTicketPentestFindingInput struct {
@@ -290,6 +734,107 @@ type EndpointsPostCredentialOutput struct {
 	Credential ModelsCredential `json:"credential"`
 }
 
+type EndpointsPostDASTApplicationInput struct {
+	ContextApplicationID *string `json:"contextApplicationId,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Name *string `json:"name,omitempty"`
+	ScopeExcludePatterns []string `json:"scopeExcludePatterns,omitempty"`
+	WebServiceIds []string `json:"webServiceIds,omitempty"`
+}
+
+type EndpointsPostDASTApplicationOutput struct {
+	Application ModelsDASTApplication `json:"application"`
+}
+
+type EndpointsPostDASTCredentialValidationInput struct {
+	TestURL *string `json:"testUrl,omitempty"`
+}
+
+type EndpointsPostDASTExploitValidationPolicyArmInput struct {
+	Capabilities []ModelsDASTExploitValidationCapability `json:"capabilities,omitempty"`
+	ExpectedUpdatedAt string `json:"expectedUpdatedAt"`
+	SafetyContractVersion int `json:"safetyContractVersion"`
+}
+
+type EndpointsPostDASTExploitValidationPolicyArmOutput struct {
+	Policy ModelsDASTExploitValidationPolicy `json:"policy"`
+}
+
+type EndpointsPostDASTExploitValidationPolicyDisarmOutput struct {
+	Policy ModelsDASTExploitValidationPolicy `json:"policy"`
+}
+
+type EndpointsPostDASTExploitValidationPolicyInput struct {
+	DaysOfWeek []int `json:"daysOfWeek,omitempty"`
+	Enabled bool `json:"enabled"`
+	EndTime string `json:"endTime"`
+	FindingTypes []ModelsDASTExploitValidationFindingType `json:"findingTypes,omitempty"`
+	MinimumExploitability string `json:"minimumExploitability"`
+	MinimumSeverity string `json:"minimumSeverity"`
+	Name string `json:"name"`
+	RevalidationCooldownDays int `json:"revalidationCooldownDays"`
+	StartTime string `json:"startTime"`
+	Timezone string `json:"timezone"`
+	WebServiceIds []string `json:"webServiceIds,omitempty"`
+}
+
+type EndpointsPostDASTExploitValidationPolicyOutput struct {
+	Policy ModelsDASTExploitValidationPolicy `json:"policy"`
+}
+
+type EndpointsPostDASTTargetInput struct {
+	Description *string `json:"description,omitempty"`
+	Hostname string `json:"hostname"`
+	IsProd *bool `json:"isProd,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Port *int `json:"port,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
+}
+
+type EndpointsPostDASTTargetOutput struct {
+	Target ModelsDASTTarget `json:"target"`
+}
+
+type EndpointsPostDASTTargetValidationOutput struct {
+	Validation ModelsDASTValidation `json:"validation"`
+}
+
+type EndpointsPostDASTWebServiceAccessValidationInput struct {
+	CredentialID string `json:"credentialId"`
+}
+
+type EndpointsPostDASTWebServiceAccessValidationOutput struct {
+	Validation ModelsDASTValidation `json:"validation"`
+}
+
+type EndpointsPostDASTWebServiceCredentialInput struct {
+	CredentialID string `json:"credentialId"`
+}
+
+type EndpointsPostDASTWebServiceCredentialOutput struct {
+	Success bool `json:"success"`
+}
+
+type EndpointsPostDASTWebServiceInput struct {
+	ApiType *ModelsAPIType `json:"apiType,omitempty"`
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Name *string `json:"name,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	RepoPath *string `json:"repoPath,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	Targets []ModelsDASTWebServiceTarget `json:"targets,omitempty"`
+}
+
+type EndpointsPostDASTWebServiceOutput struct {
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	WebService ModelsDASTWebService `json:"webService"`
+}
+
+type EndpointsPostDASTWebServiceStatusValidationOutput struct {
+	Validation ModelsDASTValidation `json:"validation"`
+}
+
 type EndpointsPostPentestAppConfigInput struct {
 	CredentialIds []string `json:"credentialIds,omitempty"`
 	ID *string `json:"id,omitempty"`
@@ -312,6 +857,14 @@ type EndpointsPutBugHuntConfigOutput struct {
 	Config ModelsBugHuntScanConfig `json:"config"`
 }
 
+type EndpointsPutCredentialActiveInput struct {
+	IsActive bool `json:"isActive"`
+}
+
+type EndpointsPutCredentialActiveOutput struct {
+	Credential ModelsCredential `json:"credential"`
+}
+
 type EndpointsPutCredentialInput struct {
 	Config ModelsCredentialConfig `json:"config"`
 	Description string `json:"description"`
@@ -323,6 +876,77 @@ type EndpointsPutCredentialOutput struct {
 	Credential ModelsCredential `json:"credential"`
 }
 
+type EndpointsPutDASTApplicationInput struct {
+	Description *string `json:"description,omitempty"`
+	Name *string `json:"name,omitempty"`
+	ScopeExcludePatterns []string `json:"scopeExcludePatterns,omitempty"`
+	WebServiceIds []string `json:"webServiceIds,omitempty"`
+}
+
+type EndpointsPutDASTApplicationOutput struct {
+	Application ModelsDASTApplication `json:"application"`
+}
+
+type EndpointsPutDASTExploitValidationPolicyInput struct {
+	DaysOfWeek []int `json:"daysOfWeek,omitempty"`
+	Enabled bool `json:"enabled"`
+	EndTime string `json:"endTime"`
+	FindingTypes []ModelsDASTExploitValidationFindingType `json:"findingTypes,omitempty"`
+	MinimumExploitability string `json:"minimumExploitability"`
+	MinimumSeverity string `json:"minimumSeverity"`
+	Name string `json:"name"`
+	RevalidationCooldownDays int `json:"revalidationCooldownDays"`
+	StartTime string `json:"startTime"`
+	Timezone string `json:"timezone"`
+	WebServiceIds []string `json:"webServiceIds,omitempty"`
+}
+
+type EndpointsPutDASTExploitValidationPolicyOutput struct {
+	Policy ModelsDASTExploitValidationPolicy `json:"policy"`
+}
+
+type EndpointsPutDASTTargetInput struct {
+	Description *string `json:"description,omitempty"`
+	Hostname string `json:"hostname"`
+	IsProd *bool `json:"isProd,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Port *int `json:"port,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
+}
+
+type EndpointsPutDASTTargetOutput struct {
+	Target ModelsDASTTarget `json:"target"`
+}
+
+type EndpointsPutDASTWebServiceInput struct {
+	ApiType *ModelsAPIType `json:"apiType,omitempty"`
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Name *string `json:"name,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	RepoPath *string `json:"repoPath,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	Targets []ModelsDASTWebServiceTarget `json:"targets,omitempty"`
+}
+
+type EndpointsPutDASTWebServiceOutput struct {
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	RemovedCredentialIds []string `json:"removedCredentialIds,omitempty"`
+	WebService ModelsDASTWebService `json:"webService"`
+}
+
+type EndpointsPutExploitValidationConsentInput struct {
+	Endpoint string `json:"endpoint"`
+	Evidence *string `json:"evidence,omitempty"`
+	OnBehalfOf *string `json:"onBehalfOf,omitempty"`
+	WarningVersion string `json:"warningVersion"`
+}
+
+type EndpointsPutMutationConsentInput struct {
+	Enabled bool `json:"enabled"`
+	WarningVersion *string `json:"warningVersion,omitempty"`
+}
+
 type EndpointsPutPentestAppConfigInput struct {
 	CredentialIds []string `json:"credentialIds,omitempty"`
 	Targets []ModelsApplicationPentestTarget `json:"targets,omitempty"`
@@ -332,7 +956,21 @@ type EndpointsPutPentestAppConfigOutput struct {
 	Application ModelsApplicationPentestConfig `json:"application"`
 }
 
+type EndpointsPutTargetClassificationInput struct {
+	Classification ModelsDASTTargetClassification `json:"classification"`
+}
+
+type EndpointsStartExploitValidationOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	ExecutionArns []string `json:"executionArns,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	Started *bool `json:"started,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsStartPentestPreflightInput struct {
+	Deployment *ModelsPentestDeployment `json:"deployment,omitempty"`
 	TriggeredByScan *bool `json:"triggeredByScan,omitempty"`
 }
 
@@ -343,9 +981,12 @@ type EndpointsStartPentestPreflightOutput struct {
 type EndpointsStartPentestScanFromApplicationInput struct {
 	ApplicationID string `json:"applicationId"`
 	ConfigOverrides *ModelsApplicationPentestConfigOverrides `json:"configOverrides,omitempty"`
+	Deployment *ModelsPentestDeployment `json:"deployment,omitempty"`
+	OnboardingDispatch *bool `json:"onboardingDispatch,omitempty"`
 }
 
 type EndpointsStartPentestScanFromApplicationOutput struct {
+	Mode *EndpointsPentestStartMode `json:"mode,omitempty"`
 	Scan ModelsPentestScan `json:"scan"`
 	Version *string `json:"version,omitempty"`
 }
@@ -373,12 +1014,56 @@ type EndpointsValidateBugHuntConfigOutput struct {
 	Errors []ModelsConfigValidationError `json:"errors,omitempty"`
 }
 
+type EndpointsValidateCredentialInput struct {
+	TestURL *string `json:"testUrl,omitempty"`
+}
+
 type EndpointsValidateCredentialOutput struct {
 	Message *string `json:"message,omitempty"`
+	Outcome *string `json:"outcome,omitempty"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
 	Valid bool `json:"valid"`
 	ValidatedAt string `json:"validatedAt"`
 	ValidationEvidence ModelsValidationEvidence `json:"validationEvidence"`
+	ValidationID *string `json:"validationId,omitempty"`
 }
+
+type EndpointsValidateCredentialResult struct {
+	CredentialID string `json:"credentialId"`
+	Message *string `json:"message,omitempty"`
+	Outcome *string `json:"outcome,omitempty"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
+	Valid bool `json:"valid"`
+	ValidatedAt string `json:"validatedAt"`
+	ValidationEvidence ModelsValidationEvidence `json:"validationEvidence"`
+	ValidationID *string `json:"validationId,omitempty"`
+}
+
+type EndpointsValidateCredentialsInput struct {
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	TestURL *string `json:"testUrl,omitempty"`
+}
+
+type EndpointsValidateCredentialsOutput struct {
+	Results []EndpointsValidateCredentialResult `json:"results,omitempty"`
+}
+
+type EndpointsValidateTargetsInput struct {
+	TargetIds []string `json:"targetIds,omitempty"`
+}
+
+type EndpointsValidateTargetsOutput struct {
+	Results []ModelsDASTValidation `json:"results,omitempty"`
+}
+
+type ModelsAPIKeyPlacement string
+
+const (
+	ModelsAPIKeyPlacementHeader ModelsAPIKeyPlacement = "header"
+	ModelsAPIKeyPlacementBearer ModelsAPIKeyPlacement = "bearer"
+	ModelsAPIKeyPlacementQuery ModelsAPIKeyPlacement = "query"
+	ModelsAPIKeyPlacementJsonBody ModelsAPIKeyPlacement = "json_body"
+)
 
 type ModelsAPIType string
 
@@ -401,16 +1086,20 @@ type ModelsAppendixAuthMatrixHypothesis struct {
 }
 
 type ModelsApplicationPentestConfig struct {
+	AllowMutationTesting bool `json:"allowMutationTesting"`
 	CreatedAt string `json:"createdAt"`
 	CredentialIds []string `json:"credentialIds,omitempty"`
 	DefaultScanConfig *ModelsPentestScanConfig `json:"defaultScanConfig,omitempty"`
 	ID *string `json:"id,omitempty"`
+	MutationAckAt *string `json:"mutationAckAt,omitempty"`
+	MutationAckBy *string `json:"mutationAckBy,omitempty"`
+	MutationWarningVersion *string `json:"mutationWarningVersion,omitempty"`
 	Targets []ModelsApplicationPentestTarget `json:"targets,omitempty"`
 	UpdatedAt string `json:"updatedAt"`
 }
 
 type ModelsApplicationPentestConfigOverrides struct {
-	ApiSchema string `json:"apiSchema"`
+	ApiSchema *string `json:"apiSchema,omitempty"`
 	Credentials []ModelsCredential `json:"credentials,omitempty"`
 	EnableAuthMatrix bool `json:"enableAuthMatrix"`
 	EnableExploitAnalysis bool `json:"enableExploitAnalysis"`
@@ -421,13 +1110,17 @@ type ModelsApplicationPentestConfigOverrides struct {
 type ModelsApplicationPentestTarget struct {
 	Host *string `json:"host,omitempty"`
 	ID string `json:"id"`
+	IsProd *bool `json:"isProd,omitempty"`
 	Name string `json:"name"`
+	NonProductionConfirmedAt *string `json:"nonProductionConfirmedAt,omitempty"`
 	Port *int `json:"port,omitempty"`
 }
 
 type ModelsAssessmentPeriod struct {
 	EndDate *string `json:"endDate,omitempty"`
+	EndTime *string `json:"endTime,omitempty"`
 	StartDate *string `json:"startDate,omitempty"`
+	StartTime *string `json:"startTime,omitempty"`
 }
 
 type ModelsAssetID struct {
@@ -457,9 +1150,276 @@ const (
 	ModelsAssetSelectorKindRepository ModelsAssetSelectorKind = "repository"
 )
 
+type ModelsAuthMatrixAgentResponseCaseManifest struct {
+	Cases []ModelsAuthMatrixAgentResponseCaseManifestCasesElem `json:"cases,omitempty"`
+	Counts *ModelsAuthMatrixCaseCounts `json:"counts,omitempty"`
+	Digest *string `json:"digest,omitempty"`
+	Experiments *ModelsAuthMatrixExperimentManifest `json:"experiments,omitempty"`
+	Version *int `json:"version,omitempty"`
+}
+
+type ModelsAuthMatrixAgentResponseCaseManifestCasesElem struct {
+	CandidateID *string `json:"candidateId,omitempty"`
+	EndpointID *string `json:"endpointId,omitempty"`
+	EvidenceRefs []string `json:"evidenceRefs,omitempty"`
+	Key *string `json:"key,omitempty"`
+	Method *string `json:"method,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Outcome *ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome `json:"outcome,omitempty"`
+	OwnerID *string `json:"ownerId,omitempty"`
+	Path *string `json:"path,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Relationship *string `json:"relationship,omitempty"`
+}
+
+type ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome string
+
+const (
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomeAccepted ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "accepted"
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomeAuthzDenied ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "authz_denied"
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomeConflict ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "conflict"
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomeNotFound ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "not_found"
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomePolicySkipped ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "policy_skipped"
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomeSchemaRejected ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "schema_rejected"
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomeServerError ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "server_error"
+	ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcomeUnknown ModelsAuthMatrixAgentResponseCaseManifestCasesElemOutcome = "unknown"
+)
+
+type ModelsAuthMatrixCaseCounts struct {
+	ByLifecycle map[string]int `json:"byLifecycle,omitempty"`
+	ByOutcome map[string]int `json:"byOutcome,omitempty"`
+	Total *int `json:"total,omitempty"`
+}
+
+type ModelsAuthMatrixCredentialContext struct {
+	CredentialID *string `json:"credentialId,omitempty"`
+	Facts []ModelsAuthMatrixFact `json:"facts,omitempty"`
+	SessionVersion *int `json:"sessionVersion,omitempty"`
+	Unauthenticated *bool `json:"unauthenticated,omitempty"`
+	Usable *bool `json:"usable,omitempty"`
+	VerificationEvidenceRefs []string `json:"verificationEvidenceRefs,omitempty"`
+}
+
+type ModelsAuthMatrixDisposableData struct {
+	AuthorizationRef *string `json:"authorizationRef,omitempty"`
+	Designation *ModelsAuthMatrixDisposableDataDesignation `json:"designation,omitempty"`
+	IntendedEffects []string `json:"intendedEffects,omitempty"`
+	ResourceRefs []string `json:"resourceRefs,omitempty"`
+	Retention *ModelsAuthMatrixDisposableDataRetention `json:"retention,omitempty"`
+}
+
+type ModelsAuthMatrixDisposableDataDesignation string
+
+const (
+	ModelsAuthMatrixDisposableDataDesignationCreatedFixture ModelsAuthMatrixDisposableDataDesignation = "created_fixture"
+	ModelsAuthMatrixDisposableDataDesignationExistingDisposable ModelsAuthMatrixDisposableDataDesignation = "existing_disposable"
+	ModelsAuthMatrixDisposableDataDesignationNone ModelsAuthMatrixDisposableDataDesignation = "none"
+)
+
+type ModelsAuthMatrixDisposableDataRetention string
+
+const (
+	ModelsAuthMatrixDisposableDataRetentionIntentionallyRetain ModelsAuthMatrixDisposableDataRetention = "intentionally_retain"
+	ModelsAuthMatrixDisposableDataRetentionRestore ModelsAuthMatrixDisposableDataRetention = "restore"
+)
+
+type ModelsAuthMatrixExpectation struct {
+	Access *ModelsAuthMatrixExpectationAccess `json:"access,omitempty"`
+	CandidateIds []string `json:"candidateIds,omitempty"`
+	Facts []ModelsAuthMatrixFact `json:"facts,omitempty"`
+	ID *string `json:"id,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	OwnerIds []string `json:"ownerIds,omitempty"`
+	Restriction *ModelsAuthMatrixExpectationRestriction `json:"restriction,omitempty"`
+	StateVersions []ModelsAuthMatrixStateVersion `json:"stateVersions,omitempty"`
+	Statement *string `json:"statement,omitempty"`
+}
+
+type ModelsAuthMatrixExpectationAccess string
+
+const (
+	ModelsAuthMatrixExpectationAccessAllowed ModelsAuthMatrixExpectationAccess = "allowed"
+	ModelsAuthMatrixExpectationAccessDenied ModelsAuthMatrixExpectationAccess = "denied"
+	ModelsAuthMatrixExpectationAccessUnknown ModelsAuthMatrixExpectationAccess = "unknown"
+)
+
+type ModelsAuthMatrixExpectationRestriction string
+
+const (
+	ModelsAuthMatrixExpectationRestrictionAuthentication ModelsAuthMatrixExpectationRestriction = "authentication"
+	ModelsAuthMatrixExpectationRestrictionFunction ModelsAuthMatrixExpectationRestriction = "function"
+	ModelsAuthMatrixExpectationRestrictionObject ModelsAuthMatrixExpectationRestriction = "object"
+)
+
+type ModelsAuthMatrixExperiment struct {
+	CandidateID *string `json:"candidateId,omitempty"`
+	Cleanup *ModelsAuthMatrixExperimentCleanup `json:"cleanup,omitempty"`
+	DispatchCount *int `json:"dispatchCount,omitempty"`
+	DisposableData *ModelsAuthMatrixDisposableData `json:"disposableData,omitempty"`
+	ExpectationID *string `json:"expectationId,omitempty"`
+	FindingID *string `json:"findingId,omitempty"`
+	ID *string `json:"id,omitempty"`
+	IntendedEffects []string `json:"intendedEffects,omitempty"`
+	Observations []ModelsAuthMatrixObservation `json:"observations,omitempty"`
+	ObservedEffects []ModelsAuthMatrixFact `json:"observedEffects,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	OwnerID *string `json:"ownerId,omitempty"`
+	Publication *ModelsAuthMatrixExperimentPublication `json:"publication,omitempty"`
+	RequestDigest *string `json:"requestDigest,omitempty"`
+	ResourceRefs []string `json:"resourceRefs,omitempty"`
+	StateVersions []ModelsAuthMatrixStateVersion `json:"stateVersions,omitempty"`
+	Status *ModelsAuthMatrixExperimentStatus `json:"status,omitempty"`
+	TemplateID *string `json:"templateId,omitempty"`
+	Verdict *ModelsAuthMatrixVerdict `json:"verdict,omitempty"`
+}
+
+type ModelsAuthMatrixExperimentCleanup string
+
+const (
+	ModelsAuthMatrixExperimentCleanupFailed ModelsAuthMatrixExperimentCleanup = "failed"
+	ModelsAuthMatrixExperimentCleanupIntentionallyRetained ModelsAuthMatrixExperimentCleanup = "intentionally_retained"
+	ModelsAuthMatrixExperimentCleanupNotRequired ModelsAuthMatrixExperimentCleanup = "not_required"
+	ModelsAuthMatrixExperimentCleanupPending ModelsAuthMatrixExperimentCleanup = "pending"
+	ModelsAuthMatrixExperimentCleanupRestored ModelsAuthMatrixExperimentCleanup = "restored"
+	ModelsAuthMatrixExperimentCleanupUnknown ModelsAuthMatrixExperimentCleanup = "unknown"
+)
+
+type ModelsAuthMatrixExperimentManifest struct {
+	CoverageGaps []string `json:"coverageGaps,omitempty"`
+	CredentialContexts []ModelsAuthMatrixCredentialContext `json:"credentialContexts,omitempty"`
+	Expectations []ModelsAuthMatrixExpectation `json:"expectations,omitempty"`
+	Experiments []ModelsAuthMatrixExperiment `json:"experiments,omitempty"`
+	Templates []ModelsAuthMatrixRequestTemplate `json:"templates,omitempty"`
+	UnfinishedExperimentIds []string `json:"unfinishedExperimentIds,omitempty"`
+	Version *int `json:"version,omitempty"`
+	WritesStoppedReason *string `json:"writesStoppedReason,omitempty"`
+}
+
+type ModelsAuthMatrixExperimentPublication string
+
+const (
+	ModelsAuthMatrixExperimentPublicationNone ModelsAuthMatrixExperimentPublication = "none"
+	ModelsAuthMatrixExperimentPublicationPending ModelsAuthMatrixExperimentPublication = "pending"
+	ModelsAuthMatrixExperimentPublicationPublished ModelsAuthMatrixExperimentPublication = "published"
+)
+
+type ModelsAuthMatrixExperimentStatus string
+
+const (
+	ModelsAuthMatrixExperimentStatusBlocked ModelsAuthMatrixExperimentStatus = "blocked"
+	ModelsAuthMatrixExperimentStatusPending ModelsAuthMatrixExperimentStatus = "pending"
+	ModelsAuthMatrixExperimentStatusRunning ModelsAuthMatrixExperimentStatus = "running"
+	ModelsAuthMatrixExperimentStatusTerminal ModelsAuthMatrixExperimentStatus = "terminal"
+)
+
+type ModelsAuthMatrixFact struct {
+	Basis *ModelsAuthMatrixFactBasis `json:"basis,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Reference *string `json:"reference,omitempty"`
+	Source *ModelsAuthMatrixFactSource `json:"source,omitempty"`
+	StateVersion *int `json:"stateVersion,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type ModelsAuthMatrixFactBasis string
+
+const (
+	ModelsAuthMatrixFactBasisAsserted ModelsAuthMatrixFactBasis = "asserted"
+	ModelsAuthMatrixFactBasisInferred ModelsAuthMatrixFactBasis = "inferred"
+	ModelsAuthMatrixFactBasisObserved ModelsAuthMatrixFactBasis = "observed"
+	ModelsAuthMatrixFactBasisUnknown ModelsAuthMatrixFactBasis = "unknown"
+)
+
+type ModelsAuthMatrixFactSource string
+
+const (
+	ModelsAuthMatrixFactSourceCustomer ModelsAuthMatrixFactSource = "customer"
+	ModelsAuthMatrixFactSourceRuntime ModelsAuthMatrixFactSource = "runtime"
+	ModelsAuthMatrixFactSourceServedSpec ModelsAuthMatrixFactSource = "served_spec"
+	ModelsAuthMatrixFactSourceSource ModelsAuthMatrixFactSource = "source"
+	ModelsAuthMatrixFactSourceUnknown ModelsAuthMatrixFactSource = "unknown"
+)
+
+type ModelsAuthMatrixFailureIdentity struct {
+	BoundaryID *string `json:"boundaryId,omitempty"`
+	ControlID *string `json:"controlId,omitempty"`
+	Restriction *ModelsAuthMatrixFailureIdentityRestriction `json:"restriction,omitempty"`
+	Version *int `json:"version,omitempty"`
+}
+
+type ModelsAuthMatrixFailureIdentityRestriction string
+
+const (
+	ModelsAuthMatrixFailureIdentityRestrictionAuthentication ModelsAuthMatrixFailureIdentityRestriction = "authentication"
+	ModelsAuthMatrixFailureIdentityRestrictionFunction ModelsAuthMatrixFailureIdentityRestriction = "function"
+	ModelsAuthMatrixFailureIdentityRestrictionObject ModelsAuthMatrixFailureIdentityRestriction = "object"
+)
+
+type ModelsAuthMatrixObservation struct {
+	AttemptID *string `json:"attemptId,omitempty"`
+	BodyComplete *bool `json:"bodyComplete,omitempty"`
+	BusinessOutcome *ModelsAuthMatrixObservationBusinessOutcome `json:"businessOutcome,omitempty"`
+	EvidenceRefs []string `json:"evidenceRefs,omitempty"`
+	Facts []ModelsAuthMatrixFact `json:"facts,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Phase *ModelsAuthMatrixObservationPhase `json:"phase,omitempty"`
+	PrincipalID *string `json:"principalId,omitempty"`
+	StateVersions []ModelsAuthMatrixStateVersion `json:"stateVersions,omitempty"`
+	StatusCode *int `json:"statusCode,omitempty"`
+	Transport *ModelsAuthMatrixObservationTransport `json:"transport,omitempty"`
+}
+
+type ModelsAuthMatrixObservationBusinessOutcome string
+
+const (
+	ModelsAuthMatrixObservationBusinessOutcomeAccepted ModelsAuthMatrixObservationBusinessOutcome = "accepted"
+	ModelsAuthMatrixObservationBusinessOutcomeConflict ModelsAuthMatrixObservationBusinessOutcome = "conflict"
+	ModelsAuthMatrixObservationBusinessOutcomeDenied ModelsAuthMatrixObservationBusinessOutcome = "denied"
+	ModelsAuthMatrixObservationBusinessOutcomeNotFound ModelsAuthMatrixObservationBusinessOutcome = "not_found"
+	ModelsAuthMatrixObservationBusinessOutcomeRejected ModelsAuthMatrixObservationBusinessOutcome = "rejected"
+	ModelsAuthMatrixObservationBusinessOutcomeUnknown ModelsAuthMatrixObservationBusinessOutcome = "unknown"
+)
+
+type ModelsAuthMatrixObservationPhase string
+
+const (
+	ModelsAuthMatrixObservationPhaseCandidate ModelsAuthMatrixObservationPhase = "candidate"
+	ModelsAuthMatrixObservationPhaseCleanup ModelsAuthMatrixObservationPhase = "cleanup"
+	ModelsAuthMatrixObservationPhaseControl ModelsAuthMatrixObservationPhase = "control"
+	ModelsAuthMatrixObservationPhaseEffect ModelsAuthMatrixObservationPhase = "effect"
+)
+
+type ModelsAuthMatrixObservationTransport string
+
+const (
+	ModelsAuthMatrixObservationTransportNetworkError ModelsAuthMatrixObservationTransport = "network_error"
+	ModelsAuthMatrixObservationTransportNotSent ModelsAuthMatrixObservationTransport = "not_sent"
+	ModelsAuthMatrixObservationTransportResponse ModelsAuthMatrixObservationTransport = "response"
+	ModelsAuthMatrixObservationTransportTimeout ModelsAuthMatrixObservationTransport = "timeout"
+	ModelsAuthMatrixObservationTransportUnknown ModelsAuthMatrixObservationTransport = "unknown"
+)
+
 type ModelsAuthMatrixOverride struct {
 	MaxEndpoints *int `json:"maxEndpoints,omitempty"`
 	MaxRoles *int `json:"maxRoles,omitempty"`
+}
+
+type ModelsAuthMatrixRequestTemplate struct {
+	Body *string `json:"body,omitempty"`
+	ContentType *string `json:"contentType,omitempty"`
+	ControlObservationIds []string `json:"controlObservationIds,omitempty"`
+	Digest *string `json:"digest,omitempty"`
+	Facts []ModelsAuthMatrixFact `json:"facts,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Method *string `json:"method,omitempty"`
+	OmittedFieldEffects []string `json:"omittedFieldEffects,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Origin *string `json:"origin,omitempty"`
+	Path *string `json:"path,omitempty"`
+	PermittedSubstitutions []string `json:"permittedSubstitutions,omitempty"`
+	Query map[string]string `json:"query,omitempty"`
+	ResourceRefs []string `json:"resourceRefs,omitempty"`
+	WritableFields []string `json:"writableFields,omitempty"`
 }
 
 type ModelsAuthMatrixStage struct {
@@ -467,6 +1427,31 @@ type ModelsAuthMatrixStage struct {
 	Description string `json:"description"`
 	HypothesesGenerated int `json:"hypothesesGenerated"`
 }
+
+type ModelsAuthMatrixStateVersion struct {
+	Scope *string `json:"scope,omitempty"`
+	Version *int `json:"version,omitempty"`
+}
+
+type ModelsAuthMatrixVerdict struct {
+	ExpectationID *string `json:"expectationId,omitempty"`
+	FailureIdentity *ModelsAuthMatrixFailureIdentity `json:"failureIdentity,omitempty"`
+	MissingFacts []string `json:"missingFacts,omitempty"`
+	ObservationIds []string `json:"observationIds,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Status *ModelsAuthMatrixVerdictStatus `json:"status,omitempty"`
+}
+
+type ModelsAuthMatrixVerdictStatus string
+
+const (
+	ModelsAuthMatrixVerdictStatusAllowed ModelsAuthMatrixVerdictStatus = "allowed"
+	ModelsAuthMatrixVerdictStatusCandidate ModelsAuthMatrixVerdictStatus = "candidate"
+	ModelsAuthMatrixVerdictStatusConfirmed ModelsAuthMatrixVerdictStatus = "confirmed"
+	ModelsAuthMatrixVerdictStatusDenied ModelsAuthMatrixVerdictStatus = "denied"
+	ModelsAuthMatrixVerdictStatusInconclusive ModelsAuthMatrixVerdictStatus = "inconclusive"
+	ModelsAuthMatrixVerdictStatusSkipped ModelsAuthMatrixVerdictStatus = "skipped"
+)
 
 type ModelsAuthenticatedWalkOverride struct {
 	MaxDepth *int `json:"maxDepth,omitempty"`
@@ -488,8 +1473,6 @@ type ModelsBugHuntAssessmentPhase struct {
 	DurationSeconds *float64 `json:"durationSeconds,omitempty"`
 	EndTime *string `json:"endTime,omitempty"`
 	GroupedLogs []ModelsGroupedAgentLog `json:"groupedLogs,omitempty"`
-	LangfuseTraceID *string `json:"langfuseTraceId,omitempty"`
-	LangfuseTraceURL *string `json:"langfuseTraceUrl,omitempty"`
 	Logs []json.RawMessage `json:"logs,omitempty"`
 	Name string `json:"name"`
 	StartTime string `json:"startTime"`
@@ -527,6 +1510,7 @@ type ModelsBugHuntFinding struct {
 	Severity ModelsSeverity `json:"severity"`
 	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
 	TenantID string `json:"tenantId"`
+	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	Title string `json:"title"`
 	Type string `json:"type"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
@@ -556,10 +1540,12 @@ type ModelsBugHuntScan struct {
 	Findings []ModelsBugHuntFinding `json:"findings,omitempty"`
 	ID string `json:"id"`
 	Intensity ModelsBugHuntScanIntensity `json:"intensity"`
+	LocalImport *bool `json:"localImport,omitempty"`
 	Metrics ModelsBugHuntScanMetrics `json:"metrics"`
 	NetworkLogs []ModelsNetworkLog `json:"networkLogs,omitempty"`
 	Progress int `json:"progress"`
 	Scope ModelsScopePolicy `json:"scope"`
+	ScopeVersion *int `json:"scopeVersion,omitempty"`
 	Stage ModelsBugHuntScanStage `json:"stage"`
 	StartTime *string `json:"startTime,omitempty"`
 	StartedAt *string `json:"startedAt,omitempty"`
@@ -572,15 +1558,21 @@ type ModelsBugHuntScan struct {
 }
 
 type ModelsBugHuntScanConfig struct {
-	CreatedAt string `json:"createdAt"`
+	Cadence *ModelsCadence `json:"cadence,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
 	Credentials []ModelsCredentialBinding `json:"credentials,omitempty"`
 	Enabled bool `json:"enabled"`
 	ID string `json:"id"`
 	Intensity ModelsBugHuntScanIntensity `json:"intensity"`
+	OwnershipProof *ModelsOwnershipProof `json:"ownershipProof,omitempty"`
+	RoeAcknowledgedAt *string `json:"roeAcknowledgedAt,omitempty"`
+	RulesOfEngagement *ModelsRulesOfEngagement `json:"rulesOfEngagement,omitempty"`
 	Scope ModelsScopePolicy `json:"scope"`
+	ScopeProvenance *ModelsScopeProvenance `json:"scopeProvenance,omitempty"`
+	ScopeVersion *int `json:"scopeVersion,omitempty"`
 	Suites []ModelsTestSuitePolicy `json:"suites,omitempty"`
 	TenantID string `json:"tenantId"`
-	UpdatedAt string `json:"updatedAt"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
 	VulnClasses []ModelsVulnClassRule `json:"vulnClasses,omitempty"`
 }
 
@@ -648,12 +1640,14 @@ const (
 	// (skipped value "" — no representable Go identifier)
 	ModelsCadenceDaily ModelsCadence = "daily"
 	ModelsCadenceWeekly ModelsCadence = "weekly"
+	ModelsCadenceFortnightly ModelsCadence = "fortnightly"
 	ModelsCadenceMonthly ModelsCadence = "monthly"
 	ModelsCadenceOnChange ModelsCadence = "on_change"
 	ModelsCadenceManual ModelsCadence = "manual"
 )
 
 type ModelsCodeFinding struct {
+	AcceptableCwes []int `json:"acceptableCwes,omitempty"`
 	AiGenerated *bool `json:"aiGenerated,omitempty"`
 	Branch *string `json:"branch,omitempty"`
 	CampaignIds []string `json:"campaignIds,omitempty"`
@@ -665,7 +1659,10 @@ type ModelsCodeFinding struct {
 	Entrypoint *string `json:"entrypoint,omitempty"`
 	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
 	FilePath *string `json:"filePath,omitempty"`
+	HasCachedFix *bool `json:"hasCachedFix,omitempty"`
+	HostEffectivePriorityLabel *string `json:"hostEffectivePriorityLabel,omitempty"`
 	ID *string `json:"id,omitempty"`
+	IsAutoFixable *bool `json:"isAutoFixable,omitempty"`
 	IsCloudTriaged *bool `json:"isCloudTriaged,omitempty"`
 	IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
 	IsResolved *bool `json:"isResolved,omitempty"`
@@ -674,8 +1671,17 @@ type ModelsCodeFinding struct {
 	Priority *ModelsCodeFindingPriority `json:"priority,omitempty"`
 	Repository *string `json:"repository,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
+	RuleConfidence *float64 `json:"ruleConfidence,omitempty"`
+	RuleConfidenceLabel *string `json:"ruleConfidenceLabel,omitempty"`
 	RuleID *string `json:"ruleId,omitempty"`
+	RuleImpact *float64 `json:"ruleImpact,omitempty"`
+	RuleImpactLabel *string `json:"ruleImpactLabel,omitempty"`
+	RuleLikelihood *float64 `json:"ruleLikelihood,omitempty"`
+	RuleLikelihoodLabel *string `json:"ruleLikelihoodLabel,omitempty"`
+	RuleSeverity *float64 `json:"ruleSeverity,omitempty"`
+	RuleSeverityLabel *string `json:"ruleSeverityLabel,omitempty"`
 	Severity *string `json:"severity,omitempty"`
+	SinkAnchor *ModelsCodeFindingSinkAnchor `json:"sinkAnchor,omitempty"`
 	StartLine *int `json:"startLine,omitempty"`
 	Title *string `json:"title,omitempty"`
 	Triage *ModelsTriage `json:"triage,omitempty"`
@@ -893,6 +1899,11 @@ const (
 	ModelsCodeFindingPrioritySeverityIntegrityTypeElemMalwareImpanted ModelsCodeFindingPrioritySeverityIntegrityTypeElem = "MALWARE_IMPANTED"
 )
 
+type ModelsCodeFindingSinkAnchor struct {
+	EndLine *int `json:"endLine,omitempty"`
+	SnippetSha256 *string `json:"snippetSha256,omitempty"`
+}
+
 type ModelsConfigValidationError struct {
 	Code *ModelsConfigValidationErrorCode `json:"code,omitempty"`
 	Message *string `json:"message,omitempty"`
@@ -913,6 +1924,9 @@ const (
 	ModelsConfigValidationErrorCodeUnsupportedOverride ModelsConfigValidationErrorCode = "unsupported_override"
 	ModelsConfigValidationErrorCodeUnsupportedSelectorKind ModelsConfigValidationErrorCode = "unsupported_selector_kind"
 	ModelsConfigValidationErrorCodeForbiddenScope ModelsConfigValidationErrorCode = "forbidden_scope"
+	ModelsConfigValidationErrorCodeInvalidCadence ModelsConfigValidationErrorCode = "invalid_cadence"
+	ModelsConfigValidationErrorCodeScopeChangeInFlight ModelsConfigValidationErrorCode = "scope_change_in_flight"
+	ModelsConfigValidationErrorCodeRoeNotAcknowledged ModelsConfigValidationErrorCode = "roe_not_acknowledged"
 )
 
 type ModelsCredential struct {
@@ -922,6 +1936,7 @@ type ModelsCredential struct {
 	DeletedBy *string `json:"deletedBy,omitempty"`
 	Description string `json:"description"`
 	ID string `json:"id"`
+	IsActive *bool `json:"isActive,omitempty"`
 	IsDeleted bool `json:"isDeleted"`
 	LastUsed *string `json:"lastUsed,omitempty"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
@@ -931,6 +1946,31 @@ type ModelsCredential struct {
 	UpdatedAt string `json:"updatedAt"`
 	UsageCount int `json:"usageCount"`
 	ValidationEvidence *ModelsValidationEvidence `json:"validationEvidence,omitempty"`
+}
+
+type ModelsCredentialAppSession struct {
+	AuthKitOrigin *string `json:"authKitOrigin,omitempty"`
+	AuthorizationURL *string `json:"authorizationUrl,omitempty"`
+	BlockedOptionalPosts []string `json:"blockedOptionalPosts,omitempty"`
+	CallbackURL *string `json:"callbackUrl,omitempty"`
+	CookieIssuerOrigins []string `json:"cookieIssuerOrigins,omitempty"`
+	ExpectedOrganization *string `json:"expectedOrganization,omitempty"`
+	ExpectedSubject *string `json:"expectedSubject,omitempty"`
+	IdentifierOrigins []string `json:"identifierOrigins,omitempty"`
+	Mode *string `json:"mode,omitempty"`
+	OrganizationPath []string `json:"organizationPath,omitempty"`
+	ProbeURL *string `json:"probeUrl,omitempty"`
+	ReachabilityOnly *bool `json:"reachabilityOnly,omitempty"`
+	StartSelector *string `json:"startSelector,omitempty"`
+	SubjectPath []string `json:"subjectPath,omitempty"`
+	Version *int `json:"version,omitempty"`
+}
+
+type ModelsCredentialAuthPolicy struct {
+	CredentialOrigins []string `json:"credentialOrigins,omitempty"`
+	Mode *string `json:"mode,omitempty"`
+	NavigationOrigins []string `json:"navigationOrigins,omitempty"`
+	Version *int `json:"version,omitempty"`
 }
 
 type ModelsCredentialBinding struct {
@@ -951,59 +1991,80 @@ const (
 
 type ModelsCredentialConfig struct {
 	ApiKey *string `json:"apiKey,omitempty"`
+	ApiKeyParamName *string `json:"apiKeyParamName,omitempty"`
+	ApiKeyPlacement *ModelsAPIKeyPlacement `json:"apiKeyPlacement,omitempty"`
+	AppSession *ModelsCredentialAppSession `json:"appSession,omitempty"`
+	Audience *string `json:"audience,omitempty"`
+	Auth0Tenant *string `json:"auth0Tenant,omitempty"`
+	AuthPolicy *ModelsCredentialAuthPolicy `json:"authPolicy,omitempty"`
 	AuthURL *string `json:"authUrl,omitempty"`
 	ClientID *string `json:"clientId,omitempty"`
 	ClientSecret *string `json:"clientSecret,omitempty"`
+	Connection *string `json:"connection,omitempty"`
+	Discovered *ModelsDiscoveredWiring `json:"discovered,omitempty"`
+	EnableLoginOptimization *bool `json:"enableLoginOptimization,omitempty"`
+	Gateway *ModelsCredentialGateway `json:"gateway,omitempty"`
 	Hints *string `json:"hints,omitempty"`
+	IdpType *string `json:"idpType,omitempty"`
+	Issuer *string `json:"issuer,omitempty"`
+	LoginBodyFormat *ModelsLoginBodyFormat `json:"loginBodyFormat,omitempty"`
+	LoginStrategy *ModelsLoginStrategy `json:"loginStrategy,omitempty"`
 	LoginURL *string `json:"loginUrl,omitempty"`
+	MfaType *ModelsMFAType `json:"mfaType,omitempty"`
+	OauthFlow *ModelsOAuthFlow `json:"oauthFlow,omitempty"`
 	Password *string `json:"password,omitempty"`
+	PasswordField *string `json:"passwordField,omitempty"`
+	Realm *string `json:"realm,omitempty"`
+	RedirectURI *string `json:"redirectUri,omitempty"`
+	RefreshToken *string `json:"refreshToken,omitempty"`
+	Resource *string `json:"resource,omitempty"`
 	Scope *string `json:"scope,omitempty"`
 	Token *string `json:"token,omitempty"`
 	TokenPath *string `json:"tokenPath,omitempty"`
 	TokenType *string `json:"tokenType,omitempty"`
 	TokenURL *string `json:"tokenUrl,omitempty"`
+	Totp *ModelsTOTPConfig `json:"totp,omitempty"`
+	Username *string `json:"username,omitempty"`
+	UsernameField *string `json:"usernameField,omitempty"`
+}
+
+type ModelsCredentialGateway struct {
+	Hints *string `json:"hints,omitempty"`
+	LoginURL *string `json:"loginUrl,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Totp *ModelsTOTPConfig `json:"totp,omitempty"`
 	Username *string `json:"username,omitempty"`
 }
 
 type ModelsCredentialType string
 
 const (
+	ModelsCredentialTypeUsernamePassword ModelsCredentialType = "username_password"
+	ModelsCredentialTypeApiKey ModelsCredentialType = "api_key"
+	ModelsCredentialTypeBasicAuth ModelsCredentialType = "basic_auth"
+	ModelsCredentialTypeOidc ModelsCredentialType = "oidc"
+	ModelsCredentialTypeOauth2 ModelsCredentialType = "oauth2"
 	ModelsCredentialTypeBasic ModelsCredentialType = "basic"
 	ModelsCredentialTypeBearer ModelsCredentialType = "bearer"
-	ModelsCredentialTypeApiKey ModelsCredentialType = "api_key"
-	ModelsCredentialTypeOauth2 ModelsCredentialType = "oauth2"
 	ModelsCredentialTypeBrowser ModelsCredentialType = "browser"
 	ModelsCredentialTypeCustom ModelsCredentialType = "custom"
+	ModelsCredentialTypeApplicationLogin ModelsCredentialType = "application_login"
+	ModelsCredentialTypeApplicationLoginMfa ModelsCredentialType = "application_login_mfa"
+	ModelsCredentialTypeSso ModelsCredentialType = "sso"
 )
 
-type ModelsCustomerQuestionOptionsElem struct {
-	ID *string `json:"id,omitempty"`
-	Label *string `json:"label,omitempty"`
-	Value *string `json:"value,omitempty"`
-}
-
-type ModelsCustomerQuestionQuestionType string
-
-const (
-	ModelsCustomerQuestionQuestionTypeFreeText ModelsCustomerQuestionQuestionType = "FREE_TEXT"
-	ModelsCustomerQuestionQuestionTypeMultiSelect ModelsCustomerQuestionQuestionType = "MULTI_SELECT"
-	ModelsCustomerQuestionQuestionTypeSingleSelect ModelsCustomerQuestionQuestionType = "SINGLE_SELECT"
-	ModelsCustomerQuestionQuestionTypeYesNo ModelsCustomerQuestionQuestionType = "YES_NO"
-)
-
-type ModelsCustomerQuestionScope string
-
-const (
-	ModelsCustomerQuestionScopeCloud ModelsCustomerQuestionScope = "CLOUD"
-	ModelsCustomerQuestionScopeOrganization ModelsCustomerQuestionScope = "ORGANIZATION"
-	ModelsCustomerQuestionScopeRepository ModelsCustomerQuestionScope = "REPOSITORY"
-)
-
-type ModelsCustomerQuestionSet struct {
-	CustomMessage *string `json:"customMessage,omitempty"`
-	GeneratedMemoryIds []string `json:"generatedMemoryIds,omitempty"`
-	ID *string `json:"id,omitempty"`
-	Questions []ModelsCustomerQuestion `json:"questions,omitempty"`
+type ModelsDASTApplication struct {
+	AllowMutationTesting bool `json:"allowMutationTesting"`
+	CreatedAt string `json:"createdAt"`
+	Description *string `json:"description,omitempty"`
+	ID string `json:"id"`
+	MutationAckAt *string `json:"mutationAckAt,omitempty"`
+	MutationAckBy *string `json:"mutationAckBy,omitempty"`
+	MutationWarningVersion *string `json:"mutationWarningVersion,omitempty"`
+	Name *string `json:"name,omitempty"`
+	ScopeExcludePatterns []string `json:"scopeExcludePatterns,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+	WebServices []ModelsDASTWebService `json:"webServices,omitempty"`
 }
 
 type ModelsDASTEventInterface struct {
@@ -1011,6 +2072,111 @@ type ModelsDASTEventInterface struct {
 	ID string `json:"id"`
 	Time string `json:"time"`
 	Type EventsEventType `json:"type"`
+}
+
+type ModelsDASTExploitValidationCapability string
+
+const (
+	ModelsDASTExploitValidationCapabilityAnonymousRead ModelsDASTExploitValidationCapability = "anonymous_read"
+	ModelsDASTExploitValidationCapabilityAuthenticatedSession ModelsDASTExploitValidationCapability = "authenticated_session"
+)
+
+type ModelsDASTExploitValidationFindingType string
+
+const (
+	ModelsDASTExploitValidationFindingTypeSast ModelsDASTExploitValidationFindingType = "sast"
+	ModelsDASTExploitValidationFindingTypeScaDependencies ModelsDASTExploitValidationFindingType = "sca_dependencies"
+)
+
+type ModelsDASTExploitValidationPolicy struct {
+	Armed bool `json:"armed"`
+	ArmedAt *string `json:"armedAt,omitempty"`
+	ArmedBy *string `json:"armedBy,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	DaysOfWeek []int `json:"daysOfWeek,omitempty"`
+	Enabled bool `json:"enabled"`
+	EndTime string `json:"endTime"`
+	FindingTypes []ModelsDASTExploitValidationFindingType `json:"findingTypes,omitempty"`
+	GrantedCapabilities []string `json:"grantedCapabilities,omitempty"`
+	ID string `json:"id"`
+	MinimumExploitability string `json:"minimumExploitability"`
+	MinimumSeverity string `json:"minimumSeverity"`
+	Name string `json:"name"`
+	RevalidationCooldownDays int `json:"revalidationCooldownDays"`
+	SafetyContractVersion *int `json:"safetyContractVersion,omitempty"`
+	StartTime string `json:"startTime"`
+	Timezone string `json:"timezone"`
+	UpdatedAt string `json:"updatedAt"`
+	WebServiceIds []string `json:"webServiceIds,omitempty"`
+}
+
+type ModelsDASTTarget struct {
+	CreatedAt string `json:"createdAt"`
+	Description *string `json:"description,omitempty"`
+	ExploitValidationRiskAcceptanceEvidenceURL *string `json:"exploitValidationRiskAcceptanceEvidenceUrl,omitempty"`
+	ExploitValidationRiskAcceptanceVersion *string `json:"exploitValidationRiskAcceptanceVersion,omitempty"`
+	ExploitValidationRiskAccepted *bool `json:"exploitValidationRiskAccepted,omitempty"`
+	ExploitValidationRiskAcceptedAt *string `json:"exploitValidationRiskAcceptedAt,omitempty"`
+	ExploitValidationRiskAcceptedBy *string `json:"exploitValidationRiskAcceptedBy,omitempty"`
+	ExploitValidationRiskAcceptedByKind *ModelsExploitValidationAcceptorKind `json:"exploitValidationRiskAcceptedByKind,omitempty"`
+	ExploitValidationRiskAcceptedByName *string `json:"exploitValidationRiskAcceptedByName,omitempty"`
+	ExploitValidationRiskAcceptedOnBehalfOf *string `json:"exploitValidationRiskAcceptedOnBehalfOf,omitempty"`
+	Hostname string `json:"hostname"`
+	ID string `json:"id"`
+	IsProd *bool `json:"isProd,omitempty"`
+	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
+	LastValidationMessage *string `json:"lastValidationMessage,omitempty"`
+	LastValidationStatus *ModelsValidationStatus `json:"lastValidationStatus,omitempty"`
+	Name *string `json:"name,omitempty"`
+	NonProductionConfirmedAt *string `json:"nonProductionConfirmedAt,omitempty"`
+	Port *int `json:"port,omitempty"`
+	Protocol string `json:"protocol"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type ModelsDASTTargetClassification string
+
+const (
+	ModelsDASTTargetClassificationProduction ModelsDASTTargetClassification = "production"
+	ModelsDASTTargetClassificationNonProduction ModelsDASTTargetClassification = "non_production"
+	ModelsDASTTargetClassificationUnknown ModelsDASTTargetClassification = "unknown"
+)
+
+type ModelsDASTValidation struct {
+	CredentialID *string `json:"credentialId,omitempty"`
+	DurationMs *int64 `json:"durationMs,omitempty"`
+	Error *string `json:"error,omitempty"`
+	Hint *string `json:"hint,omitempty"`
+	ID string `json:"id"`
+	Message *string `json:"message,omitempty"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status ModelsValidationStatus `json:"status"`
+	StatusCode *int `json:"statusCode,omitempty"`
+	TargetID *string `json:"targetId,omitempty"`
+	TestURL *string `json:"testUrl,omitempty"`
+	Trigger ModelsValidationTrigger `json:"trigger"`
+	ValidatedAt string `json:"validatedAt"`
+	ValidatedBy *string `json:"validatedBy,omitempty"`
+	WebServiceID *string `json:"webServiceId,omitempty"`
+}
+
+type ModelsDASTWebService struct {
+	ApiType *ModelsAPIType `json:"apiType,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	Description *string `json:"description,omitempty"`
+	ID string `json:"id"`
+	Name *string `json:"name,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	RepoPath *string `json:"repoPath,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	Targets []ModelsDASTWebServiceTarget `json:"targets,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type ModelsDASTWebServiceTarget struct {
+	Path *string `json:"path,omitempty"`
+	TargetID string `json:"targetId"`
 }
 
 type ModelsDNSEnumerationOverride struct {
@@ -1025,7 +2191,9 @@ type ModelsDependencyFinding struct {
 	Dossier *ModelsDependencyFindingDossier `json:"dossier,omitempty"`
 	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
 	FilePath *string `json:"filePath,omitempty"`
+	HasCachedFix *bool `json:"hasCachedFix,omitempty"`
 	HasReachableCVEs *bool `json:"hasReachableCVEs,omitempty"`
+	HostEffectivePriorityLabel *string `json:"hostEffectivePriorityLabel,omitempty"`
 	ID *string `json:"id,omitempty"`
 	IsAutoFixable *bool `json:"isAutoFixable,omitempty"`
 	IsCloudTriaged *bool `json:"isCloudTriaged,omitempty"`
@@ -1036,15 +2204,18 @@ type ModelsDependencyFinding struct {
 	Line *int `json:"line,omitempty"`
 	Package *string `json:"package,omitempty"`
 	PackageFilePath *string `json:"packageFilePath,omitempty"`
+	PerVersionCVEStatus map[string]map[string]map[string]json.RawMessage `json:"perVersionCVEStatus,omitempty"`
 	Repository *string `json:"repository,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
 	ResolvedWithoutLockfile *bool `json:"resolvedWithoutLockfile,omitempty"`
 	Triage *ModelsTriage `json:"triage,omitempty"`
 	Version *string `json:"version,omitempty"`
+	Versions []string `json:"versions,omitempty"`
 	Vulnerabilities []ModelsDependencyFindingVulnerabilitiesElem `json:"vulnerabilities,omitempty"`
 }
 
 type ModelsDependencyFindingDossier struct {
+	Coverage *ModelsDependencyFindingDossierCoverage `json:"coverage,omitempty"`
 	Cves []ModelsDependencyFindingDossierCvesElem `json:"cves,omitempty"`
 	Deptree *ModelsDependencyFindingDossierDeptree `json:"deptree,omitempty"`
 	EmittedAt *string `json:"emitted_at,omitempty"`
@@ -1056,6 +2227,11 @@ type ModelsDependencyFindingDossier struct {
 	ScannerVersion *string `json:"scanner_version,omitempty"`
 	V *int `json:"v,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type ModelsDependencyFindingDossierCoverage struct {
+	Degraded *bool `json:"degraded,omitempty"`
+	Gaps []string `json:"gaps,omitempty"`
 }
 
 type ModelsDependencyFindingDossierCvesElem struct {
@@ -1126,6 +2302,7 @@ type ModelsDependencyFindingDossierReachabilityMethod string
 const (
 	ModelsDependencyFindingDossierReachabilityMethodCombined ModelsDependencyFindingDossierReachabilityMethod = "COMBINED"
 	ModelsDependencyFindingDossierReachabilityMethodOsv ModelsDependencyFindingDossierReachabilityMethod = "OSV"
+	ModelsDependencyFindingDossierReachabilityMethodSourceParse ModelsDependencyFindingDossierReachabilityMethod = "SOURCE_PARSE"
 	ModelsDependencyFindingDossierReachabilityMethodTimeout ModelsDependencyFindingDossierReachabilityMethod = "TIMEOUT"
 	ModelsDependencyFindingDossierReachabilityMethodTreesitter ModelsDependencyFindingDossierReachabilityMethod = "TREESITTER"
 	ModelsDependencyFindingDossierReachabilityMethodUnsupported ModelsDependencyFindingDossierReachabilityMethod = "UNSUPPORTED"
@@ -1145,19 +2322,50 @@ type ModelsDependencyFindingVulnerabilitiesElem struct {
 
 type ModelsDependencyFindingVulnerabilitiesElemCvesElem struct {
 	CisaKev *bool `json:"cisaKev,omitempty"`
+	CisaKevUnknown *bool `json:"cisaKevUnknown,omitempty"`
 	Cvss *float64 `json:"cvss,omitempty"`
+	Epss *float64 `json:"epss,omitempty"`
+	EpssPercentile *float64 `json:"epssPercentile,omitempty"`
 	Exploitability *string `json:"exploitability,omitempty"`
+	ExploitabilityScore *float64 `json:"exploitabilityScore,omitempty"`
 	ID *string `json:"id,omitempty"`
+	ImpactScore *float64 `json:"impactScore,omitempty"`
 	OsvReachability *ModelsDependencyFindingVulnerabilitiesElemCvesElemOsvReachability `json:"osvReachability,omitempty"`
+	Priority *string `json:"priority,omitempty"`
 	ReachabilityConfidence *string `json:"reachabilityConfidence,omitempty"`
 	ReachabilityEvidence *string `json:"reachabilityEvidence,omitempty"`
 	ReachabilityMethod *string `json:"reachabilityMethod,omitempty"`
 	Reachable *bool `json:"reachable,omitempty"`
+	Severity *string `json:"severity,omitempty"`
 	VectorString *string `json:"vectorString,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 type ModelsDependencyFindingVulnerabilitiesElemCvesElemOsvReachability struct {
 	Called *bool `json:"called,omitempty"`
+}
+
+type ModelsDiscoveredWiring struct {
+	AuthorizeURL *string `json:"authorizeUrl,omitempty"`
+	DiscoveredAt *string `json:"discoveredAt,omitempty"`
+	FromLoginURL *string `json:"fromLoginUrl,omitempty"`
+	TokenURL *string `json:"tokenUrl,omitempty"`
+	TokenUrlSource *string `json:"tokenUrlSource,omitempty"`
+}
+
+type ModelsDisprovenCandidate struct {
+	ID string `json:"id"`
+	Outcome string `json:"outcome"`
+	Reason *string `json:"reason,omitempty"`
+	Source string `json:"source"`
+	Title string `json:"title"`
+}
+
+type ModelsExcludedRoute struct {
+	CountsIncomplete *bool `json:"countsIncomplete,omitempty"`
+	MatchedNothing *bool `json:"matchedNothing,omitempty"`
+	Refusals *int `json:"refusals,omitempty"`
+	Rule string `json:"rule"`
 }
 
 type ModelsExecutiveSummary struct {
@@ -1173,12 +2381,23 @@ type ModelsExploitAnalysisStage struct {
 	FindingsAnalyzed int `json:"findingsAnalyzed"`
 }
 
+type ModelsExploitValidationAcceptorKind string
+
+const (
+	ModelsExploitValidationAcceptorKindCustomer ModelsExploitValidationAcceptorKind = "customer"
+	ModelsExploitValidationAcceptorKindNullifyStaff ModelsExploitValidationAcceptorKind = "nullify_staff"
+	ModelsExploitValidationAcceptorKindNullifyOperator ModelsExploitValidationAcceptorKind = "nullify_operator"
+)
+
 type ModelsFindingSummary struct {
 	AffectedAsset string `json:"affectedAsset"`
 	ID string `json:"id"`
+	Lineage []string `json:"lineage,omitempty"`
+	Owner *string `json:"owner,omitempty"`
 	Reference *string `json:"reference,omitempty"`
 	Severity ModelsSeverity `json:"severity"`
 	Source string `json:"source"`
+	Status *ModelsPentestFindingStatus `json:"status,omitempty"`
 	Title string `json:"title"`
 }
 
@@ -1196,6 +2415,28 @@ type ModelsLightweightBackendPentestOverride struct {
 	MaxRequestsPerEndpoint *int `json:"maxRequestsPerEndpoint,omitempty"`
 	MaxSeconds *int `json:"maxSeconds,omitempty"`
 }
+
+type ModelsLoginBodyFormat string
+
+const (
+	ModelsLoginBodyFormatForm ModelsLoginBodyFormat = "form"
+	ModelsLoginBodyFormatJson ModelsLoginBodyFormat = "json"
+)
+
+type ModelsLoginStrategy string
+
+const (
+	ModelsLoginStrategyAuto ModelsLoginStrategy = "auto"
+	ModelsLoginStrategyAuth0Embedded ModelsLoginStrategy = "auth0_embedded"
+	ModelsLoginStrategyBrowser ModelsLoginStrategy = "browser"
+)
+
+type ModelsMFAType string
+
+const (
+	ModelsMFATypeTotp ModelsMFAType = "totp"
+	ModelsMFATypeEmail ModelsMFAType = "email"
+)
 
 type ModelsMalwareScanOverride struct {
 	HeuristicOnly *bool `json:"heuristicOnly,omitempty"`
@@ -1255,11 +2496,37 @@ type ModelsNucleiScanOverride struct {
 	SeverityFloor *ModelsSeverityFloor `json:"severityFloor,omitempty"`
 }
 
+type ModelsOAuthFlow string
+
+const (
+	ModelsOAuthFlowClientCredentials ModelsOAuthFlow = "client_credentials"
+	ModelsOAuthFlowAuthorizationCode ModelsOAuthFlow = "authorization_code"
+)
+
+type ModelsOwnershipProof struct {
+	Domains []string `json:"domains,omitempty"`
+	Method *ModelsOwnershipProofMethod `json:"method,omitempty"`
+	Token *string `json:"token,omitempty"`
+	VerifiedAt *string `json:"verifiedAt,omitempty"`
+}
+
+type ModelsOwnershipProofMethod string
+
+const (
+	// (skipped value "" — no representable Go identifier)
+	ModelsOwnershipProofMethodDnsTxt ModelsOwnershipProofMethod = "dns_txt"
+	ModelsOwnershipProofMethodHttpFile ModelsOwnershipProofMethod = "http_file"
+	ModelsOwnershipProofMethodMetaTag ModelsOwnershipProofMethod = "meta_tag"
+	ModelsOwnershipProofMethodProgramManaged ModelsOwnershipProofMethod = "program_managed"
+)
+
 type ModelsPentestAbortCategory string
 
 const (
 	ModelsPentestAbortCategoryConfigError ModelsPentestAbortCategory = "config_error"
 	ModelsPentestAbortCategoryAgentCrash ModelsPentestAbortCategory = "agent_crash"
+	ModelsPentestAbortCategoryBudgetExhausted ModelsPentestAbortCategory = "budget_exhausted"
+	ModelsPentestAbortCategoryConcurrencyLimited ModelsPentestAbortCategory = "concurrency_limited"
 )
 
 type ModelsPentestAbortCode string
@@ -1267,6 +2534,7 @@ type ModelsPentestAbortCode string
 const (
 	ModelsPentestAbortCodeCredentialsInvalid ModelsPentestAbortCode = "credentials_invalid"
 	ModelsPentestAbortCodeTargetUnreachable ModelsPentestAbortCode = "target_unreachable"
+	ModelsPentestAbortCodeTargetBlockedInternal ModelsPentestAbortCode = "target_blocked_internal"
 	ModelsPentestAbortCodeMissingAppContext ModelsPentestAbortCode = "missing_app_context"
 	ModelsPentestAbortCodeMissingApiSchema ModelsPentestAbortCode = "missing_api_schema"
 	ModelsPentestAbortCodeAgentCrashPentestTools ModelsPentestAbortCode = "agent_crash_pentest_tools"
@@ -1274,6 +2542,9 @@ const (
 	ModelsPentestAbortCodeAgentCrashExploitAnalysis ModelsPentestAbortCode = "agent_crash_exploit_analysis"
 	ModelsPentestAbortCodeAgentCrashReport ModelsPentestAbortCode = "agent_crash_report"
 	ModelsPentestAbortCodeAgentCrashUnknown ModelsPentestAbortCode = "agent_crash_unknown"
+	ModelsPentestAbortCodeBudgetExhausted ModelsPentestAbortCode = "budget_exhausted"
+	ModelsPentestAbortCodeConcurrencyLimited ModelsPentestAbortCode = "concurrency_limited"
+	ModelsPentestAbortCodeMutationCapabilityInvalid ModelsPentestAbortCode = "mutation_capability_invalid"
 )
 
 type ModelsPentestAbortReason struct {
@@ -1287,17 +2558,32 @@ type ModelsPentestAbortReason struct {
 }
 
 type ModelsPentestAssessmentPhase struct {
+	Degraded *bool `json:"degraded,omitempty"`
 	DurationSeconds *float64 `json:"durationSeconds,omitempty"`
 	EndTime *string `json:"endTime,omitempty"`
 	GroupedLogs []ModelsGroupedAgentLog `json:"groupedLogs,omitempty"`
 	Hypotheses []ModelsPentestHypothesis `json:"hypotheses,omitempty"`
-	LangfuseTraceID *string `json:"langfuseTraceId,omitempty"`
-	LangfuseTraceURL *string `json:"langfuseTraceUrl,omitempty"`
 	Logs []json.RawMessage `json:"logs,omitempty"`
 	Name string `json:"name"`
+	Reason *string `json:"reason,omitempty"`
 	StartTime string `json:"startTime"`
 	Status *string `json:"status,omitempty"`
 	UsageMetrics *ModelsPentestPhaseUsageMetrics `json:"usageMetrics,omitempty"`
+}
+
+type ModelsPentestAuthMatrixBatch struct {
+	Attempts int `json:"attempts"`
+	Cause *string `json:"cause,omitempty"`
+	Disposition string `json:"disposition"`
+	Index int `json:"index"`
+	StopReason *string `json:"stopReason,omitempty"`
+}
+
+type ModelsPentestAuthMatrixFailureIdentity struct {
+	BoundaryID string `json:"boundaryId"`
+	ControlID string `json:"controlId"`
+	Restriction string `json:"restriction"`
+	Version int `json:"version"`
 }
 
 type ModelsPentestAuthMatrixHypothesis struct {
@@ -1308,19 +2594,77 @@ type ModelsPentestAuthMatrixHypothesis struct {
 	Logs *AgentsAgentLogs `json:"logs,omitempty"`
 }
 
+type ModelsPentestAuthMatrixIdentityCoverage struct {
+	Authenticated int `json:"authenticated"`
+	DistinctMaterial int `json:"distinctMaterial"`
+	Duplicate int `json:"duplicate"`
+	Requested int `json:"requested"`
+	Unavailable int `json:"unavailable"`
+}
+
 type ModelsPentestAuthMatrixResult struct {
+	CaseManifest *ModelsAuthMatrixAgentResponseCaseManifest `json:"caseManifest,omitempty"`
 	Findings []ModelsPentestFinding `json:"findings,omitempty"`
 	Hypotheses []ModelsPentestAuthMatrixHypothesis `json:"hypotheses,omitempty"`
+	MutationSnapshot *ModelsPentestMutationSnapshot `json:"mutationSnapshot,omitempty"`
+	StageOutcome *ModelsPentestAuthMatrixStageOutcome `json:"stageOutcome,omitempty"`
+}
+
+type ModelsPentestAuthMatrixStageOutcome struct {
+	Assessed int `json:"assessed"`
+	Batches []ModelsPentestAuthMatrixBatch `json:"batches,omitempty"`
+	ConsentArmed bool `json:"consentArmed"`
+	Degraded bool `json:"degraded"`
+	Excluded int `json:"excluded"`
+	Identities *ModelsPentestAuthMatrixIdentityCoverage `json:"identities,omitempty"`
+	Mode string `json:"mode"`
+	OperationsTotal int `json:"operationsTotal"`
+	Reason *string `json:"reason,omitempty"`
+	Unassessed ModelsPentestAuthMatrixUnassessed `json:"unassessed"`
+	UnauthenticatedTested *bool `json:"unauthenticatedTested,omitempty"`
+}
+
+type ModelsPentestAuthMatrixUnassessed struct {
+	Degraded int `json:"degraded"`
+	Failed int `json:"failed"`
+	Indeterminate int `json:"indeterminate"`
+	Unresolved int `json:"unresolved"`
+}
+
+type ModelsPentestDeployment struct {
+	TargetID string `json:"targetId"`
+	WebServiceID string `json:"webServiceId"`
+}
+
+type ModelsPentestDeploymentSnapshot struct {
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	IsProd *bool `json:"isProd,omitempty"`
+	NonProductionConfirmed *bool `json:"nonProductionConfirmed,omitempty"`
+	SiblingPaths []string `json:"siblingPaths,omitempty"`
+	SourceProjectID *string `json:"sourceProjectId,omitempty"`
+	SourceRepoPath *string `json:"sourceRepoPath,omitempty"`
+	SourceRepositoryID *string `json:"sourceRepositoryId,omitempty"`
+	TargetID string `json:"targetId"`
+	URL *string `json:"url,omitempty"`
+	WebServiceID string `json:"webServiceId"`
 }
 
 type ModelsPentestEndpointMetrics struct {
+	Degraded int `json:"degraded"`
+	Failed int `json:"failed"`
 	Fuzzed int `json:"fuzzed"`
+	Indeterminate int `json:"indeterminate"`
 	Tested int `json:"tested"`
 	Total int `json:"total"`
+	Unresolved int `json:"unresolved"`
 	Vulnerable int `json:"vulnerable"`
 }
 
 type ModelsPentestExploitAnalysisResult struct {
+	EndpointFindingIds []string `json:"endpointFindingIds,omitempty"`
+	EndpointFindings []ModelsPentestFinding `json:"endpointFindings,omitempty"`
+	SourceFindingIds []string `json:"sourceFindingIds,omitempty"`
+	SourceFindings []ModelsPentestFinding `json:"sourceFindings,omitempty"`
 	UpdatedCodeFindings []ModelsCodeFinding `json:"updatedCodeFindings,omitempty"`
 	UpdatedDependencyFindings []ModelsDependencyFinding `json:"updatedDependencyFindings,omitempty"`
 }
@@ -1330,6 +2674,7 @@ type ModelsPentestFinding struct {
 	AllowlistedReason string `json:"allowlistedReason"`
 	API *ModelsPentestFindingAPI `json:"api,omitempty"`
 	AuthMatrix *ModelsPentestFindingAuthMatrix `json:"authMatrix,omitempty"`
+	AuthMatrixEvidenceUnavailable *bool `json:"authMatrixEvidenceUnavailable,omitempty"`
 	AutoFixCurrentActivity *string `json:"autoFixCurrentActivity,omitempty"`
 	AutoFixEndTime *string `json:"autoFixEndTime,omitempty"`
 	AutoFixStartTime *string `json:"autoFixStartTime,omitempty"`
@@ -1344,19 +2689,24 @@ type ModelsPentestFinding struct {
 	CreatedAt string `json:"createdAt"`
 	Cwe int `json:"cwe"`
 	Endpoint ModelsPentestFindingEndpoint `json:"endpoint"`
+	FixEvidence *ModelsFixEvidence `json:"fixEvidence,omitempty"`
 	Host string `json:"host"`
 	ID string `json:"id"`
 	IsAllowlisted bool `json:"isAllowlisted"`
+	IsArchived bool `json:"isArchived"`
 	IsAutoFixable bool `json:"isAutoFixable"`
 	IsAutoFixableAgentVerdict *bool `json:"isAutoFixableAgentVerdict,omitempty"`
+	IsFalsePositive bool `json:"isFalsePositive"`
 	IsFixed bool `json:"isFixed"`
 	IsLatest bool `json:"isLatest"`
-	PriorityLabel ModelsPriorityEnum `json:"priorityLabel"`
+	PriorityLabel ModelsPriorityLabel `json:"priorityLabel"`
 	PriorityScore int `json:"priorityScore"`
 	PullRequestsAutofix []ModelsPullRequestInfo `json:"pullRequestsAutofix,omitempty"`
 	Repository *string `json:"repository,omitempty"`
+	RepositoryFullName *string `json:"repositoryFullName,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
 	RepositoryName *string `json:"repositoryName,omitempty"`
+	RepositoryPath *string `json:"repositoryPath,omitempty"`
 	ScanInfo ModelsPentestFindingScanInfo `json:"scanInfo"`
 	Source ModelsPentestFindingSource `json:"source"`
 	Summary string `json:"summary"`
@@ -1371,6 +2721,7 @@ type ModelsPentestFinding struct {
 type ModelsPentestFindingAPI struct {
 	ErrorDescription string `json:"errorDescription"`
 	ErrorType string `json:"errorType"`
+	FindingScope *ModelsPentestFindingScope `json:"findingScope,omitempty"`
 	HttpVersion string `json:"httpVersion"`
 	Method string `json:"method"`
 	Path string `json:"path"`
@@ -1385,11 +2736,24 @@ type ModelsPentestFindingAPI struct {
 	URI string `json:"uri"`
 	VulnerableParameterName string `json:"vulnerableParameterName"`
 	VulnerableParameterValue string `json:"vulnerableParameterValue"`
+	ZapAlertRef *string `json:"zapAlertRef,omitempty"`
+	ZapPluginID *string `json:"zapPluginId,omitempty"`
 }
 
 type ModelsPentestFindingAuthMatrix struct {
+	AffectedPrincipalIds []string `json:"affectedPrincipalIds,omitempty"`
+	EvidenceRefs []string `json:"evidenceRefs,omitempty"`
+	ExperimentIds []string `json:"experimentIds,omitempty"`
+	FailureIdentity *ModelsPentestAuthMatrixFailureIdentity `json:"failureIdentity,omitempty"`
 	Hypothesis string `json:"hypothesis"`
+	LegacyFindingIds []string `json:"legacyFindingIds,omitempty"`
+	Principal *ModelsPentestFindingAuthMatrixPrincipal `json:"principal,omitempty"`
 	User *ModelsPentestFindingAuthMatrixUser `json:"user,omitempty"`
+}
+
+type ModelsPentestFindingAuthMatrixPrincipal struct {
+	CredentialID *string `json:"credentialId,omitempty"`
+	Unauthenticated *bool `json:"unauthenticated,omitempty"`
 }
 
 type ModelsPentestFindingAuthMatrixUser struct {
@@ -1403,11 +2767,21 @@ type ModelsPentestFindingEndpoint struct {
 	Path string `json:"path"`
 }
 
+type ModelsPentestFindingGroup struct {
+	Cwes []int `json:"cwes,omitempty"`
+	DuplicateCount int `json:"duplicateCount"`
+	MemberIds []string `json:"memberIds,omitempty"`
+	RepresentativeID string `json:"representativeId"`
+}
+
 type ModelsPentestFindingMetrics struct {
-	Fixed int `json:"fixed"`
+	CarriedForward *int `json:"carriedForward,omitempty"`
 	New int `json:"new"`
+	Reconciled *bool `json:"reconciled,omitempty"`
 	Total int `json:"total"`
+	Undetected *int `json:"undetected,omitempty"`
 	Unfixed int `json:"unfixed"`
+	ValidatedExternal *int `json:"validatedExternal,omitempty"`
 }
 
 type ModelsPentestFindingRESTQueryParameters struct {
@@ -1417,6 +2791,9 @@ type ModelsPentestFindingRESTRequestHeader struct {
 }
 
 type ModelsPentestFindingRESTResponseHeader struct {
+}
+
+type ModelsPentestFindingScanCoverage struct {
 }
 
 type ModelsPentestFindingScanInfo struct {
@@ -1431,6 +2808,15 @@ type ModelsPentestFindingScanType string
 const (
 	ModelsPentestFindingScanTypeApi ModelsPentestFindingScanType = "API"
 	ModelsPentestFindingScanTypeAuthmatrix ModelsPentestFindingScanType = "AuthMatrix"
+	ModelsPentestFindingScanTypeSource ModelsPentestFindingScanType = "Source"
+	ModelsPentestFindingScanTypeEndpoint ModelsPentestFindingScanType = "Endpoint"
+)
+
+type ModelsPentestFindingScope string
+
+const (
+	ModelsPentestFindingScopeEndpoint ModelsPentestFindingScope = "endpoint"
+	ModelsPentestFindingScopeHost ModelsPentestFindingScope = "host"
 )
 
 type ModelsPentestFindingSource string
@@ -1441,6 +2827,16 @@ const (
 	ModelsPentestFindingSourceNmap ModelsPentestFindingSource = "Nmap"
 	ModelsPentestFindingSourceZap ModelsPentestFindingSource = "ZAP"
 	ModelsPentestFindingSourceRestler ModelsPentestFindingSource = "RESTler"
+	ModelsPentestFindingSourceOther ModelsPentestFindingSource = "Other"
+)
+
+type ModelsPentestFindingStatus string
+
+const (
+	ModelsPentestFindingStatusNew ModelsPentestFindingStatus = "new"
+	ModelsPentestFindingStatusUnfixed ModelsPentestFindingStatus = "unfixed"
+	ModelsPentestFindingStatusValidatedExternal ModelsPentestFindingStatus = "validated_external"
+	ModelsPentestFindingStatusValidatedExternalUnconfirmed ModelsPentestFindingStatus = "validated_external_unconfirmed"
 )
 
 type ModelsPentestHypothesis struct {
@@ -1460,9 +2856,14 @@ type ModelsPentestHypothesisEvidence struct {
 	Response *ModelsNetworkResponse `json:"response,omitempty"`
 }
 
+type ModelsPentestMappedFinding struct {
+	CreatedAt string `json:"createdAt"`
+	FindingID string `json:"findingId"`
+	FindingType ModelsFindingType `json:"findingType"`
+}
+
 type ModelsPentestMetadata struct {
 	Description string `json:"description"`
-	LangfuseTraceIds []string `json:"langfuseTraceIds,omitempty"`
 }
 
 type ModelsPentestMetrics struct {
@@ -1471,6 +2872,40 @@ type ModelsPentestMetrics struct {
 	NumUsers int `json:"numUsers"`
 	RequestMetrics ModelsPentestRequestMetrics `json:"requestMetrics"`
 	UsageMetrics ModelsPentestUsageMetrics `json:"usageMetrics"`
+}
+
+type ModelsPentestMutationAttempt struct {
+	CaseID *string `json:"caseId,omitempty"`
+	CleanupOperationID *string `json:"cleanupOperationId,omitempty"`
+	CleanupReason *string `json:"cleanupReason,omitempty"`
+	DispatchOutcome string `json:"dispatchOutcome"`
+	DispatchState string `json:"dispatchState"`
+	EvidenceRefs []string `json:"evidenceRefs,omitempty"`
+	FixtureCreationID *string `json:"fixtureCreationId,omitempty"`
+	FixtureSlot *string `json:"fixtureSlot,omitempty"`
+	ID string `json:"id"`
+	ItemPath *string `json:"itemPath,omitempty"`
+	Kind string `json:"kind"`
+	LogicalOperationID string `json:"logicalOperationId"`
+	Method string `json:"method"`
+	ObservedAt *string `json:"observedAt,omitempty"`
+	Origin *string `json:"origin,omitempty"`
+	Path string `json:"path"`
+	Phase string `json:"phase"`
+	PrincipalID string `json:"principalId"`
+	Reason *string `json:"reason,omitempty"`
+	ReservedAt *string `json:"reservedAt,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	UndoKind string `json:"undoKind"`
+	UndoStatus string `json:"undoStatus"`
+}
+
+type ModelsPentestMutationSnapshot struct {
+	AsOf string `json:"asOf"`
+	Attempts []ModelsPentestMutationAttempt `json:"attempts,omitempty"`
+	Available bool `json:"available"`
+	Error *string `json:"error,omitempty"`
+	StageIncomplete bool `json:"stageIncomplete"`
 }
 
 type ModelsPentestPhaseUsageMetrics struct {
@@ -1487,6 +2922,8 @@ type ModelsPentestPhaseUsageMetrics struct {
 
 type ModelsPentestPreflight struct {
 	ApplicationID string `json:"applicationId"`
+	ConfigFingerprint *string `json:"configFingerprint,omitempty"`
+	Deployment *ModelsPentestDeployment `json:"deployment,omitempty"`
 	EndTime *string `json:"endTime,omitempty"`
 	ExecutionArn *string `json:"executionArn,omitempty"`
 	FailureReason *string `json:"failureReason,omitempty"`
@@ -1502,8 +2939,15 @@ type ModelsPentestPreflight struct {
 type ModelsPentestPreflightAppContextSnapshot struct {
 	ApiEndpointCount *int `json:"apiEndpointCount,omitempty"`
 	ApiEndpointsSample []string `json:"apiEndpointsSample,omitempty"`
+	ApiSchemaPartial *bool `json:"apiSchemaPartial,omitempty"`
 	ApiSchemaSourceRef *string `json:"apiSchemaSourceRef,omitempty"`
+	ApiSchemaType *string `json:"apiSchemaType,omitempty"`
+	ComponentCount *int `json:"componentCount,omitempty"`
 	Components []ModelsPentestPreflightComponentSnapshot `json:"components,omitempty"`
+	ContextStatus *string `json:"contextStatus,omitempty"`
+	Coverage *float64 `json:"coverage,omitempty"`
+	LastContextSyncTime *string `json:"lastContextSyncTime,omitempty"`
+	Resolved *bool `json:"resolved,omitempty"`
 }
 
 type ModelsPentestPreflightCheck struct {
@@ -1614,8 +3058,11 @@ type ModelsPentestReport struct {
 	Appendices *ModelsAppendices `json:"appendices,omitempty"`
 	AssessmentPeriod *ModelsAssessmentPeriod `json:"assessmentPeriod,omitempty"`
 	AuthMatrixResult *ModelsPentestAuthMatrixResult `json:"authMatrixResult,omitempty"`
+	DeliveredReportStale *bool `json:"deliveredReportStale,omitempty"`
+	DisprovenCandidates []ModelsDisprovenCandidate `json:"disprovenCandidates,omitempty"`
 	ExecutiveSummary *ModelsExecutiveSummary `json:"executiveSummary,omitempty"`
 	ExploitAnalysisResult *ModelsPentestExploitAnalysisResult `json:"exploitAnalysisResult,omitempty"`
+	FindingScanCoverage *ModelsPentestFindingScanCoverage `json:"findingScanCoverage,omitempty"`
 	FindingsSummary []ModelsFindingSummary `json:"findingsSummary,omitempty"`
 	Limitations *string `json:"limitations,omitempty"`
 	Metadata ModelsPentestMetadata `json:"metadata"`
@@ -1623,6 +3070,7 @@ type ModelsPentestReport struct {
 	Metrics ModelsPentestMetrics `json:"metrics"`
 	NetworkTransactionsSummary *ModelsNetworkTransactionsSummary `json:"networkTransactionsSummary,omitempty"`
 	PentestToolsResult *ModelsPentestToolsResult `json:"pentestToolsResult,omitempty"`
+	ProducersRan []ModelsPentestFindingSource `json:"producersRan,omitempty"`
 	ReportMetadata *ModelsReportMetadata `json:"reportMetadata,omitempty"`
 	RetestPolicy *string `json:"retestPolicy,omitempty"`
 	ScanID string `json:"scanId"`
@@ -1632,6 +3080,8 @@ type ModelsPentestReport struct {
 type ModelsPentestRequestMetrics struct {
 	Error int `json:"error"`
 	Fail map[string]int `json:"fail,omitempty"`
+	RefusedHosts []string `json:"refusedHosts,omitempty"`
+	ScopeRefused *int `json:"scopeRefused,omitempty"`
 	Success int `json:"success"`
 	Timeout int `json:"timeout"`
 	Total int `json:"total"`
@@ -1640,7 +3090,14 @@ type ModelsPentestRequestMetrics struct {
 type ModelsPentestScan struct {
 	AbortReason *ModelsPentestAbortReason `json:"abortReason,omitempty"`
 	AppID string `json:"appId"`
+	AppName *string `json:"appName,omitempty"`
 	AssessmentPhases []ModelsPentestAssessmentPhase `json:"assessmentPhases,omitempty"`
+	CaptureBytes *int `json:"captureBytes,omitempty"`
+	CaptureScrubbed *bool `json:"captureScrubbed,omitempty"`
+	CaptureStatus *string `json:"captureStatus,omitempty"`
+	CaptureTransactions *int `json:"captureTransactions,omitempty"`
+	Deployment *ModelsPentestDeploymentSnapshot `json:"deployment,omitempty"`
+	DiscoveredCount *int `json:"discoveredCount,omitempty"`
 	EndTime *string `json:"endTime,omitempty"`
 	ExecutionArn string `json:"executionArn"`
 	FailureReason *string `json:"failureReason,omitempty"`
@@ -1649,10 +3106,14 @@ type ModelsPentestScan struct {
 	IsExternal bool `json:"isExternal"`
 	NetworkLogs []ModelsNetworkLog `json:"networkLogs,omitempty"`
 	Progress int `json:"progress"`
-	StartTime string `json:"startTime"`
+	RefusedHosts []string `json:"refusedHosts,omitempty"`
+	ReportFindingsCount *int `json:"reportFindingsCount,omitempty"`
+	ScopePolicy *ModelsPentestScopePolicy `json:"scopePolicy,omitempty"`
+	StartTime *string `json:"startTime,omitempty"`
 	Status ModelsScanStatus `json:"status"`
 	TenantID string `json:"tenantId"`
 	TotalCost *ModelsPentestScanCostSummary `json:"totalCost,omitempty"`
+	ValidatedExternalCount *int `json:"validatedExternalCount,omitempty"`
 }
 
 type ModelsPentestScanConfig struct {
@@ -1688,8 +3149,19 @@ type ModelsPentestScanCostSummary struct {
 	TotalOutputTokens int `json:"totalOutputTokens"`
 }
 
+type ModelsPentestScopePolicy struct {
+	Authority *string `json:"authority,omitempty"`
+	BasePath *string `json:"basePath,omitempty"`
+	ExcludePatterns []string `json:"excludePatterns,omitempty"`
+	Hash *string `json:"hash,omitempty"`
+}
+
 type ModelsPentestToolsResult struct {
 	Findings []ModelsPentestFinding `json:"findings,omitempty"`
+	ProducersRan []ModelsPentestFindingSource `json:"producersRan,omitempty"`
+	ScanComplete *bool `json:"scanComplete,omitempty"`
+	ScanDegraded *bool `json:"scanDegraded,omitempty"`
+	ScopeRefused *bool `json:"scopeRefused,omitempty"`
 }
 
 type ModelsPentestUsageMetrics struct {
@@ -1711,15 +3183,6 @@ type ModelsPortScanOverride struct {
 	ThreadCount *int `json:"threadCount,omitempty"`
 }
 
-type ModelsPriorityEnum string
-
-const (
-	ModelsPriorityEnumFalsePositive ModelsPriorityEnum = "FALSE_POSITIVE"
-	ModelsPriorityEnumImportant ModelsPriorityEnum = "IMPORTANT"
-	ModelsPriorityEnumNegligible ModelsPriorityEnum = "NEGLIGIBLE"
-	ModelsPriorityEnumUrgent ModelsPriorityEnum = "URGENT"
-)
-
 type ModelsReportMetadata struct {
 	Authors []ModelsAuthor `json:"authors,omitempty"`
 	Classification string `json:"classification"`
@@ -1729,9 +3192,19 @@ type ModelsReportMetadata struct {
 }
 
 type ModelsReportScope struct {
+	Excluded []ModelsExcludedRoute `json:"excluded,omitempty"`
+	OutOfScopeHosts []string `json:"outOfScopeHosts,omitempty"`
 	TargetDescription *string `json:"targetDescription,omitempty"`
 	TargetURL string `json:"targetUrl"`
 	Users []ModelsScopeUser `json:"users,omitempty"`
+}
+
+type ModelsRulesOfEngagement struct {
+	EligibleForBounty *bool `json:"eligibleForBounty,omitempty"`
+	PolicyText *string `json:"policyText,omitempty"`
+	ProgramURL *string `json:"programUrl,omitempty"`
+	ProhibitedActivities []string `json:"prohibitedActivities,omitempty"`
+	TestingAllowed *bool `json:"testingAllowed,omitempty"`
 }
 
 type ModelsSPACheckOverride struct {
@@ -1744,20 +3217,28 @@ type ModelsScopePolicy struct {
 	Include []ModelsAssetSelector `json:"include,omitempty"`
 }
 
+type ModelsScopeProvenance struct {
+	ImportedAt *string `json:"importedAt,omitempty"`
+	ProgramName *string `json:"programName,omitempty"`
+	ProgramSlug *string `json:"programSlug,omitempty"`
+	ProgramURL *string `json:"programUrl,omitempty"`
+	Source *ModelsScopeProvenanceSource `json:"source,omitempty"`
+}
+
+type ModelsScopeProvenanceSource string
+
+const (
+	// (skipped value "" — no representable Go identifier)
+	ModelsScopeProvenanceSourceManual ModelsScopeProvenanceSource = "manual"
+	ModelsScopeProvenanceSourceHackerone ModelsScopeProvenanceSource = "hackerone"
+	ModelsScopeProvenanceSourceBugcrowd ModelsScopeProvenanceSource = "bugcrowd"
+)
+
 type ModelsScopeUser struct {
+	CredentialID *string `json:"credentialId,omitempty"`
 	Name string `json:"name"`
 	RoleDescription string `json:"roleDescription"`
 }
-
-type ModelsSeverityEnum string
-
-const (
-	ModelsSeverityEnumCritical ModelsSeverityEnum = "CRITICAL"
-	ModelsSeverityEnumHigh ModelsSeverityEnum = "HIGH"
-	ModelsSeverityEnumInformational ModelsSeverityEnum = "INFORMATIONAL"
-	ModelsSeverityEnumLow ModelsSeverityEnum = "LOW"
-	ModelsSeverityEnumMedium ModelsSeverityEnum = "MEDIUM"
-)
 
 type ModelsSeverityFloor string
 
@@ -1769,6 +3250,13 @@ const (
 	ModelsSeverityFloorHigh ModelsSeverityFloor = "high"
 	ModelsSeverityFloorCritical ModelsSeverityFloor = "critical"
 )
+
+type ModelsTOTPConfig struct {
+	Algorithm *string `json:"algorithm,omitempty"`
+	Digits *int `json:"digits,omitempty"`
+	Period *int `json:"period,omitempty"`
+	Secret *string `json:"secret,omitempty"`
+}
 
 type ModelsTagQueryAST struct {
 	Children []ModelsTagQueryAST `json:"children,omitempty"`
@@ -1835,586 +3323,11 @@ type ModelsToolsStage struct {
 	ToolsUsed []string `json:"toolsUsed,omitempty"`
 }
 
-type ModelsTriageCampaignMetadata struct {
-	ID *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-}
-
-type ModelsTriageCloudContext struct {
-	Confidence *float64 `json:"confidence,omitempty"`
-	Mode *ModelsTriageCloudContextMode `json:"mode,omitempty"`
-	Repos []string `json:"repos,omitempty"`
-	Thoughts *string `json:"thoughts,omitempty"`
-}
-
-type ModelsTriageCloudContextMode string
-
-const (
-	ModelsTriageCloudContextModeModea ModelsTriageCloudContextMode = "MODEA"
-	ModelsTriageCloudContextModeModeb ModelsTriageCloudContextMode = "MODEB"
-)
-
-type ModelsTriageExploitability struct {
-	AttackComplexity *ModelsTriageExploitabilityAttackComplexity `json:"attackComplexity,omitempty"`
-	AttackRequirements *ModelsTriageExploitabilityAttackRequirements `json:"attackRequirements,omitempty"`
-	AttackVector *ModelsTriageExploitabilityAttackVector `json:"attackVector,omitempty"`
-	Confidence *ModelsTriageExploitabilityConfidence `json:"confidence,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityLabel `json:"label,omitempty"`
-	PrivilegesRequired *ModelsTriageExploitabilityPrivilegesRequired `json:"privilegesRequired,omitempty"`
-	Title *string `json:"title,omitempty"`
-	Unknowns []string `json:"unknowns,omitempty"`
-	UserInteraction *ModelsTriageExploitabilityUserInteraction `json:"userInteraction,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackComplexity struct {
-	Description *string `json:"description,omitempty"`
-	ExploitChainRequired *ModelsTriageExploitabilityAttackComplexityExploitChainRequired `json:"exploitChainRequired,omitempty"`
-	Label *ModelsTriageExploitabilityAttackComplexityLabel `json:"label,omitempty"`
-	PayloadDifficulty *ModelsTriageExploitabilityAttackComplexityPayloadDifficulty `json:"payloadDifficulty,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackComplexityExploitChainRequired struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel string
-
-const (
-	ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabelHigh ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel = "HIGH"
-	ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabelLow ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel = "LOW"
-	ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabelNone ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityAttackComplexityLabel string
-
-const (
-	ModelsTriageExploitabilityAttackComplexityLabelHigh ModelsTriageExploitabilityAttackComplexityLabel = "HIGH"
-	ModelsTriageExploitabilityAttackComplexityLabelLow ModelsTriageExploitabilityAttackComplexityLabel = "LOW"
-)
-
-type ModelsTriageExploitabilityAttackComplexityPayloadDifficulty struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel `json:"label,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel string
-
-const (
-	ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabelEasy ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel = "EASY"
-	ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabelHard ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel = "HARD"
-	ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabelNone ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityAttackRequirements struct {
-	Description *string `json:"description,omitempty"`
-	EnvironmentState *ModelsTriageExploitabilityAttackRequirementsEnvironmentState `json:"environmentState,omitempty"`
-	Label *ModelsTriageExploitabilityAttackRequirementsLabel `json:"label,omitempty"`
-	Mitm *ModelsTriageExploitabilityAttackRequirementsMitm `json:"mitm,omitempty"`
-	RaceCondition *ModelsTriageExploitabilityAttackRequirementsRaceCondition `json:"raceCondition,omitempty"`
-	TimeWindow *ModelsTriageExploitabilityAttackRequirementsTimeWindow `json:"timeWindow,omitempty"`
-	Title *string `json:"title,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackRequirementsEnvironmentState struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel string
-
-const (
-	ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabelHigh ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel = "HIGH"
-	ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabelLow ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel = "LOW"
-	ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabelNone ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityAttackRequirementsLabel string
-
-const (
-	ModelsTriageExploitabilityAttackRequirementsLabelHigh ModelsTriageExploitabilityAttackRequirementsLabel = "HIGH"
-	ModelsTriageExploitabilityAttackRequirementsLabelLow ModelsTriageExploitabilityAttackRequirementsLabel = "LOW"
-	ModelsTriageExploitabilityAttackRequirementsLabelNone ModelsTriageExploitabilityAttackRequirementsLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityAttackRequirementsMitm struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityAttackRequirementsMitmLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackRequirementsMitmLabel string
-
-const (
-	ModelsTriageExploitabilityAttackRequirementsMitmLabelHigh ModelsTriageExploitabilityAttackRequirementsMitmLabel = "HIGH"
-	ModelsTriageExploitabilityAttackRequirementsMitmLabelLow ModelsTriageExploitabilityAttackRequirementsMitmLabel = "LOW"
-	ModelsTriageExploitabilityAttackRequirementsMitmLabelNone ModelsTriageExploitabilityAttackRequirementsMitmLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityAttackRequirementsRaceCondition struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel string
-
-const (
-	ModelsTriageExploitabilityAttackRequirementsRaceConditionLabelHigh ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel = "HIGH"
-	ModelsTriageExploitabilityAttackRequirementsRaceConditionLabelLow ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel = "LOW"
-	ModelsTriageExploitabilityAttackRequirementsRaceConditionLabelNone ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityAttackRequirementsTimeWindow struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel string
-
-const (
-	ModelsTriageExploitabilityAttackRequirementsTimeWindowLabelHigh ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel = "HIGH"
-	ModelsTriageExploitabilityAttackRequirementsTimeWindowLabelLow ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel = "LOW"
-	ModelsTriageExploitabilityAttackRequirementsTimeWindowLabelNone ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityAttackVector struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityAttackVectorLabel `json:"label,omitempty"`
-	SubVectors []ModelsTriageExploitabilityAttackVectorSubVectorsElem `json:"subVectors,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackVectorLabel string
-
-const (
-	ModelsTriageExploitabilityAttackVectorLabelAdjacent ModelsTriageExploitabilityAttackVectorLabel = "ADJACENT"
-	ModelsTriageExploitabilityAttackVectorLabelLocal ModelsTriageExploitabilityAttackVectorLabel = "LOCAL"
-	ModelsTriageExploitabilityAttackVectorLabelNetwork ModelsTriageExploitabilityAttackVectorLabel = "NETWORK"
-	ModelsTriageExploitabilityAttackVectorLabelPhysical ModelsTriageExploitabilityAttackVectorLabel = "PHYSICAL"
-)
-
-type ModelsTriageExploitabilityAttackVectorSubVectorsElem struct {
-	Description *string `json:"description,omitempty"`
-	OtherVector *string `json:"otherVector,omitempty"`
-	Vector *ModelsTriageExploitabilityAttackVectorSubVectorsElemVector `json:"vector,omitempty"`
-}
-
-type ModelsTriageExploitabilityAttackVectorSubVectorsElemVector string
-
-const (
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentArpSpoofing ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_ARP_SPOOFING"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentBleAdvertising ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_BLE_ADVERTISING"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentBluetoothClassic ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_BLUETOOTH_CLASSIC"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentBluetoothKnob ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_BLUETOOTH_KNOB"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentIpv6NeighborDiscovery ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_IPV6_NEIGHBOR_DISCOVERY"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentMdns ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_MDNS"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentNetbios ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_NETBIOS"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentNfc ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_NFC"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_OTHER"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentSmb ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_SMB"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentSsdp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_SSDP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentThread ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_THREAD"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentWifiDirect ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_WIFI_DIRECT"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentZigbee ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_ZIGBEE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalCommandLineArgument ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_COMMAND_LINE_ARGUMENT"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalConfigurationFile ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_CONFIGURATION_FILE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalCronJob ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_CRON_JOB"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalDBusMessage ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_D-BUS_MESSAGE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalDockerSocket ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_DOCKER_SOCKET"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalEnvironmentVariable ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_ENVIRONMENT_VARIABLE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalFileContent ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_FILE_CONTENT"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalFileName ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_FILE_NAME"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalFilePath ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_FILE_PATH"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalIpcSocket ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_IPC_SOCKET"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_OTHER"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalScriptPlugin ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SCRIPT_PLUGIN"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalSharedLibraryLoad ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SHARED_LIBRARY_LOAD"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalSharedMemory ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SHARED_MEMORY"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalShellCommand ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SHELL_COMMAND"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalSuidExecutable ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SUID_EXECUTABLE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkDns ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_DNS"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkFtp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_FTP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkGraphqlQuery ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_GRAPHQL_QUERY"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkGre ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_GRE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpBody ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_BODY"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpCookie ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_COOKIE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpFileUpload ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_FILE_UPLOAD"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpHeader ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_HEADER"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpMethod ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_METHOD"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpPathParameter ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_PATH_PARAMETER"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpQueryParameter ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_QUERY_PARAMETER"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkIcmp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_ICMP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkImap ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_IMAP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkIpsec ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_IPSEC"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkL2tp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_L2TP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkLdap ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_LDAP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkMqtt ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_MQTT"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkNtp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_NTP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_OTHER"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkPop3 ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_POP3"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkRdp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_RDP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkRestEndpointhyperlinkClick ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_REST_ENDPOINTHYPERLINK_CLICK"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSctp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SCTP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSip ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SIP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSmb ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SMB"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSmtp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SMTP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSnmp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SNMP"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSoapRequest ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SOAP_REQUEST"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSsh ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SSH"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkTcpPort ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_TCP_PORT"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkUdpPort ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_UDP_PORT"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkWebsocketMessage ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_WEBSOCKET_MESSAGE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalBiosJtag ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_BIOS_JTAG"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalBluetooth ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_BLUETOOTH"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalEvilMaid ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_EVIL_MAID"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalFirewire ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_FIREWIRE"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalIr ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_IR"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalNfc ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_NFC"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_OTHER"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalRfid ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_RFID"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalSdCard ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_SD_CARD"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalSdio ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_SDIO"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalSideChannel ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_SIDE_CHANNEL"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalTempest ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_TEMPEST"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalThunderbolt ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_THUNDERBOLT"
-	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalUsb ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_USB"
-)
-
-type ModelsTriageExploitabilityConfidence string
-
-const (
-	ModelsTriageExploitabilityConfidenceHigh ModelsTriageExploitabilityConfidence = "HIGH"
-	ModelsTriageExploitabilityConfidenceLow ModelsTriageExploitabilityConfidence = "LOW"
-	ModelsTriageExploitabilityConfidenceMedium ModelsTriageExploitabilityConfidence = "MEDIUM"
-)
-
-type ModelsTriageExploitabilityLabel string
-
-const (
-	ModelsTriageExploitabilityLabelLikely ModelsTriageExploitabilityLabel = "LIKELY"
-	ModelsTriageExploitabilityLabelNeutral ModelsTriageExploitabilityLabel = "NEUTRAL"
-	ModelsTriageExploitabilityLabelUnlikely ModelsTriageExploitabilityLabel = "UNLIKELY"
-)
-
-type ModelsTriageExploitabilityPrivilegesRequired struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityPrivilegesRequiredLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-	Types []ModelsTriageExploitabilityPrivilegesRequiredTypesElem `json:"types,omitempty"`
-}
-
-type ModelsTriageExploitabilityPrivilegesRequiredLabel string
-
-const (
-	ModelsTriageExploitabilityPrivilegesRequiredLabelHigh ModelsTriageExploitabilityPrivilegesRequiredLabel = "HIGH"
-	ModelsTriageExploitabilityPrivilegesRequiredLabelLow ModelsTriageExploitabilityPrivilegesRequiredLabel = "LOW"
-	ModelsTriageExploitabilityPrivilegesRequiredLabelNone ModelsTriageExploitabilityPrivilegesRequiredLabel = "NONE"
-)
-
-type ModelsTriageExploitabilityPrivilegesRequiredTypesElem string
-
-const (
-	ModelsTriageExploitabilityPrivilegesRequiredTypesElemPriviledgedUser ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "PRIVILEDGED_USER"
-	ModelsTriageExploitabilityPrivilegesRequiredTypesElemUnauthenticated ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "UNAUTHENTICATED"
-	ModelsTriageExploitabilityPrivilegesRequiredTypesElemUnverifiedUser ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "UNVERIFIED_USER"
-	ModelsTriageExploitabilityPrivilegesRequiredTypesElemVerifiedUser ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "VERIFIED_USER"
-)
-
-type ModelsTriageExploitabilityUserInteraction struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageExploitabilityUserInteractionLabel `json:"label,omitempty"`
-	OtherTypes []string `json:"otherTypes,omitempty"`
-	Title *string `json:"title,omitempty"`
-	Types []ModelsTriageExploitabilityUserInteractionTypesElem `json:"types,omitempty"`
-}
-
-type ModelsTriageExploitabilityUserInteractionLabel string
-
-const (
-	ModelsTriageExploitabilityUserInteractionLabelActive ModelsTriageExploitabilityUserInteractionLabel = "ACTIVE"
-	ModelsTriageExploitabilityUserInteractionLabelNone ModelsTriageExploitabilityUserInteractionLabel = "NONE"
-	ModelsTriageExploitabilityUserInteractionLabelPassive ModelsTriageExploitabilityUserInteractionLabel = "PASSIVE"
-)
-
-type ModelsTriageExploitabilityUserInteractionTypesElem string
-
-const (
-	ModelsTriageExploitabilityUserInteractionTypesElemBrowsing ModelsTriageExploitabilityUserInteractionTypesElem = "BROWSING"
-	ModelsTriageExploitabilityUserInteractionTypesElemFileDownload ModelsTriageExploitabilityUserInteractionTypesElem = "FILE_DOWNLOAD"
-	ModelsTriageExploitabilityUserInteractionTypesElemFileUpload ModelsTriageExploitabilityUserInteractionTypesElem = "FILE_UPLOAD"
-	ModelsTriageExploitabilityUserInteractionTypesElemHyperlinkClick ModelsTriageExploitabilityUserInteractionTypesElem = "HYPERLINK_CLICK"
-	ModelsTriageExploitabilityUserInteractionTypesElemSocialEngineering ModelsTriageExploitabilityUserInteractionTypesElem = "SOCIAL_ENGINEERING"
-)
-
-type ModelsTriageFixEffort struct {
-	Confidence *ModelsTriageFixEffortConfidence `json:"confidence,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageFixEffortLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-	Unknowns []string `json:"unknowns,omitempty"`
-}
-
-type ModelsTriageFixEffortConfidence string
-
-const (
-	ModelsTriageFixEffortConfidenceHigh ModelsTriageFixEffortConfidence = "HIGH"
-	ModelsTriageFixEffortConfidenceLow ModelsTriageFixEffortConfidence = "LOW"
-	ModelsTriageFixEffortConfidenceMedium ModelsTriageFixEffortConfidence = "MEDIUM"
-)
-
-type ModelsTriageFixEffortLabel string
-
-const (
-	ModelsTriageFixEffortLabelEasy ModelsTriageFixEffortLabel = "EASY"
-	ModelsTriageFixEffortLabelHard ModelsTriageFixEffortLabel = "HARD"
-	ModelsTriageFixEffortLabelMedium ModelsTriageFixEffortLabel = "MEDIUM"
-)
-
-type ModelsTriageImpact struct {
-	Availability *ModelsTriageImpactAvailability `json:"availability,omitempty"`
-	BusinessCriticality *ModelsTriageImpactBusinessCriticality `json:"businessCriticality,omitempty"`
-	Confidence *ModelsTriageImpactConfidence `json:"confidence,omitempty"`
-	Confidentiality *ModelsTriageImpactConfidentiality `json:"confidentiality,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Integrity *ModelsTriageImpactIntegrity `json:"integrity,omitempty"`
-	Label *ModelsTriageImpactLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-	Unknowns []string `json:"unknowns,omitempty"`
-}
-
-type ModelsTriageImpactAvailability struct {
-	Cause []ModelsTriageImpactAvailabilityCauseElem `json:"cause,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageImpactAvailabilityLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-	Type []ModelsTriageImpactAvailabilityTypeElem `json:"type,omitempty"`
-}
-
-type ModelsTriageImpactAvailabilityCauseElem string
-
-const (
-	ModelsTriageImpactAvailabilityCauseElemBufferOverflow ModelsTriageImpactAvailabilityCauseElem = "BUFFER_OVERFLOW"
-	ModelsTriageImpactAvailabilityCauseElemBusinessLogic ModelsTriageImpactAvailabilityCauseElem = "BUSINESS_LOGIC"
-	ModelsTriageImpactAvailabilityCauseElemInfiniteLoop ModelsTriageImpactAvailabilityCauseElem = "INFINITE_LOOP"
-	ModelsTriageImpactAvailabilityCauseElemMemoryLeak ModelsTriageImpactAvailabilityCauseElem = "MEMORY_LEAK"
-	ModelsTriageImpactAvailabilityCauseElemResourceExhaustion ModelsTriageImpactAvailabilityCauseElem = "RESOURCE_EXHAUSTION"
-)
-
-type ModelsTriageImpactAvailabilityLabel string
-
-const (
-	ModelsTriageImpactAvailabilityLabelHigh ModelsTriageImpactAvailabilityLabel = "HIGH"
-	ModelsTriageImpactAvailabilityLabelLow ModelsTriageImpactAvailabilityLabel = "LOW"
-	ModelsTriageImpactAvailabilityLabelNone ModelsTriageImpactAvailabilityLabel = "NONE"
-)
-
-type ModelsTriageImpactAvailabilityTypeElem string
-
-const (
-	ModelsTriageImpactAvailabilityTypeElemCompleteServiceOutage ModelsTriageImpactAvailabilityTypeElem = "COMPLETE_SERVICE_OUTAGE"
-	ModelsTriageImpactAvailabilityTypeElemServiceDegradation ModelsTriageImpactAvailabilityTypeElem = "SERVICE_DEGRADATION"
-	ModelsTriageImpactAvailabilityTypeElemUserAccessDisruption ModelsTriageImpactAvailabilityTypeElem = "USER_ACCESS_DISRUPTION"
-)
-
-type ModelsTriageImpactBusinessCriticality struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageImpactBusinessCriticalityLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-}
-
-type ModelsTriageImpactBusinessCriticalityLabel string
-
-const (
-	ModelsTriageImpactBusinessCriticalityLabelHigh ModelsTriageImpactBusinessCriticalityLabel = "HIGH"
-	ModelsTriageImpactBusinessCriticalityLabelLow ModelsTriageImpactBusinessCriticalityLabel = "LOW"
-	ModelsTriageImpactBusinessCriticalityLabelMedium ModelsTriageImpactBusinessCriticalityLabel = "MEDIUM"
-)
-
-type ModelsTriageImpactConfidence string
-
-const (
-	ModelsTriageImpactConfidenceHigh ModelsTriageImpactConfidence = "HIGH"
-	ModelsTriageImpactConfidenceLow ModelsTriageImpactConfidence = "LOW"
-	ModelsTriageImpactConfidenceMedium ModelsTriageImpactConfidence = "MEDIUM"
-)
-
-type ModelsTriageImpactConfidentiality struct {
-	DataLeaked []ModelsTriageImpactConfidentialityDataLeakedElem `json:"dataLeaked,omitempty"`
-	Label *ModelsTriageImpactConfidentialityLabel `json:"label,omitempty"`
-}
-
-type ModelsTriageImpactConfidentialityDataLeakedElem string
-
-const (
-	ModelsTriageImpactConfidentialityDataLeakedElemAccessToken ModelsTriageImpactConfidentialityDataLeakedElem = "ACCESS_TOKEN"
-	ModelsTriageImpactConfidentialityDataLeakedElemAddress ModelsTriageImpactConfidentialityDataLeakedElem = "ADDRESS"
-	ModelsTriageImpactConfidentialityDataLeakedElemAge ModelsTriageImpactConfidentialityDataLeakedElem = "AGE"
-	ModelsTriageImpactConfidentialityDataLeakedElemApiKey ModelsTriageImpactConfidentialityDataLeakedElem = "API_KEY"
-	ModelsTriageImpactConfidentialityDataLeakedElemAuthenticationData ModelsTriageImpactConfidentialityDataLeakedElem = "AUTHENTICATION_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemBankAccountInformation ModelsTriageImpactConfidentialityDataLeakedElem = "BANK_ACCOUNT_INFORMATION"
-	ModelsTriageImpactConfidentialityDataLeakedElemBiometricData ModelsTriageImpactConfidentialityDataLeakedElem = "BIOMETRIC_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemCallLogs ModelsTriageImpactConfidentialityDataLeakedElem = "CALL_LOGS"
-	ModelsTriageImpactConfidentialityDataLeakedElemCertificate ModelsTriageImpactConfidentialityDataLeakedElem = "CERTIFICATE"
-	ModelsTriageImpactConfidentialityDataLeakedElemClientAndVendorInformation ModelsTriageImpactConfidentialityDataLeakedElem = "CLIENT_AND_VENDOR_INFORMATION"
-	ModelsTriageImpactConfidentialityDataLeakedElemComplianceRecords ModelsTriageImpactConfidentialityDataLeakedElem = "COMPLIANCE_RECORDS"
-	ModelsTriageImpactConfidentialityDataLeakedElemCreditDebitCardDetails ModelsTriageImpactConfidentialityDataLeakedElem = "CREDIT_DEBIT_CARD_DETAILS"
-	ModelsTriageImpactConfidentialityDataLeakedElemDatabaseCredentials ModelsTriageImpactConfidentialityDataLeakedElem = "DATABASE_CREDENTIALS"
-	ModelsTriageImpactConfidentialityDataLeakedElemDeviceIdentifiers ModelsTriageImpactConfidentialityDataLeakedElem = "DEVICE_IDENTIFIERS"
-	ModelsTriageImpactConfidentialityDataLeakedElemDriversLicense ModelsTriageImpactConfidentialityDataLeakedElem = "DRIVERS_LICENSE"
-	ModelsTriageImpactConfidentialityDataLeakedElemEducationRecords ModelsTriageImpactConfidentialityDataLeakedElem = "EDUCATION_RECORDS"
-	ModelsTriageImpactConfidentialityDataLeakedElemEmailAddress ModelsTriageImpactConfidentialityDataLeakedElem = "EMAIL_ADDRESS"
-	ModelsTriageImpactConfidentialityDataLeakedElemEmailsAndMessages ModelsTriageImpactConfidentialityDataLeakedElem = "EMAILS_AND_MESSAGES"
-	ModelsTriageImpactConfidentialityDataLeakedElemEmploymentHistory ModelsTriageImpactConfidentialityDataLeakedElem = "EMPLOYMENT_HISTORY"
-	ModelsTriageImpactConfidentialityDataLeakedElemEncryptionKey ModelsTriageImpactConfidentialityDataLeakedElem = "ENCRYPTION_KEY"
-	ModelsTriageImpactConfidentialityDataLeakedElemGender ModelsTriageImpactConfidentialityDataLeakedElem = "GENDER"
-	ModelsTriageImpactConfidentialityDataLeakedElemIncomeAndTaxInformation ModelsTriageImpactConfidentialityDataLeakedElem = "INCOME_AND_TAX_INFORMATION"
-	ModelsTriageImpactConfidentialityDataLeakedElemIntellectualProperty ModelsTriageImpactConfidentialityDataLeakedElem = "INTELLECTUAL_PROPERTY"
-	ModelsTriageImpactConfidentialityDataLeakedElemInventoryData ModelsTriageImpactConfidentialityDataLeakedElem = "INVENTORY_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemInvestmentInformation ModelsTriageImpactConfidentialityDataLeakedElem = "INVESTMENT_INFORMATION"
-	ModelsTriageImpactConfidentialityDataLeakedElemIpAddresses ModelsTriageImpactConfidentialityDataLeakedElem = "IP_ADDRESSES"
-	ModelsTriageImpactConfidentialityDataLeakedElemLegalDocuments ModelsTriageImpactConfidentialityDataLeakedElem = "LEGAL_DOCUMENTS"
-	ModelsTriageImpactConfidentialityDataLeakedElemMedicalData ModelsTriageImpactConfidentialityDataLeakedElem = "MEDICAL_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemName ModelsTriageImpactConfidentialityDataLeakedElem = "NAME"
-	ModelsTriageImpactConfidentialityDataLeakedElemOtherPrivateNonSensitiveData ModelsTriageImpactConfidentialityDataLeakedElem = "OTHER_PRIVATE_NON_SENSITIVE_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemOtherPrivateSensitiveData ModelsTriageImpactConfidentialityDataLeakedElem = "OTHER_PRIVATE_SENSITIVE_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemOtherPublicData ModelsTriageImpactConfidentialityDataLeakedElem = "OTHER_PUBLIC_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemPassport ModelsTriageImpactConfidentialityDataLeakedElem = "PASSPORT"
-	ModelsTriageImpactConfidentialityDataLeakedElemPerformanceReviews ModelsTriageImpactConfidentialityDataLeakedElem = "PERFORMANCE_REVIEWS"
-	ModelsTriageImpactConfidentialityDataLeakedElemPhoneNumber ModelsTriageImpactConfidentialityDataLeakedElem = "PHONE_NUMBER"
-	ModelsTriageImpactConfidentialityDataLeakedElemPoliticalOpinions ModelsTriageImpactConfidentialityDataLeakedElem = "POLITICAL_OPINIONS"
-	ModelsTriageImpactConfidentialityDataLeakedElemRacialOrEthnicOrigin ModelsTriageImpactConfidentialityDataLeakedElem = "RACIAL_OR_ETHNIC_ORIGIN"
-	ModelsTriageImpactConfidentialityDataLeakedElemReligiousOrPhilosophicalBeliefs ModelsTriageImpactConfidentialityDataLeakedElem = "RELIGIOUS_OR_PHILOSOPHICAL_BELIEFS"
-	ModelsTriageImpactConfidentialityDataLeakedElemSalaryAndBenefitsInformation ModelsTriageImpactConfidentialityDataLeakedElem = "SALARY_AND_BENEFITS_INFORMATION"
-	ModelsTriageImpactConfidentialityDataLeakedElemSecretKey ModelsTriageImpactConfidentialityDataLeakedElem = "SECRET_KEY"
-	ModelsTriageImpactConfidentialityDataLeakedElemSexualOrientation ModelsTriageImpactConfidentialityDataLeakedElem = "SEXUAL_ORIENTATION"
-	ModelsTriageImpactConfidentialityDataLeakedElemSocialMediaInteractions ModelsTriageImpactConfidentialityDataLeakedElem = "SOCIAL_MEDIA_INTERACTIONS"
-	ModelsTriageImpactConfidentialityDataLeakedElemSocialSecurityNumber ModelsTriageImpactConfidentialityDataLeakedElem = "SOCIAL_SECURITY_NUMBER"
-	ModelsTriageImpactConfidentialityDataLeakedElemStrategicPlansAndForecasts ModelsTriageImpactConfidentialityDataLeakedElem = "STRATEGIC_PLANS_AND_FORECASTS"
-	ModelsTriageImpactConfidentialityDataLeakedElemSystemLogsAndMonitoringData ModelsTriageImpactConfidentialityDataLeakedElem = "SYSTEM_LOGS_AND_MONITORING_DATA"
-	ModelsTriageImpactConfidentialityDataLeakedElemTradeSecrets ModelsTriageImpactConfidentialityDataLeakedElem = "TRADE_SECRETS"
-	ModelsTriageImpactConfidentialityDataLeakedElemTransactionHistory ModelsTriageImpactConfidentialityDataLeakedElem = "TRANSACTION_HISTORY"
-)
-
-type ModelsTriageImpactConfidentialityLabel string
-
-const (
-	ModelsTriageImpactConfidentialityLabelHigh ModelsTriageImpactConfidentialityLabel = "HIGH"
-	ModelsTriageImpactConfidentialityLabelLow ModelsTriageImpactConfidentialityLabel = "LOW"
-	ModelsTriageImpactConfidentialityLabelNone ModelsTriageImpactConfidentialityLabel = "NONE"
-)
-
-type ModelsTriageImpactIntegrity struct {
-	Description *string `json:"description,omitempty"`
-	Label *ModelsTriageImpactIntegrityLabel `json:"label,omitempty"`
-	Title *string `json:"title,omitempty"`
-	Type []ModelsTriageImpactIntegrityTypeElem `json:"type,omitempty"`
-}
-
-type ModelsTriageImpactIntegrityLabel string
-
-const (
-	ModelsTriageImpactIntegrityLabelHigh ModelsTriageImpactIntegrityLabel = "HIGH"
-	ModelsTriageImpactIntegrityLabelLow ModelsTriageImpactIntegrityLabel = "LOW"
-	ModelsTriageImpactIntegrityLabelNone ModelsTriageImpactIntegrityLabel = "NONE"
-)
-
-type ModelsTriageImpactIntegrityTypeElem string
-
-const (
-	ModelsTriageImpactIntegrityTypeElemDatabaseAltered ModelsTriageImpactIntegrityTypeElem = "DATABASE_ALTERED"
-	ModelsTriageImpactIntegrityTypeElemMaliciousCodeExecuted ModelsTriageImpactIntegrityTypeElem = "MALICIOUS_CODE_EXECUTED"
-	ModelsTriageImpactIntegrityTypeElemPriviledgeEscalation ModelsTriageImpactIntegrityTypeElem = "PRIVILEDGE_ESCALATION"
-	ModelsTriageImpactIntegrityTypeElemSystemBehaviourManipulated ModelsTriageImpactIntegrityTypeElem = "SYSTEM_BEHAVIOUR_MANIPULATED"
-)
-
-type ModelsTriageImpactLabel string
-
-const (
-	ModelsTriageImpactLabelCritical ModelsTriageImpactLabel = "CRITICAL"
-	ModelsTriageImpactLabelHigh ModelsTriageImpactLabel = "HIGH"
-	ModelsTriageImpactLabelLow ModelsTriageImpactLabel = "LOW"
-)
-
-type ModelsTriagePentest struct {
-	AttemptedCVEs []string `json:"attemptedCVEs,omitempty"`
-	Confidence *float64 `json:"confidence,omitempty"`
-	Cost *float64 `json:"cost,omitempty"`
-	Duration *float64 `json:"duration,omitempty"`
-	ExploitedCVE *string `json:"exploitedCVE,omitempty"`
-	Logs *AgentsGroupedAgentLogs `json:"logs,omitempty"`
-	Outcome *ModelsTriagePentestOutcome `json:"outcome,omitempty"`
-	Report *string `json:"report,omitempty"`
-	ReproductionScript *string `json:"reproductionScript,omitempty"`
-	TestedEndpoints []ModelsTriagePentestTestedEndpointsElem `json:"testedEndpoints,omitempty"`
-}
-
-type ModelsTriagePentestOutcome string
-
-const (
-	ModelsTriagePentestOutcomeCannotDetermine ModelsTriagePentestOutcome = "CANNOT_DETERMINE"
-	ModelsTriagePentestOutcomeConfirmed ModelsTriagePentestOutcome = "CONFIRMED"
-	ModelsTriagePentestOutcomeLikely ModelsTriagePentestOutcome = "LIKELY"
-	ModelsTriagePentestOutcomeNotExploitable ModelsTriagePentestOutcome = "NOT_EXPLOITABLE"
-	ModelsTriagePentestOutcomePotential ModelsTriagePentestOutcome = "POTENTIAL"
-)
-
-type ModelsTriagePentestTestedEndpointsElem struct {
-	Method *string `json:"method,omitempty"`
-	Path *string `json:"path,omitempty"`
-}
-
-type ModelsTriageRetriageMetadata struct {
-	MemoryChanges []ModelsTriageRetriageMetadataMemoryChangesElem `json:"memoryChanges,omitempty"`
-	TriggeredAt *string `json:"triggeredAt,omitempty"`
-}
-
-type ModelsTriageRetriageMetadataMemoryChangesElem struct {
-	MemoryChangeType *ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType `json:"memoryChangeType,omitempty"`
-	MemoryID *string `json:"memoryId,omitempty"`
-}
-
-type ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType string
-
-const (
-	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryAdded ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_ADDED"
-	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryCorrected ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_CORRECTED"
-	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryInvalidated ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_INVALIDATED"
-	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryRemoved ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_REMOVED"
-)
-
-type ModelsTriageRetriageStatus string
-
-const (
-	ModelsTriageRetriageStatusNotRetriaged ModelsTriageRetriageStatus = "NOT_RETRIAGED"
-	ModelsTriageRetriageStatusRetriageCompleted ModelsTriageRetriageStatus = "RETRIAGE_COMPLETED"
-	ModelsTriageRetriageStatusRetriageFailed ModelsTriageRetriageStatus = "RETRIAGE_FAILED"
-	ModelsTriageRetriageStatusRetriageInProgress ModelsTriageRetriageStatus = "RETRIAGE_IN_PROGRESS"
-	ModelsTriageRetriageStatusRetriageRequested ModelsTriageRetriageStatus = "RETRIAGE_REQUESTED"
-)
-
-type ModelsTriageSeverity struct {
-	Confidence *ModelsTriageSeverityConfidence `json:"confidence,omitempty"`
-	Label *ModelsSeverityEnum `json:"label,omitempty"`
-	Score *int `json:"score,omitempty"`
-	Unknowns []string `json:"unknowns,omitempty"`
-}
-
-type ModelsTriageSeverityConfidence string
-
-const (
-	ModelsTriageSeverityConfidenceHigh ModelsTriageSeverityConfidence = "HIGH"
-	ModelsTriageSeverityConfidenceLow ModelsTriageSeverityConfidence = "LOW"
-	ModelsTriageSeverityConfidenceMedium ModelsTriageSeverityConfidence = "MEDIUM"
-)
-
 type ModelsValidationEvidence struct {
 	Duration *int64 `json:"duration,omitempty"`
 	Error *string `json:"error,omitempty"`
 	Message string `json:"message"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
 	ResponseHeaders map[string]string `json:"responseHeaders,omitempty"`
 	Status ModelsValidationStatus `json:"status"`
 	StatusCode *int `json:"statusCode,omitempty"`
@@ -2430,6 +3343,17 @@ const (
 	ModelsValidationStatusInvalid ModelsValidationStatus = "invalid"
 	ModelsValidationStatusExpired ModelsValidationStatus = "expired"
 	ModelsValidationStatusError ModelsValidationStatus = "error"
+	ModelsValidationStatusUnreachable ModelsValidationStatus = "unreachable"
+	ModelsValidationStatusBlocked ModelsValidationStatus = "blocked"
+)
+
+type ModelsValidationTrigger string
+
+const (
+	ModelsValidationTriggerManual ModelsValidationTrigger = "manual"
+	ModelsValidationTriggerScheduled ModelsValidationTrigger = "scheduled"
+	ModelsValidationTriggerPreflight ModelsValidationTrigger = "preflight"
+	ModelsValidationTriggerScan ModelsValidationTrigger = "scan"
 )
 
 type ModelsVulnClass string

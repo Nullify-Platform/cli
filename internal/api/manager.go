@@ -21,8 +21,731 @@ var _ = fmt.Sprintf
 var _ = url.PathEscape
 var _ = models.RequestScope{}
 
+// ListManagerActionItemsInput is the input for ListManagerActionItems — List Action Items.
+type ListManagerActionItemsInput struct {
+	AnswerType *string `url:"answerType,omitempty" json:"-"`
+	FindingID *string `url:"findingId,omitempty" json:"-"`
+	FindingType *string `url:"findingType,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	GroupKey *string `url:"groupKey,omitempty" json:"-"`
+	Kind *string `url:"kind,omitempty" json:"-"`
+	Page *int `url:"page,omitempty" json:"-"`
+	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	State *string `url:"state,omitempty" json:"-"`
+	Status *string `url:"status,omitempty" json:"-"`
+	TeamID *string `url:"teamId,omitempty" json:"-"`
+	UnassignedOnly *bool `url:"unassignedOnly,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerActionItems - List Action Items
+// GET /manager/action-items
+func (c *Client) ListManagerActionItems(ctx context.Context, in ListManagerActionItemsInput) (*models.EndpointsGetActionItemsOutput, error) {
+	path := "/manager/action-items"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Status != nil {
+		query.Set("status", string(*in.Status))
+	}
+	if in.Kind != nil {
+		query.Set("kind", string(*in.Kind))
+	}
+	if in.TeamID != nil {
+		query.Set("teamId", string(*in.TeamID))
+	}
+	if in.UnassignedOnly != nil {
+		query.Set("unassignedOnly", strconv.FormatBool(*in.UnassignedOnly))
+	}
+	if in.FindingID != nil {
+		query.Set("findingId", string(*in.FindingID))
+	}
+	if in.FindingType != nil {
+		query.Set("findingType", string(*in.FindingType))
+	}
+	if in.AnswerType != nil {
+		query.Set("answerType", string(*in.AnswerType))
+	}
+	if in.State != nil {
+		query.Set("state", string(*in.State))
+	}
+	if in.GroupKey != nil {
+		query.Set("groupKey", string(*in.GroupKey))
+	}
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
+	}
+	if in.Page != nil {
+		query.Set("page", strconv.Itoa(int(*in.Page)))
+	}
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetActionItemsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListManagerActionItemsSummaryInput is the input for ListManagerActionItemsSummary — Action Items Summary.
+type ListManagerActionItemsSummaryInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerActionItemsSummary - Action Items Summary
+// GET /manager/action-items/summary
+func (c *Client) ListManagerActionItemsSummary(ctx context.Context, in ListManagerActionItemsSummaryInput) (*models.EndpointsGetActionItemsSummaryOutput, error) {
+	path := "/manager/action-items/summary"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetActionItemsSummaryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteManagerActionItemsActionItemIdInput is the input for DeleteManagerActionItemsActionItemId — Soft-Delete Action Item.
+type DeleteManagerActionItemsActionItemIdInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteManagerActionItemsActionItemId - Soft-Delete Action Item
+// DELETE /manager/action-items/{actionItemId}
+func (c *Client) DeleteManagerActionItemsActionItemId(ctx context.Context, in DeleteManagerActionItemsActionItemIdInput) (*models.EndpointsDeleteActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetManagerActionItemsActionItemIdInput is the input for GetManagerActionItemsActionItemId — Get Action Item.
+type GetManagerActionItemsActionItemIdInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetManagerActionItemsActionItemId - Get Action Item
+// GET /manager/action-items/{actionItemId}
+func (c *Client) GetManagerActionItemsActionItemId(ctx context.Context, in GetManagerActionItemsActionItemIdInput) (*models.EndpointsGetActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchManagerActionItemsActionItemIdInput is the input for PatchManagerActionItemsActionItemId — Patch Action Item Team.
+type PatchManagerActionItemsActionItemIdInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	TeamID *string `json:"teamId,omitempty"`
+	models.RequestScope
+}
+
+// PatchManagerActionItemsActionItemId - Patch Action Item Team
+// PATCH /manager/action-items/{actionItemId}
+func (c *Client) PatchManagerActionItemsActionItemId(ctx context.Context, in PatchManagerActionItemsActionItemIdInput) (*models.EndpointsPatchActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		TeamID *string `json:"teamId,omitempty"`
+	}{
+		TeamID: in.TeamID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdAnswerInput is the input for CreateManagerActionItemsActionItemIdAnswer — Answer Action Item.
+type CreateManagerActionItemsActionItemIdAnswerInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Answer models.ActionitemanswerAnswer `json:"answer"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdAnswer - Answer Action Item
+// POST /manager/action-items/{actionItemId}/answer
+func (c *Client) CreateManagerActionItemsActionItemIdAnswer(ctx context.Context, in CreateManagerActionItemsActionItemIdAnswerInput) (*models.EndpointsAnswerActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/answer"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Answer models.ActionitemanswerAnswer `json:"answer"`
+	}{
+		Answer: in.Answer,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAnswerActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdAssignRepoInput is the input for CreateManagerActionItemsActionItemIdAssignRepo — Assign Repository Owner To Action Item.
+type CreateManagerActionItemsActionItemIdAssignRepoInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	TeamID string `json:"teamId"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdAssignRepo - Assign Repository Owner To Action Item
+// POST /manager/action-items/{actionItemId}/assign-repo
+func (c *Client) CreateManagerActionItemsActionItemIdAssignRepo(ctx context.Context, in CreateManagerActionItemsActionItemIdAssignRepoInput) (*models.EndpointsAssignRepoActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/assign-repo"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		TeamID string `json:"teamId"`
+	}{
+		TeamID: in.TeamID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAssignRepoActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdAssignTeamInput is the input for CreateManagerActionItemsActionItemIdAssignTeam — Assign Team To Action Item.
+type CreateManagerActionItemsActionItemIdAssignTeamInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	TeamID string `json:"teamId"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdAssignTeam - Assign Team To Action Item
+// POST /manager/action-items/{actionItemId}/assign-team
+func (c *Client) CreateManagerActionItemsActionItemIdAssignTeam(ctx context.Context, in CreateManagerActionItemsActionItemIdAssignTeamInput) (*models.EndpointsAssignTeamActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/assign-team"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		TeamID string `json:"teamId"`
+	}{
+		TeamID: in.TeamID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsAssignTeamActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateManagerActionItemsActionItemIdChatInput is the input for UpdateManagerActionItemsActionItemIdChat — Get or create action item chat.
+type UpdateManagerActionItemsActionItemIdChatInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// UpdateManagerActionItemsActionItemIdChat - Get or create action item chat
+// PUT /manager/action-items/{actionItemId}/chat
+func (c *Client) UpdateManagerActionItemsActionItemIdChat(ctx context.Context, in UpdateManagerActionItemsActionItemIdChatInput) (*models.EndpointsPutActionItemChatOutput, error) {
+	path := "/manager/action-items/{actionItemId}/chat"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "PUT", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutActionItemChatOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdDismissInput is the input for CreateManagerActionItemsActionItemIdDismiss — Dismiss Action Item.
+type CreateManagerActionItemsActionItemIdDismissInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Classify *string `json:"classify,omitempty"`
+	Disposition *string `json:"disposition,omitempty"`
+	Reason string `json:"reason"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdDismiss - Dismiss Action Item
+// POST /manager/action-items/{actionItemId}/dismiss
+func (c *Client) CreateManagerActionItemsActionItemIdDismiss(ctx context.Context, in CreateManagerActionItemsActionItemIdDismissInput) (*models.EndpointsDismissActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/dismiss"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Classify *string `json:"classify,omitempty"`
+		Disposition *string `json:"disposition,omitempty"`
+		Reason string `json:"reason"`
+	}{
+		Classify: in.Classify,
+		Disposition: in.Disposition,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDismissActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdMapUserInput is the input for CreateManagerActionItemsActionItemIdMapUser — Map User For Action Item.
+type CreateManagerActionItemsActionItemIdMapUserInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	MessageUserID *string `json:"messageUserId,omitempty"`
+	ServiceAccount *bool `json:"serviceAccount,omitempty"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdMapUser - Map User For Action Item
+// POST /manager/action-items/{actionItemId}/map-user
+func (c *Client) CreateManagerActionItemsActionItemIdMapUser(ctx context.Context, in CreateManagerActionItemsActionItemIdMapUserInput) (*models.EndpointsMapUserActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/map-user"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		MessageUserID *string `json:"messageUserId,omitempty"`
+		ServiceAccount *bool `json:"serviceAccount,omitempty"`
+	}{
+		MessageUserID: in.MessageUserID,
+		ServiceAccount: in.ServiceAccount,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsMapUserActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListManagerActionItemsActionItemIdMessagesInput is the input for ListManagerActionItemsActionItemIdMessages — Get Action Item Messages.
+type ListManagerActionItemsActionItemIdMessagesInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeReplay *bool `url:"includeReplay,omitempty" json:"-"`
+	Page *int `url:"page,omitempty" json:"-"`
+	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerActionItemsActionItemIdMessages - Get Action Item Messages
+// GET /manager/action-items/{actionItemId}/messages
+func (c *Client) ListManagerActionItemsActionItemIdMessages(ctx context.Context, in ListManagerActionItemsActionItemIdMessagesInput) (*models.EndpointsGetActionItemMessagesOutput, error) {
+	path := "/manager/action-items/{actionItemId}/messages"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.IncludeReplay != nil {
+		query.Set("includeReplay", strconv.FormatBool(*in.IncludeReplay))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Page != nil {
+		query.Set("page", strconv.Itoa(int(*in.Page)))
+	}
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetActionItemMessagesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdNudgeInput is the input for CreateManagerActionItemsActionItemIdNudge — Nudge Escalation Action Item.
+type CreateManagerActionItemsActionItemIdNudgeInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Message *string `json:"message,omitempty"`
+	RecipientUserID *string `json:"recipientUserId,omitempty"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdNudge - Nudge Escalation Action Item
+// POST /manager/action-items/{actionItemId}/nudge
+func (c *Client) CreateManagerActionItemsActionItemIdNudge(ctx context.Context, in CreateManagerActionItemsActionItemIdNudgeInput) (*models.EndpointsNudgeActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/nudge"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Message *string `json:"message,omitempty"`
+		RecipientUserID *string `json:"recipientUserId,omitempty"`
+	}{
+		Message: in.Message,
+		RecipientUserID: in.RecipientUserID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsNudgeActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdReopenInput is the input for CreateManagerActionItemsActionItemIdReopen — Reopen Action Item.
+type CreateManagerActionItemsActionItemIdReopenInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reason string `json:"reason"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdReopen - Reopen Action Item
+// POST /manager/action-items/{actionItemId}/reopen
+func (c *Client) CreateManagerActionItemsActionItemIdReopen(ctx context.Context, in CreateManagerActionItemsActionItemIdReopenInput) (*models.EndpointsReopenActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/reopen"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Reason string `json:"reason"`
+	}{
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsReopenActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerActionItemsActionItemIdSnoozeInput is the input for CreateManagerActionItemsActionItemIdSnooze — Snooze Action Item.
+type CreateManagerActionItemsActionItemIdSnoozeInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DurationDays int `json:"durationDays"`
+	Reason string `json:"reason"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdSnooze - Snooze Action Item
+// POST /manager/action-items/{actionItemId}/snooze
+func (c *Client) CreateManagerActionItemsActionItemIdSnooze(ctx context.Context, in CreateManagerActionItemsActionItemIdSnoozeInput) (*models.EndpointsSnoozeActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/snooze"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DurationDays int `json:"durationDays"`
+		Reason string `json:"reason"`
+	}{
+		DurationDays: in.DurationDays,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSnoozeActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListManagerCampaignsInput is the input for ListManagerCampaigns — List Campaigns.
 type ListManagerCampaignsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -42,6 +765,9 @@ func (c *Client) ListManagerCampaigns(ctx context.Context, in ListManagerCampaig
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -63,10 +789,12 @@ func (c *Client) ListManagerCampaigns(ctx context.Context, in ListManagerCampaig
 
 // CreateManagerCampaignsInput is the input for CreateManagerCampaigns — Post Campaign.
 type CreateManagerCampaignsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	CreatedAfter *string `json:"createdAfter,omitempty"`
 	CreatedBefore *string `json:"createdBefore,omitempty"`
 	Description *string `json:"description,omitempty"`
 	EndDate *string `json:"endDate,omitempty"`
+	ExploitValidated *bool `json:"exploitValidated,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
 	GeneratedReasoning *string `json:"generatedReasoning,omitempty"`
 	IsActive *bool `json:"isActive,omitempty"`
@@ -75,14 +803,15 @@ type CreateManagerCampaignsInput struct {
 	MinPriority *float64 `json:"minPriority,omitempty"`
 	NoEndDate *bool `json:"noEndDate,omitempty"`
 	Owner *string `json:"owner,omitempty"`
+	PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 	PriorityLabels []string `json:"priorityLabels,omitempty"`
-	RepositoryNames []string `json:"repositoryNames,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	SeverityConfidence []string `json:"severityConfidence,omitempty"`
 	SortByColumns *string `json:"sortByColumns,omitempty"`
 	SortByDirection *string `json:"sortByDirection,omitempty"`
 	StartDate *string `json:"startDate,omitempty"`
 	Summary *string `json:"summary,omitempty"`
 	TeamIDs []string `json:"teamIDs,omitempty"`
-	TeamNames []string `json:"teamNames,omitempty"`
 	Title *string `json:"title,omitempty"`
 	Types []string `json:"types,omitempty"`
 	UserNames []string `json:"userNames,omitempty"`
@@ -100,6 +829,9 @@ func (c *Client) CreateManagerCampaigns(ctx context.Context, in CreateManagerCam
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -112,6 +844,7 @@ func (c *Client) CreateManagerCampaigns(ctx context.Context, in CreateManagerCam
 		CreatedBefore *string `json:"createdBefore,omitempty"`
 		Description *string `json:"description,omitempty"`
 		EndDate *string `json:"endDate,omitempty"`
+		ExploitValidated *bool `json:"exploitValidated,omitempty"`
 		FindingIds []string `json:"findingIds,omitempty"`
 		GeneratedReasoning *string `json:"generatedReasoning,omitempty"`
 		IsActive *bool `json:"isActive,omitempty"`
@@ -120,14 +853,15 @@ func (c *Client) CreateManagerCampaigns(ctx context.Context, in CreateManagerCam
 		MinPriority *float64 `json:"minPriority,omitempty"`
 		NoEndDate *bool `json:"noEndDate,omitempty"`
 		Owner *string `json:"owner,omitempty"`
+		PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 		PriorityLabels []string `json:"priorityLabels,omitempty"`
-		RepositoryNames []string `json:"repositoryNames,omitempty"`
+		RepositoryIds []string `json:"repositoryIds,omitempty"`
+		SeverityConfidence []string `json:"severityConfidence,omitempty"`
 		SortByColumns *string `json:"sortByColumns,omitempty"`
 		SortByDirection *string `json:"sortByDirection,omitempty"`
 		StartDate *string `json:"startDate,omitempty"`
 		Summary *string `json:"summary,omitempty"`
 		TeamIDs []string `json:"teamIDs,omitempty"`
-		TeamNames []string `json:"teamNames,omitempty"`
 		Title *string `json:"title,omitempty"`
 		Types []string `json:"types,omitempty"`
 		UserNames []string `json:"userNames,omitempty"`
@@ -138,6 +872,7 @@ func (c *Client) CreateManagerCampaigns(ctx context.Context, in CreateManagerCam
 		CreatedBefore: in.CreatedBefore,
 		Description: in.Description,
 		EndDate: in.EndDate,
+		ExploitValidated: in.ExploitValidated,
 		FindingIds: in.FindingIds,
 		GeneratedReasoning: in.GeneratedReasoning,
 		IsActive: in.IsActive,
@@ -146,14 +881,15 @@ func (c *Client) CreateManagerCampaigns(ctx context.Context, in CreateManagerCam
 		MinPriority: in.MinPriority,
 		NoEndDate: in.NoEndDate,
 		Owner: in.Owner,
+		PrBudgetPerWeek: in.PrBudgetPerWeek,
 		PriorityLabels: in.PriorityLabels,
-		RepositoryNames: in.RepositoryNames,
+		RepositoryIds: in.RepositoryIds,
+		SeverityConfidence: in.SeverityConfidence,
 		SortByColumns: in.SortByColumns,
 		SortByDirection: in.SortByDirection,
 		StartDate: in.StartDate,
 		Summary: in.Summary,
 		TeamIDs: in.TeamIDs,
-		TeamNames: in.TeamNames,
 		Title: in.Title,
 		Types: in.Types,
 		UserNames: in.UserNames,
@@ -176,6 +912,7 @@ func (c *Client) CreateManagerCampaigns(ctx context.Context, in CreateManagerCam
 
 // ListManagerCampaignsDefaultInput is the input for ListManagerCampaignsDefault — Get Default Campaigns.
 type ListManagerCampaignsDefaultInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -187,6 +924,9 @@ func (c *Client) ListManagerCampaignsDefault(ctx context.Context, in ListManager
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -208,6 +948,7 @@ func (c *Client) ListManagerCampaignsDefault(ctx context.Context, in ListManager
 
 // CreateManagerCampaignsDefaultGenerateInput is the input for CreateManagerCampaignsDefaultGenerate — Generate Default Campaigns.
 type CreateManagerCampaignsDefaultGenerateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -227,6 +968,9 @@ func (c *Client) CreateManagerCampaignsDefaultGenerate(ctx context.Context, in C
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -248,6 +992,7 @@ func (c *Client) CreateManagerCampaignsDefaultGenerate(ctx context.Context, in C
 
 // ListManagerCampaignsFindingsInput is the input for ListManagerCampaignsFindings — Get All Campaigns Findings.
 type ListManagerCampaignsFindingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -259,6 +1004,9 @@ func (c *Client) ListManagerCampaignsFindings(ctx context.Context, in ListManage
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -280,6 +1028,7 @@ func (c *Client) ListManagerCampaignsFindings(ctx context.Context, in ListManage
 
 // ListManagerCampaignsMetricsRefreshInput is the input for ListManagerCampaignsMetricsRefresh — Refresh Campaign Metrics.
 type ListManagerCampaignsMetricsRefreshInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IncludeExpired *bool `url:"includeExpired,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -295,6 +1044,9 @@ func (c *Client) ListManagerCampaignsMetricsRefresh(ctx context.Context, in List
 	}
 	if in.IncludeExpired != nil {
 		query.Set("includeExpired", strconv.FormatBool(*in.IncludeExpired))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -316,6 +1068,9 @@ func (c *Client) ListManagerCampaignsMetricsRefresh(ctx context.Context, in List
 
 // ListManagerCampaignsPreviewsInput is the input for ListManagerCampaignsPreviews — Get Campaign Previews.
 type ListManagerCampaignsPreviewsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -335,6 +1090,15 @@ func (c *Client) ListManagerCampaignsPreviews(ctx context.Context, in ListManage
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -356,6 +1120,7 @@ func (c *Client) ListManagerCampaignsPreviews(ctx context.Context, in ListManage
 
 // ListManagerCampaignsSummariesInput is the input for ListManagerCampaignsSummaries — Get Campaign Summaries.
 type ListManagerCampaignsSummariesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -375,6 +1140,9 @@ func (c *Client) ListManagerCampaignsSummaries(ctx context.Context, in ListManag
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -397,6 +1165,7 @@ func (c *Client) ListManagerCampaignsSummaries(ctx context.Context, in ListManag
 // DeleteManagerCampaignsCampaignIdInput is the input for DeleteManagerCampaignsCampaignId — Delete Campaign.
 type DeleteManagerCampaignsCampaignIdInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -409,6 +1178,9 @@ func (c *Client) DeleteManagerCampaignsCampaignId(ctx context.Context, in Delete
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -424,6 +1196,7 @@ func (c *Client) DeleteManagerCampaignsCampaignId(ctx context.Context, in Delete
 // GetManagerCampaignsCampaignIdInput is the input for GetManagerCampaignsCampaignId — Get Campaign by ID.
 type GetManagerCampaignsCampaignIdInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -436,6 +1209,9 @@ func (c *Client) GetManagerCampaignsCampaignId(ctx context.Context, in GetManage
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -458,10 +1234,14 @@ func (c *Client) GetManagerCampaignsCampaignId(ctx context.Context, in GetManage
 // PatchManagerCampaignsCampaignIdInput is the input for PatchManagerCampaignsCampaignId — Patch Campaign.
 type PatchManagerCampaignsCampaignIdInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ClearExploitValidated *bool `json:"clearExploitValidated,omitempty"`
+	ConfirmWholeBacklog *bool `json:"confirmWholeBacklog,omitempty"`
 	CreatedAfter *string `json:"createdAfter,omitempty"`
 	CreatedBefore *string `json:"createdBefore,omitempty"`
 	Description *string `json:"description,omitempty"`
 	EndDate *string `json:"endDate,omitempty"`
+	ExploitValidated *bool `json:"exploitValidated,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
 	GeneratedReasoning *string `json:"generatedReasoning,omitempty"`
 	IsActive *bool `json:"isActive,omitempty"`
@@ -470,14 +1250,15 @@ type PatchManagerCampaignsCampaignIdInput struct {
 	MinPriority *float64 `json:"minPriority,omitempty"`
 	NoEndDate *bool `json:"noEndDate,omitempty"`
 	Owner *string `json:"owner,omitempty"`
+	PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 	PriorityLabels []string `json:"priorityLabels,omitempty"`
-	RepositoryNames []string `json:"repositoryNames,omitempty"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	SeverityConfidence []string `json:"severityConfidence,omitempty"`
 	SortByColumns *string `json:"sortByColumns,omitempty"`
 	SortByDirection *string `json:"sortByDirection,omitempty"`
 	StartDate *string `json:"startDate,omitempty"`
 	Summary *string `json:"summary,omitempty"`
 	TeamIDs []string `json:"teamIDs,omitempty"`
-	TeamNames []string `json:"teamNames,omitempty"`
 	Title *string `json:"title,omitempty"`
 	Types []string `json:"types,omitempty"`
 	UserNames []string `json:"userNames,omitempty"`
@@ -496,6 +1277,9 @@ func (c *Client) PatchManagerCampaignsCampaignId(ctx context.Context, in PatchMa
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -504,10 +1288,13 @@ func (c *Client) PatchManagerCampaignsCampaignId(ctx context.Context, in PatchMa
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		ClearExploitValidated *bool `json:"clearExploitValidated,omitempty"`
+		ConfirmWholeBacklog *bool `json:"confirmWholeBacklog,omitempty"`
 		CreatedAfter *string `json:"createdAfter,omitempty"`
 		CreatedBefore *string `json:"createdBefore,omitempty"`
 		Description *string `json:"description,omitempty"`
 		EndDate *string `json:"endDate,omitempty"`
+		ExploitValidated *bool `json:"exploitValidated,omitempty"`
 		FindingIds []string `json:"findingIds,omitempty"`
 		GeneratedReasoning *string `json:"generatedReasoning,omitempty"`
 		IsActive *bool `json:"isActive,omitempty"`
@@ -516,24 +1303,28 @@ func (c *Client) PatchManagerCampaignsCampaignId(ctx context.Context, in PatchMa
 		MinPriority *float64 `json:"minPriority,omitempty"`
 		NoEndDate *bool `json:"noEndDate,omitempty"`
 		Owner *string `json:"owner,omitempty"`
+		PrBudgetPerWeek *int `json:"prBudgetPerWeek,omitempty"`
 		PriorityLabels []string `json:"priorityLabels,omitempty"`
-		RepositoryNames []string `json:"repositoryNames,omitempty"`
+		RepositoryIds []string `json:"repositoryIds,omitempty"`
+		SeverityConfidence []string `json:"severityConfidence,omitempty"`
 		SortByColumns *string `json:"sortByColumns,omitempty"`
 		SortByDirection *string `json:"sortByDirection,omitempty"`
 		StartDate *string `json:"startDate,omitempty"`
 		Summary *string `json:"summary,omitempty"`
 		TeamIDs []string `json:"teamIDs,omitempty"`
-		TeamNames []string `json:"teamNames,omitempty"`
 		Title *string `json:"title,omitempty"`
 		Types []string `json:"types,omitempty"`
 		UserNames []string `json:"userNames,omitempty"`
 		VulnerabilityCVEIds []string `json:"vulnerabilityCVEIds,omitempty"`
 		VulnerabilityCWEIds []string `json:"vulnerabilityCWEIds,omitempty"`
 	}{
+		ClearExploitValidated: in.ClearExploitValidated,
+		ConfirmWholeBacklog: in.ConfirmWholeBacklog,
 		CreatedAfter: in.CreatedAfter,
 		CreatedBefore: in.CreatedBefore,
 		Description: in.Description,
 		EndDate: in.EndDate,
+		ExploitValidated: in.ExploitValidated,
 		FindingIds: in.FindingIds,
 		GeneratedReasoning: in.GeneratedReasoning,
 		IsActive: in.IsActive,
@@ -542,14 +1333,15 @@ func (c *Client) PatchManagerCampaignsCampaignId(ctx context.Context, in PatchMa
 		MinPriority: in.MinPriority,
 		NoEndDate: in.NoEndDate,
 		Owner: in.Owner,
+		PrBudgetPerWeek: in.PrBudgetPerWeek,
 		PriorityLabels: in.PriorityLabels,
-		RepositoryNames: in.RepositoryNames,
+		RepositoryIds: in.RepositoryIds,
+		SeverityConfidence: in.SeverityConfidence,
 		SortByColumns: in.SortByColumns,
 		SortByDirection: in.SortByDirection,
 		StartDate: in.StartDate,
 		Summary: in.Summary,
 		TeamIDs: in.TeamIDs,
-		TeamNames: in.TeamNames,
 		Title: in.Title,
 		Types: in.Types,
 		UserNames: in.UserNames,
@@ -574,6 +1366,7 @@ func (c *Client) PatchManagerCampaignsCampaignId(ctx context.Context, in PatchMa
 type ListManagerCampaignsCampaignIdEventsInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
 	ActionTypes []string `url:"actionTypes,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	Statuses []string `url:"statuses,omitempty" json:"-"`
@@ -602,6 +1395,9 @@ func (c *Client) ListManagerCampaignsCampaignIdEvents(ctx context.Context, in Li
 	for _, v := range in.Statuses {
 		query.Add("statuses", string(v))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -623,6 +1419,7 @@ func (c *Client) ListManagerCampaignsCampaignIdEvents(ctx context.Context, in Li
 // ListManagerCampaignsCampaignIdFindingsInput is the input for ListManagerCampaignsCampaignIdFindings — Get (Triaged) Findings Associated with a campaign.
 type ListManagerCampaignsCampaignIdFindingsInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -635,6 +1432,9 @@ func (c *Client) ListManagerCampaignsCampaignIdFindings(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -657,6 +1457,7 @@ func (c *Client) ListManagerCampaignsCampaignIdFindings(ctx context.Context, in 
 // ListManagerCampaignsCampaignIdPreviewInput is the input for ListManagerCampaignsCampaignIdPreview — Get Campaign Preview Details.
 type ListManagerCampaignsCampaignIdPreviewInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -669,6 +1470,9 @@ func (c *Client) ListManagerCampaignsCampaignIdPreview(ctx context.Context, in L
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -692,7 +1496,9 @@ func (c *Client) ListManagerCampaignsCampaignIdPreview(ctx context.Context, in L
 type ListManagerCampaignsCampaignIdRunsInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
 	Cursor *string `url:"cursor,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int32 `url:"limit,omitempty" json:"-"`
+	Offset *int32 `url:"offset,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -711,6 +1517,12 @@ func (c *Client) ListManagerCampaignsCampaignIdRuns(ctx context.Context, in List
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -734,6 +1546,7 @@ func (c *Client) ListManagerCampaignsCampaignIdRuns(ctx context.Context, in List
 type GetManagerCampaignsCampaignIdRunsRunIdInput struct {
 	CampaignID string `path:"campaignId" json:"-"`
 	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -747,6 +1560,9 @@ func (c *Client) GetManagerCampaignsCampaignIdRunsRunId(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -766,8 +1582,45 @@ func (c *Client) GetManagerCampaignsCampaignIdRunsRunId(ctx context.Context, in 
 	return &out, nil
 }
 
+// UpdateManagerChatGeneralInput is the input for UpdateManagerChatGeneral — Get or create Operator General chat.
+type UpdateManagerChatGeneralInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// UpdateManagerChatGeneral - Get or create Operator General chat
+// PUT /manager/chat/general
+func (c *Client) UpdateManagerChatGeneral(ctx context.Context, in UpdateManagerChatGeneralInput) (*models.EndpointsPutGeneralChatOutput, error) {
+	path := "/manager/chat/general"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "PUT", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutGeneralChatOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListManagerChatSessionsInput is the input for ListManagerChatSessions — List Chat Sessions.
 type ListManagerChatSessionsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
@@ -787,6 +1640,9 @@ func (c *Client) ListManagerChatSessions(ctx context.Context, in ListManagerChat
 	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -809,6 +1665,7 @@ func (c *Client) ListManagerChatSessions(ctx context.Context, in ListManagerChat
 // DeleteManagerChatSessionsChatIDInput is the input for DeleteManagerChatSessionsChatID — Delete Chat Session.
 type DeleteManagerChatSessionsChatIDInput struct {
 	ChatID string `path:"chatID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -821,6 +1678,9 @@ func (c *Client) DeleteManagerChatSessionsChatID(ctx context.Context, in DeleteM
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -843,6 +1703,7 @@ func (c *Client) DeleteManagerChatSessionsChatID(ctx context.Context, in DeleteM
 // GetManagerChatSessionsChatIDInput is the input for GetManagerChatSessionsChatID — Get Chat Session.
 type GetManagerChatSessionsChatIDInput struct {
 	ChatID string `path:"chatID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -855,6 +1716,9 @@ func (c *Client) GetManagerChatSessionsChatID(ctx context.Context, in GetManager
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -877,6 +1741,7 @@ func (c *Client) GetManagerChatSessionsChatID(ctx context.Context, in GetManager
 // PatchManagerChatSessionsChatIDInput is the input for PatchManagerChatSessionsChatID — Patch Chat Session.
 type PatchManagerChatSessionsChatIDInput struct {
 	ChatID string `path:"chatID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Title *string `json:"title,omitempty"`
 	models.RequestScope
 }
@@ -890,6 +1755,9 @@ func (c *Client) PatchManagerChatSessionsChatID(ctx context.Context, in PatchMan
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -920,6 +1788,7 @@ func (c *Client) PatchManagerChatSessionsChatID(ctx context.Context, in PatchMan
 // ListManagerChatSessionsChatIDActionsInput is the input for ListManagerChatSessionsChatIDActions — Get Chat Session Actions.
 type ListManagerChatSessionsChatIDActionsInput struct {
 	ChatID string `path:"chatID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -932,6 +1801,9 @@ func (c *Client) ListManagerChatSessionsChatIDActions(ctx context.Context, in Li
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -954,6 +1826,7 @@ func (c *Client) ListManagerChatSessionsChatIDActions(ctx context.Context, in Li
 // ListManagerChatSessionsChatIDAuditInput is the input for ListManagerChatSessionsChatIDAudit — Get chat session audit trail.
 type ListManagerChatSessionsChatIDAuditInput struct {
 	ChatID string `path:"chatID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
@@ -974,6 +1847,9 @@ func (c *Client) ListManagerChatSessionsChatIDAudit(ctx context.Context, in List
 	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -996,6 +1872,8 @@ func (c *Client) ListManagerChatSessionsChatIDAudit(ctx context.Context, in List
 // ListManagerChatSessionsChatIDHistoryInput is the input for ListManagerChatSessionsChatIDHistory — Get Chat Session History.
 type ListManagerChatSessionsChatIDHistoryInput struct {
 	ChatID string `path:"chatID" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeReplay *bool `url:"includeReplay,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -1017,6 +1895,12 @@ func (c *Client) ListManagerChatSessionsChatIDHistory(ctx context.Context, in Li
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
+	if in.IncludeReplay != nil {
+		query.Set("includeReplay", strconv.FormatBool(*in.IncludeReplay))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1037,6 +1921,7 @@ func (c *Client) ListManagerChatSessionsChatIDHistory(ctx context.Context, in Li
 
 // ListManagerConfigInput is the input for ListManagerConfig — Get Manager config.
 type ListManagerConfigInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1048,6 +1933,9 @@ func (c *Client) ListManagerConfig(ctx context.Context, in ListManagerConfigInpu
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1069,6 +1957,7 @@ func (c *Client) ListManagerConfig(ctx context.Context, in ListManagerConfigInpu
 
 // CreateManagerConfigInput is the input for CreateManagerConfig — Update Manager config.
 type CreateManagerConfigInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Config models.EndpointsManagerConfigInput `json:"config"`
 	models.RequestScope
 }
@@ -1081,6 +1970,9 @@ func (c *Client) CreateManagerConfig(ctx context.Context, in CreateManagerConfig
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1108,52 +2000,24 @@ func (c *Client) CreateManagerConfig(ctx context.Context, in CreateManagerConfig
 	return &out, nil
 }
 
-// ListManagerCreditsInput is the input for ListManagerCredits — Get Manager credit balance.
-type ListManagerCreditsInput struct {
+// CreateManagerDailySummaryTriggerInput is the input for CreateManagerDailySummaryTrigger — Start a daily summary run.
+type CreateManagerDailySummaryTriggerInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Audience string `json:"audience"`
 	models.RequestScope
 }
 
-// ListManagerCredits - Get Manager credit balance
-// GET /manager/credits
-func (c *Client) ListManagerCredits(ctx context.Context, in ListManagerCreditsInput) (*models.EndpointsGetCreditsOutput, error) {
-	path := "/manager/credits"
+// CreateManagerDailySummaryTrigger - Start a daily summary run
+// POST /manager/daily-summary/trigger
+func (c *Client) CreateManagerDailySummaryTrigger(ctx context.Context, in CreateManagerDailySummaryTriggerInput) (*models.EndpointsTriggerManagerDailySummaryOutput, error) {
+	path := "/manager/daily-summary/trigger"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsGetCreditsOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateManagerCreditsInput is the input for CreateManagerCredits — Update Manager credit balance.
-type CreateManagerCreditsInput struct {
-	Credits models.ModelsCreditsUpdate `json:"credits"`
-	models.RequestScope
-}
-
-// CreateManagerCredits - Update Manager credit balance
-// POST /manager/credits
-func (c *Client) CreateManagerCredits(ctx context.Context, in CreateManagerCreditsInput) (*models.EndpointsPostCreditsOutput, error) {
-	path := "/manager/credits"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1163,9 +2027,9 @@ func (c *Client) CreateManagerCredits(ctx context.Context, in CreateManagerCredi
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		Credits models.ModelsCreditsUpdate `json:"credits"`
+		Audience string `json:"audience"`
 	}{
-		Credits: in.Credits,
+		Audience: in.Audience,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -1174,66 +2038,42 @@ func (c *Client) CreateManagerCredits(ctx context.Context, in CreateManagerCredi
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsPostCreditsOutput
+	var out models.EndpointsTriggerManagerDailySummaryOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
 }
 
-// DeleteManagerCustomerQuestionsInput is the input for DeleteManagerCustomerQuestions — Delete All Customer Question Sets.
-type DeleteManagerCustomerQuestionsInput struct {
+// ListManagerEngagementUsersInput is the input for ListManagerEngagementUsers — Get Developer Engagement.
+type ListManagerEngagementUsersInput struct {
+	CampaignID *string `url:"campaignId,omitempty" json:"-"`
+	Cursor *string `url:"cursor,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Since *string `url:"since,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// DeleteManagerCustomerQuestions - Delete All Customer Question Sets
-// DELETE /manager/customer-questions
-func (c *Client) DeleteManagerCustomerQuestions(ctx context.Context, in DeleteManagerCustomerQuestionsInput) (*models.EndpointsDeleteAllCustomerQuestionSetsOutput, error) {
-	path := "/manager/customer-questions"
+// ListManagerEngagementUsers - Get Developer Engagement
+// GET /manager/engagement/users
+func (c *Client) ListManagerEngagementUsers(ctx context.Context, in ListManagerEngagementUsersInput) (*models.EndpointsGetEngagementUsersOutput, error) {
+	path := "/manager/engagement/users"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
+	if in.CampaignID != nil {
+		query.Set("campaignId", string(*in.CampaignID))
 	}
-
-	data, err := c.do(ctx, "DELETE", fullURL, nil)
-	if err != nil {
-		return nil, err
+	if in.Since != nil {
+		query.Set("since", string(*in.Since))
 	}
-	var out models.EndpointsDeleteAllCustomerQuestionSetsOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
 	}
-	return &out, nil
-}
-
-// ListManagerCustomerQuestionsInput is the input for ListManagerCustomerQuestions — List Customer Question Sets.
-type ListManagerCustomerQuestionsInput struct {
-	Page *int `url:"page,omitempty" json:"-"`
-	PageSize *int `url:"pageSize,omitempty" json:"-"`
-	models.RequestScope
-}
-
-// ListManagerCustomerQuestions - List Customer Question Sets
-// GET /manager/customer-questions
-func (c *Client) ListManagerCustomerQuestions(ctx context.Context, in ListManagerCustomerQuestionsInput) (*models.EndpointsGetCustomerQuestionSetsOutput, error) {
-	path := "/manager/customer-questions"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.Page != nil {
-		query.Set("page", strconv.Itoa(int(*in.Page)))
-	}
-	if in.PageSize != nil {
-		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1246,62 +2086,30 @@ func (c *Client) ListManagerCustomerQuestions(ctx context.Context, in ListManage
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsGetCustomerQuestionSetsOutput
+	var out models.EndpointsGetEngagementUsersOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
 }
 
-// DeleteManagerCustomerQuestionsQuestionSetIdInput is the input for DeleteManagerCustomerQuestionsQuestionSetId — Delete Customer Question Set.
-type DeleteManagerCustomerQuestionsQuestionSetIdInput struct {
-	QuestionSetID string `path:"questionSetId" json:"-"`
+// ListManagerEscalationRecipientsInput is the input for ListManagerEscalationRecipients — Get Escalation Recipients.
+type ListManagerEscalationRecipientsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// DeleteManagerCustomerQuestionsQuestionSetId - Delete Customer Question Set
-// DELETE /manager/customer-questions/{questionSetId}
-func (c *Client) DeleteManagerCustomerQuestionsQuestionSetId(ctx context.Context, in DeleteManagerCustomerQuestionsQuestionSetIdInput) (*models.EndpointsDeleteCustomerQuestionSetOutput, error) {
-	path := "/manager/customer-questions/{questionSetId}"
-	path = strings.Replace(path, "{questionSetId}", url.PathEscape(in.QuestionSetID), 1)
+// ListManagerEscalationRecipients - Get Escalation Recipients
+// GET /manager/escalation-recipients
+func (c *Client) ListManagerEscalationRecipients(ctx context.Context, in ListManagerEscalationRecipientsInput) (*models.EndpointsGetEscalationRecipientsOutput, error) {
+	path := "/manager/escalation-recipients"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "DELETE", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsDeleteCustomerQuestionSetOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// GetManagerCustomerQuestionsQuestionSetIdInput is the input for GetManagerCustomerQuestionsQuestionSetId — Get Customer Question Set.
-type GetManagerCustomerQuestionsQuestionSetIdInput struct {
-	QuestionSetID string `path:"questionSetId" json:"-"`
-	models.RequestScope
-}
-
-// GetManagerCustomerQuestionsQuestionSetId - Get Customer Question Set
-// GET /manager/customer-questions/{questionSetId}
-func (c *Client) GetManagerCustomerQuestionsQuestionSetId(ctx context.Context, in GetManagerCustomerQuestionsQuestionSetIdInput) (*models.EndpointsGetCustomerQuestionSetOutput, error) {
-	path := "/manager/customer-questions/{questionSetId}"
-	path = strings.Replace(path, "{questionSetId}", url.PathEscape(in.QuestionSetID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1314,31 +2122,67 @@ func (c *Client) GetManagerCustomerQuestionsQuestionSetId(ctx context.Context, i
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsGetCustomerQuestionSetOutput
+	var out models.EndpointsGetEscalationRecipientsOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
 }
 
-// PatchManagerCustomerQuestionsQuestionSetIdAnswersQuestionIdInput is the input for PatchManagerCustomerQuestionsQuestionSetIdAnswersQuestionId — Submit Question Answer.
-type PatchManagerCustomerQuestionsQuestionSetIdAnswersQuestionIdInput struct {
-	QuestionSetID string `path:"questionSetId" json:"-"`
-	QuestionID string `path:"questionId" json:"-"`
-	Answer json.RawMessage `json:"answer"`
+// ListManagerEscalationsConfigInput is the input for ListManagerEscalationsConfig — Get Escalation Config.
+type ListManagerEscalationsConfigInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// PatchManagerCustomerQuestionsQuestionSetIdAnswersQuestionId - Submit Question Answer
-// PATCH /manager/customer-questions/{questionSetId}/answers/{questionId}
-func (c *Client) PatchManagerCustomerQuestionsQuestionSetIdAnswersQuestionId(ctx context.Context, in PatchManagerCustomerQuestionsQuestionSetIdAnswersQuestionIdInput) (*models.EndpointsPatchCustomerQuestionAnswerOutput, error) {
-	path := "/manager/customer-questions/{questionSetId}/answers/{questionId}"
-	path = strings.Replace(path, "{questionSetId}", url.PathEscape(in.QuestionSetID), 1)
-	path = strings.Replace(path, "{questionId}", url.PathEscape(in.QuestionID), 1)
+// ListManagerEscalationsConfig - Get Escalation Config
+// GET /manager/escalations/config
+func (c *Client) ListManagerEscalationsConfig(ctx context.Context, in ListManagerEscalationsConfigInput) (*models.EndpointsGetManagerEscalationConfigOutput, error) {
+	path := "/manager/escalations/config"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetManagerEscalationConfigOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateManagerEscalationsConfigInput is the input for UpdateManagerEscalationsConfig — Put Escalation Config.
+type UpdateManagerEscalationsConfigInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Escalation models.ModelsEscalationRouting `json:"escalation"`
+	models.RequestScope
+}
+
+// UpdateManagerEscalationsConfig - Put Escalation Config
+// PUT /manager/escalations/config
+func (c *Client) UpdateManagerEscalationsConfig(ctx context.Context, in UpdateManagerEscalationsConfigInput) (*models.EndpointsPutManagerEscalationConfigOutput, error) {
+	path := "/manager/escalations/config"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1348,141 +2192,27 @@ func (c *Client) PatchManagerCustomerQuestionsQuestionSetIdAnswersQuestionId(ctx
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		Answer json.RawMessage `json:"answer"`
+		Escalation models.ModelsEscalationRouting `json:"escalation"`
 	}{
-		Answer: in.Answer,
+		Escalation: in.Escalation,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
 	}
-	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsPatchCustomerQuestionAnswerOutput
+	var out models.EndpointsPutManagerEscalationConfigOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
-}
-
-// DeleteManagerCustomerQuestionsQuestionSetIdQuestionsQuestionIdInput is the input for DeleteManagerCustomerQuestionsQuestionSetIdQuestionsQuestionId — Delete Customer Question.
-type DeleteManagerCustomerQuestionsQuestionSetIdQuestionsQuestionIdInput struct {
-	QuestionSetID string `path:"questionSetId" json:"-"`
-	QuestionID string `path:"questionId" json:"-"`
-	models.RequestScope
-}
-
-// DeleteManagerCustomerQuestionsQuestionSetIdQuestionsQuestionId - Delete Customer Question
-// DELETE /manager/customer-questions/{questionSetId}/questions/{questionId}
-func (c *Client) DeleteManagerCustomerQuestionsQuestionSetIdQuestionsQuestionId(ctx context.Context, in DeleteManagerCustomerQuestionsQuestionSetIdQuestionsQuestionIdInput) (*models.EndpointsDeleteCustomerQuestionOutput, error) {
-	path := "/manager/customer-questions/{questionSetId}/questions/{questionId}"
-	path = strings.Replace(path, "{questionSetId}", url.PathEscape(in.QuestionSetID), 1)
-	path = strings.Replace(path, "{questionId}", url.PathEscape(in.QuestionID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "DELETE", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsDeleteCustomerQuestionOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListManagerEscalationsInput is the input for ListManagerEscalations — Get Escalations.
-type ListManagerEscalationsInput struct {
-	Page *int `url:"page,omitempty" json:"-"`
-	PageSize *int `url:"pageSize,omitempty" json:"-"`
-	models.RequestScope
-}
-
-// ListManagerEscalations - Get Escalations
-// GET /manager/escalations
-func (c *Client) ListManagerEscalations(ctx context.Context, in ListManagerEscalationsInput) (*models.EndpointsGetEscalationsOutput, error) {
-	path := "/manager/escalations"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.Page != nil {
-		query.Set("page", strconv.Itoa(int(*in.Page)))
-	}
-	if in.PageSize != nil {
-		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsGetEscalationsOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// PatchManagerEscalationsEscalationIdInput is the input for PatchManagerEscalationsEscalationId — Patch Escalation.
-type PatchManagerEscalationsEscalationIdInput struct {
-	EscalationID string `path:"escalationId" json:"-"`
-	Reasoning *string `json:"reasoning,omitempty"`
-	Status *models.ModelsEscalationStatus `json:"status,omitempty"`
-	models.RequestScope
-}
-
-// PatchManagerEscalationsEscalationId - Patch Escalation
-// PATCH /manager/escalations/{escalationId}
-func (c *Client) PatchManagerEscalationsEscalationId(ctx context.Context, in PatchManagerEscalationsEscalationIdInput) ([]byte, error) {
-	path := "/manager/escalations/{escalationId}"
-	path = strings.Replace(path, "{escalationId}", url.PathEscape(in.EscalationID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Reasoning *string `json:"reasoning,omitempty"`
-		Status *models.ModelsEscalationStatus `json:"status,omitempty"`
-	}{
-		Reasoning: in.Reasoning,
-		Status: in.Status,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
-	return data, err
 }
 
 // ListManagerEventsInput is the input for ListManagerEvents — Get Events.
 type ListManagerEventsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -1502,6 +2232,9 @@ func (c *Client) ListManagerEvents(ctx context.Context, in ListManagerEventsInpu
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1523,6 +2256,7 @@ func (c *Client) ListManagerEvents(ctx context.Context, in ListManagerEventsInpu
 
 // CreateManagerEventsDeduplicateInput is the input for CreateManagerEventsDeduplicate — Deduplicate Events.
 type CreateManagerEventsDeduplicateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	DryRun *bool `json:"dryRun,omitempty"`
 	From *string `json:"from,omitempty"`
 	Keep *string `json:"keep,omitempty"`
@@ -1540,6 +2274,9 @@ func (c *Client) CreateManagerEventsDeduplicate(ctx context.Context, in CreateMa
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1580,6 +2317,7 @@ func (c *Client) CreateManagerEventsDeduplicate(ctx context.Context, in CreateMa
 // DeleteManagerEventsEventIdInput is the input for DeleteManagerEventsEventId — Delete Event.
 type DeleteManagerEventsEventIdInput struct {
 	EventID string `path:"eventId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1592,6 +2330,9 @@ func (c *Client) DeleteManagerEventsEventId(ctx context.Context, in DeleteManage
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1616,10 +2357,14 @@ type ListManagerFindingsFindingIdEventsInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	ActionTypes []string `url:"actionTypes,omitempty" json:"-"`
 	Cursor *string `url:"cursor,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	Statuses []string `url:"statuses,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListManagerFindingsFindingIdEventsInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListManagerFindingsFindingIdEvents - Get Finding Events
 // GET /manager/findings/{findingId}/events
@@ -1643,6 +2388,9 @@ func (c *Client) ListManagerFindingsFindingIdEvents(ctx context.Context, in List
 	if in.Cursor != nil {
 		query.Set("cursor", string(*in.Cursor))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1661,8 +2409,94 @@ func (c *Client) ListManagerFindingsFindingIdEvents(ctx context.Context, in List
 	return &out, nil
 }
 
+// ListManagerFixPrsRecordIdNudgeInput is the input for ListManagerFixPrsRecordIdNudge — Preview Fix PR Nudge.
+type ListManagerFixPrsRecordIdNudgeInput struct {
+	RecordID string `path:"recordId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerFixPrsRecordIdNudge - Preview Fix PR Nudge
+// GET /manager/fix-prs/{recordId}/nudge
+func (c *Client) ListManagerFixPrsRecordIdNudge(ctx context.Context, in ListManagerFixPrsRecordIdNudgeInput) (*models.EndpointsGetFixPRNudgeOutput, error) {
+	path := "/manager/fix-prs/{recordId}/nudge"
+	path = strings.Replace(path, "{recordId}", url.PathEscape(in.RecordID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetFixPRNudgeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerFixPrsRecordIdNudgeInput is the input for CreateManagerFixPrsRecordIdNudge — Nudge Fix PR Reviewers.
+type CreateManagerFixPrsRecordIdNudgeInput struct {
+	RecordID string `path:"recordId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	RecipientUserIds []string `json:"recipientUserIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateManagerFixPrsRecordIdNudge - Nudge Fix PR Reviewers
+// POST /manager/fix-prs/{recordId}/nudge
+func (c *Client) CreateManagerFixPrsRecordIdNudge(ctx context.Context, in CreateManagerFixPrsRecordIdNudgeInput) (*models.EndpointsNudgeFixPROutput, error) {
+	path := "/manager/fix-prs/{recordId}/nudge"
+	path = strings.Replace(path, "{recordId}", url.PathEscape(in.RecordID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		RecipientUserIds []string `json:"recipientUserIds,omitempty"`
+	}{
+		RecipientUserIds: in.RecipientUserIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsNudgeFixPROutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListManagerGroundrulesInput is the input for ListManagerGroundrules — Get Manager ground rules.
 type ListManagerGroundrulesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1674,6 +2508,9 @@ func (c *Client) ListManagerGroundrules(ctx context.Context, in ListManagerGroun
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1693,13 +2530,14 @@ func (c *Client) ListManagerGroundrules(ctx context.Context, in ListManagerGroun
 	return &out, nil
 }
 
-// PatchManagerGroundrulesInput is the input for PatchManagerGroundrules — Patch a GroundRules object to S3.
+// PatchManagerGroundrulesInput is the input for PatchManagerGroundrules — Patch a GroundRules object.
 type PatchManagerGroundrulesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	GroundRules *models.ModelsManagerGroundRules `json:"groundRules,omitempty"`
 	models.RequestScope
 }
 
-// PatchManagerGroundrules - Patch a GroundRules object to S3
+// PatchManagerGroundrules - Patch a GroundRules object
 // PATCH /manager/groundrules
 func (c *Client) PatchManagerGroundrules(ctx context.Context, in PatchManagerGroundrulesInput) (*models.EndpointsPatchGroundRulesOutput, error) {
 	path := "/manager/groundrules"
@@ -1707,6 +2545,9 @@ func (c *Client) PatchManagerGroundrules(ctx context.Context, in PatchManagerGro
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1734,13 +2575,15 @@ func (c *Client) PatchManagerGroundrules(ctx context.Context, in PatchManagerGro
 	return &out, nil
 }
 
-// CreateManagerGroundrulesInput is the input for CreateManagerGroundrules — Post a GroundRules object to S3.
+// CreateManagerGroundrulesInput is the input for CreateManagerGroundrules — Post a GroundRules object.
 type CreateManagerGroundrulesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
 	GroundRules *models.ModelsManagerGroundRules `json:"groundRules,omitempty"`
 	models.RequestScope
 }
 
-// CreateManagerGroundrules - Post a GroundRules object to S3
+// CreateManagerGroundrules - Post a GroundRules object
 // POST /manager/groundrules
 func (c *Client) CreateManagerGroundrules(ctx context.Context, in CreateManagerGroundrulesInput) (*models.EndpointsPostManagerGroundRulesOutput, error) {
 	path := "/manager/groundrules"
@@ -1748,6 +2591,9 @@ func (c *Client) CreateManagerGroundrules(ctx context.Context, in CreateManagerG
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1757,8 +2603,10 @@ func (c *Client) CreateManagerGroundrules(ctx context.Context, in CreateManagerG
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
 		GroundRules *models.ModelsManagerGroundRules `json:"groundRules,omitempty"`
 	}{
+		ExpectedUpdatedAt: in.ExpectedUpdatedAt,
 		GroundRules: in.GroundRules,
 	})
 	if err != nil {
@@ -1775,8 +2623,148 @@ func (c *Client) CreateManagerGroundrules(ctx context.Context, in CreateManagerG
 	return &out, nil
 }
 
+// ListManagerIdentityClassificationsInput is the input for ListManagerIdentityClassifications — List Git Identity Classifications.
+type ListManagerIdentityClassificationsInput struct {
+	Decision *string `url:"decision,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerIdentityClassifications - List Git Identity Classifications
+// GET /manager/identity-classifications
+func (c *Client) ListManagerIdentityClassifications(ctx context.Context, in ListManagerIdentityClassificationsInput) (*models.EndpointsListIdentityClassificationsOutput, error) {
+	path := "/manager/identity-classifications"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Decision != nil {
+		query.Set("decision", string(*in.Decision))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListIdentityClassificationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerIdentityClassificationsInput is the input for CreateManagerIdentityClassifications — Classify Git Identity.
+type CreateManagerIdentityClassificationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Decision string `json:"decision"`
+	Provider models.ModelsProviderID `json:"provider"`
+	ProviderUserID string `json:"providerUserId"`
+	Reason *string `json:"reason,omitempty"`
+	models.RequestScope
+}
+
+// CreateManagerIdentityClassifications - Classify Git Identity
+// POST /manager/identity-classifications
+func (c *Client) CreateManagerIdentityClassifications(ctx context.Context, in CreateManagerIdentityClassificationsInput) (*models.EndpointsClassifyIdentityOutput, error) {
+	path := "/manager/identity-classifications"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Decision string `json:"decision"`
+		Provider models.ModelsProviderID `json:"provider"`
+		ProviderUserID string `json:"providerUserId"`
+		Reason *string `json:"reason,omitempty"`
+	}{
+		Decision: in.Decision,
+		Provider: in.Provider,
+		ProviderUserID: in.ProviderUserID,
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsClassifyIdentityOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteManagerIdentityClassificationsProviderProviderUserIdInput is the input for DeleteManagerIdentityClassificationsProviderProviderUserId — Revoke Git Identity Classification.
+type DeleteManagerIdentityClassificationsProviderProviderUserIdInput struct {
+	Provider string `path:"provider" json:"-"`
+	ProviderUserID string `path:"providerUserId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reason *string `url:"reason,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteManagerIdentityClassificationsProviderProviderUserId - Revoke Git Identity Classification
+// DELETE /manager/identity-classifications/{provider}/{providerUserId}
+func (c *Client) DeleteManagerIdentityClassificationsProviderProviderUserId(ctx context.Context, in DeleteManagerIdentityClassificationsProviderProviderUserIdInput) (*models.EndpointsRevokeIdentityClassificationOutput, error) {
+	path := "/manager/identity-classifications/{provider}/{providerUserId}"
+	path = strings.Replace(path, "{provider}", url.PathEscape(in.Provider), 1)
+	path = strings.Replace(path, "{providerUserId}", url.PathEscape(in.ProviderUserID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Reason != nil {
+		query.Set("reason", string(*in.Reason))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsRevokeIdentityClassificationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListManagerMetricsInput is the input for ListManagerMetrics — Get Metrics.
 type ListManagerMetricsInput struct {
+	AsOf *string `url:"asOf,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1788,6 +2776,12 @@ func (c *Client) ListManagerMetrics(ctx context.Context, in ListManagerMetricsIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.AsOf != nil {
+		query.Set("asOf", string(*in.AsOf))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1807,9 +2801,58 @@ func (c *Client) ListManagerMetrics(ctx context.Context, in ListManagerMetricsIn
 	return &out, nil
 }
 
+// CreateManagerOnboardingWizardProgressInput is the input for CreateManagerOnboardingWizardProgress — Onboarding Wizard Progress.
+type CreateManagerOnboardingWizardProgressInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Detail *string `json:"detail,omitempty"`
+	Step models.ModelsOnboardingWizardStep `json:"step"`
+	models.RequestScope
+}
+
+// CreateManagerOnboardingWizardProgress - Onboarding Wizard Progress
+// POST /manager/onboarding/wizard-progress
+func (c *Client) CreateManagerOnboardingWizardProgress(ctx context.Context, in CreateManagerOnboardingWizardProgressInput) (*models.EndpointsWizardProgressOutput, error) {
+	path := "/manager/onboarding/wizard-progress"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Detail *string `json:"detail,omitempty"`
+		Step models.ModelsOnboardingWizardStep `json:"step"`
+	}{
+		Detail: in.Detail,
+		Step: in.Step,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsWizardProgressOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListManagerPlansInput is the input for ListManagerPlans — Get Plans.
 type ListManagerPlansInput struct {
 	CampaignID *string `url:"campaignId,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -1833,6 +2876,9 @@ func (c *Client) ListManagerPlans(ctx context.Context, in ListManagerPlansInput)
 	if in.CampaignID != nil {
 		query.Set("campaignId", string(*in.CampaignID))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1851,8 +2897,230 @@ func (c *Client) ListManagerPlans(ctx context.Context, in ListManagerPlansInput)
 	return &out, nil
 }
 
+// ListManagerProgramInput is the input for ListManagerProgram — Get Security Program.
+type ListManagerProgramInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerProgram - Get Security Program
+// GET /manager/program
+func (c *Client) ListManagerProgram(ctx context.Context, in ListManagerProgramInput) (*models.EndpointsGetSecurityProgramOutput, error) {
+	path := "/manager/program"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecurityProgramOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchManagerProgramInput is the input for PatchManagerProgram — State Security Program.
+type PatchManagerProgramInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AnnounceWindowDays int `json:"announceWindowDays"`
+	Autonomy string `json:"autonomy"`
+	CapacityPerWeek *int `json:"capacityPerWeek,omitempty"`
+	DefaultCampaignDays int `json:"defaultCampaignDays"`
+	MaxConcurrentCampaigns int `json:"maxConcurrentCampaigns"`
+	MinCoveragePerGoal int `json:"minCoveragePerGoal"`
+	ReviewCadenceDays int `json:"reviewCadenceDays"`
+	models.RequestScope
+}
+
+// PatchManagerProgram - State Security Program
+// PATCH /manager/program
+func (c *Client) PatchManagerProgram(ctx context.Context, in PatchManagerProgramInput) (*models.EndpointsPatchSecurityProgramOutput, error) {
+	path := "/manager/program"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AnnounceWindowDays int `json:"announceWindowDays"`
+		Autonomy string `json:"autonomy"`
+		CapacityPerWeek *int `json:"capacityPerWeek,omitempty"`
+		DefaultCampaignDays int `json:"defaultCampaignDays"`
+		MaxConcurrentCampaigns int `json:"maxConcurrentCampaigns"`
+		MinCoveragePerGoal int `json:"minCoveragePerGoal"`
+		ReviewCadenceDays int `json:"reviewCadenceDays"`
+	}{
+		AnnounceWindowDays: in.AnnounceWindowDays,
+		Autonomy: in.Autonomy,
+		CapacityPerWeek: in.CapacityPerWeek,
+		DefaultCampaignDays: in.DefaultCampaignDays,
+		MaxConcurrentCampaigns: in.MaxConcurrentCampaigns,
+		MinCoveragePerGoal: in.MinCoveragePerGoal,
+		ReviewCadenceDays: in.ReviewCadenceDays,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchSecurityProgramOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListManagerProposalsInput is the input for ListManagerProposals — List Open Proposals.
+type ListManagerProposalsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerProposals - List Open Proposals
+// GET /manager/proposals
+func (c *Client) ListManagerProposals(ctx context.Context, in ListManagerProposalsInput) (*models.EndpointsGetProposalsOutput, error) {
+	path := "/manager/proposals"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProposalsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerProposalsDecisionInput is the input for CreateManagerProposalsDecision — Decide Proposed Campaign.
+type CreateManagerProposalsDecisionInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Decision string `json:"decision"`
+	ProposalID string `json:"proposalId"`
+	models.RequestScope
+}
+
+// CreateManagerProposalsDecision - Decide Proposed Campaign
+// POST /manager/proposals/decision
+func (c *Client) CreateManagerProposalsDecision(ctx context.Context, in CreateManagerProposalsDecisionInput) (*models.EndpointsPostProposalDecisionOutput, error) {
+	path := "/manager/proposals/decision"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Decision string `json:"decision"`
+		ProposalID string `json:"proposalId"`
+	}{
+		Decision: in.Decision,
+		ProposalID: in.ProposalID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostProposalDecisionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetManagerRunsRunIdInput is the input for GetManagerRunsRunId — Get Manager Run.
+type GetManagerRunsRunIdInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetManagerRunsRunId - Get Manager Run
+// GET /manager/runs/{runId}
+func (c *Client) GetManagerRunsRunId(ctx context.Context, in GetManagerRunsRunIdInput) (*models.EndpointsGetManagerRunOutput, error) {
+	path := "/manager/runs/{runId}"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetManagerRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListManagerStateInput is the input for ListManagerState — Get Manager State.
 type ListManagerStateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1864,6 +3132,9 @@ func (c *Client) ListManagerState(ctx context.Context, in ListManagerStateInput)
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1885,6 +3156,7 @@ func (c *Client) ListManagerState(ctx context.Context, in ListManagerStateInput)
 
 // ListManagerStateLatestInput is the input for ListManagerStateLatest — Get Manager State (Legacy).
 type ListManagerStateLatestInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1896,6 +3168,9 @@ func (c *Client) ListManagerStateLatest(ctx context.Context, in ListManagerState
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1917,6 +3192,7 @@ func (c *Client) ListManagerStateLatest(ctx context.Context, in ListManagerState
 
 // ListManagerStatesInput is the input for ListManagerStates — Get Manager States.
 type ListManagerStatesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -1936,6 +3212,9 @@ func (c *Client) ListManagerStates(ctx context.Context, in ListManagerStatesInpu
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1957,6 +3236,7 @@ func (c *Client) ListManagerStates(ctx context.Context, in ListManagerStatesInpu
 
 // ListManagerStrategyInput is the input for ListManagerStrategy — Get Active Strategy.
 type ListManagerStrategyInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1968,6 +3248,9 @@ func (c *Client) ListManagerStrategy(ctx context.Context, in ListManagerStrategy
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1989,6 +3272,7 @@ func (c *Client) ListManagerStrategy(ctx context.Context, in ListManagerStrategy
 
 // PatchManagerStrategyInput is the input for PatchManagerStrategy — Patch Active Strategy.
 type PatchManagerStrategyInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Quarters []models.ModelsStrategyQuarterGoal `json:"quarters,omitempty"`
 	models.RequestScope
 }
@@ -2001,6 +3285,9 @@ func (c *Client) PatchManagerStrategy(ctx context.Context, in PatchManagerStrate
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2028,8 +3315,93 @@ func (c *Client) PatchManagerStrategy(ctx context.Context, in PatchManagerStrate
 	return &out, nil
 }
 
+// ListManagerStrategyProposalInput is the input for ListManagerStrategyProposal — Get Proposed Strategy.
+type ListManagerStrategyProposalInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerStrategyProposal - Get Proposed Strategy
+// GET /manager/strategy/proposal
+func (c *Client) ListManagerStrategyProposal(ctx context.Context, in ListManagerStrategyProposalInput) (*models.EndpointsGetStrategyProposalOutput, error) {
+	path := "/manager/strategy/proposal"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetStrategyProposalOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerStrategyProposalDecisionInput is the input for CreateManagerStrategyProposalDecision — Decide Proposed Strategy.
+type CreateManagerStrategyProposalDecisionInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Decision string `json:"decision"`
+	StrategyID string `json:"strategyId"`
+	models.RequestScope
+}
+
+// CreateManagerStrategyProposalDecision - Decide Proposed Strategy
+// POST /manager/strategy/proposal/decision
+func (c *Client) CreateManagerStrategyProposalDecision(ctx context.Context, in CreateManagerStrategyProposalDecisionInput) (*models.EndpointsPostStrategyProposalDecisionOutput, error) {
+	path := "/manager/strategy/proposal/decision"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Decision string `json:"decision"`
+		StrategyID string `json:"strategyId"`
+	}{
+		Decision: in.Decision,
+		StrategyID: in.StrategyID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostStrategyProposalDecisionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateManagerStrategyTriggerInput is the input for CreateManagerStrategyTrigger — Trigger Strategy Generation.
 type CreateManagerStrategyTriggerInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2041,6 +3413,9 @@ func (c *Client) CreateManagerStrategyTrigger(ctx context.Context, in CreateMana
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2062,6 +3437,7 @@ func (c *Client) CreateManagerStrategyTrigger(ctx context.Context, in CreateMana
 
 // ListManagerStrategyVersionsInput is the input for ListManagerStrategyVersions — List Strategy Versions.
 type ListManagerStrategyVersionsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
@@ -2075,6 +3451,9 @@ func (c *Client) ListManagerStrategyVersions(ctx context.Context, in ListManager
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Page != nil {
 		query.Set("page", strconv.Itoa(int(*in.Page)))
@@ -2102,6 +3481,7 @@ func (c *Client) ListManagerStrategyVersions(ctx context.Context, in ListManager
 
 // CreateManagerTacitKnowledgeTriggerInput is the input for CreateManagerTacitKnowledgeTrigger — Trigger TacitKnowledge.
 type CreateManagerTacitKnowledgeTriggerInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2113,6 +3493,9 @@ func (c *Client) CreateManagerTacitKnowledgeTrigger(ctx context.Context, in Crea
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2134,8 +3517,17 @@ func (c *Client) CreateManagerTacitKnowledgeTrigger(ctx context.Context, in Crea
 
 // ListManagerThreatInvestigationsInput is the input for ListManagerThreatInvestigations — Get Threat Investigations.
 type ListManagerThreatInvestigationsInput struct {
+	AffectedOnly *bool `url:"affectedOnly,omitempty" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	Status *string `url:"status,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2148,11 +3540,38 @@ func (c *Client) ListManagerThreatInvestigations(ctx context.Context, in ListMan
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	if in.Page != nil {
 		query.Set("page", strconv.Itoa(int(*in.Page)))
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
+	}
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
+	}
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
+	}
+	if in.Status != nil {
+		query.Set("status", string(*in.Status))
+	}
+	if in.AffectedOnly != nil {
+		query.Set("affectedOnly", strconv.FormatBool(*in.AffectedOnly))
+	}
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2174,6 +3593,7 @@ func (c *Client) ListManagerThreatInvestigations(ctx context.Context, in ListMan
 
 // CreateManagerThreatInvestigationsInput is the input for CreateManagerThreatInvestigations — Post Threat Investigation.
 type CreateManagerThreatInvestigationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Advice *string `json:"advice,omitempty"`
 	AffectedPackages []models.ModelsThreatInvestigationAffectedPackage `json:"affectedPackages,omitempty"`
 	ArticleLinks []string `json:"articleLinks,omitempty"`
@@ -2195,6 +3615,9 @@ func (c *Client) CreateManagerThreatInvestigations(ctx context.Context, in Creat
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2243,6 +3666,10 @@ func (c *Client) CreateManagerThreatInvestigations(ctx context.Context, in Creat
 // GetManagerThreatInvestigationsThreatInvestigationIdInput is the input for GetManagerThreatInvestigationsThreatInvestigationId — Get Threat Investigation.
 type GetManagerThreatInvestigationsThreatInvestigationIdInput struct {
 	ThreatInvestigationID string `path:"threatInvestigationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeVersions *bool `url:"includeVersions,omitempty" json:"-"`
+	VersionLimit *int `url:"versionLimit,omitempty" json:"-"`
+	VersionOffset *int `url:"versionOffset,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2255,6 +3682,18 @@ func (c *Client) GetManagerThreatInvestigationsThreatInvestigationId(ctx context
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.IncludeVersions != nil {
+		query.Set("includeVersions", strconv.FormatBool(*in.IncludeVersions))
+	}
+	if in.VersionLimit != nil {
+		query.Set("versionLimit", strconv.Itoa(int(*in.VersionLimit)))
+	}
+	if in.VersionOffset != nil {
+		query.Set("versionOffset", strconv.Itoa(int(*in.VersionOffset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2277,6 +3716,7 @@ func (c *Client) GetManagerThreatInvestigationsThreatInvestigationId(ctx context
 // PatchManagerThreatInvestigationsThreatInvestigationIdInput is the input for PatchManagerThreatInvestigationsThreatInvestigationId — Patch Threat Investigation.
 type PatchManagerThreatInvestigationsThreatInvestigationIdInput struct {
 	ThreatInvestigationID string `path:"threatInvestigationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Action string `json:"action"`
 	models.RequestScope
 }
@@ -2290,6 +3730,9 @@ func (c *Client) PatchManagerThreatInvestigationsThreatInvestigationId(ctx conte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2317,9 +3760,398 @@ func (c *Client) PatchManagerThreatInvestigationsThreatInvestigationId(ctx conte
 	return &out, nil
 }
 
+// ListManagerThreatInvestigationsThreatInvestigationIdProgressInput is the input for ListManagerThreatInvestigationsThreatInvestigationIdProgress — Get Threat Investigation Progress.
+type ListManagerThreatInvestigationsThreatInvestigationIdProgressInput struct {
+	ThreatInvestigationID string `path:"threatInvestigationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerThreatInvestigationsThreatInvestigationIdProgress - Get Threat Investigation Progress
+// GET /manager/threat-investigations/{threatInvestigationId}/progress
+func (c *Client) ListManagerThreatInvestigationsThreatInvestigationIdProgress(ctx context.Context, in ListManagerThreatInvestigationsThreatInvestigationIdProgressInput) (*models.EndpointsGetThreatInvestigationProgressOutput, error) {
+	path := "/manager/threat-investigations/{threatInvestigationId}/progress"
+	path = strings.Replace(path, "{threatInvestigationId}", url.PathEscape(in.ThreatInvestigationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetThreatInvestigationProgressOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListManagerThreatReportsInput is the input for ListManagerThreatReports — List My Reported Threats.
+type ListManagerThreatReportsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Page *int `url:"page,omitempty" json:"-"`
+	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerThreatReports - List My Reported Threats
+// GET /manager/threat-reports
+func (c *Client) ListManagerThreatReports(ctx context.Context, in ListManagerThreatReportsInput) (*models.EndpointsListThreatReportsOutput, error) {
+	path := "/manager/threat-reports"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Page != nil {
+		query.Set("page", strconv.Itoa(int(*in.Page)))
+	}
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListThreatReportsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerThreatReportsInput is the input for CreateManagerThreatReports — Report a Threat.
+type CreateManagerThreatReportsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AdvisoryURL *string `json:"advisoryUrl,omitempty"`
+	Campaign *models.EndpointsThreatReportCampaign `json:"campaign,omitempty"`
+	CveID *string `json:"cveId,omitempty"`
+	Ecosystem *string `json:"ecosystem,omitempty"`
+	PackageName *string `json:"packageName,omitempty"`
+	RequestID string `json:"requestId"`
+	models.RequestScope
+}
+
+// CreateManagerThreatReports - Report a Threat
+// POST /manager/threat-reports
+func (c *Client) CreateManagerThreatReports(ctx context.Context, in CreateManagerThreatReportsInput) (*models.EndpointsPostThreatReportOutput, error) {
+	path := "/manager/threat-reports"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AdvisoryURL *string `json:"advisoryUrl,omitempty"`
+		Campaign *models.EndpointsThreatReportCampaign `json:"campaign,omitempty"`
+		CveID *string `json:"cveId,omitempty"`
+		Ecosystem *string `json:"ecosystem,omitempty"`
+		PackageName *string `json:"packageName,omitempty"`
+		RequestID string `json:"requestId"`
+	}{
+		AdvisoryURL: in.AdvisoryURL,
+		Campaign: in.Campaign,
+		CveID: in.CveID,
+		Ecosystem: in.Ecosystem,
+		PackageName: in.PackageName,
+		RequestID: in.RequestID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostThreatReportOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetManagerThreatReportsRequestIdInput is the input for GetManagerThreatReportsRequestId — Get Threat Report Status.
+type GetManagerThreatReportsRequestIdInput struct {
+	RequestID string `path:"requestId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetManagerThreatReportsRequestId - Get Threat Report Status
+// GET /manager/threat-reports/{requestId}
+func (c *Client) GetManagerThreatReportsRequestId(ctx context.Context, in GetManagerThreatReportsRequestIdInput) (*models.EndpointsPostThreatReportOutput, error) {
+	path := "/manager/threat-reports/{requestId}"
+	path = strings.Replace(path, "{requestId}", url.PathEscape(in.RequestID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostThreatReportOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerThreatReportsRequestIdResubmitInput is the input for CreateManagerThreatReportsRequestIdResubmit — Resubmit a Reported Threat.
+type CreateManagerThreatReportsRequestIdResubmitInput struct {
+	RequestID string `path:"requestId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateManagerThreatReportsRequestIdResubmit - Resubmit a Reported Threat
+// POST /manager/threat-reports/{requestId}/resubmit
+func (c *Client) CreateManagerThreatReportsRequestIdResubmit(ctx context.Context, in CreateManagerThreatReportsRequestIdResubmitInput) (*models.EndpointsPostThreatReportOutput, error) {
+	path := "/manager/threat-reports/{requestId}/resubmit"
+	path = strings.Replace(path, "{requestId}", url.PathEscape(in.RequestID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostThreatReportOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerThreatReportsRequestIdWithdrawInput is the input for CreateManagerThreatReportsRequestIdWithdraw — Withdraw a Reported Threat.
+type CreateManagerThreatReportsRequestIdWithdrawInput struct {
+	RequestID string `path:"requestId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateManagerThreatReportsRequestIdWithdraw - Withdraw a Reported Threat
+// POST /manager/threat-reports/{requestId}/withdraw
+func (c *Client) CreateManagerThreatReportsRequestIdWithdraw(ctx context.Context, in CreateManagerThreatReportsRequestIdWithdrawInput) (*models.EndpointsPostThreatReportOutput, error) {
+	path := "/manager/threat-reports/{requestId}/withdraw"
+	path = strings.Replace(path, "{requestId}", url.PathEscape(in.RequestID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostThreatReportOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListManagerThreatsInput is the input for ListManagerThreats — Get Threat Catalog.
+type ListManagerThreatsInput struct {
+	AdvisoryID *string `url:"advisoryId,omitempty" json:"-"`
+	CveID *string `url:"cveId,omitempty" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Kind *string `url:"kind,omitempty" json:"-"`
+	Page *int `url:"page,omitempty" json:"-"`
+	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	PublishedAfter *string `url:"publishedAfter,omitempty" json:"-"`
+	PublishedBefore *string `url:"publishedBefore,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	Verdict *string `url:"verdict,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerThreats - Get Threat Catalog
+// GET /manager/threats
+func (c *Client) ListManagerThreats(ctx context.Context, in ListManagerThreatsInput) (*models.EndpointsGetThreatCatalogOutput, error) {
+	path := "/manager/threats"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Page != nil {
+		query.Set("page", strconv.Itoa(int(*in.Page)))
+	}
+	if in.PageSize != nil {
+		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
+	}
+	if in.CveID != nil {
+		query.Set("cveId", string(*in.CveID))
+	}
+	if in.AdvisoryID != nil {
+		query.Set("advisoryId", string(*in.AdvisoryID))
+	}
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
+	}
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
+	}
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
+	}
+	if in.Verdict != nil {
+		query.Set("verdict", string(*in.Verdict))
+	}
+	if in.Kind != nil {
+		query.Set("kind", string(*in.Kind))
+	}
+	if in.PublishedAfter != nil {
+		query.Set("publishedAfter", string(*in.PublishedAfter))
+	}
+	if in.PublishedBefore != nil {
+		query.Set("publishedBefore", string(*in.PublishedBefore))
+	}
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetThreatCatalogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateManagerThreatsThreatIdInvestigateInput is the input for CreateManagerThreatsThreatIdInvestigate — Investigate Threat in My Environment.
+type CreateManagerThreatsThreatIdInvestigateInput struct {
+	ThreatID string `path:"threatId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Action string `json:"action"`
+	models.RequestScope
+}
+
+// CreateManagerThreatsThreatIdInvestigate - Investigate Threat in My Environment
+// POST /manager/threats/{threatId}/investigate
+func (c *Client) CreateManagerThreatsThreatIdInvestigate(ctx context.Context, in CreateManagerThreatsThreatIdInvestigateInput) (*models.EndpointsPostThreatInvestigationOutput, error) {
+	path := "/manager/threats/{threatId}/investigate"
+	path = strings.Replace(path, "{threatId}", url.PathEscape(in.ThreatID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Action string `json:"action"`
+	}{
+		Action: in.Action,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostThreatInvestigationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateManagerTriggerInput is the input for CreateManagerTrigger — Start a Manager run.
 type CreateManagerTriggerInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	CampaignID *string `json:"campaignId,omitempty"`
+	EvaluationTime *string `json:"evaluationTime,omitempty"`
 	Mode *string `json:"mode,omitempty"`
 	models.RequestScope
 }
@@ -2333,6 +4165,9 @@ func (c *Client) CreateManagerTrigger(ctx context.Context, in CreateManagerTrigg
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2342,9 +4177,11 @@ func (c *Client) CreateManagerTrigger(ctx context.Context, in CreateManagerTrigg
 
 	bodyBytes, err := json.Marshal(struct {
 		CampaignID *string `json:"campaignId,omitempty"`
+		EvaluationTime *string `json:"evaluationTime,omitempty"`
 		Mode *string `json:"mode,omitempty"`
 	}{
 		CampaignID: in.CampaignID,
+		EvaluationTime: in.EvaluationTime,
 		Mode: in.Mode,
 	})
 	if err != nil {

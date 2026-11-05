@@ -14,28 +14,41 @@ import (
 )
 
 // ServeWithClient runs the MCP server over stdio, driving the generated
-// api.Client. Tenant/owner scoping travels in the client's default query params.
-func ServeWithClient(ctx context.Context, apiClient *api.Client, toolSet ToolSet) error {
-	return serveWithClientIO(ctx, apiClient, toolSet, os.Stdin, os.Stdout)
+// api.Client. The client's default query params carry fixed scope such as
+// --repo; each call's org comes from orgs and travels in the request context,
+// so apiClient's HTTP client must route through ScopeTransport.
+func ServeWithClient(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs) error {
+	return serveWithClientIO(ctx, apiClient, toolSet, orgs, os.Stdin, os.Stdout)
 }
 
-func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolSet, stdin io.Reader, stdout io.Writer) error {
+func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs, stdin io.Reader, stdout io.Writer) error {
+	s := NewServer(apiClient, toolSet, orgs)
+
+	logger.L(ctx).Debug("starting MCP server over stdio", logger.String("toolSet", string(toolSet)))
+
+	stdioServer := server.NewStdioServer(s)
+	return stdioServer.Listen(ctx, stdin, stdout)
+}
+
+// NewServer builds the MCP server: the tool set, list_organizations, an
+// optional org argument on every other tool, and the resources and prompts.
+func NewServer(apiClient *api.Client, toolSet ToolSet, orgs Orgs) *server.MCPServer {
 	s := server.NewMCPServer(
 		"Nullify",
 		logger.Version,
 		server.WithToolCapabilities(true),
 		server.WithResourceCapabilities(true, false),
 		server.WithPromptCapabilities(true),
+		server.WithToolHandlerMiddleware(orgMiddleware(orgs)),
+		server.WithResourceHandlerMiddleware(resourceOrgMiddleware(orgs)),
 	)
 
 	registerTools(s, apiClient, toolSet)
+	addOrgArgument(s)
+	registerOrgTools(s, orgs)
 	registerResources(s, apiClient)
 	registerPrompts(s)
-
-	logger.L(ctx).Debug("starting MCP server over stdio", logger.String("toolSet", string(toolSet)))
-
-	stdioServer := server.NewStdioServer(s)
-	return stdioServer.Listen(ctx, stdin, stdout)
+	return s
 }
 
 // registerTools selects which tools to expose. The default set is deliberately
@@ -50,6 +63,11 @@ func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
 		registerUnifiedTools(s, c)
 		registerCompositeTools(s, c)
 
+	case ToolSetFindingsWrite:
+		registerUnifiedTools(s, c)
+		registerOptInFindingTools(s, c)
+		registerCompositeTools(s, c)
+
 	case ToolSetAdmin:
 		registerAdminTools(s, c)
 		registerContextTools(s, c)
@@ -58,6 +76,7 @@ func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
 
 	case ToolSetAll:
 		registerUnifiedTools(s, c)
+		registerOptInFindingTools(s, c)
 		registerCompositeTools(s, c)
 		registerContextTools(s, c)
 		registerManagerTools(s, c)
@@ -74,6 +93,17 @@ func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
 		registerScanTools(s, c)
 		registerThreatTools(s, c)
 	}
+}
+
+// readOnlyTool builds a tool that changes nothing on the server.
+func readOnlyTool(name string, options ...mcp.ToolOption) mcp.Tool {
+	return mcp.NewTool(name, append(options, mcp.WithReadOnlyHintAnnotation(true), mcp.WithDestructiveHintAnnotation(false))...)
+}
+
+// writeTool builds a tool that changes state on the server. The destructive hint
+// tells the client to ask a person before it calls the tool.
+func writeTool(name string, options ...mcp.ToolOption) mcp.Tool {
+	return mcp.NewTool(name, append(options, mcp.WithReadOnlyHintAnnotation(false), mcp.WithDestructiveHintAnnotation(true))...)
 }
 
 func getStringArg(args map[string]any, key string) string {

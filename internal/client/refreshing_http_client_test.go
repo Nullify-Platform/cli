@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -9,6 +10,34 @@ import (
 	"testing"
 	"time"
 )
+
+func TestHTTPTimeoutReachesTheRefreshingClient(t *testing.T) {
+	tests := []struct {
+		name string
+		env  string
+		want time.Duration
+	}{
+		{name: "default when unset", env: "", want: DefaultHTTPTimeout},
+		{name: "overrides from env", env: "120s", want: 120 * time.Second},
+		{name: "falls back to default on invalid", env: "not-a-duration", want: DefaultHTTPTimeout},
+		{name: "falls back to default on non-positive", env: "0s", want: DefaultHTTPTimeout},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("NULLIFY_HTTP_TIMEOUT", tt.env)
+			provider := func() (string, error) { return "tok", nil }
+
+			got, err := NewRefreshingHTTPClient("acme.nullify.ai", provider, provider)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if HTTPTimeout() != tt.want || got.Timeout != tt.want {
+				t.Errorf("HTTPTimeout() = %v, client timeout = %v, want %v", HTTPTimeout(), got.Timeout, tt.want)
+			}
+		})
+	}
+}
 
 func TestNewRefreshingHTTPClientFetchesInitialToken(t *testing.T) {
 	calls := 0
@@ -68,8 +97,8 @@ func TestRefreshingAuthTransportRefreshesAfterTTL(t *testing.T) {
 	stub := &stubTransport{}
 	tr := &refreshingAuthTransport{
 		nullifyHost:     "acme.nullify.ai",
-		tokenProvider:   provider,
-		refreshProvider: provider,
+		tokenProvider:   func(context.Context) (string, error) { return provider() },
+		refreshProvider: func(context.Context) (string, error) { return provider() },
 		transport:       stub,
 		cachedToken:     initialToken,
 		cachedAt:        time.Now(),
@@ -114,8 +143,8 @@ func TestRefreshingAuthTransportFallsBackOnRefreshError(t *testing.T) {
 	stub := &stubTransport{}
 	tr := &refreshingAuthTransport{
 		nullifyHost:     "acme.nullify.ai",
-		tokenProvider:   failing,
-		refreshProvider: failing,
+		tokenProvider:   func(context.Context) (string, error) { return failing() },
+		refreshProvider: func(context.Context) (string, error) { return failing() },
 		transport:       stub,
 		cachedToken:     "good-token",
 		cachedAt:        time.Now().Add(-time.Hour),
@@ -132,5 +161,76 @@ func TestRefreshingAuthTransportFallsBackOnRefreshError(t *testing.T) {
 	}
 	if providerCalls != 1 {
 		t.Errorf("tokenProvider calls = %d, want 1", providerCalls)
+	}
+}
+
+func TestContextTokenProviderUsesRequestDeadline(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		ttl  bool
+	}{
+		{name: "forced refresh"},
+		{name: "expired cache", ttl: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			calls := 0
+			provider := func(ctx context.Context) (string, error) {
+				calls++
+				if calls == 1 {
+					return "stale", nil
+				}
+				<-ctx.Done()
+				return "", ctx.Err()
+			}
+			hc, err := NewRefreshingHTTPClientWithContext(
+				context.Background(), "acme.nullify.ai", provider, provider)
+			if err != nil {
+				t.Fatal(err)
+			}
+			transport := hc.Transport.(*retryTransport).
+				transport.(*refreshingAuthTransport)
+			transport.transport, _ = bearerRouter(map[string]int{
+				"stale": http.StatusUnauthorized,
+			})
+			if tt.ttl {
+				transport.cachedAt = time.Now().Add(-time.Hour)
+			}
+			ctx, cancel := context.WithTimeout(context.Background(),
+				20*time.Millisecond)
+			defer cancel()
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet,
+				"https://api.acme.nullify.ai/findings", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			_, err = hc.Do(req)
+
+			if !errors.Is(err, context.DeadlineExceeded) {
+				t.Fatalf("Do: %v, want context deadline exceeded", err)
+			}
+			if calls != 2 {
+				t.Fatalf("provider calls = %d, want 2", calls)
+			}
+			if !transport.providerRetryAfter.IsZero() ||
+				!transport.refreshRetryAfter.IsZero() {
+				t.Fatal("request cancellation enabled token failure backoff")
+			}
+		})
+	}
+}
+
+func TestContextTokenProviderUsesStartupContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	provider := func(ctx context.Context) (string, error) {
+		return "", ctx.Err()
+	}
+
+	_, err := NewRefreshingHTTPClientWithContext(ctx, "acme.nullify.ai",
+		provider, provider)
+
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("create client: %v, want context canceled", err)
 	}
 }

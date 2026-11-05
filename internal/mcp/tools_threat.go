@@ -16,7 +16,7 @@ import (
 // browsing analyzed CVEs/advisories and recording a new investigation.
 func registerThreatTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("nullify_list_threat_investigations",
+		readOnlyTool("nullify_list_threat_investigations",
 			mcp.WithDescription("List threat investigations (the org's threat-intelligence catalog). Paginates automatically up to limit."),
 			mcp.WithNumber("limit", mcp.Description("Max total investigations across pages (default 100)")),
 		),
@@ -32,7 +32,7 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("nullify_get_threat_investigation",
+		readOnlyTool("nullify_get_threat_investigation",
 			mcp.WithDescription("Get a single threat investigation by ID."),
 			mcp.WithString("id", mcp.Required(), mcp.Description("The threat investigation ID")),
 		),
@@ -44,7 +44,7 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("nullify_create_threat_investigation",
+		writeTool("nullify_create_threat_investigation",
 			mcp.WithDescription("Create a threat investigation entry in the threat-intelligence catalog."),
 			mcp.WithString("title", mcp.Required(), mcp.Description("Short title of the threat")),
 			mcp.WithString("description", mcp.Description("Detailed description")),

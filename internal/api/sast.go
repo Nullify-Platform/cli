@@ -27,6 +27,7 @@ type ListSastEventsInput struct {
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
 	FindingID *string `url:"findingId,omitempty" json:"-"`
 	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
@@ -63,6 +64,9 @@ func (c *Client) ListSastEvents(ctx context.Context, in ListSastEventsInput) (*m
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -84,9 +88,10 @@ func (c *Client) ListSastEvents(ctx context.Context, in ListSastEventsInput) (*m
 // ListSastFindingsInput is the input for ListSastFindings — Get SAST Findings.
 type ListSastFindingsInput struct {
 	AiGenerated *bool `url:"aiGenerated,omitempty" json:"-"`
-	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	AutoFixState *models.ModelsAutoFixState `url:"autoFixState,omitempty" json:"-"`
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
@@ -171,6 +176,9 @@ func (c *Client) ListSastFindings(ctx context.Context, in ListSastFindingsInput)
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -191,6 +199,7 @@ func (c *Client) ListSastFindings(ctx context.Context, in ListSastFindingsInput)
 
 // CreateSastFindingsAllowlistInput is the input for CreateSastFindingsAllowlist — Allowlist Batch of SAST Findings.
 type CreateSastFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	FindingIds []string `json:"findingIds,omitempty"`
@@ -205,6 +214,9 @@ func (c *Client) CreateSastFindingsAllowlist(ctx context.Context, in CreateSastF
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -234,6 +246,8 @@ type ListSastFindingsDetailedInput struct {
 	AiGenerated *bool `url:"aiGenerated,omitempty" json:"-"`
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FilePath []string `url:"filePath,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
@@ -244,6 +258,7 @@ type ListSastFindingsDetailedInput struct {
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	Severity *string `url:"severity,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
@@ -287,6 +302,12 @@ func (c *Client) ListSastFindingsDetailed(ctx context.Context, in ListSastFindin
 	if in.Workflow != nil {
 		query.Set("workflow", string(*in.Workflow))
 	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	for _, v := range in.FilePath {
+		query.Add("filePath", string(v))
+	}
 	if in.IsResolved != nil {
 		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
@@ -311,6 +332,9 @@ func (c *Client) ListSastFindingsDetailed(ctx context.Context, in ListSastFindin
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -332,9 +356,10 @@ func (c *Client) ListSastFindingsDetailed(ctx context.Context, in ListSastFindin
 // ListSastFindingsPreviewInput is the input for ListSastFindingsPreview — Get SAST Findings.
 type ListSastFindingsPreviewInput struct {
 	AiGenerated *bool `url:"aiGenerated,omitempty" json:"-"`
-	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	AutoFixState *models.ModelsAutoFixState `url:"autoFixState,omitempty" json:"-"`
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
@@ -419,6 +444,9 @@ func (c *Client) ListSastFindingsPreview(ctx context.Context, in ListSastFinding
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -440,8 +468,12 @@ func (c *Client) ListSastFindingsPreview(ctx context.Context, in ListSastFinding
 // GetSastFindingsFindingIdInput is the input for GetSastFindingsFindingId — Get Finding.
 type GetSastFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetSastFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetSastFindingsFindingId - Get Finding
 // GET /sast/findings/{findingId}
@@ -452,6 +484,9 @@ func (c *Client) GetSastFindingsFindingId(ctx context.Context, in GetSastFinding
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -474,10 +509,14 @@ func (c *Client) GetSastFindingsFindingId(ctx context.Context, in GetSastFinding
 // PatchSastFindingsFindingIdInput is the input for PatchSastFindingsFindingId — Update Finding.
 type PatchSastFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *PatchSastFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // PatchSastFindingsFindingId - Update Finding
 // PATCH /sast/findings/{findingId}
@@ -488,6 +527,9 @@ func (c *Client) PatchSastFindingsFindingId(ctx context.Context, in PatchSastFin
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -520,10 +562,14 @@ func (c *Client) PatchSastFindingsFindingId(ctx context.Context, in PatchSastFin
 // CreateSastFindingsFindingIdAllowlistInput is the input for CreateSastFindingsFindingIdAllowlist — Allowlist Finding.
 type CreateSastFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSastFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSastFindingsFindingIdAllowlist - Allowlist Finding
 // POST /sast/findings/{findingId}/allowlist
@@ -534,6 +580,9 @@ func (c *Client) CreateSastFindingsFindingIdAllowlist(ctx context.Context, in Cr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -566,10 +615,14 @@ func (c *Client) CreateSastFindingsFindingIdAllowlist(ctx context.Context, in Cr
 // ListSastFindingsFindingIdAutofixActivityInput is the input for ListSastFindingsFindingIdAutofixActivity — Get SAST Finding Autofix Activity.
 type ListSastFindingsFindingIdAutofixActivityInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int32 `url:"limit,omitempty" json:"-"`
 	SinceID *string `url:"since_id,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSastFindingsFindingIdAutofixActivityInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSastFindingsFindingIdAutofixActivity - Get SAST Finding Autofix Activity
 // GET /sast/findings/{findingId}/autofix/activity
@@ -586,6 +639,9 @@ func (c *Client) ListSastFindingsFindingIdAutofixActivity(ctx context.Context, i
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -608,8 +664,12 @@ func (c *Client) ListSastFindingsFindingIdAutofixActivity(ctx context.Context, i
 // ListSastFindingsFindingIdAutofixCacheDiffInput is the input for ListSastFindingsFindingIdAutofixCacheDiff — Get Finding Autofix Diff.
 type ListSastFindingsFindingIdAutofixCacheDiffInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSastFindingsFindingIdAutofixCacheDiffInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSastFindingsFindingIdAutofixCacheDiff - Get Finding Autofix Diff
 // GET /sast/findings/{findingId}/autofix/cache/diff
@@ -620,6 +680,9 @@ func (c *Client) ListSastFindingsFindingIdAutofixCacheDiff(ctx context.Context, 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -642,12 +705,16 @@ func (c *Client) ListSastFindingsFindingIdAutofixCacheDiff(ctx context.Context, 
 // CreateSastFindingsFindingIdAutofixFixInput is the input for CreateSastFindingsFindingIdAutofixFix — Post Finding AutoFix.
 type CreateSastFindingsFindingIdAutofixFixInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	Force *bool `json:"force,omitempty"`
 	Message *string `json:"message,omitempty"`
 	OriginCampaignID *string `json:"originCampaignId,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSastFindingsFindingIdAutofixFixInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSastFindingsFindingIdAutofixFix - Post Finding AutoFix
 // POST /sast/findings/{findingId}/autofix/fix
@@ -658,6 +725,9 @@ func (c *Client) CreateSastFindingsFindingIdAutofixFix(ctx context.Context, in C
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -694,8 +764,12 @@ func (c *Client) CreateSastFindingsFindingIdAutofixFix(ctx context.Context, in C
 // ListSastFindingsFindingIdAutofixStateInput is the input for ListSastFindingsFindingIdAutofixState — Get SAST Finding Autofix State.
 type ListSastFindingsFindingIdAutofixStateInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSastFindingsFindingIdAutofixStateInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSastFindingsFindingIdAutofixState - Get SAST Finding Autofix State
 // GET /sast/findings/{findingId}/autofix/state
@@ -706,6 +780,9 @@ func (c *Client) ListSastFindingsFindingIdAutofixState(ctx context.Context, in L
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -728,8 +805,12 @@ func (c *Client) ListSastFindingsFindingIdAutofixState(ctx context.Context, in L
 // ListSastFindingsFindingIdAutofixStatusInput is the input for ListSastFindingsFindingIdAutofixStatus — Get SAST Finding Autofix Status.
 type ListSastFindingsFindingIdAutofixStatusInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSastFindingsFindingIdAutofixStatusInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSastFindingsFindingIdAutofixStatus - Get SAST Finding Autofix Status
 // GET /sast/findings/{findingId}/autofix/status
@@ -740,6 +821,9 @@ func (c *Client) ListSastFindingsFindingIdAutofixStatus(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -762,8 +846,13 @@ func (c *Client) ListSastFindingsFindingIdAutofixStatus(ctx context.Context, in 
 // ListSastFindingsFindingIdEventsInput is the input for ListSastFindingsFindingIdEvents — Get Finding Events.
 type ListSastFindingsFindingIdEventsInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSastFindingsFindingIdEventsInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSastFindingsFindingIdEvents - Get Finding Events
 // GET /sast/findings/{findingId}/events
@@ -774,6 +863,12 @@ func (c *Client) ListSastFindingsFindingIdEvents(ctx context.Context, in ListSas
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -793,9 +888,51 @@ func (c *Client) ListSastFindingsFindingIdEvents(ctx context.Context, in ListSas
 	return &out, nil
 }
 
+// DeleteSastFindingsFindingIdTicketInput is the input for DeleteSastFindingsFindingIdTicket — Delete Ticket.
+type DeleteSastFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *DeleteSastFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// DeleteSastFindingsFindingIdTicket - Delete Ticket
+// DELETE /sast/findings/{findingId}/ticket
+func (c *Client) DeleteSastFindingsFindingIdTicket(ctx context.Context, in DeleteSastFindingsFindingIdTicketInput) (*models.EndpointsDeleteTicketSASTFindingOutput, error) {
+	path := "/sast/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSASTFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateSastFindingsFindingIdTicketInput is the input for CreateSastFindingsFindingIdTicket — Create Ticket.
 type CreateSastFindingsFindingIdTicketInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	CampaignTitle *string `json:"campaignTitle,omitempty"`
@@ -803,6 +940,9 @@ type CreateSastFindingsFindingIdTicketInput struct {
 	Project *string `json:"project,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSastFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSastFindingsFindingIdTicket - Create Ticket
 // POST /sast/findings/{findingId}/ticket
@@ -813,6 +953,9 @@ func (c *Client) CreateSastFindingsFindingIdTicket(ctx context.Context, in Creat
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -851,8 +994,12 @@ func (c *Client) CreateSastFindingsFindingIdTicket(ctx context.Context, in Creat
 // ListSastFindingsFindingIdTriageInput is the input for ListSastFindingsFindingIdTriage — Get Triaged Finding.
 type ListSastFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSastFindingsFindingIdTriageInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSastFindingsFindingIdTriage - Get Triaged Finding
 // GET /sast/findings/{findingId}/triage
@@ -863,6 +1010,9 @@ func (c *Client) ListSastFindingsFindingIdTriage(ctx context.Context, in ListSas
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -885,9 +1035,13 @@ func (c *Client) ListSastFindingsFindingIdTriage(ctx context.Context, in ListSas
 // CreateSastFindingsFindingIdUnallowlistInput is the input for CreateSastFindingsFindingIdUnallowlist — Unallowlist Finding.
 type CreateSastFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UnallowlistReason string `json:"unallowlistReason"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSastFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSastFindingsFindingIdUnallowlist - Unallowlist Finding
 // POST /sast/findings/{findingId}/unallowlist
@@ -898,6 +1052,9 @@ func (c *Client) CreateSastFindingsFindingIdUnallowlist(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -921,8 +1078,12 @@ func (c *Client) CreateSastFindingsFindingIdUnallowlist(ctx context.Context, in 
 // ListSastFindingsFindingIdUsersInput is the input for ListSastFindingsFindingIdUsers — Get Finding Users.
 type ListSastFindingsFindingIdUsersInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSastFindingsFindingIdUsersInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSastFindingsFindingIdUsers - Get Finding Users
 // GET /sast/findings/{findingId}/users
@@ -933,6 +1094,9 @@ func (c *Client) ListSastFindingsFindingIdUsers(ctx context.Context, in ListSast
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -954,6 +1118,7 @@ func (c *Client) ListSastFindingsFindingIdUsers(ctx context.Context, in ListSast
 
 // ListSastRepositoriesInput is the input for ListSastRepositories — Get Repositories.
 type ListSastRepositoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
@@ -973,6 +1138,9 @@ func (c *Client) ListSastRepositories(ctx context.Context, in ListSastRepositori
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -995,6 +1163,7 @@ func (c *Client) ListSastRepositories(ctx context.Context, in ListSastRepositori
 // GetSastRepositoriesRepositoryIdInput is the input for GetSastRepositoriesRepositoryId — Get Repository Stats.
 type GetSastRepositoriesRepositoryIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1007,6 +1176,9 @@ func (c *Client) GetSastRepositoriesRepositoryId(ctx context.Context, in GetSast
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1028,10 +1200,13 @@ func (c *Client) GetSastRepositoriesRepositoryId(ctx context.Context, in GetSast
 
 // ListSastScanRunsInput is the input for ListSastScanRuns — List Scan Runs.
 type ListSastScanRunsInput struct {
+	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1055,6 +1230,15 @@ func (c *Client) ListSastScanRuns(ctx context.Context, in ListSastScanRunsInput)
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 

@@ -1,4 +1,4 @@
-.PHONY: build clean lint lint-go lint-docker fetch-spec generate-api unit cov
+.PHONY: build clean lint lint-go lint-docker fetch-spec generate-api command-surface unit cov
 
 # set the version as the latest commit sha if it's not already defined
 ifndef VERSION
@@ -37,8 +37,9 @@ lint-docker:
 # OpenAPI bundle sourcing. The spec is published in the (private) nullify
 # monorepo; we pin a commit and vendor the bundle into spec/ so generation is
 # reproducible and offline. To update: bump SPEC_REF, run `make fetch-spec`,
-# then `make generate-api`, and commit both spec/ and the regenerated code.
-SPEC_REF ?= 7b34970bbbeeabf665cd71fa0eb0e07eaac534a3
+# `make generate-api` and `make command-surface`, and commit spec/ and the
+# regenerated code. The spec-drift workflow does this on a schedule.
+SPEC_REF ?= 1b9c3dd0cf497030de8646ae1b8e1f407d25e04a
 SPEC_REPO ?= nullify-platform/nullify
 SPEC_PATH_IN_REPO ?= public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml
 SPEC_LOCAL ?= spec/nullify-openapi-bundle.yaml
@@ -53,6 +54,14 @@ fetch-spec:
 
 generate-api:
 	go run ./scripts/generate --spec $(SPEC_LOCAL) --output internal/api --cmd-output internal/commands
+
+# command-surface checks the command tree against spec/command-surface.tsv and the
+# MCP tools against spec/mcp-tools.tsv, and rewrites both snapshots. It fails on a
+# command, flag or tool that disappeared unless internal/commands/surface_decisions.go
+# or mcp.Decisions records the decision. A tool that changes its annotation or
+# tool sets needs a decision too.
+command-surface:
+	go run ./scripts/commandsurface --write
 
 unit:
 	go test -v -skip TestIntegration ./...

@@ -3,18 +3,249 @@ package models
 
 import "encoding/json"
 
-type EndpointsAccountValidationResult struct {
+type ConnectorsConfigField struct {
+	Description *string `json:"description,omitempty"`
+	EnumValues []string `json:"enumValues,omitempty"`
+	Key *string `json:"key,omitempty"`
+	Label *string `json:"label,omitempty"`
+	Required *bool `json:"required,omitempty"`
+	Secret *bool `json:"secret,omitempty"`
+	Type *ConnectorsFieldType `json:"type,omitempty"`
+}
+
+type ConnectorsFieldType string
+
+const (
+	ConnectorsFieldTypeString ConnectorsFieldType = "string"
+	ConnectorsFieldTypeSecret ConnectorsFieldType = "secret"
+	ConnectorsFieldTypeUrl ConnectorsFieldType = "url"
+	ConnectorsFieldTypeEnum ConnectorsFieldType = "enum"
+	ConnectorsFieldTypeBool ConnectorsFieldType = "bool"
+)
+
+type ConnectorsLifecycleOps struct {
+	Configure *bool `json:"configure,omitempty"`
+	Connect *bool `json:"connect,omitempty"`
+	Disconnect *bool `json:"disconnect,omitempty"`
+	Test *bool `json:"test,omitempty"`
+}
+
+type DatabaseFindingType string
+
+const (
+	DatabaseFindingTypeSast DatabaseFindingType = "sast"
+	DatabaseFindingTypeScaDependencies DatabaseFindingType = "sca_dependencies"
+	DatabaseFindingTypeScaContainers DatabaseFindingType = "sca_containers"
+	DatabaseFindingTypeSecretsCredentials DatabaseFindingType = "secrets_credentials"
+	DatabaseFindingTypeSecretsSensitiveData DatabaseFindingType = "secrets_sensitive_data"
+	DatabaseFindingTypeScpm DatabaseFindingType = "scpm"
+	DatabaseFindingTypeCspm DatabaseFindingType = "cspm"
+	DatabaseFindingTypeDastBughunt DatabaseFindingType = "dast_bughunt"
+	DatabaseFindingTypeDastPentest DatabaseFindingType = "dast_pentest"
+)
+
+type DatabaseTicketAuditActor string
+
+const (
+	DatabaseTicketAuditActorSystem DatabaseTicketAuditActor = "system"
+	DatabaseTicketAuditActorUser DatabaseTicketAuditActor = "user"
+	DatabaseTicketAuditActorReconciler DatabaseTicketAuditActor = "reconciler"
+	DatabaseTicketAuditActorWebhook DatabaseTicketAuditActor = "webhook"
+	DatabaseTicketAuditActorManagerAgent DatabaseTicketAuditActor = "manager_agent"
+)
+
+type DatabaseTicketAuditEventType string
+
+const (
+	DatabaseTicketAuditEventTypeCreated DatabaseTicketAuditEventType = "created"
+	DatabaseTicketAuditEventTypeClosed DatabaseTicketAuditEventType = "closed"
+	DatabaseTicketAuditEventTypeReopened DatabaseTicketAuditEventType = "reopened"
+	DatabaseTicketAuditEventTypeMoved DatabaseTicketAuditEventType = "moved"
+	DatabaseTicketAuditEventTypeEligibilityFlagged DatabaseTicketAuditEventType = "eligibility_flagged"
+	DatabaseTicketAuditEventTypeBulkClose DatabaseTicketAuditEventType = "bulk_close"
+	DatabaseTicketAuditEventTypeBulkReopen DatabaseTicketAuditEventType = "bulk_reopen"
+	DatabaseTicketAuditEventTypeBulkMove DatabaseTicketAuditEventType = "bulk_move"
+	DatabaseTicketAuditEventTypeBulkResync DatabaseTicketAuditEventType = "bulk_resync"
+	DatabaseTicketAuditEventTypeBulkReassignTeam DatabaseTicketAuditEventType = "bulk_reassign_team"
+	DatabaseTicketAuditEventTypeBulkReassignAssignee DatabaseTicketAuditEventType = "bulk_reassign_assignee"
+	DatabaseTicketAuditEventTypeBulkAddComment DatabaseTicketAuditEventType = "bulk_add_comment"
+	DatabaseTicketAuditEventTypeBulkRelabel DatabaseTicketAuditEventType = "bulk_relabel"
+	DatabaseTicketAuditEventTypeBulkSetPriority DatabaseTicketAuditEventType = "bulk_set_priority"
+	DatabaseTicketAuditEventTypeBulkActionReaped DatabaseTicketAuditEventType = "bulk_action_reaped"
+	DatabaseTicketAuditEventTypeSettingsApplied DatabaseTicketAuditEventType = "settings_applied"
+	DatabaseTicketAuditEventTypeExternalSynced DatabaseTicketAuditEventType = "external_synced"
+	DatabaseTicketAuditEventTypeStaleTerminalCleared DatabaseTicketAuditEventType = "stale_terminal_cleared"
+	DatabaseTicketAuditEventTypeCreateFailed DatabaseTicketAuditEventType = "create_failed"
+)
+
+type DatabaseTicketBulkActionType string
+
+const (
+	DatabaseTicketBulkActionTypeBulkClose DatabaseTicketBulkActionType = "bulk_close"
+	DatabaseTicketBulkActionTypeBulkReopen DatabaseTicketBulkActionType = "bulk_reopen"
+	DatabaseTicketBulkActionTypeBulkMove DatabaseTicketBulkActionType = "bulk_move"
+	DatabaseTicketBulkActionTypeBulkResync DatabaseTicketBulkActionType = "bulk_resync"
+	DatabaseTicketBulkActionTypeBulkReassignTeam DatabaseTicketBulkActionType = "bulk_reassign_team"
+	DatabaseTicketBulkActionTypeBulkReassignAssignee DatabaseTicketBulkActionType = "bulk_reassign_assignee"
+	DatabaseTicketBulkActionTypeBulkAddComment DatabaseTicketBulkActionType = "bulk_add_comment"
+	DatabaseTicketBulkActionTypeBulkRelabel DatabaseTicketBulkActionType = "bulk_relabel"
+	DatabaseTicketBulkActionTypeBulkSetPriority DatabaseTicketBulkActionType = "bulk_set_priority"
+)
+
+type DatabaseTicketBulkOperationStatus string
+
+const (
+	DatabaseTicketBulkOperationStatusPending DatabaseTicketBulkOperationStatus = "pending"
+	DatabaseTicketBulkOperationStatusRunning DatabaseTicketBulkOperationStatus = "running"
+	DatabaseTicketBulkOperationStatusDone DatabaseTicketBulkOperationStatus = "done"
+	DatabaseTicketBulkOperationStatusFailed DatabaseTicketBulkOperationStatus = "failed"
+	DatabaseTicketBulkOperationStatusCancelled DatabaseTicketBulkOperationStatus = "cancelled"
+)
+
+type DatabaseTicketMigrationAction string
+
+const (
+	DatabaseTicketMigrationActionNone DatabaseTicketMigrationAction = "none"
+	DatabaseTicketMigrationActionCloseAutoCreated DatabaseTicketMigrationAction = "close_auto_created"
+	DatabaseTicketMigrationActionCloseAllOutOfScope DatabaseTicketMigrationAction = "close_all_out_of_scope"
+	DatabaseTicketMigrationActionMigrateBoard DatabaseTicketMigrationAction = "migrate_board"
+)
+
+type DatabaseTicketPlatform string
+
+const (
+	DatabaseTicketPlatformGithub DatabaseTicketPlatform = "GitHub"
+	DatabaseTicketPlatformJira DatabaseTicketPlatform = "Jira"
+	DatabaseTicketPlatformLinear DatabaseTicketPlatform = "Linear"
+	DatabaseTicketPlatformAzure DatabaseTicketPlatform = "Azure"
+	DatabaseTicketPlatformAsana DatabaseTicketPlatform = "Asana"
+)
+
+type DatabaseTicketSource string
+
+const (
+	DatabaseTicketSourceScanPipeline DatabaseTicketSource = "scan_pipeline"
+	DatabaseTicketSourceReconciliation DatabaseTicketSource = "reconciliation"
+	DatabaseTicketSourceManagerAgent DatabaseTicketSource = "manager_agent"
+	DatabaseTicketSourceRestApi DatabaseTicketSource = "rest_api"
+	DatabaseTicketSourceDashboard DatabaseTicketSource = "dashboard"
+	DatabaseTicketSourceUnknown DatabaseTicketSource = "unknown"
+)
+
+type DatabaseTicketStatus string
+
+const (
+	DatabaseTicketStatusPending DatabaseTicketStatus = "pending"
+	DatabaseTicketStatusOpen DatabaseTicketStatus = "open"
+	DatabaseTicketStatusInProgress DatabaseTicketStatus = "in_progress"
+	DatabaseTicketStatusResolved DatabaseTicketStatus = "resolved"
+	DatabaseTicketStatusClosed DatabaseTicketStatus = "closed"
+	DatabaseTicketStatusWontFix DatabaseTicketStatus = "wont_fix"
+)
+
+type EndpointsAdminAccountValidationResult struct {
 	AssumedRole *string `json:"assumedRole,omitempty"`
 	ErrorMessage *string `json:"errorMessage,omitempty"`
-	IsValid *bool `json:"isValid,omitempty"`
-	Status *string `json:"status,omitempty"`
+	IsValid bool `json:"isValid"`
+	Status string `json:"status"`
+}
+
+type EndpointsAdminActivateUserTarget struct {
+	Role string `json:"role"`
+	TeamIds []string `json:"teamIds,omitempty"`
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminActivateUsersInput struct {
+	Users []EndpointsAdminActivateUserTarget `json:"users,omitempty"`
+}
+
+type EndpointsAdminActivateUsersOutput struct {
+	Users []EndpointsAdminUserRole `json:"users,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminAsanaConfigOutput struct {
+	CreatedAt string `json:"createdAt"`
+	ProjectGid *string `json:"projectGid,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	WorkspaceName *string `json:"workspaceName,omitempty"`
 }
 
 type EndpointsAdminAzureConfigOutput struct {
 	ClientID string `json:"clientId"`
 	CreatedAt string `json:"createdAt"`
+	Organization *string `json:"organization,omitempty"`
+	ProjectName *string `json:"projectName,omitempty"`
 	TenantID string `json:"tenantId"`
 	UpdatedAt string `json:"updatedAt"`
+	WorkItemType *string `json:"workItemType,omitempty"`
+}
+
+type EndpointsAdminAzureHookFailure struct {
+	Event string `json:"event"`
+	Message string `json:"message"`
+	ProjectID string `json:"projectId"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+}
+
+type EndpointsAdminAzureInstallation struct {
+	AdminDisabledAt *string `json:"adminDisabledAt,omitempty"`
+	AdminDisabledBy *string `json:"adminDisabledBy,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	HooksHealth *EndpointsAdminAzureProjectHooksHealth `json:"hooksHealth,omitempty"`
+	ID string `json:"id"`
+	OrganizationID string `json:"organizationId"`
+	OrganizationName *string `json:"organizationName,omitempty"`
+	ProjectID string `json:"projectId"`
+	ProjectName *string `json:"projectName,omitempty"`
+	SourceControlReady bool `json:"sourceControlReady"`
+	TenantID string `json:"tenantId"`
+	Ungranted bool `json:"ungranted"`
+	UpdatedAt string `json:"updatedAt"`
+	WebhookSecretRotatable bool `json:"webhookSecretRotatable"`
+	WorkItemsEnabled bool `json:"workItemsEnabled"`
+}
+
+type EndpointsAdminAzureMergeGateHealth struct {
+	Detail *string `json:"detail,omitempty"`
+	State string `json:"state"`
+}
+
+type EndpointsAdminAzureProjectHooksHealth struct {
+	Deleted *bool `json:"deleted,omitempty"`
+	Failures []string `json:"failures,omitempty"`
+	MergeGate EndpointsAdminAzureMergeGateHealth `json:"mergeGate"`
+	NeedsHuman []string `json:"needsHuman,omitempty"`
+	NewProject *bool `json:"newProject,omitempty"`
+	Outcome string `json:"outcome"`
+	ProjectID string `json:"projectId"`
+	PullRequestsMissingReview *int `json:"pullRequestsMissingReview,omitempty"`
+	ReconciledAt string `json:"reconciledAt"`
+	Subscriptions []EndpointsAdminAzureSubscriptionHealth `json:"subscriptions,omitempty"`
+	Suspended *bool `json:"suspended,omitempty"`
+	Trigger string `json:"trigger"`
+}
+
+type EndpointsAdminAzureSubscriptionHealth struct {
+	Action string `json:"action"`
+	Detail *string `json:"detail,omitempty"`
+	Event string `json:"event"`
+	NotificationType *string `json:"notificationType,omitempty"`
+	RootCause *string `json:"rootCause,omitempty"`
+	Status string `json:"status"`
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+type EndpointsAdminBatchSetUserRolesInput struct {
+	Role string `json:"role"`
+	Users []EndpointsAdminSetUserRoleTarget `json:"users,omitempty"`
+}
+
+type EndpointsAdminBatchSetUserRolesOutput struct {
+	Users []EndpointsAdminUserRole `json:"users,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsAdminBotInteraction struct {
@@ -49,23 +280,132 @@ type EndpointsAdminBotInteractionsOutput struct {
 	Summary EndpointsAdminBotInteractionSummary `json:"summary"`
 }
 
+type EndpointsAdminCLIPackageFeedControlInput struct {
+	ConnectionID *string `json:"connectionId,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	Fields map[string]string `json:"fields,omitempty"`
+	Operation string `json:"operation"`
+	ProviderID *string `json:"providerId,omitempty"`
+	Reason string `json:"reason"`
+}
+
+type EndpointsAdminCLIPackageFeedControlOutput struct {
+	Connection *EndpointsIntegrationConnectionInstanceView `json:"connection,omitempty"`
+	MaxOutstandingLeaseExpiry *string `json:"maxOutstandingLeaseExpiry,omitempty"`
+	UpstreamRevocationRequired *bool `json:"upstreamRevocationRequired,omitempty"`
+}
+
+type EndpointsAdminCLIPackageFeedsOutput struct {
+	Connections []EndpointsIntegrationConnectionInstanceView `json:"connections,omitempty"`
+}
+
 type EndpointsAdminChecklistOutput struct {
 	Items []ModelsChecklistItem `json:"items,omitempty"`
 }
 
+type EndpointsAdminConfigureIntegrationInput struct {
+	Fields map[string]string `json:"fields,omitempty"`
+}
+
+type EndpointsAdminConfigureIntegrationOutput struct {
+	Connection *EndpointsIntegrationConnectionView `json:"connection,omitempty"`
+}
+
+type EndpointsAdminConnectIntegrationInput struct {
+	Fields map[string]string `json:"fields,omitempty"`
+}
+
+type EndpointsAdminConnectIntegrationOutput struct {
+	Connection *EndpointsIntegrationConnectionView `json:"connection,omitempty"`
+}
+
+type EndpointsAdminCreateIntegrationConnectionInput struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Fields map[string]string `json:"fields,omitempty"`
+}
+
+type EndpointsAdminCreateIntegrationConnectionOutput struct {
+	Connection *EndpointsIntegrationConnectionInstanceView `json:"connection,omitempty"`
+}
+
+type EndpointsAdminDeactivateUserInput struct {
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminDeactivateUserOutput struct {
+	LifecycleState string `json:"lifecycleState"`
+	UserID string `json:"userId"`
+	Username *string `json:"username,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsAdminDeleteAWSSettingsOutput struct {
-	Message *string `json:"message,omitempty"`
-	Success *bool `json:"success,omitempty"`
+	Message string `json:"message"`
+	Success bool `json:"success"`
+}
+
+type EndpointsAdminDeleteAzureConnectOutput struct {
+	Failures []string `json:"failures,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminDeleteAzureInstallationOutput struct {
+	Failures []string `json:"failures,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsAdminDeleteAzureSettingsOutput struct {
-	Message *string `json:"message,omitempty"`
-	Success *bool `json:"success,omitempty"`
+	Message string `json:"message"`
+	Success bool `json:"success"`
 }
 
 type EndpointsAdminDeleteGCPSettingsOutput struct {
-	Message *string `json:"message,omitempty"`
-	Success *bool `json:"success,omitempty"`
+	Message string `json:"message"`
+	Success bool `json:"success"`
+}
+
+type EndpointsAdminDeleteK8SClusterOutput struct {
+	Deleted bool `json:"deleted"`
+}
+
+type EndpointsAdminDeleteK8SSettingsOutput struct {
+	Deleted bool `json:"deleted"`
+}
+
+type EndpointsAdminDisconnectIntegrationConnectionOutput struct {
+	ConnectionID *string `json:"connectionId,omitempty"`
+	MaxOutstandingLeaseExpiry *string `json:"maxOutstandingLeaseExpiry,omitempty"`
+	NewLeasesBlocked *bool `json:"newLeasesBlocked,omitempty"`
+	Status *string `json:"status,omitempty"`
+	StoredSecretDeleted *bool `json:"storedSecretDeleted,omitempty"`
+	UpstreamRevocationRequired *bool `json:"upstreamRevocationRequired,omitempty"`
+}
+
+type EndpointsAdminDisconnectIntegrationOutput struct {
+	Disconnected *bool `json:"disconnected,omitempty"`
+}
+
+type EndpointsAdminDiscoverGitHubPackagesCredentialInput struct {
+	Token string `json:"token"`
+}
+
+type EndpointsAdminDiscoverGitHubPackagesCredentialOutput struct {
+	PackageOrigin *string `json:"packageOrigin,omitempty"`
+	Packages []EndpointsGitHubPackagesDiscoveredPackage `json:"packages,omitempty"`
+	Username string `json:"username"`
+}
+
+type EndpointsAdminElevateSupportAccessInput struct {
+	Agent *string `json:"agent,omitempty"`
+	Reason string `json:"reason"`
+	TtlSeconds *int64 `json:"ttlSeconds,omitempty"`
+}
+
+type EndpointsAdminElevateSupportAccessOutput struct {
+	Extended *bool `json:"extended,omitempty"`
+	Grant EndpointsAdminSupportAccessGrant `json:"grant"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsAdminFileContentsOutput struct {
@@ -88,6 +428,21 @@ type EndpointsAdminFindingsDownloadOutput struct {
 	Csv *string `json:"csv,omitempty"`
 }
 
+type EndpointsAdminFindingsGroupsInput struct {
+	GroupBy ModelsFindingsGroupBy `json:"groupBy"`
+	Limit *int `json:"limit,omitempty"`
+	Page *int `json:"page,omitempty"`
+	Query ModelsUnifiedFindingsQuery `json:"query"`
+}
+
+type EndpointsAdminFindingsGroupsOutput struct {
+	Groups []ModelsFindingsGroup `json:"groups,omitempty"`
+	Page int `json:"page"`
+	TotalGroups int `json:"totalGroups"`
+	Truncated bool `json:"truncated"`
+	Ungrouped int `json:"ungrouped"`
+}
+
 type EndpointsAdminFixEffortMapInput struct {
 	Easy int `json:"easy"`
 	Hard int `json:"hard"`
@@ -106,18 +461,21 @@ type EndpointsAdminFixEffortMapOutput struct {
 
 type EndpointsAdminGetAWSSettingsOutput struct {
 	AwsAccounts []ModelsAWSAccountWithStatus `json:"awsAccounts,omitempty"`
-	CreatedAt *string `json:"createdAt,omitempty"`
-	ExternalID *string `json:"externalId,omitempty"`
-	IamRoleName *string `json:"iamRoleName,omitempty"`
+	ConnectorPermissionGaps []ModelsAWSConnectorPermissionGap `json:"connectorPermissionGaps,omitempty"`
+	ConnectorPermissionProbe *EndpointsConnectorPermissionProbeStatus `json:"connectorPermissionProbe,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	ExternalID string `json:"externalId"`
+	IamRoleName string `json:"iamRoleName"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
 	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
 	NullifyK8sCollectorRoleArn *string `json:"nullifyK8sCollectorRoleArn,omitempty"`
-	NullifyKMSKeyArn *string `json:"nullifyKMSKeyArn,omitempty"`
-	NullifyRoleArn *string `json:"nullifyRoleArn,omitempty"`
-	NullifyS3Bucket *string `json:"nullifyS3Bucket,omitempty"`
-	OverallStatus *string `json:"overallStatus,omitempty"`
-	PreferredDeployment *ModelsDeploymentType `json:"preferredDeployment,omitempty"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
+	NullifyKMSKeyArn string `json:"nullifyKMSKeyArn"`
+	NullifyRoleArn string `json:"nullifyRoleArn"`
+	NullifyS3AccessPointArn *string `json:"nullifyS3AccessPointArn,omitempty"`
+	NullifyS3Bucket string `json:"nullifyS3Bucket"`
+	OverallStatus string `json:"overallStatus"`
+	PreferredDeployment ModelsDeploymentType `json:"preferredDeployment"`
+	UpdatedAt string `json:"updatedAt"`
 }
 
 type EndpointsAdminGetAzureConfigOutput struct {
@@ -128,17 +486,42 @@ type EndpointsAdminGetAzureConfigOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsAdminGetAzureConnectStatusOutput struct {
+	AdminConsentURL *string `json:"adminConsentUrl,omitempty"`
+	Checklist []EndpointsAzureConnectChecklistItem `json:"checklist,omitempty"`
+	ContinueURL *string `json:"continueUrl,omitempty"`
+	EnableBuildGate *bool `json:"enableBuildGate,omitempty"`
+	ErrorCode *string `json:"errorCode,omitempty"`
+	Organizations []EndpointsAzureConnectOrganization `json:"organizations,omitempty"`
+	Status EndpointsAzureConnectStatus `json:"status"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsAdminGetAzureSettingsOutput struct {
+	AuthMode string `json:"authMode"`
 	ClientID *string `json:"clientId,omitempty"`
-	CreatedAt *string `json:"createdAt,omitempty"`
+	CreatedAt string `json:"createdAt"`
 	DisplayName *string `json:"displayName,omitempty"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
 	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
-	OverallStatus *string `json:"overallStatus,omitempty"`
+	OverallStatus string `json:"overallStatus"`
 	Subscriptions []ModelsAzureSubscriptionWithStatus `json:"subscriptions,omitempty"`
-	TenantID *string `json:"tenantId,omitempty"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
-	UseManagedIdentity *bool `json:"useManagedIdentity,omitempty"`
+	TenantID string `json:"tenantId"`
+	UpdatedAt string `json:"updatedAt"`
+	WifIssuerURL *string `json:"wifIssuerUrl,omitempty"`
+	WifSubject *string `json:"wifSubject,omitempty"`
+}
+
+type EndpointsAdminGetCallerAccessOutput struct {
+	LifecycleState *string `json:"lifecycleState,omitempty"`
+	ManagedBy *string `json:"managedBy,omitempty"`
+	Permissions []string `json:"permissions,omitempty"`
+	Role *string `json:"role,omitempty"`
+	SupportAccessExpiresAt *string `json:"supportAccessExpiresAt,omitempty"`
+	TeamIds []string `json:"teamIds,omitempty"`
+	TeamScopeEnabled *bool `json:"teamScopeEnabled,omitempty"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsAdminGetFindingOutput struct {
@@ -151,18 +534,38 @@ type EndpointsAdminGetFixEffortOutput struct {
 }
 
 type EndpointsAdminGetGCPSettingsOutput struct {
-	CreatedAt *string `json:"createdAt,omitempty"`
+	CreatedAt string `json:"createdAt"`
 	DisplayName *string `json:"displayName,omitempty"`
 	GkeClusterOidcIssuerUrls []string `json:"gkeClusterOidcIssuerUrls,omitempty"`
 	GkeServiceAccountUniqueID *string `json:"gkeServiceAccountUniqueId,omitempty"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
 	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
 	NullifyK8sCollectorRoleArn *string `json:"nullifyK8sCollectorRoleArn,omitempty"`
-	OverallStatus *string `json:"overallStatus,omitempty"`
+	OverallStatus string `json:"overallStatus"`
 	Projects []ModelsGCPProjectWithStatus `json:"projects,omitempty"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
-	WorkloadIdentityProvider *string `json:"workloadIdentityProvider,omitempty"`
-	WorkloadIdentityServiceAccountEmail *string `json:"workloadIdentityServiceAccountEmail,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+	WorkloadIdentityProvider string `json:"workloadIdentityProvider"`
+	WorkloadIdentityServiceAccountEmail string `json:"workloadIdentityServiceAccountEmail"`
+}
+
+type EndpointsAdminGetGCPSetupOutput struct {
+	AttributeMapping string `json:"attributeMapping"`
+	CustomRoleID string `json:"customRoleId"`
+	CustomRoleNote string `json:"customRoleNote"`
+	DiscoveryRoles []string `json:"discoveryRoles,omitempty"`
+	InstallerEnv string `json:"installerEnv"`
+	OidcIssuerURL string `json:"oidcIssuerUrl"`
+	RequiredApis []string `json:"requiredApis,omitempty"`
+	RoleGrantNote string `json:"roleGrantNote"`
+	ServiceAccountBindingMember string `json:"serviceAccountBindingMember"`
+	ServiceAccountBindingRole string `json:"serviceAccountBindingRole"`
+	ServiceAccountID string `json:"serviceAccountId"`
+	TenantID string `json:"tenantId"`
+	TerraformVariables string `json:"terraformVariables"`
+	ViewerRoles []string `json:"viewerRoles,omitempty"`
+	WorkloadIdentityPoolID string `json:"workloadIdentityPoolId"`
+	WorkloadIdentityProviderAttributeCondition string `json:"workloadIdentityProviderAttributeCondition"`
+	WorkloadIdentityProviderID string `json:"workloadIdentityProviderId"`
 }
 
 type EndpointsAdminGetGitHubAppSettingsOutput struct {
@@ -170,6 +573,7 @@ type EndpointsAdminGetGitHubAppSettingsOutput struct {
 	Events []string `json:"events,omitempty"`
 	IncorrectPermissions map[string]EndpointsIncorrectPermission `json:"incorrect_permissions,omitempty"`
 	InstallationID int64 `json:"installation_id"`
+	ManagedBySharedApp bool `json:"managed_by_shared_app"`
 	MissingEvents []string `json:"missing_events,omitempty"`
 	MissingPermissions map[string]string `json:"missing_permissions,omitempty"`
 	Permissions map[string]string `json:"permissions,omitempty"`
@@ -185,9 +589,49 @@ type EndpointsAdminGetIntegrationUsersOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsAdminGetIntegrationsCatalogOutput struct {
+	Connectors []EndpointsCatalogConnector `json:"connectors,omitempty"`
+}
+
 type EndpointsAdminGetJiraConfigOutput struct {
 	Configuration *ModelsJiraConfig `json:"configuration,omitempty"`
 	Enabled bool `json:"enabled"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetK8SCollectorAccountsOutput struct {
+	AccountIds []string `json:"accountIds,omitempty"`
+	Initialized bool `json:"initialized"`
+	LegacyAccessPreserved bool `json:"legacyAccessPreserved"`
+	Revision int64 `json:"revision"`
+	StateID string `json:"stateId"`
+}
+
+type EndpointsAdminGetK8SSettingsOutput struct {
+	Clusters []ModelsK8SClusterWithStatus `json:"clusters,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
+	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
+	NullifyRoleArn *string `json:"nullifyRoleArn,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type EndpointsAdminGetLinearConfigOutput struct {
+	ClientSecretUploaded bool `json:"clientSecretUploaded"`
+	ConfigUploaded bool `json:"configUploaded"`
+	Configuration *EndpointsAdminLinearConfigOutput `json:"configuration,omitempty"`
+	RedactedClientSecret *string `json:"redactedClientSecret,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetLinearMembersOutput struct {
+	HasMore bool `json:"hasMore"`
+	Members []EndpointsAdminLinearMember `json:"members,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetLinearTeamsOutput struct {
+	Teams []EndpointsAdminLinearTeam `json:"teams,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -196,11 +640,61 @@ type EndpointsAdminGetOrganizationOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsAdminGetPRGateSettingsOutput struct {
+	AllowApprovingReviews *bool `json:"allowApprovingReviews,omitempty"`
+	AllowRequestChangesReviews *bool `json:"allowRequestChangesReviews,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CvssEnforcement *bool `json:"cvssEnforcement,omitempty"`
+	Enabled bool `json:"enabled"`
+	FailOnIncompleteCoverage *bool `json:"failOnIncompleteCoverage,omitempty"`
+	FindingsPolicy EndpointsPRGateFindingsPolicy `json:"findingsPolicy"`
+	MinPriority ModelsPriorityEnum `json:"minPriority"`
+	Mode *string `json:"mode,omitempty"`
+	PrReviewsEnabled *bool `json:"prReviewsEnabled,omitempty"`
+	PrScansEnabled *bool `json:"prScansEnabled,omitempty"`
+	PushScansEnabled *bool `json:"pushScansEnabled,omitempty"`
+	ScaBlockCvssThreshold *float64 `json:"scaBlockCvssThreshold,omitempty"`
+	SCPM *EndpointsEffectiveSCPMGateSettings `json:"scpm,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetPullRequestRecordOutput struct {
+	PullRequest *ModelsFindingPullRequestRecord `json:"pullRequest,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetRBACPreferencesOutput struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DefaultInviteeRole string `json:"defaultInviteeRole"`
+	TeamScopedRoles []string `json:"teamScopedRoles,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetRepoRecommendationsOutput struct {
+	GeneratedAt string `json:"generatedAt"`
+	Recommended []EndpointsRepoRecommendation `json:"recommended,omitempty"`
+	ScanID string `json:"scanId"`
+	UncoveredCaps []string `json:"uncoveredCaps,omitempty"`
+}
+
 type EndpointsAdminGetRepositoriesOutput struct {
 	NextToken string `json:"nextToken"`
 	NumItems int `json:"numItems"`
 	Repositories []ModelsRepositoryPublic `json:"repositories,omitempty"`
+	TotalCount int `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetSupportAccessOutput struct {
+	Active *EndpointsAdminSupportAccessGrant `json:"active,omitempty"`
+	Grants []EndpointsAdminSupportAccessGrant `json:"grants,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGetThreatNotificationDestinationsOutput struct {
+	Destinations EndpointsThreatNotificationDestinations `json:"destinations"`
 }
 
 type EndpointsAdminGetUserInstallationsOutput struct {
@@ -209,28 +703,94 @@ type EndpointsAdminGetUserInstallationsOutput struct {
 }
 
 type EndpointsAdminGetUsersOutput struct {
-	Users []ModelsUser `json:"users,omitempty"`
+	Users []EndpointsAdminUserWithRole `json:"users,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminGitLabConnectConfirmInput struct {
+	Handle string `json:"handle"`
+}
+
+type EndpointsAdminGitLabConnectOutput struct {
+	AuthorizeURL string `json:"authorizeUrl"`
+	Handle string `json:"handle"`
+}
+
+type EndpointsAdminGitLabConnectStatusOutput struct {
+	Available *bool `json:"available,omitempty"`
+	CompletedRepositories *int `json:"completedRepositories,omitempty"`
+	Connected *bool `json:"connected,omitempty"`
+	Error *string `json:"error,omitempty"`
+	Group *GitlabauthGroup `json:"group,omitempty"`
+	Handle *string `json:"handle,omitempty"`
+	Repositories []GitlabauthProject `json:"repositories,omitempty"`
+	Status *string `json:"status,omitempty"`
 }
 
 type EndpointsAdminInstallationOutput struct {
 	AvatarURL string `json:"avatarUrl"`
+	IsOnboarded *bool `json:"isOnboarded,omitempty"`
 	Name string `json:"name"`
 	NullifyBaseURL *string `json:"nullifyBaseUrl,omitempty"`
 	Provider ModelsOwnerProvider `json:"provider"`
+	ProvisioningStatus *string `json:"provisioningStatus,omitempty"`
 	QueryParameters map[string]string `json:"queryParameters,omitempty"`
 }
 
 type EndpointsAdminK8SConnectorWhitelistInput struct {
 	AccountIds []string `json:"accountIds,omitempty"`
+	ExpectedRevision *int `json:"expectedRevision,omitempty"`
+	ExpectedStateID *string `json:"expectedStateId,omitempty"`
 }
 
 type EndpointsAdminK8SConnectorWhitelistOutput struct {
+	AccessPointError *string `json:"accessPointError,omitempty"`
+	AccessPointPolicyUpdated *bool `json:"accessPointPolicyUpdated,omitempty"`
 	KmsError *string `json:"kmsError,omitempty"`
-	KmsPolicyUpdated *bool `json:"kmsPolicyUpdated,omitempty"`
+	KmsPolicyUpdated bool `json:"kmsPolicyUpdated"`
+	KmsSkipped bool `json:"kmsSkipped"`
 	Message *string `json:"message,omitempty"`
+	Revision int64 `json:"revision"`
 	S3Error *string `json:"s3Error,omitempty"`
-	S3PolicyUpdated *bool `json:"s3PolicyUpdated,omitempty"`
+	S3PolicyUpdated bool `json:"s3PolicyUpdated"`
+	StateID string `json:"stateId"`
+}
+
+type EndpointsAdminLinearConfigOutput struct {
+	AutoCreate *bool `json:"autoCreate,omitempty"`
+	ClientID string `json:"clientId"`
+	CreatedAt string `json:"createdAt"`
+	DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+	EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
+	PriorityThreshold *string `json:"priorityThreshold,omitempty"`
+	TeamID *string `json:"teamId,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type EndpointsAdminLinearMember struct {
+	Email *string `json:"email,omitempty"`
+	ID string `json:"id"`
+	Name string `json:"name"`
+}
+
+type EndpointsAdminLinearTeam struct {
+	ID string `json:"id"`
+	Key *string `json:"key,omitempty"`
+	Name string `json:"name"`
+}
+
+type EndpointsAdminListAzureInstallationsOutput struct {
+	Installations []EndpointsAdminAzureInstallation `json:"installations,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminListIntegrationConnectionsOutput struct {
+	Connections []EndpointsIntegrationConnectionInstanceView `json:"connections,omitempty"`
+}
+
+type EndpointsAdminListOrgOwnersOutput struct {
+	UserIds []string `json:"userIds,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsAdminListUnifiedEventsByTeamInput struct {
@@ -240,9 +800,14 @@ type EndpointsAdminListUnifiedEventsByTeamInput struct {
 	BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	EventTypes []string `json:"eventTypes,omitempty"`
+	ExcludeEventTypes []string `json:"excludeEventTypes,omitempty"`
+	ExcludeServices []string `json:"excludeServices,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
+	HideNoise *bool `json:"hideNoise,omitempty"`
 	Limit *int `json:"limit,omitempty"`
 	PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+	Query *string `json:"query,omitempty"`
+	QueryEventTypes []string `json:"queryEventTypes,omitempty"`
 	RunID *string `json:"runId,omitempty"`
 	Services []string `json:"services,omitempty"`
 }
@@ -254,9 +819,14 @@ type EndpointsAdminListUnifiedEventsInput struct {
 	BeforeTimeUnix *int `json:"beforeTimeUnix,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	EventTypes []string `json:"eventTypes,omitempty"`
+	ExcludeEventTypes []string `json:"excludeEventTypes,omitempty"`
+	ExcludeServices []string `json:"excludeServices,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
+	HideNoise *bool `json:"hideNoise,omitempty"`
 	Limit *int `json:"limit,omitempty"`
 	PrCanonicalID *string `json:"prCanonicalId,omitempty"`
+	Query *string `json:"query,omitempty"`
+	QueryEventTypes []string `json:"queryEventTypes,omitempty"`
 	RunID *string `json:"runId,omitempty"`
 	Services []string `json:"services,omitempty"`
 }
@@ -269,22 +839,132 @@ type EndpointsAdminListUnifiedEventsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsAdminListUserRolesOutput struct {
+	NextKey *string `json:"nextKey,omitempty"`
+	Total *int `json:"total,omitempty"`
+	Users []EndpointsAdminUserRole `json:"users,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminMintGCPAccessTokenOutput struct {
+	AccessToken string `json:"accessToken"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
+type EndpointsAdminNewRoleUser struct {
+	Email *string `json:"email,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Username string `json:"username"`
+}
+
+type EndpointsAdminPostAsanaTicketConfigInput struct {
+	AccessToken string `json:"accessToken"`
+	ProjectGid string `json:"projectGid"`
+	WorkspaceID string `json:"workspaceId"`
+	WorkspaceName *string `json:"workspaceName,omitempty"`
+}
+
+type EndpointsAdminPostAsanaTicketConfigOutput struct {
+	Configuration *EndpointsAdminAsanaConfigOutput `json:"configuration,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminPostAzureCodeownersPreviewInput struct {
+	OrganizationID string `json:"organizationId"`
+	Path *string `json:"path,omitempty"`
+	ProjectID string `json:"projectId"`
+	Ref *string `json:"ref,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsAdminPostAzureCodeownersPreviewOutput struct {
+	Applied bool `json:"applied"`
+	Found bool `json:"found"`
+	Path *string `json:"path,omitempty"`
+	Plans []EndpointsAzureCodeownersPolicyPlan `json:"plans,omitempty"`
+	Ref *string `json:"ref,omitempty"`
+	Rules int `json:"rules"`
+	Unresolved []string `json:"unresolved,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminPostAzureConnectConfirmInput struct {
+	OrganizationIds []string `json:"organizationIds,omitempty"`
+	Projects string `json:"projects"`
+}
+
+type EndpointsAdminPostAzureConnectConfirmOutput struct {
+	Status EndpointsAzureConnectStatus `json:"status"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminPostAzureConnectInput struct {
+	AlsoEnableSignIn *bool `json:"alsoEnableSignIn,omitempty"`
+	EnableBuildGate *bool `json:"enableBuildGate,omitempty"`
+	EnableWorkItems *bool `json:"enableWorkItems,omitempty"`
+	OrganizationName *string `json:"organizationName,omitempty"`
+	ReauthorizeHandle *string `json:"reauthorizeHandle,omitempty"`
+	RequestAdminConsent *bool `json:"requestAdminConsent,omitempty"`
+	ReturnPath *string `json:"returnPath,omitempty"`
+}
+
+type EndpointsAdminPostAzureConnectOutput struct {
+	AuthorizeURL string `json:"authorizeUrl"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminPostAzureConnectRetryInput struct {
+	OrganizationID string `json:"organizationId"`
+}
+
+type EndpointsAdminPostAzureConnectRetryOutput struct {
+	Status EndpointsAzureConnectStatus `json:"status"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsAdminPostAzureCredentialsInput struct {
 	ClientID string `json:"clientId"`
 	ClientSecret *string `json:"clientSecret,omitempty"`
+	Organization *string `json:"organization,omitempty"`
+	ProjectName *string `json:"projectName,omitempty"`
 	TenantID string `json:"tenantId"`
+	WorkItemType *string `json:"workItemType,omitempty"`
 }
 
 type EndpointsAdminPostAzureCredentialsOutput struct {
 	ClientID string `json:"clientId"`
 	ClientSecret *string `json:"clientSecret,omitempty"`
 	CreatedAt string `json:"createdAt"`
+	Organization *string `json:"organization,omitempty"`
+	ProjectName *string `json:"projectName,omitempty"`
 	TenantID string `json:"tenantId"`
 	UpdatedAt string `json:"updatedAt"`
 	Version *string `json:"version,omitempty"`
+	WorkItemType *string `json:"workItemType,omitempty"`
 }
 
 type EndpointsAdminPostAzureInstallOutput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	Failures []EndpointsAdminAzureHookFailure `json:"failures,omitempty"`
+	HooksCreated *int `json:"hooksCreated,omitempty"`
+	HooksReplaced *int `json:"hooksReplaced,omitempty"`
+	HooksSkipped *int `json:"hooksSkipped,omitempty"`
+	Outcome *string `json:"outcome,omitempty"`
+	Projects []EndpointsAdminAzureProjectHooksHealth `json:"projects,omitempty"`
+	RouterManaged *bool `json:"routerManaged,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminPostLinearTicketConfigInput struct {
+	AutoCreate *bool `json:"autoCreate,omitempty"`
+	DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+	EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
+	PriorityThreshold *string `json:"priorityThreshold,omitempty"`
+	TeamID string `json:"teamId"`
+}
+
+type EndpointsAdminPostLinearTicketConfigOutput struct {
+	Configuration *EndpointsAdminLinearConfigOutput `json:"configuration,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -296,11 +976,93 @@ type EndpointsAdminPutFixEffortOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsAdminPutPRGateSettingsInput struct {
+	AllowApprovingReviews *bool `json:"allowApprovingReviews,omitempty"`
+	AllowRequestChangesReviews *bool `json:"allowRequestChangesReviews,omitempty"`
+	CvssEnforcement *bool `json:"cvssEnforcement,omitempty"`
+	Enabled bool `json:"enabled"`
+	ExpectedPrScansEnabled *bool `json:"expectedPrScansEnabled,omitempty"`
+	ExpectedPushScansEnabled *bool `json:"expectedPushScansEnabled,omitempty"`
+	FailOnIncompleteCoverage *bool `json:"failOnIncompleteCoverage,omitempty"`
+	FindingsPolicy *EndpointsPRGateFindingsPolicy `json:"findingsPolicy,omitempty"`
+	MinPriority ModelsPriorityEnum `json:"minPriority"`
+	Mode *string `json:"mode,omitempty"`
+	PrReviewsEnabled *bool `json:"prReviewsEnabled,omitempty"`
+	PrScansEnabled *bool `json:"prScansEnabled,omitempty"`
+	PushScansEnabled *bool `json:"pushScansEnabled,omitempty"`
+	ScaBlockCvssThreshold *float64 `json:"scaBlockCvssThreshold,omitempty"`
+}
+
+type EndpointsAdminPutPRGateSettingsOutput struct {
+	AllowApprovingReviews *bool `json:"allowApprovingReviews,omitempty"`
+	AllowRequestChangesReviews *bool `json:"allowRequestChangesReviews,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CvssEnforcement *bool `json:"cvssEnforcement,omitempty"`
+	Enabled bool `json:"enabled"`
+	FailOnIncompleteCoverage *bool `json:"failOnIncompleteCoverage,omitempty"`
+	FindingsPolicy EndpointsPRGateFindingsPolicy `json:"findingsPolicy"`
+	MinPriority ModelsPriorityEnum `json:"minPriority"`
+	Mode *string `json:"mode,omitempty"`
+	PrReviewsEnabled *bool `json:"prReviewsEnabled,omitempty"`
+	PrScansEnabled *bool `json:"prScansEnabled,omitempty"`
+	PushScansEnabled *bool `json:"pushScansEnabled,omitempty"`
+	ScaBlockCvssThreshold *float64 `json:"scaBlockCvssThreshold,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminPutRBACPreferencesInput struct {
+	DefaultInviteeRole string `json:"defaultInviteeRole"`
+	TeamScopedRoles []string `json:"teamScopedRoles,omitempty"`
+}
+
+type EndpointsAdminPutRBACPreferencesOutput struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DefaultInviteeRole string `json:"defaultInviteeRole"`
+	TeamScopedRoles []string `json:"teamScopedRoles,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminPutRoutingExclusionsInput struct {
+	Users []EndpointsAdminRoutingExclusionUser `json:"users,omitempty"`
+}
+
+type EndpointsAdminPutSecurityOwnerInput struct {
+	TeamID string `json:"teamId"`
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminPutThreatNotificationDestinationsInput struct {
+	MicrosoftTeamsWebhookURL *string `json:"microsoftTeamsWebhookUrl,omitempty"`
+	NullifySharedSlack *bool `json:"nullifySharedSlack,omitempty"`
+	TenantSlackChannelID *string `json:"tenantSlackChannelId,omitempty"`
+}
+
+type EndpointsAdminPutThreatNotificationDestinationsOutput struct {
+	Destinations EndpointsThreatNotificationDestinations `json:"destinations"`
+}
+
+type EndpointsAdminQueryFindingsFrameworksOutput struct {
+	Frameworks []ModelsFrameworkFindingsSummary `json:"frameworks,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsAdminQueryFindingsInput struct {
 	Query ModelsUnifiedFindingsQuery `json:"query"`
 }
 
+type EndpointsAdminQueryFindingsMetricsByRepositoryInput struct {
+	Query ModelsLimitedUnifiedFindingsQuery `json:"query"`
+}
+
+type EndpointsAdminQueryFindingsMetricsByRepositoryOutput struct {
+	Repositories []ModelsFindingsRepositoryMetrics `json:"repositories,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsAdminQueryFindingsMetricsInput struct {
+	IncludeFunnel *bool `json:"includeFunnel,omitempty"`
 	Query ModelsLimitedUnifiedFindingsQuery `json:"query"`
 }
 
@@ -318,6 +1080,196 @@ type EndpointsAdminQueryFindingsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsAdminQueryFindingsProgressInput struct {
+	Query ModelsUnifiedFindingsQuery `json:"query"`
+}
+
+type EndpointsAdminQueryFindingsProgressOutput struct {
+	HasMoreData bool `json:"hasMoreData"`
+	Progress []ModelsFindingProgress `json:"progress,omitempty"`
+	Total int `json:"total"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminQueryPullRequestMetricsInput struct {
+	Query ModelsPullRequestMetricsQuery `json:"query"`
+}
+
+type EndpointsAdminQueryPullRequestMetricsOutput struct {
+	PullRequests ModelsPullRequestMetrics `json:"pullRequests"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminQueryPullRequestsInput struct {
+	Query *ModelsFindingPullRequestQuery `json:"query,omitempty"`
+}
+
+type EndpointsAdminQueryPullRequestsOutput struct {
+	PullRequests []ModelsFindingPullRequestRecord `json:"pullRequests,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminQueryTicketMetricsInput struct {
+	Query ModelsTicketMetricsQuery `json:"query"`
+}
+
+type EndpointsAdminQueryTicketMetricsOutput struct {
+	Tickets ModelsTicketMetrics `json:"tickets"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminReactivateUserInput struct {
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminReactivateUserOutput struct {
+	LifecycleState string `json:"lifecycleState"`
+	UserID string `json:"userId"`
+	Username *string `json:"username,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminRefreshPullRequestsCIInput struct {
+	Ids []string `json:"ids,omitempty"`
+}
+
+type EndpointsAdminRefreshPullRequestsCIOutput struct {
+	FailedIds []string `json:"failedIds,omitempty"`
+	RefreshedIds []string `json:"refreshedIds,omitempty"`
+	RejectedIds []string `json:"rejectedIds,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminRevokeSupportAccessOutput struct {
+	Revoked *EndpointsAdminSupportAccessGrant `json:"revoked,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminRotateIntegrationConnectionInput struct {
+	ExpectedAuthorityRevision *int `json:"expectedAuthorityRevision,omitempty"`
+	Fields map[string]string `json:"fields,omitempty"`
+}
+
+type EndpointsAdminRotateIntegrationConnectionOutput struct {
+	Connection *EndpointsIntegrationConnectionInstanceView `json:"connection,omitempty"`
+}
+
+type EndpointsAdminRoutingExclusion struct {
+	CurrentLogin string `json:"currentLogin"`
+	GitUserRefs []string `json:"gitUserRefs,omitempty"`
+	JiraID string `json:"jiraId"`
+	LinearID string `json:"linearId"`
+	Login string `json:"login"`
+	ProviderID ModelsProviderID `json:"providerId"`
+	ProviderUserID string `json:"providerUserId"`
+	SlackID string `json:"slackId"`
+	Source string `json:"source"`
+	TeamsID string `json:"teamsId"`
+	Unresolved []string `json:"unresolved,omitempty"`
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminRoutingExclusionUser struct {
+	Login string `json:"login"`
+	ProviderID ModelsProviderID `json:"providerId"`
+	Source *string `json:"source,omitempty"`
+}
+
+type EndpointsAdminRoutingExclusionsOutput struct {
+	Fallback EndpointsAdminRoutingFallback `json:"fallback"`
+	Users []EndpointsAdminRoutingExclusion `json:"users,omitempty"`
+}
+
+type EndpointsAdminRoutingFallback struct {
+	Eligible bool `json:"eligible"`
+	GitUserRefs []string `json:"gitUserRefs,omitempty"`
+	Login string `json:"login"`
+	Name string `json:"name"`
+	ProviderID ModelsProviderID `json:"providerId"`
+	ProviderUserID string `json:"providerUserId"`
+	Reason string `json:"reason"`
+	SlackID string `json:"slackId"`
+	TeamsID string `json:"teamsId"`
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminSecurityOwnerContact struct {
+	InteractionCount int64 `json:"interactionCount"`
+	Name string `json:"name"`
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminSecurityOwnerOutput struct {
+	ResolvedUserID string `json:"resolvedUserId"`
+	Suggestions []EndpointsAdminSecurityOwnerContact `json:"suggestions,omitempty"`
+	TeamID string `json:"teamId"`
+	UserID string `json:"userId"`
+}
+
+type EndpointsAdminSetUserRoleTarget struct {
+	NewUser *EndpointsAdminNewRoleUser `json:"newUser,omitempty"`
+	UserID *string `json:"userId,omitempty"`
+}
+
+type EndpointsAdminSupportAccessGrant struct {
+	Actor string `json:"actor"`
+	Agent *string `json:"agent,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	ExpiresAt string `json:"expiresAt"`
+	ID string `json:"id"`
+	Reason string `json:"reason"`
+	RevokedAt *string `json:"revokedAt,omitempty"`
+	RevokedBy *string `json:"revokedBy,omitempty"`
+	Role string `json:"role"`
+	Username string `json:"username"`
+}
+
+type EndpointsAdminSuspendAzureInstallationInput struct {
+	OrganizationID string `json:"organizationId"`
+	Suspended bool `json:"suspended"`
+}
+
+type EndpointsAdminSuspendAzureInstallationOutput struct {
+	Failures []string `json:"failures,omitempty"`
+	InstallationsAffected int `json:"installationsAffected"`
+	SubscriptionsAffected int `json:"subscriptionsAffected"`
+	Suspended bool `json:"suspended"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminTestAzureInstallationInput struct {
+	OrganizationID string `json:"organizationId"`
+}
+
+type EndpointsAdminTestAzureInstallationOutput struct {
+	Checklist []EndpointsAzureConnectChecklistItem `json:"checklist,omitempty"`
+	Ok bool `json:"ok"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAdminTestIntegrationConnectionOutput struct {
+	Healthy *bool `json:"healthy,omitempty"`
+	LastError *string `json:"lastError,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
+type EndpointsAdminTestIntegrationOutput struct {
+	Healthy *bool `json:"healthy,omitempty"`
+	LastError *string `json:"lastError,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
+type EndpointsAdminTriageContextCensusInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsAdminTriageContextCensusOutput struct {
+	Blind []EndpointsTriageContextCensusFinding `json:"blind,omitempty"`
+	Requested int `json:"requested"`
+	TenantSummary []EndpointsTriageContextCensusSummary `json:"tenantSummary,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsAdminUpsertAWSSettingsInput struct {
 	AwsAccounts []ModelsAWSAccount `json:"awsAccounts,omitempty"`
 	ExternalID *string `json:"externalId,omitempty"`
@@ -327,41 +1279,55 @@ type EndpointsAdminUpsertAWSSettingsInput struct {
 
 type EndpointsAdminUpsertAWSSettingsOutput struct {
 	AwsAccounts []ModelsAWSAccountWithStatus `json:"awsAccounts,omitempty"`
-	ExternalID *string `json:"externalId,omitempty"`
+	ExternalID string `json:"externalId"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
 	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
 	Message *string `json:"message,omitempty"`
-	NullifyKMSKeyArn *string `json:"nullifyKMSKeyArn,omitempty"`
-	NullifyRoleArn *string `json:"nullifyRoleArn,omitempty"`
-	NullifyS3Bucket *string `json:"nullifyS3Bucket,omitempty"`
-	OverallStatus *string `json:"overallStatus,omitempty"`
+	NullifyKMSKeyArn string `json:"nullifyKMSKeyArn"`
+	NullifyRoleArn string `json:"nullifyRoleArn"`
+	NullifyS3Bucket string `json:"nullifyS3Bucket"`
+	OverallStatus string `json:"overallStatus"`
+}
+
+type EndpointsAdminUpsertAzureInstallationInput struct {
+	OrganizationID string `json:"organizationId"`
+	ProjectID string `json:"projectId"`
+}
+
+type EndpointsAdminUpsertAzureInstallationOutput struct {
+	Installation EndpointsAdminAzureInstallation `json:"installation"`
+	Version *string `json:"version,omitempty"`
+	WebhookSecret string `json:"webhookSecret"`
 }
 
 type EndpointsAdminUpsertAzureSettingsInput struct {
+	AuthMode string `json:"authMode"`
 	ClientID *string `json:"clientId,omitempty"`
 	ClientSecret *string `json:"clientSecret,omitempty"`
 	DisplayName *string `json:"displayName,omitempty"`
 	Subscriptions []ModelsAzureSubscriptionInput `json:"subscriptions,omitempty"`
 	TenantID string `json:"tenantId"`
-	UseManagedIdentity *bool `json:"useManagedIdentity,omitempty"`
 }
 
 type EndpointsAdminUpsertAzureSettingsOutput struct {
+	AuthMode string `json:"authMode"`
 	ClientID *string `json:"clientId,omitempty"`
 	DisplayName *string `json:"displayName,omitempty"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
 	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
 	Message *string `json:"message,omitempty"`
-	OverallStatus *string `json:"overallStatus,omitempty"`
+	OverallStatus string `json:"overallStatus"`
 	Subscriptions []ModelsAzureSubscriptionWithStatus `json:"subscriptions,omitempty"`
-	TenantID *string `json:"tenantId,omitempty"`
-	UseManagedIdentity *bool `json:"useManagedIdentity,omitempty"`
+	TenantID string `json:"tenantId"`
 }
 
 type EndpointsAdminUpsertGCPSettingsInput struct {
+	DiscoveryScope *string `json:"discoveryScope,omitempty"`
 	DisplayName *string `json:"displayName,omitempty"`
+	FolderID *string `json:"folderId,omitempty"`
 	GkeClusterOidcIssuerUrls []string `json:"gkeClusterOidcIssuerUrls,omitempty"`
 	GkeServiceAccountUniqueID *string `json:"gkeServiceAccountUniqueId,omitempty"`
+	OrganizationID *string `json:"organizationId,omitempty"`
 	Projects []ModelsGCPProjectInput `json:"projects,omitempty"`
 	WorkloadIdentityProvider string `json:"workloadIdentityProvider"`
 	WorkloadIdentityServiceAccountEmail string `json:"workloadIdentityServiceAccountEmail"`
@@ -375,10 +1341,40 @@ type EndpointsAdminUpsertGCPSettingsOutput struct {
 	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
 	Message *string `json:"message,omitempty"`
 	NullifyK8sCollectorRoleArn *string `json:"nullifyK8sCollectorRoleArn,omitempty"`
-	OverallStatus *string `json:"overallStatus,omitempty"`
+	OverallStatus string `json:"overallStatus"`
 	Projects []ModelsGCPProjectWithStatus `json:"projects,omitempty"`
-	WorkloadIdentityProvider *string `json:"workloadIdentityProvider,omitempty"`
-	WorkloadIdentityServiceAccountEmail *string `json:"workloadIdentityServiceAccountEmail,omitempty"`
+	WorkloadIdentityProvider string `json:"workloadIdentityProvider"`
+	WorkloadIdentityServiceAccountEmail string `json:"workloadIdentityServiceAccountEmail"`
+}
+
+type EndpointsAdminUpsertK8SClusterInput struct {
+	CloudAccountID *string `json:"cloudAccountId,omitempty"`
+	ClusterName string `json:"clusterName"`
+	ClusterType string `json:"clusterType"`
+	CollectConfigMaps *bool `json:"collectConfigMaps,omitempty"`
+	CollectSecrets *bool `json:"collectSecrets,omitempty"`
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	Region *string `json:"region,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+type EndpointsAdminUpsertK8SClusterOutput struct {
+	Cluster ModelsK8SClusterWithStatus `json:"cluster"`
+	Created bool `json:"created"`
+}
+
+type EndpointsAdminUpsertK8SSettingsInput struct {
+	Clusters []ModelsK8SClusterInput `json:"clusters,omitempty"`
+	NullifyRoleArn *string `json:"nullifyRoleArn,omitempty"`
+}
+
+type EndpointsAdminUpsertK8SSettingsOutput struct {
+	Clusters []ModelsK8SClusterWithStatus `json:"clusters,omitempty"`
+	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
+	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
+	Message *string `json:"message,omitempty"`
+	NullifyRoleArn *string `json:"nullifyRoleArn,omitempty"`
+	OverallStatus string `json:"overallStatus"`
 }
 
 type EndpointsAdminUsageAggregateGroup struct {
@@ -443,6 +1439,60 @@ type EndpointsAdminUsageMetricsTimeseriesOutput struct {
 	To string `json:"to"`
 }
 
+type EndpointsAdminUserRole struct {
+	Email *string `json:"email,omitempty"`
+	IsActivated *bool `json:"isActivated,omitempty"`
+	IsCaller *bool `json:"isCaller,omitempty"`
+	LifecycleState *string `json:"lifecycleState,omitempty"`
+	Name *string `json:"name,omitempty"`
+	OperatorGranted *bool `json:"operatorGranted,omitempty"`
+	Role string `json:"role"`
+	UserID string `json:"userId"`
+	Username *string `json:"username,omitempty"`
+}
+
+type EndpointsAdminUserSource string
+
+const (
+	EndpointsAdminUserSourceNullify EndpointsAdminUserSource = "nullify"
+	EndpointsAdminUserSourceGitProvider EndpointsAdminUserSource = "git_provider"
+	EndpointsAdminUserSourceSlack EndpointsAdminUserSource = "slack"
+	EndpointsAdminUserSourceJira EndpointsAdminUserSource = "jira"
+	EndpointsAdminUserSourceTeams EndpointsAdminUserSource = "teams"
+)
+
+type EndpointsAdminUserWithRole struct {
+	Asana *ModelsAsanaUserProvider `json:"asana,omitempty"`
+	Azure *ModelsAzureUserProvider `json:"azure,omitempty"`
+	AzureEntra *ModelsAzureEntraUserProvider `json:"azureEntra,omitempty"`
+	Bitbucket *ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CreatedBy *string `json:"createdBy,omitempty"`
+	Deleted *bool `json:"deleted,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+	Email *string `json:"email,omitempty"`
+	Github *ModelsGitHubUserProvider `json:"github,omitempty"`
+	Gitlab *ModelsGitLabUserProvider `json:"gitlab,omitempty"`
+	GoogleWorkspace *ModelsGoogleWorkspaceUserProvider `json:"googleWorkspace,omitempty"`
+	ID string `json:"id"`
+	IsBot bool `json:"isBot"`
+	IsRestricted *bool `json:"isRestricted,omitempty"`
+	Jira *ModelsJiraUserProvider `json:"jira,omitempty"`
+	LastUpdatedBy *string `json:"lastUpdatedBy,omitempty"`
+	Linear *ModelsLinearUserProvider `json:"linear,omitempty"`
+	Name string `json:"name"`
+	Okta *ModelsOktaUserProvider `json:"okta,omitempty"`
+	Provider ModelsUserProvider `json:"provider"`
+	RealName *string `json:"realName,omitempty"`
+	Role *string `json:"role,omitempty"`
+	Slack *ModelsSlackUserProvider `json:"slack,omitempty"`
+	Slug string `json:"slug"`
+	Source *EndpointsAdminUserSource `json:"source,omitempty"`
+	Teams *ModelsTeamsUserProvider `json:"teams,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Username string `json:"username"`
+}
+
 type EndpointsAdminValidateAWSRoleInput struct {
 	AccountIds []string `json:"accountIds,omitempty"`
 	Onboarding *bool `json:"onboarding,omitempty"`
@@ -450,10 +1500,24 @@ type EndpointsAdminValidateAWSRoleInput struct {
 }
 
 type EndpointsAdminValidateAWSRoleOutput struct {
+	ConnectorPermissionGaps []ModelsAWSConnectorPermissionGap `json:"connectorPermissionGaps,omitempty"`
+	ConnectorPermissionProbe *EndpointsConnectorPermissionProbeStatus `json:"connectorPermissionProbe,omitempty"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
 	LastValidationStatus *string `json:"lastValidationStatus,omitempty"`
-	OverallStatus *string `json:"overallStatus,omitempty"`
-	Results map[string]EndpointsAccountValidationResult `json:"results,omitempty"`
+	OverallStatus string `json:"overallStatus"`
+	Results map[string]EndpointsAdminAccountValidationResult `json:"results,omitempty"`
+}
+
+type EndpointsAdminValidateAzureInput struct {
+	SubscriptionIds []string `json:"subscriptionIds,omitempty"`
+}
+
+type EndpointsAdminValidateAzureOutput struct {
+	ConnectorPermissionProbe *EndpointsConnectorPermissionProbeStatus `json:"connectorPermissionProbe,omitempty"`
+	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
+	LastValidationStatus *EndpointsCloudValidationStatus `json:"lastValidationStatus,omitempty"`
+	OverallStatus *EndpointsCloudValidationStatus `json:"overallStatus,omitempty"`
+	Results map[string]EndpointsAzureSubscriptionValidationResult `json:"results,omitempty"`
 }
 
 type EndpointsAdminValidateGCPInput struct {
@@ -461,10 +1525,231 @@ type EndpointsAdminValidateGCPInput struct {
 }
 
 type EndpointsAdminValidateGCPOutput struct {
+	ConnectorPermissionProbe *EndpointsConnectorPermissionProbeStatus `json:"connectorPermissionProbe,omitempty"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
 	LastValidationStatus *EndpointsCloudValidationStatus `json:"lastValidationStatus,omitempty"`
 	OverallStatus *EndpointsCloudValidationStatus `json:"overallStatus,omitempty"`
 	Results map[string]EndpointsGCPProjectValidationResult `json:"results,omitempty"`
+}
+
+type EndpointsAzureCodeownersPolicyPlan struct {
+	FilenamePatterns []string `json:"filenamePatterns,omitempty"`
+	Owners []string `json:"owners,omitempty"`
+	RequiredReviewerIds []string `json:"requiredReviewerIds,omitempty"`
+	SourceLine int `json:"sourceLine"`
+	SourcePattern string `json:"sourcePattern"`
+}
+
+type EndpointsAzureConnectChecklistCode string
+
+const (
+	EndpointsAzureConnectChecklistCodeNotCollectionAdmin EndpointsAzureConnectChecklistCode = "not_collection_admin"
+	EndpointsAzureConnectChecklistCodeAuthorizationExpired EndpointsAzureConnectChecklistCode = "authorization_expired"
+	EndpointsAzureConnectChecklistCodeProjectsExcluded EndpointsAzureConnectChecklistCode = "projects_excluded"
+)
+
+type EndpointsAzureConnectChecklistItem struct {
+	Code *EndpointsAzureConnectChecklistCode `json:"code,omitempty"`
+	Fix *string `json:"fix,omitempty"`
+	Message *string `json:"message,omitempty"`
+	OrganizationID string `json:"organizationId"`
+	ProjectID *string `json:"projectId,omitempty"`
+	State EndpointsAzureConnectChecklistState `json:"state"`
+	Step EndpointsAzureConnectChecklistStep `json:"step"`
+}
+
+type EndpointsAzureConnectChecklistState string
+
+const (
+	EndpointsAzureConnectChecklistStatePending EndpointsAzureConnectChecklistState = "pending"
+	EndpointsAzureConnectChecklistStateOk EndpointsAzureConnectChecklistState = "ok"
+	EndpointsAzureConnectChecklistStateFailed EndpointsAzureConnectChecklistState = "failed"
+)
+
+type EndpointsAzureConnectChecklistStep string
+
+const (
+	EndpointsAzureConnectChecklistStepEntitlement EndpointsAzureConnectChecklistStep = "entitlement"
+	EndpointsAzureConnectChecklistStepServiceHooksPermission EndpointsAzureConnectChecklistStep = "service_hooks_permission"
+	EndpointsAzureConnectChecklistStepGitPermission EndpointsAzureConnectChecklistStep = "git_permission"
+	EndpointsAzureConnectChecklistStepAutofixBranchPermission EndpointsAzureConnectChecklistStep = "autofix_branch_permission"
+	EndpointsAzureConnectChecklistStepPermissionCleanup EndpointsAzureConnectChecklistStep = "permission_cleanup"
+	EndpointsAzureConnectChecklistStepProjectPermission EndpointsAzureConnectChecklistStep = "project_permission"
+	EndpointsAzureConnectChecklistStepWorkItemPermission EndpointsAzureConnectChecklistStep = "work_item_permission"
+	EndpointsAzureConnectChecklistStepBuildPermission EndpointsAzureConnectChecklistStep = "build_permission"
+	EndpointsAzureConnectChecklistStepLibraryPermission EndpointsAzureConnectChecklistStep = "library_permission"
+	EndpointsAzureConnectChecklistStepAccessProbeRead EndpointsAzureConnectChecklistStep = "access_probe_read"
+	EndpointsAzureConnectChecklistStepAccessProbeWrite EndpointsAzureConnectChecklistStep = "access_probe_write"
+	EndpointsAzureConnectChecklistStepAccessProbeWorkItems EndpointsAzureConnectChecklistStep = "access_probe_work_items"
+	EndpointsAzureConnectChecklistStepOrgRosterRead EndpointsAzureConnectChecklistStep = "org_roster_read"
+	EndpointsAzureConnectChecklistStepOrgMembershipRead EndpointsAzureConnectChecklistStep = "org_membership_read"
+	EndpointsAzureConnectChecklistStepCodeSearchAvailable EndpointsAzureConnectChecklistStep = "code_search_available"
+	EndpointsAzureConnectChecklistStepRouteBinding EndpointsAzureConnectChecklistStep = "route_binding"
+	EndpointsAzureConnectChecklistStepSubscriptions EndpointsAzureConnectChecklistStep = "subscriptions"
+	EndpointsAzureConnectChecklistStepRepositories EndpointsAzureConnectChecklistStep = "repositories"
+	EndpointsAzureConnectChecklistStepBranchPolicy EndpointsAzureConnectChecklistStep = "branch_policy"
+	EndpointsAzureConnectChecklistStepFirstScan EndpointsAzureConnectChecklistStep = "first_scan"
+	EndpointsAzureConnectChecklistStepMicrosoftSignIn EndpointsAzureConnectChecklistStep = "microsoft_sign_in"
+)
+
+type EndpointsAzureConnectEligibility string
+
+const (
+	EndpointsAzureConnectEligibilityAllowed EndpointsAzureConnectEligibility = "allowed"
+	EndpointsAzureConnectEligibilityDenied EndpointsAzureConnectEligibility = "denied"
+	EndpointsAzureConnectEligibilityUnavailable EndpointsAzureConnectEligibility = "unavailable"
+)
+
+type EndpointsAzureConnectEligibilityReason string
+
+const (
+	EndpointsAzureConnectEligibilityReasonNotCollectionAdmin EndpointsAzureConnectEligibilityReason = "not_collection_admin"
+	EndpointsAzureConnectEligibilityReasonAuthorizationExpired EndpointsAzureConnectEligibilityReason = "authorization_expired"
+	EndpointsAzureConnectEligibilityReasonCheckFailed EndpointsAzureConnectEligibilityReason = "check_failed"
+	EndpointsAzureConnectEligibilityReasonNotChecked EndpointsAzureConnectEligibilityReason = "not_checked"
+	EndpointsAzureConnectEligibilityReasonDisconnected EndpointsAzureConnectEligibilityReason = "disconnected"
+	EndpointsAzureConnectEligibilityReasonOtherDirectory EndpointsAzureConnectEligibilityReason = "other_directory"
+	EndpointsAzureConnectEligibilityReasonNotEntraBacked EndpointsAzureConnectEligibilityReason = "not_entra_backed"
+)
+
+type EndpointsAzureConnectOrganization struct {
+	Connected *bool `json:"connected,omitempty"`
+	Eligibility EndpointsAzureConnectEligibility `json:"eligibility"`
+	EligibilityReason *EndpointsAzureConnectEligibilityReason `json:"eligibilityReason,omitempty"`
+	EntraTenantID string `json:"entraTenantId"`
+	ID string `json:"id"`
+	Name string `json:"name"`
+	Selected *bool `json:"selected,omitempty"`
+}
+
+type EndpointsAzureConnectStatus string
+
+const (
+	EndpointsAzureConnectStatusDiscovering EndpointsAzureConnectStatus = "discovering"
+	EndpointsAzureConnectStatusPendingSelection EndpointsAzureConnectStatus = "pending_selection"
+	EndpointsAzureConnectStatusConnecting EndpointsAzureConnectStatus = "connecting"
+	EndpointsAzureConnectStatusDone EndpointsAzureConnectStatus = "done"
+	EndpointsAzureConnectStatusFailed EndpointsAzureConnectStatus = "failed"
+)
+
+type EndpointsAzureSubscriptionValidationResult struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	IsValid *bool `json:"isValid,omitempty"`
+	State *string `json:"state,omitempty"`
+	Status *EndpointsAzureSubscriptionValidationStatus `json:"status,omitempty"`
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+type EndpointsAzureSubscriptionValidationStatus string
+
+const (
+	EndpointsAzureSubscriptionValidationStatusValid EndpointsAzureSubscriptionValidationStatus = "valid"
+	EndpointsAzureSubscriptionValidationStatusInvalid EndpointsAzureSubscriptionValidationStatus = "invalid"
+)
+
+type EndpointsBoardImpactCount struct {
+	BoardID *string `json:"boardId,omitempty"`
+	Count *int `json:"count,omitempty"`
+}
+
+type EndpointsBuildkiteOrganization struct {
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+}
+
+type EndpointsBulkActionDryRunResult struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	Count *int64 `json:"count,omitempty"`
+	Sample []EndpointsFindingTicketRow `json:"sample,omitempty"`
+}
+
+type EndpointsBulkActionStartResult struct {
+	OperationID *string `json:"operationId,omitempty"`
+}
+
+type EndpointsBulkAddCommentParams struct {
+	Comment string `json:"comment"`
+}
+
+type EndpointsBulkCloseParams struct {
+	Comment *string `json:"comment,omitempty"`
+	IncludeManualSource *bool `json:"includeManualSource,omitempty"`
+	SettingsOutOfScopeFindingType *DatabaseFindingType `json:"settingsOutOfScopeFindingType,omitempty"`
+}
+
+type EndpointsBulkMoveParams struct {
+	TargetBoardID string `json:"targetBoardId"`
+}
+
+type EndpointsBulkOperationStatusEntry struct {
+	ActionType *DatabaseTicketBulkActionType `json:"actionType,omitempty"`
+	Actor *DatabaseTicketAuditActor `json:"actor,omitempty"`
+	ActorID *string `json:"actorId,omitempty"`
+	AffectedCount *int32 `json:"affectedCount,omitempty"`
+	CancellationRequestedAt *string `json:"cancellationRequestedAt,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	ErrorCount *int32 `json:"errorCount,omitempty"`
+	FilterSnapshotJson *string `json:"filterSnapshotJson,omitempty"`
+	ID *string `json:"id,omitempty"`
+	ParamsJson *string `json:"paramsJson,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status *DatabaseTicketBulkOperationStatus `json:"status,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type EndpointsBulkReassignAssigneeParams struct {
+	TargetAssigneeEmail string `json:"targetAssigneeEmail"`
+}
+
+type EndpointsBulkReassignTeamParams struct {
+	TargetTeamID string `json:"targetTeamId"`
+}
+
+type EndpointsBulkRelabelParams struct {
+	AddLabels []string `json:"addLabels,omitempty"`
+	RemoveLabels []string `json:"removeLabels,omitempty"`
+}
+
+type EndpointsBulkReopenParams struct {
+}
+
+type EndpointsBulkResyncParams struct {
+}
+
+type EndpointsBulkSetPriorityParams struct {
+	TargetPriority ModelsPriorityLabel `json:"targetPriority"`
+}
+
+type EndpointsCSPMScanCadenceOutput struct {
+	CspmScanCadence string `json:"cspmScanCadence"`
+}
+
+type EndpointsCapabilityFitPublic struct {
+	Reason string `json:"reason"`
+	RequiresConfirmation bool `json:"requiresConfirmation"`
+	Score int `json:"score"`
+	Strength string `json:"strength"`
+}
+
+type EndpointsCatalogConnector struct {
+	Auth *string `json:"auth,omitempty"`
+	Capability *string `json:"capability,omitempty"`
+	Category *string `json:"category,omitempty"`
+	ConfigSchema []ConnectorsConfigField `json:"configSchema,omitempty"`
+	Description *string `json:"description,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FeatureFlag *string `json:"featureFlag,omitempty"`
+	IconRef *string `json:"iconRef,omitempty"`
+	InstanceCount *int `json:"instanceCount,omitempty"`
+	LastError *string `json:"lastError,omitempty"`
+	LastVerifiedAt *string `json:"lastVerifiedAt,omitempty"`
+	Lifecycle *ConnectorsLifecycleOps `json:"lifecycle,omitempty"`
+	MultiInstance *bool `json:"multiInstance,omitempty"`
+	ProviderID *string `json:"providerId,omitempty"`
+	Status *string `json:"status,omitempty"`
 }
 
 type EndpointsCloudValidationStatus string
@@ -472,6 +1757,14 @@ type EndpointsCloudValidationStatus string
 const (
 	EndpointsCloudValidationStatusHealthy EndpointsCloudValidationStatus = "healthy"
 	EndpointsCloudValidationStatusUnhealthy EndpointsCloudValidationStatus = "unhealthy"
+)
+
+type EndpointsConnectorPermissionProbeStatus string
+
+const (
+	EndpointsConnectorPermissionProbeStatusComplete EndpointsConnectorPermissionProbeStatus = "complete"
+	EndpointsConnectorPermissionProbeStatusIncomplete EndpointsConnectorPermissionProbeStatus = "incomplete"
+	EndpointsConnectorPermissionProbeStatusNotProbed EndpointsConnectorPermissionProbeStatus = "not_probed"
 )
 
 type EndpointsContextEnvironment string
@@ -524,6 +1817,10 @@ type EndpointsDeleteCircleCIIntegrationOutput struct {
 	Version string `json:"version"`
 }
 
+type EndpointsDeleteIdentityScimCredentialOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsDeleteJenkinsIntegrationOutput struct {
 	Message string `json:"message"`
 	Version string `json:"version"`
@@ -541,12 +1838,35 @@ type EndpointsDeleteTeamOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsDeleteTicketSavedFilterOutput struct {
+	Deleted bool `json:"deleted"`
+}
+
+type EndpointsDeleteUIPreferencesOutput struct {
+	Deleted bool `json:"deleted"`
+}
+
 type EndpointsDeleteUISavedViewOutput struct {
 	ID string `json:"id"`
 }
 
 type EndpointsDeleteUserErasureOutput struct {
 	Report *EndpointsErasureReport `json:"report,omitempty"`
+}
+
+type EndpointsDeleteUserMappingOutput struct {
+	UserMapping *ModelsUserMapping `json:"userMapping,omitempty"`
+}
+
+type EndpointsEffectiveSCPMGateSettings struct {
+	DetectionsFeatureFlagKey string `json:"detectionsFeatureFlagKey"`
+	ExemptRuleGatePriority ModelsPriorityLabel `json:"exemptRuleGatePriority"`
+	FindingsPolicy EndpointsPRGateFindingsPolicy `json:"findingsPolicy"`
+	FloorExemptRuleIds []string `json:"floorExemptRuleIds,omitempty"`
+	GateEnabled bool `json:"gateEnabled"`
+	MinPriority ModelsPriorityEnum `json:"minPriority"`
+	Mode *string `json:"mode,omitempty"`
+	PlatformEnforcementFloor ModelsSeverity `json:"platformEnforcementFloor"`
 }
 
 type EndpointsErasureReport struct {
@@ -558,6 +1878,29 @@ type EndpointsErasureReport struct {
 	UserID *string `json:"userId,omitempty"`
 }
 
+type EndpointsExternalWriteView struct {
+	Enabled bool `json:"enabled"`
+	LockReason *string `json:"lockReason,omitempty"`
+	Locked bool `json:"locked"`
+}
+
+type EndpointsExternalWritesOutput struct {
+	ExternalWrites EndpointsExternalWritesView `json:"externalWrites"`
+}
+
+type EndpointsExternalWritesView struct {
+	GitWrites EndpointsExternalWriteView `json:"gitWrites"`
+	Messaging EndpointsExternalWriteView `json:"messaging"`
+	PullRequestReviews EndpointsExternalWriteView `json:"pullRequestReviews"`
+	PullRequests EndpointsExternalWriteView `json:"pullRequests"`
+	Tickets EndpointsExternalWriteView `json:"tickets"`
+}
+
+type EndpointsFacetCount struct {
+	Count *int64 `json:"count,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
 type EndpointsFileOwnersRequest struct {
 	BranchName string `json:"branchName"`
 	FilePath string `json:"filePath"`
@@ -565,11 +1908,50 @@ type EndpointsFileOwnersRequest struct {
 	RepositoryName string `json:"repositoryName"`
 }
 
+type EndpointsFindingTicketRow struct {
+	AssigneeEmail *string `json:"assigneeEmail,omitempty"`
+	AssigneeName *string `json:"assigneeName,omitempty"`
+	BoardID *string `json:"boardId,omitempty"`
+	ClosedAt *string `json:"closedAt,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	FindingID *string `json:"findingId,omitempty"`
+	FindingType *DatabaseFindingType `json:"findingType,omitempty"`
+	ID *string `json:"id,omitempty"`
+	LastSyncedAt *string `json:"lastSyncedAt,omitempty"`
+	OutOfEligibilitySince *string `json:"outOfEligibilitySince,omitempty"`
+	Platform *DatabaseTicketPlatform `json:"platform,omitempty"`
+	PriorityName *string `json:"priorityName,omitempty"`
+	ProjectKey *string `json:"projectKey,omitempty"`
+	Source *DatabaseTicketSource `json:"source,omitempty"`
+	SyncError *string `json:"syncError,omitempty"`
+	TicketIdentifier *string `json:"ticketIdentifier,omitempty"`
+	TicketStatus *DatabaseTicketStatus `json:"ticketStatus,omitempty"`
+	TicketTitle *string `json:"ticketTitle,omitempty"`
+	TicketURL *string `json:"ticketUrl,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type EndpointsFindingTicketSummary struct {
+	BoardID *string `json:"boardId,omitempty"`
+	FindingID *string `json:"findingId,omitempty"`
+	FindingPriorityLabel *ModelsPriorityLabel `json:"findingPriorityLabel,omitempty"`
+	FindingType *DatabaseFindingType `json:"findingType,omitempty"`
+	Platform *DatabaseTicketPlatform `json:"platform,omitempty"`
+	Source *DatabaseTicketSource `json:"source,omitempty"`
+	TicketID *string `json:"ticketId,omitempty"`
+	TicketIdentifier *string `json:"ticketIdentifier,omitempty"`
+	TicketStatus *DatabaseTicketStatus `json:"ticketStatus,omitempty"`
+	TicketTitle *string `json:"ticketTitle,omitempty"`
+	TicketURL *string `json:"ticketUrl,omitempty"`
+}
+
 type EndpointsFunnelData struct {
 	CRITICAL int `json:"CRITICAL"`
 	HIGH int `json:"HIGH"`
-	LOW int `json:"LOW"`
+	INFO int `json:"INFO"`
+	LOWONLY int `json:"LOW_ONLY"`
 	MEDIUM int `json:"MEDIUM"`
+	UNRATED int `json:"UNRATED"`
 	FunnelKey string `json:"funnelKey"`
 }
 
@@ -590,14 +1972,36 @@ const (
 )
 
 type EndpointsGetAdminNotificationConfigOutput struct {
+	CentralSecurityChannel *ModelsMessageChannelProvider `json:"centralSecurityChannel,omitempty"`
 	Notifications []ModelsNotification `json:"notifications,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAsanaStatusOutput struct {
+	Installed bool `json:"installed"`
+	InstalledAt *string `json:"installedAt,omitempty"`
+}
+
+type EndpointsGetAtlassianInstallationOutput struct {
+	CloudID *string `json:"cloudId,omitempty"`
+	CompassInstalled *bool `json:"compassInstalled,omitempty"`
+	ConfluenceInstalled *bool `json:"confluenceInstalled,omitempty"`
+	InstallUnavailableReason *string `json:"installUnavailableReason,omitempty"`
+	InstallURL *string `json:"installUrl,omitempty"`
+	InstallationID *string `json:"installationId,omitempty"`
+	Linked *bool `json:"linked,omitempty"`
+	Settings *ModelsForgeProductSettings `json:"settings,omitempty"`
+	SiteURL *string `json:"siteUrl,omitempty"`
 }
 
 type EndpointsGetBuildkiteIntegrationOutput struct {
 	Configured bool `json:"configured"`
 	OrgSlug *string `json:"orgSlug,omitempty"`
 	Version string `json:"version"`
+}
+
+type EndpointsGetBulkOperationOutput struct {
+	Operation EndpointsBulkOperationStatusEntry `json:"operation"`
 }
 
 type EndpointsGetCircleCIIntegrationOutput struct {
@@ -610,9 +2014,29 @@ type EndpointsGetCurrentUserOutput struct {
 	Username string `json:"username"`
 }
 
+type EndpointsGetIdentityScimOutput struct {
+	BaseURL string `json:"baseUrl"`
+	Credentials []EndpointsScimCredentialView `json:"credentials,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetIntegrationOAuthInstallOutput struct {
+	AuthorizeURL string `json:"authorizeUrl"`
+}
+
 type EndpointsGetJenkinsIntegrationOutput struct {
 	Configured bool `json:"configured"`
 	Version string `json:"version"`
+}
+
+type EndpointsGetJiraForgeStatusOutput struct {
+	CloudID *string `json:"cloudId,omitempty"`
+	Linked bool `json:"linked"`
+	SiteURL *string `json:"siteUrl,omitempty"`
+}
+
+type EndpointsGetJiraInstallOutput struct {
+	AuthorizeURL string `json:"authorizeUrl"`
 }
 
 type EndpointsGetLinearInstallOutput struct {
@@ -620,8 +2044,19 @@ type EndpointsGetLinearInstallOutput struct {
 }
 
 type EndpointsGetLinearOAuthStatusOutput struct {
+	Configured *bool `json:"configured,omitempty"`
+	CredentialsRejectedAt *string `json:"credentialsRejectedAt,omitempty"`
 	Installed bool `json:"installed"`
 	InstalledAt *string `json:"installedAt,omitempty"`
+	Message *string `json:"message,omitempty"`
+	ReconnectRequired *bool `json:"reconnectRequired,omitempty"`
+	ReconnectRequiredAt *string `json:"reconnectRequiredAt,omitempty"`
+	State *ModelsLinearInstallState `json:"state,omitempty"`
+}
+
+type EndpointsGetManagerSettingsOutput struct {
+	Installed EndpointsManagerIntegrationInstalled `json:"installed"`
+	Settings EndpointsManagerSettings `json:"settings"`
 }
 
 type EndpointsGetPrivacyAcknowledgmentOutput struct {
@@ -640,6 +2075,14 @@ type EndpointsGetPullRequestStateOutput struct {
 	PullRequestState *ModelsPullRequestStateWithDiffs `json:"pullRequestState,omitempty"`
 }
 
+type EndpointsGetRepositoryDirectoriesOutput struct {
+	Directories []EndpointsRepositoryDirectory `json:"directories,omitempty"`
+	Path string `json:"path"`
+	Ref string `json:"ref"`
+	RepositoryID string `json:"repositoryId"`
+	Truncated bool `json:"truncated"`
+}
+
 type EndpointsGetRepositoryPropertyTeamKeysOutput struct {
 	Keys []EndpointsRepositoryPropertyTeamKey `json:"keys,omitempty"`
 	Version *string `json:"version,omitempty"`
@@ -656,7 +2099,10 @@ type EndpointsGetScanCoverageFindingsOutput struct {
 }
 
 type EndpointsGetScanCoverageOutput struct {
+	ActiveScannedCount *int `json:"activeScannedCount,omitempty"`
+	ActiveTotalCount *int `json:"activeTotalCount,omitempty"`
 	Repositories []EndpointsScanCoverageRepo `json:"repositories,omitempty"`
+	ScannedCount *int `json:"scannedCount,omitempty"`
 	TotalCount *int `json:"totalCount,omitempty"`
 }
 
@@ -667,6 +2113,7 @@ type EndpointsGetServiceAccountsOutput struct {
 
 type EndpointsGetSlackConfigOutput struct {
 	Enabled bool `json:"enabled"`
+	Healthy bool `json:"healthy"`
 	Message *string `json:"message,omitempty"`
 }
 
@@ -676,6 +2123,7 @@ type EndpointsGetSlackDistributedInstallOutput struct {
 
 type EndpointsGetSuggestedUserMappingsOutput struct {
 	Suggestions []EndpointsUserMappingSuggestion `json:"suggestions,omitempty"`
+	Unavailable []EndpointsPlatformUnavailable `json:"unavailable,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -709,6 +2157,40 @@ type EndpointsGetTeamsOutput struct {
 	Teams []ModelsTeam `json:"teams,omitempty"`
 }
 
+type EndpointsGetTicketActivityOutput struct {
+	Entries []EndpointsTicketActivityEntry `json:"entries,omitempty"`
+}
+
+type EndpointsGetTicketSavedFiltersOutput struct {
+	Filters []EndpointsSavedFilterEntry `json:"filters,omitempty"`
+}
+
+type EndpointsGetTicketSettingsHistoryOutput struct {
+	Entries []EndpointsTicketSettingsHistoryEntry `json:"entries,omitempty"`
+}
+
+type EndpointsGetTicketWorkbenchCountsOutput struct {
+	ByFindingType []EndpointsFacetCount `json:"byFindingType,omitempty"`
+	ByPlatform []EndpointsFacetCount `json:"byPlatform,omitempty"`
+	BySource []EndpointsFacetCount `json:"bySource,omitempty"`
+	ByStatus []EndpointsFacetCount `json:"byStatus,omitempty"`
+}
+
+type EndpointsGetTicketWorkbenchDrilldownOutput struct {
+	AuditHistory []EndpointsTicketWorkbenchAuditEntry `json:"auditHistory,omitempty"`
+	Ticket EndpointsFindingTicketRow `json:"ticket"`
+}
+
+type EndpointsGetTicketWorkbenchListOutput struct {
+	Tickets []EndpointsFindingTicketRow `json:"tickets,omitempty"`
+	Total int64 `json:"total"`
+}
+
+type EndpointsGetUIPreferencesOutput struct {
+	Preferences map[string]json.RawMessage `json:"preferences,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
 type EndpointsGetUISavedViewsOutput struct {
 	SavedViews []ModelsUISavedView `json:"savedViews,omitempty"`
 }
@@ -730,9 +2212,141 @@ type EndpointsGetUserOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGitHubPackagesDiscoveredPackage struct {
+	Name string `json:"name"`
+	Owner string `json:"owner"`
+}
+
+type EndpointsGitHubTenantRouteOperatorInput struct {
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedBaseDomain *string `json:"expectedBaseDomain,omitempty"`
+	ExpectedRegion *string `json:"expectedRegion,omitempty"`
+	ExpectedStackOwnerIds []int64 `json:"expectedStackOwnerIds,omitempty"`
+	GithubOwnerID *int64 `json:"githubOwnerId,omitempty"`
+	Inspect *bool `json:"inspect,omitempty"`
+	InstallationID *int64 `json:"installationId,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	PrepareBeforeInstallation *bool `json:"prepareBeforeInstallation,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+type EndpointsIPAllowlistEntryInput struct {
+	Cidr string `json:"cidr"`
+	Description *string `json:"description,omitempty"`
+}
+
+type EndpointsIPAllowlistEntryView struct {
+	Cidr string `json:"cidr"`
+	CreatedAt string `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+	Description string `json:"description"`
+	ID string `json:"id"`
+}
+
+type EndpointsIdentityEntraConnectPostOutput struct {
+	RedirectURL string `json:"redirectUrl"`
+}
+
+type EndpointsIdentityEntraGetOutput struct {
+	Configured bool `json:"configured"`
+	Connected bool `json:"connected"`
+	DirectoryID *string `json:"directoryId,omitempty"`
+	Status *string `json:"status,omitempty"`
+	VerifiedAt *string `json:"verifiedAt,omitempty"`
+	VerifiedDomains []string `json:"verifiedDomains,omitempty"`
+}
+
+type EndpointsIdentityEntraHandoff struct {
+	CreatedAt string `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+	DirectoryID string `json:"directoryId"`
+	ExpiresAt string `json:"expiresAt"`
+	ID string `json:"id"`
+	Status string `json:"status"`
+}
+
+type EndpointsIdentityEntraHandoffListOutput struct {
+	Handoffs []EndpointsIdentityEntraHandoff `json:"handoffs"`
+	LastOutcome *EndpointsIdentityEntraHandoffOutcome `json:"lastOutcome,omitempty"`
+}
+
+type EndpointsIdentityEntraHandoffOutcome struct {
+	At string `json:"at"`
+	Code *string `json:"code,omitempty"`
+	Result string `json:"result"`
+}
+
+type EndpointsIdentityEntraHandoffPostInput struct {
+	DirectoryID string `json:"directoryId"`
+}
+
+type EndpointsIdentityEntraHandoffPostOutput struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	ExpiresAt string `json:"expiresAt"`
+	HandoffURL string `json:"handoffUrl"`
+}
+
+type EndpointsIdentityEntraLinkPostOutput struct {
+	RedirectURL string `json:"redirectUrl"`
+}
+
+type EndpointsIdentityEntraSignInPostOutput struct {
+	Upgraded bool `json:"upgraded"`
+}
+
 type EndpointsIncorrectPermission struct {
 	Actual string `json:"actual"`
 	Expected string `json:"expected"`
+}
+
+type EndpointsInferenceRegionOutput struct {
+	InferenceRegion ModelsInferenceRegion `json:"inferenceRegion"`
+}
+
+type EndpointsInitializeExternalWritesInput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	Reason string `json:"reason"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsInitializeExternalWritesOutput struct {
+	DryRun bool `json:"dryRun"`
+	ExternalWrites EndpointsExternalWritesView `json:"externalWrites"`
+	Initialized bool `json:"initialized"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsIntegrationConnectionInstanceView struct {
+	AuthorityRevision *int64 `json:"authorityRevision,omitempty"`
+	Capability *string `json:"capability,omitempty"`
+	Category *string `json:"category,omitempty"`
+	Config map[string]json.RawMessage `json:"config,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	HasCredentials *bool `json:"hasCredentials,omitempty"`
+	ID *string `json:"id,omitempty"`
+	LastError *string `json:"lastError,omitempty"`
+	LastVerifiedAt *string `json:"lastVerifiedAt,omitempty"`
+	ProviderID *string `json:"providerId,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
+type EndpointsIntegrationConnectionView struct {
+	AuthorityRevision *int64 `json:"authorityRevision,omitempty"`
+	Capability *string `json:"capability,omitempty"`
+	Category *string `json:"category,omitempty"`
+	Config map[string]json.RawMessage `json:"config,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	HasCredentials *bool `json:"hasCredentials,omitempty"`
+	LastError *string `json:"lastError,omitempty"`
+	LastVerifiedAt *string `json:"lastVerifiedAt,omitempty"`
+	ProviderID *string `json:"providerId,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
+type EndpointsListMergedScansOutput struct {
+	Scans []EndpointsMergedScanSummary `json:"scans,omitempty"`
+	TotalCount *int `json:"totalCount,omitempty"`
 }
 
 type EndpointsListTeamFindingsOutput struct {
@@ -740,10 +2354,57 @@ type EndpointsListTeamFindingsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsManagerIntegrationInstalled struct {
+	Messaging *bool `json:"messaging,omitempty"`
+	PrCreation *bool `json:"prCreation,omitempty"`
+	Tickets *bool `json:"tickets,omitempty"`
+}
+
+type EndpointsManagerSettings struct {
+	AutomatedThreatInvestigations *bool `json:"automatedThreatInvestigations,omitempty"`
+	BlockedActionTypes []string `json:"blockedActionTypes,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DailyUpdatesEnabled *bool `json:"dailyUpdatesEnabled,omitempty"`
+	GroundRules *string `json:"groundRules,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	WeeklyUpdatesEnabled *bool `json:"weeklyUpdatesEnabled,omitempty"`
+}
+
 type EndpointsMappedCanonicalIDs struct {
 	Jira string `json:"jira"`
 	Slack string `json:"slack"`
 	Teams string `json:"teams"`
+}
+
+type EndpointsMergedScanSummary struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitHash *string `json:"commitHash,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	CompletedCount *int `json:"completedCount,omitempty"`
+	CoverageStatus *string `json:"coverageStatus,omitempty"`
+	FailedCount *int `json:"failedCount,omitempty"`
+	FixedFindingsCount *int `json:"fixedFindingsCount,omitempty"`
+	HasRunningScanForCommit bool `json:"hasRunningScanForCommit"`
+	IsDefaultBranch *bool `json:"isDefaultBranch,omitempty"`
+	LatestScanStartedAtForCommit *string `json:"latestScanStartedAtForCommit,omitempty"`
+	LiveFindingsCount *int `json:"liveFindingsCount,omitempty"`
+	NewFindingsCount *int `json:"newFindingsCount,omitempty"`
+	OverallStatus *string `json:"overallStatus,omitempty"`
+	Owner *string `json:"owner,omitempty"`
+	Platform *string `json:"platform,omitempty"`
+	ReintroducedFindingsCount *int `json:"reintroducedFindingsCount,omitempty"`
+	Repository *string `json:"repository,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	RunningCount *int `json:"runningCount,omitempty"`
+	ScannerCount *int `json:"scannerCount,omitempty"`
+	Scanners []EndpointsScannerRun `json:"scanners,omitempty"`
+	SeverityCritical *int `json:"severityCritical,omitempty"`
+	SeverityHigh *int `json:"severityHigh,omitempty"`
+	SeverityLow *int `json:"severityLow,omitempty"`
+	SeverityMedium *int `json:"severityMedium,omitempty"`
+	SkippedCount *int `json:"skippedCount,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	TriggerType *string `json:"triggerType,omitempty"`
 }
 
 type EndpointsMetricData struct {
@@ -760,13 +2421,166 @@ type EndpointsMetricWithValue struct {
 	Value string `json:"value"`
 }
 
+type EndpointsNativeTenantRouteOperatorInput struct {
+	Administrators []ServiceNativeBootstrapAdministrator `json:"administrators,omitempty"`
+	BaseDomain *string `json:"baseDomain,omitempty"`
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DirectoryID *string `json:"directoryId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	Inspect *bool `json:"inspect,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Operator *string `json:"operator,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Region *string `json:"region,omitempty"`
+	Stage *string `json:"stage,omitempty"`
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+type EndpointsNetworkIPAllowlistOutput struct {
+	CallerAllowed *bool `json:"callerAllowed,omitempty"`
+	CallerIp string `json:"callerIp"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Entries []EndpointsIPAllowlistEntryView `json:"entries,omitempty"`
+	Version *string `json:"version,omitempty"`
+	Warnings []string `json:"warnings,omitempty"`
+}
+
+type EndpointsOperatorRepositoryScanScopeView struct {
+	CodeEnrolled bool `json:"codeEnrolled"`
+	CodePaths ModelsPathScope `json:"codePaths"`
+	Effective ModelsScanScope `json:"effective"`
+	Excluded bool `json:"excluded"`
+	Explanation ModelsScanScopeExplanation `json:"explanation"`
+	Owner string `json:"owner"`
+	Repository string `json:"repository"`
+	RepositoryID string `json:"repositoryId"`
+	ScopeUpdatedAt *string `json:"scopeUpdatedAt,omitempty"`
+	SecretsEnrolled bool `json:"secretsEnrolled"`
+	SecretsExcludes []string `json:"secretsExcludes,omitempty"`
+	StaffAllowed bool `json:"staffAllowed"`
+	StaffCodePaths ModelsPathScope `json:"staffCodePaths"`
+	StaffUpdatedAt *string `json:"staffUpdatedAt,omitempty"`
+	StaffUpdatedBy string `json:"staffUpdatedBy"`
+}
+
+type EndpointsOperatorRepositoryScanScopesOutput struct {
+	Repositories []EndpointsOperatorRepositoryScanScopeView `json:"repositories,omitempty"`
+	ScopingEnabled bool `json:"scopingEnabled"`
+	SecretsMode string `json:"secretsMode"`
+	StaffRepositoryAllowlist bool `json:"staffRepositoryAllowlist"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsOperatorRepositoryStaffScopesOutput struct {
+	Backfill []EndpointsScanScopeBackfill `json:"backfill,omitempty"`
+	CoverageLost []EndpointsScanScopeCoverageLoss `json:"coverageLost,omitempty"`
+	EnrollmentReset []EndpointsScanScopeEnrollmentReset `json:"enrollmentReset,omitempty"`
+	Repositories []EndpointsOperatorRepositoryScanScopeView `json:"repositories,omitempty"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsOperatorRepositoryStaffScopesPutInput struct {
+	Reason string `json:"reason"`
+	Repositories []EndpointsRepositoryStaffScopeChange `json:"repositories,omitempty"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsOperatorScanEntitlementOutput struct {
+	Backfill []EndpointsScanScopeBackfill `json:"backfill,omitempty"`
+	CoverageLost []EndpointsScanScopeCoverageLoss `json:"coverageLost,omitempty"`
+	EnrollmentReset []EndpointsScanScopeEnrollmentReset `json:"enrollmentReset,omitempty"`
+	Entitlement EndpointsOperatorScanEntitlementView `json:"entitlement"`
+	TenantID string `json:"tenantId"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsOperatorScanEntitlementPutInput struct {
+	CodeRepositoryCap *int `json:"codeRepositoryCap,omitempty"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+	Reason string `json:"reason"`
+	ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
+	SecretsMode *string `json:"secretsMode,omitempty"`
+	SecretsRepositoryCap *int `json:"secretsRepositoryCap,omitempty"`
+	StaffRepositoryAllowlist *bool `json:"staffRepositoryAllowlist,omitempty"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsOperatorScanEntitlementView struct {
+	CodeEnrolledCount int `json:"codeEnrolledCount"`
+	CodeExcludedCount int `json:"codeExcludedCount"`
+	CodeRepositoryCap *int `json:"codeRepositoryCap,omitempty"`
+	EntitlementUpdatedAt *string `json:"entitlementUpdatedAt,omitempty"`
+	EntitlementUpdatedBy string `json:"entitlementUpdatedBy"`
+	LegacyCapInert bool `json:"legacyCapInert"`
+	MaxChangesPerRequest int `json:"maxChangesPerRequest"`
+	MaxPathsPerList int `json:"maxPathsPerList"`
+	ScopingEnabled bool `json:"scopingEnabled"`
+	SecretsEnrolledCount int `json:"secretsEnrolledCount"`
+	SecretsExcludedCount int `json:"secretsExcludedCount"`
+	SecretsMode string `json:"secretsMode"`
+	SecretsRepositoryCap *int `json:"secretsRepositoryCap,omitempty"`
+	StaffRepositoryAllowlist bool `json:"staffRepositoryAllowlist"`
+	WarningThresholdPercent int `json:"warningThresholdPercent"`
+}
+
+type EndpointsOperatorTenantCapabilitiesOutput struct {
+	Capabilities []EndpointsOperatorTenantCapabilityView `json:"capabilities,omitempty"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsOperatorTenantCapabilityPutInput struct {
+	Capability string `json:"capability"`
+	ExpectedStaffUpdatedAt *string `json:"expectedStaffUpdatedAt,omitempty"`
+	LockReason *string `json:"lockReason,omitempty"`
+	Reason string `json:"reason"`
+	Repository *string `json:"repository,omitempty"`
+	SeedCustomerEnabled *bool `json:"seedCustomerEnabled,omitempty"`
+	SeedRepositoryDisabled *bool `json:"seedRepositoryDisabled,omitempty"`
+	SeedStaffIfAbsent *bool `json:"seedStaffIfAbsent,omitempty"`
+	StaffState string `json:"staffState"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsOperatorTenantCapabilityPutOutput struct {
+	Capability EndpointsOperatorTenantCapabilityView `json:"capability"`
+	TenantID string `json:"tenantId"`
+}
+
+type EndpointsOperatorTenantCapabilityView struct {
+	Capability string `json:"capability"`
+	CustomerEnabled *bool `json:"customerEnabled,omitempty"`
+	CustomerUpdatedAt *string `json:"customerUpdatedAt,omitempty"`
+	CustomerUpdatedBy string `json:"customerUpdatedBy"`
+	CustomerVisible bool `json:"customerVisible"`
+	Enabled *bool `json:"enabled,omitempty"`
+	Fallback string `json:"fallback"`
+	Initialized *bool `json:"initialized,omitempty"`
+	LockReason string `json:"lockReason"`
+	Repository *string `json:"repository,omitempty"`
+	Scope string `json:"scope"`
+	Source string `json:"source"`
+	StaffState string `json:"staffState"`
+	StaffUpdatedAt *string `json:"staffUpdatedAt,omitempty"`
+	StaffUpdatedBy string `json:"staffUpdatedBy"`
+	Title string `json:"title"`
+}
+
 type EndpointsOverviewType struct {
 	API EndpointsMetricWithValue `json:"api"`
 	Code EndpointsMetricWithValue `json:"code"`
 	Container EndpointsMetricWithValue `json:"container"`
 	Dependency EndpointsMetricWithValue `json:"dependency"`
 	Secret EndpointsMetricWithValue `json:"secret"`
+	Supplychain EndpointsMetricWithValue `json:"supplychain"`
 }
+
+type EndpointsPRGateFindingsPolicy string
+
+const (
+	EndpointsPRGateFindingsPolicyNone EndpointsPRGateFindingsPolicy = "none"
+	EndpointsPRGateFindingsPolicyConfirmed EndpointsPRGateFindingsPolicy = "confirmed"
+)
 
 type EndpointsPatchSLAInput struct {
 	AllowExtensions *bool `json:"allowExtensions,omitempty"`
@@ -780,6 +2594,8 @@ type EndpointsPatchSLAOutput struct {
 }
 
 type EndpointsPatchTeamInput struct {
+	AddMemberIds []string `json:"addMemberIds,omitempty"`
+	ClearLead *bool `json:"clearLead,omitempty"`
 	CodeOwnerships []ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
 	Github *ModelsTeamProviderGitHub `json:"github,omitempty"`
 	Gitlab *ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
@@ -790,12 +2606,23 @@ type EndpointsPatchTeamInput struct {
 	MessageChannelProvider *ModelsMessageChannelProvider `json:"messageChannelProvider,omitempty"`
 	Name *string `json:"name,omitempty"`
 	Privacy *ModelsTeamPrivacy `json:"privacy,omitempty"`
+	RemoveMemberIds []string `json:"removeMemberIds,omitempty"`
 	Slug *string `json:"slug,omitempty"`
+	TicketBoardID *string `json:"ticketBoardId,omitempty"`
 	TicketProjectProvider *ModelsTicketProjectProvider `json:"ticketProjectProvider,omitempty"`
 }
 
 type EndpointsPatchTeamOutput struct {
 	Team ModelsTeam `json:"team"`
+}
+
+type EndpointsPatchTicketSavedFilterInput struct {
+	Filter *EndpointsTicketWorkbenchFilter `json:"filter,omitempty"`
+	Name *string `json:"name,omitempty"`
+}
+
+type EndpointsPatchTicketSavedFilterOutput struct {
+	Filter EndpointsSavedFilterEntry `json:"filter"`
 }
 
 type EndpointsPatchUISavedViewInput struct {
@@ -806,14 +2633,62 @@ type EndpointsPatchUISavedViewOutput struct {
 	SavedView ModelsUISavedView `json:"savedView"`
 }
 
+type EndpointsPlatformUnavailable struct {
+	Platform string `json:"platform"`
+	Reason string `json:"reason"`
+}
+
+type EndpointsPostAtlassianSettingsInput struct {
+	InstallationID *string `json:"installationId,omitempty"`
+	Settings *ModelsForgeProductSettings `json:"settings,omitempty"`
+}
+
+type EndpointsPostAtlassianSettingsOutput struct {
+	Revision *int64 `json:"revision,omitempty"`
+}
+
+type EndpointsPostBuildkiteOrganizationsInput struct {
+	ApiToken string `json:"apiToken"`
+}
+
+type EndpointsPostBuildkiteOrganizationsOutput struct {
+	Organizations []EndpointsBuildkiteOrganization `json:"organizations,omitempty"`
+	Version string `json:"version"`
+}
+
 type EndpointsPostBuildkiteTokenInput struct {
 	ApiToken string `json:"apiToken"`
-	OrgSlug string `json:"orgSlug"`
+	OrgSlug *string `json:"orgSlug,omitempty"`
 }
 
 type EndpointsPostBuildkiteTokenOutput struct {
 	Message string `json:"message"`
+	OrgSlug string `json:"orgSlug"`
 	Version string `json:"version"`
+}
+
+type EndpointsPostBulkAddCommentInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkAddCommentParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkAddCommentOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
+}
+
+type EndpointsPostBulkCloseInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkCloseParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkCloseOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
 }
 
 type EndpointsPostBulkGetUserMappingsInput struct {
@@ -824,6 +2699,94 @@ type EndpointsPostBulkGetUserMappingsInput struct {
 type EndpointsPostBulkGetUserMappingsOutput struct {
 	Users map[string]EndpointsMappedCanonicalIDs `json:"users,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostBulkMoveInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkMoveParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkMoveOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
+}
+
+type EndpointsPostBulkOperationCancelOutput struct {
+	Operation EndpointsBulkOperationStatusEntry `json:"operation"`
+}
+
+type EndpointsPostBulkReassignAssigneeInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkReassignAssigneeParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkReassignAssigneeOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
+}
+
+type EndpointsPostBulkReassignTeamInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkReassignTeamParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkReassignTeamOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
+}
+
+type EndpointsPostBulkRelabelInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkRelabelParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkRelabelOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
+}
+
+type EndpointsPostBulkReopenInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkReopenParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkReopenOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
+}
+
+type EndpointsPostBulkResyncInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkResyncParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkResyncOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
+}
+
+type EndpointsPostBulkSetPriorityInput struct {
+	ConfirmationToken *string `json:"confirmationToken,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Params *EndpointsBulkSetPriorityParams `json:"params,omitempty"`
+}
+
+type EndpointsPostBulkSetPriorityOutput struct {
+	DryRun *EndpointsBulkActionDryRunResult `json:"dryRun,omitempty"`
+	Start *EndpointsBulkActionStartResult `json:"start,omitempty"`
 }
 
 type EndpointsPostCircleCITokenInput struct {
@@ -848,12 +2811,10 @@ type EndpointsPostCompassTeamOutput struct {
 	Team ModelsTeam `json:"team"`
 }
 
-type EndpointsPostInitializeRepositoriesInput struct {
-	Repositories []ModelsGitRepositoryProvider `json:"repositories,omitempty"`
-}
-
-type EndpointsPostInitializeRepositoriesOutput struct {
-	Repositories []EndpointsRepositotryInitializationStatus `json:"repositories,omitempty"`
+type EndpointsPostIdentityScimCredentialOutput struct {
+	ID string `json:"id"`
+	Token string `json:"token"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsPostJenkinsTokenInput struct {
@@ -900,6 +2861,7 @@ type EndpointsPostSLAOutput struct {
 type EndpointsPostServiceAccountInput struct {
 	Name string `json:"name"`
 	Platform ModelsProviderID `json:"platform"`
+	Role *string `json:"role,omitempty"`
 }
 
 type EndpointsPostServiceAccountOutput struct {
@@ -916,7 +2878,19 @@ type EndpointsPostSlackAPIKeyOutput struct {
 	Version string `json:"version"`
 }
 
+type EndpointsPostTeamCodeOwnershipInput struct {
+	Actor *string `json:"actor,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsPostTeamCodeOwnershipOutput struct {
+	RepositoryID string `json:"repositoryId"`
+	TeamID string `json:"teamId"`
+	Version string `json:"version"`
+}
+
 type EndpointsPostTeamFindingsInput struct {
+	Actor *string `json:"actor,omitempty"`
 	Mappings []EndpointsPostTeamFindingsMapping `json:"mappings,omitempty"`
 }
 
@@ -975,6 +2949,14 @@ type EndpointsPostTeamOutput struct {
 	Team ModelsTeam `json:"team"`
 }
 
+type EndpointsPostTeamSLABreakdownInput struct {
+	FindingIDs []string `json:"findingIDs,omitempty"`
+}
+
+type EndpointsPostTeamSLABreakdownOutput struct {
+	Teams []EndpointsTeamSLABreakdown `json:"teams,omitempty"`
+}
+
 type EndpointsPostTeamSyncRunInput struct {
 	Source *string `json:"source,omitempty"`
 }
@@ -984,20 +2966,42 @@ type EndpointsPostTeamSyncRunOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostTicketSavedFilterInput struct {
+	Filter EndpointsTicketWorkbenchFilter `json:"filter"`
+	Name string `json:"name"`
+}
+
+type EndpointsPostTicketSavedFilterOutput struct {
+	Filter EndpointsSavedFilterEntry `json:"filter"`
+}
+
+type EndpointsPostTicketSettingsInput struct {
+	MigrationAction *DatabaseTicketMigrationAction `json:"migrationAction,omitempty"`
+	Proposal EndpointsTicketSettingsProposal `json:"proposal"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostTicketSettingsOutput struct {
+	HistoryID string `json:"historyId"`
+	MigrationAction DatabaseTicketMigrationAction `json:"migrationAction"`
+	Settings EndpointsSavedTicketSettings `json:"settings"`
+}
+
+type EndpointsPostTicketSettingsPreviewInput struct {
+	Proposal EndpointsTicketSettingsProposal `json:"proposal"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostTicketSettingsPreviewOutput struct {
+	Preview EndpointsTicketSettingsImpactPreview `json:"preview"`
+}
+
 type EndpointsPostUISavedViewInput struct {
 	SavedView ModelsUISavedViewAPIInput `json:"savedView"`
 }
 
 type EndpointsPostUISavedViewOutput struct {
 	SavedView ModelsUISavedView `json:"savedView"`
-}
-
-type EndpointsPostUninitializeRepositoriesInput struct {
-	Repositories []ModelsGitRepositoryProvider `json:"repositories,omitempty"`
-}
-
-type EndpointsPostUninitializeRepositoriesOutput struct {
-	Repositories []EndpointsRepositotryInitializationStatus `json:"repositories,omitempty"`
 }
 
 type EndpointsPostUserInput struct {
@@ -1010,12 +3014,18 @@ type EndpointsPostUserMappingInput struct {
 }
 
 type EndpointsPostUserMappingOutput struct {
+	SkippedMappings []EndpointsSkippedUserMapping `json:"skippedMappings,omitempty"`
+	Unavailable []EndpointsPlatformUnavailable `json:"unavailable,omitempty"`
 	UserMappings []ModelsUserMapping `json:"userMappings,omitempty"`
 }
 
 type EndpointsPostUserOutput struct {
 	User ModelsUser `json:"user"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPreviewNetworkIPAllowlistInput struct {
+	Entries []EndpointsIPAllowlistEntryInput `json:"entries,omitempty"`
 }
 
 type EndpointsPrivacyAcknowledgmentExport struct {
@@ -1025,6 +3035,7 @@ type EndpointsPrivacyAcknowledgmentExport struct {
 }
 
 type EndpointsPutAdminNotificationConfigInput struct {
+	CentralSecurityChannel *ModelsMessageChannelProvider `json:"centralSecurityChannel,omitempty"`
 	Notifications []ModelsNotification `json:"notifications,omitempty"`
 }
 
@@ -1040,15 +3051,78 @@ type EndpointsPutBulkSLAOutput struct {
 	SlaIds []string `json:"slaIds,omitempty"`
 }
 
+type EndpointsPutCSPMScanCadenceInput struct {
+	CspmScanCadence *string `json:"cspmScanCadence,omitempty"`
+}
+
 type EndpointsPutEditUserMappingInput struct {
 	Azure *ModelsAzureUserProvider `json:"azure,omitempty"`
 	Bitbucket *ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
+	ClearSlack *bool `json:"clearSlack,omitempty"`
+	ClearTeams *bool `json:"clearTeams,omitempty"`
 	Github *ModelsGitHubUserProvider `json:"github,omitempty"`
 	Gitlab *ModelsGitLabUserProvider `json:"gitlab,omitempty"`
 	Jira *ModelsJiraUserProvider `json:"jira,omitempty"`
 	Linear *ModelsLinearUserProvider `json:"linear,omitempty"`
 	Slack *ModelsSlackUserProvider `json:"slack,omitempty"`
 	Teams *ModelsTeamsUserProvider `json:"teams,omitempty"`
+}
+
+type EndpointsPutEditUserMappingOutput struct {
+	UserMapping *ModelsUserMapping `json:"userMapping,omitempty"`
+}
+
+type EndpointsPutExternalWritesInput struct {
+	GitWrites *bool `json:"gitWrites,omitempty"`
+	Messaging *bool `json:"messaging,omitempty"`
+	PullRequestReviews *bool `json:"pullRequestReviews,omitempty"`
+	PullRequests *bool `json:"pullRequests,omitempty"`
+	Tickets *bool `json:"tickets,omitempty"`
+}
+
+type EndpointsPutInferenceRegionInput struct {
+	InferenceRegion ModelsInferenceRegion `json:"inferenceRegion"`
+}
+
+type EndpointsPutManagerSettingsInput struct {
+	AutomatedThreatInvestigations *bool `json:"automatedThreatInvestigations,omitempty"`
+	BlockedActionTypes []string `json:"blockedActionTypes,omitempty"`
+	DailyUpdatesEnabled *bool `json:"dailyUpdatesEnabled,omitempty"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+	GroundRules *string `json:"groundRules,omitempty"`
+	WeeklyUpdatesEnabled *bool `json:"weeklyUpdatesEnabled,omitempty"`
+}
+
+type EndpointsPutManagerSettingsOutput struct {
+	Settings EndpointsManagerSettings `json:"settings"`
+}
+
+type EndpointsPutNetworkIPAllowlistInput struct {
+	Entries []EndpointsIPAllowlistEntryInput `json:"entries,omitempty"`
+	ExpectedCidrs []string `json:"expectedCidrs,omitempty"`
+}
+
+type EndpointsPutRepositoryScanScopesInput struct {
+	Repositories []EndpointsRepositoryScanScopeChange `json:"repositories,omitempty"`
+}
+
+type EndpointsPutRepositoryScanScopesOutput struct {
+	Backfill []EndpointsScanScopeBackfill `json:"backfill,omitempty"`
+	CodeEnrolledCount int `json:"codeEnrolledCount"`
+	CodeUnenrolledCount int `json:"codeUnenrolledCount"`
+	Entitlement EndpointsScanEntitlementView `json:"entitlement"`
+	Repositories []EndpointsRepositoryScanScopeView `json:"repositories,omitempty"`
+	SecretsEnrolledCount int `json:"secretsEnrolledCount"`
+}
+
+type EndpointsPutScanScopeInput struct {
+	ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
+	SecretsMode *string `json:"secretsMode,omitempty"`
+}
+
+type EndpointsPutScanScopeOutput struct {
+	Backfill []EndpointsScanScopeBackfill `json:"backfill,omitempty"`
+	Entitlement EndpointsScanEntitlementView `json:"entitlement"`
 }
 
 type EndpointsPutTeamSourcePreferencesInput struct {
@@ -1062,13 +3136,32 @@ type EndpointsPutTeamSourcePreferencesOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPutTenantCapabilityInput struct {
+	Enabled *bool `json:"enabled,omitempty"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+}
+
+type EndpointsPutTenantCapabilityOutput struct {
+	Capability EndpointsTenantCapabilityView `json:"capability"`
+}
+
+type EndpointsPutUIPreferencesInput struct {
+	Preferences map[string]json.RawMessage `json:"preferences,omitempty"`
+}
+
+type EndpointsPutUIPreferencesOutput struct {
+	Preferences map[string]json.RawMessage `json:"preferences,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
 type EndpointsQueryMetricsOverTimeInput struct {
 	Query ModelsUnifiedFindingsQuery `json:"query"`
 }
 
 type EndpointsQueryMetricsOverTimeOutput struct {
-	Fixed []EndpointsCount `json:"fixed,omitempty"`
 	Introduced []EndpointsCount `json:"introduced,omitempty"`
+	Resolved []EndpointsCount `json:"resolved,omitempty"`
+	VerifiedFixed []EndpointsCount `json:"verifiedFixed,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -1087,25 +3180,22 @@ type EndpointsQueryOverviewInput struct {
 
 type EndpointsQueryOverviewOutput struct {
 	AppName []EndpointsMetricWithValue `json:"appName,omitempty"`
-	AppType []EndpointsMetricWithValue `json:"appType,omitempty"`
 	AutofixMerged EndpointsMetricData `json:"autofixMerged"`
-	BotInteractions EndpointsMetricData `json:"botInteractions"`
 	Branch []EndpointsMetricWithValue `json:"branch,omitempty"`
-	CleanPrsMerged EndpointsMetricData `json:"cleanPrsMerged"`
+	Canonical ModelsOverviewCanonical `json:"canonical"`
 	Cve []EndpointsMetricWithValue `json:"cve,omitempty"`
 	Cwe []EndpointsMetricWithValue `json:"cwe,omitempty"`
+	EstimatedTriageWorkHours json.RawMessage `json:"estimatedTriageWorkHours"`
 	FalsePositives EndpointsMetricData `json:"falsePositives"`
-	FindingsResolved EndpointsMetricData `json:"findingsResolved"`
 	FunnelData []EndpointsFunnelData `json:"funnelData,omitempty"`
 	Host []EndpointsMetricWithValue `json:"host,omitempty"`
-	HoursSaved EndpointsMetricData `json:"hoursSaved"`
 	ImageName []EndpointsMetricWithValue `json:"imageName,omitempty"`
 	InSLAFindings EndpointsMetricData `json:"inSLAFindings"`
 	InvestigateData EndpointsMetricData `json:"investigateData"`
-	IssuesFoundInPR EndpointsMetricData `json:"issuesFoundInPR"`
 	Language []EndpointsMetricWithValue `json:"language,omitempty"`
 	MeanTriageDurationMs EndpointsMetricData `json:"meanTriageDurationMs"`
-	MergeReadyRate EndpointsMetricData `json:"mergeReadyRate"`
+	OpenPastSLAFindings EndpointsMetricData `json:"openPastSLAFindings"`
+	OpenWithSLAFindings EndpointsMetricData `json:"openWithSLAFindings"`
 	OverviewCWE []EndpointsMetricWithValue `json:"overviewCWE,omitempty"`
 	OverviewLanguage []EndpointsMetricWithValue `json:"overviewLanguage,omitempty"`
 	OverviewRepos []EndpointsMetricWithValue `json:"overviewRepos,omitempty"`
@@ -1113,18 +3203,31 @@ type EndpointsQueryOverviewOutput struct {
 	Owners []EndpointsMetricWithValue `json:"owners,omitempty"`
 	Package []EndpointsMetricWithValue `json:"package,omitempty"`
 	Repos []EndpointsMetricWithValue `json:"repos,omitempty"`
+	ResolvedPastSLAFindings EndpointsMetricData `json:"resolvedPastSLAFindings"`
 	RuleID []EndpointsMetricWithValue `json:"ruleId,omitempty"`
 	SecretType []EndpointsMetricWithValue `json:"secretType,omitempty"`
 	Teams []EndpointsMetricWithValue `json:"teams,omitempty"`
-	TotalPrsMerged EndpointsMetricData `json:"totalPrsMerged"`
-	Type map[string]EndpointsMetricData `json:"type,omitempty"`
+	TriageableFindings EndpointsMetricData `json:"triageableFindings"`
+	TriagedFindings EndpointsMetricData `json:"triagedFindings"`
 	Version *string `json:"version,omitempty"`
 }
 
-type EndpointsRepositoryInitializationTaskStatus struct {
-	Error string `json:"error"`
-	Status string `json:"status"`
-	TaskName string `json:"taskName"`
+type EndpointsRepoRecommendation struct {
+	CapabilityFit map[string]EndpointsCapabilityFitPublic `json:"capabilityFit,omitempty"`
+	Covers []string `json:"covers,omitempty"`
+	ImportanceScore int `json:"importanceScore"`
+	IsEnrolled bool `json:"isEnrolled"`
+	IsRecommended bool `json:"isRecommended"`
+	Owner string `json:"owner"`
+	PrimaryCapability string `json:"primaryCapability"`
+	Repository string `json:"repository"`
+	RepositoryID string `json:"repositoryId"`
+	RequiresConfirmation bool `json:"requiresConfirmation"`
+}
+
+type EndpointsRepositoryDirectory struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
 }
 
 type EndpointsRepositoryPropertyTeamKey struct {
@@ -1136,10 +3239,58 @@ type EndpointsRepositoryPropertyTeamKey struct {
 	UpdatedAt string `json:"updatedAt"`
 }
 
-type EndpointsRepositotryInitializationStatus struct {
-	IsInitialized bool `json:"isInitialized"`
-	Repository ModelsGitRepositoryProvider `json:"repository"`
-	TaskStatuses []EndpointsRepositoryInitializationTaskStatus `json:"taskStatuses,omitempty"`
+type EndpointsRepositoryScanScopeChange struct {
+	CodeEnrolled *bool `json:"codeEnrolled,omitempty"`
+	CodePaths *ModelsPathScope `json:"codePaths,omitempty"`
+	Excluded *bool `json:"excluded,omitempty"`
+	ExpectedScopeUpdatedAt *string `json:"expectedScopeUpdatedAt,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	SecretsEnrolled *bool `json:"secretsEnrolled,omitempty"`
+	SecretsExcludes []string `json:"secretsExcludes,omitempty"`
+}
+
+type EndpointsRepositoryScanScopeView struct {
+	CodeEnrolled bool `json:"codeEnrolled"`
+	CodePaths ModelsPathScope `json:"codePaths"`
+	Excluded bool `json:"excluded"`
+	Owner string `json:"owner"`
+	Repository string `json:"repository"`
+	RepositoryID string `json:"repositoryId"`
+	ScopeUpdatedAt *string `json:"scopeUpdatedAt,omitempty"`
+	SecretsEnrolled bool `json:"secretsEnrolled"`
+	SecretsExcludes []string `json:"secretsExcludes,omitempty"`
+}
+
+type EndpointsRepositoryStaffScopeChange struct {
+	Allowed *bool `json:"allowed,omitempty"`
+	CodePaths *ModelsPathScope `json:"codePaths,omitempty"`
+	ExpectedStaffUpdatedAt *string `json:"expectedStaffUpdatedAt,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsSavedFilterEntry struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	FilterSnapshotJson *string `json:"filterSnapshotJson,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	UserID *string `json:"userId,omitempty"`
+}
+
+type EndpointsSavedTicketSettings struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DefaultBoardID *string `json:"defaultBoardId,omitempty"`
+	FiltersCweAllowlist []string `json:"filtersCweAllowlist,omitempty"`
+	FiltersCweBlocklist []string `json:"filtersCweBlocklist,omitempty"`
+	FiltersRepoAllowlist []string `json:"filtersRepoAllowlist,omitempty"`
+	FiltersRepoBlocklist []string `json:"filtersRepoBlocklist,omitempty"`
+	FindingType *DatabaseFindingType `json:"findingType,omitempty"`
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	PriorityThreshold *ModelsPriorityLabel `json:"priorityThreshold,omitempty"`
+	SeverityThreshold *ModelsSeverity `json:"severityThreshold,omitempty"`
+	TeamRoutingEnabled *bool `json:"teamRoutingEnabled,omitempty"`
+	UnroutedBehavior *string `json:"unroutedBehavior,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
 
 type EndpointsScanCoverageCVECounts struct {
@@ -1179,10 +3330,13 @@ type EndpointsScanCoverageFinding struct {
 type EndpointsScanCoverageRepo struct {
 	CriticalCount *int `json:"criticalCount,omitempty"`
 	HighCount *int `json:"highCount,omitempty"`
+	InfoCount *int `json:"infoCount,omitempty"`
 	LastCommitAt *string `json:"lastCommitAt,omitempty"`
 	LastCommitHash *string `json:"lastCommitHash,omitempty"`
 	LastScanAt *string `json:"lastScanAt,omitempty"`
 	LastScanCommitHash *string `json:"lastScanCommitHash,omitempty"`
+	LastScanIncomplete *bool `json:"lastScanIncomplete,omitempty"`
+	LastScanIncompleteReason *string `json:"lastScanIncompleteReason,omitempty"`
 	LowCount *int `json:"lowCount,omitempty"`
 	MediumCount *int `json:"mediumCount,omitempty"`
 	Owner *string `json:"owner,omitempty"`
@@ -1192,13 +3346,87 @@ type EndpointsScanCoverageRepo struct {
 	TotalCount *int `json:"totalCount,omitempty"`
 }
 
+type EndpointsScanEntitlementView struct {
+	CodeEnrolledCount int `json:"codeEnrolledCount"`
+	CodeExcludedCount int `json:"codeExcludedCount"`
+	CodeRepositoryCap *int `json:"codeRepositoryCap,omitempty"`
+	EntitlementUpdatedAt *string `json:"entitlementUpdatedAt,omitempty"`
+	MaxChangesPerRequest int `json:"maxChangesPerRequest"`
+	MaxPathsPerList int `json:"maxPathsPerList"`
+	ScopingEnabled bool `json:"scopingEnabled"`
+	SecretsEnrolledCount int `json:"secretsEnrolledCount"`
+	SecretsExcludedCount int `json:"secretsExcludedCount"`
+	SecretsMode string `json:"secretsMode"`
+	SecretsRepositoryCap *int `json:"secretsRepositoryCap,omitempty"`
+	StaffRepositoryAllowlist bool `json:"staffRepositoryAllowlist"`
+	WarningThresholdPercent int `json:"warningThresholdPercent"`
+}
+
+type EndpointsScanScopeBackfill struct {
+	Dispatched bool `json:"dispatched"`
+	Error *string `json:"error,omitempty"`
+	Families []string `json:"families,omitempty"`
+	Queued *bool `json:"queued,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	RunID *string `json:"runId,omitempty"`
+}
+
+type EndpointsScanScopeCoverageLoss struct {
+	Families []string `json:"families,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsScanScopeEnrollmentReset struct {
+	Families []string `json:"families,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsScanScopeOutput struct {
+	Entitlement EndpointsScanEntitlementView `json:"entitlement"`
+	UnavailableFromGitHub *EndpointsUnavailableFromGitHub `json:"unavailableFromGitHub,omitempty"`
+	UnavailableFromGitHubKnown bool `json:"unavailableFromGitHubKnown"`
+}
+
+type EndpointsScannerRun struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	CoverageStatus *string `json:"coverageStatus,omitempty"`
+	DegradedScanShards *int `json:"degradedScanShards,omitempty"`
+	FixedFindingsCount *int `json:"fixedFindingsCount,omitempty"`
+	IncompleteEntrypoints *int `json:"incompleteEntrypoints,omitempty"`
+	NewFindingsCount *int `json:"newFindingsCount,omitempty"`
+	ReintroducedFindingsCount *int `json:"reintroducedFindingsCount,omitempty"`
+	ScanRunID *string `json:"scanRunId,omitempty"`
+	ScanType *string `json:"scanType,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status *string `json:"status,omitempty"`
+	TotalScanShards *int `json:"totalScanShards,omitempty"`
+}
+
+type EndpointsScimCredentialView struct {
+	CreatedAt string `json:"createdAt"`
+	ID string `json:"id"`
+	LastUsedAt *string `json:"lastUsedAt,omitempty"`
+}
+
 type EndpointsServiceAccount struct {
 	CreatedAt string `json:"createdAt"`
 	Name string `json:"name"`
 	Platform ModelsProviderID `json:"platform"`
+	Role *string `json:"role,omitempty"`
 	ServiceAccountID string `json:"serviceAccountId"`
 	TenantID string `json:"tenantId"`
 	Token *string `json:"token,omitempty"`
+}
+
+type EndpointsSkippedUserMapping struct {
+	ProviderID *string `json:"providerId,omitempty"`
+	ProviderUserID *string `json:"providerUserId,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+type EndpointsSourceImpactCount struct {
+	Count *int `json:"count,omitempty"`
+	Source *DatabaseTicketSource `json:"source,omitempty"`
 }
 
 type EndpointsTeamMembershipExport struct {
@@ -1210,6 +3438,14 @@ type EndpointsTeamMembershipExport struct {
 type EndpointsTeamMergeSource struct {
 	ProviderID ModelsProviderID `json:"providerId"`
 	TeamID string `json:"teamId"`
+}
+
+type EndpointsTeamSLABreakdown struct {
+	InSLA int64 `json:"inSLA"`
+	OutOfSLA int64 `json:"outOfSLA"`
+	TeamID string `json:"teamID"`
+	TeamName string `json:"teamName"`
+	TeamSlug string `json:"teamSlug"`
 }
 
 type EndpointsTeamSourcePreferences struct {
@@ -1230,6 +3466,150 @@ type EndpointsTeamSyncRun struct {
 	TriggeredBy string `json:"triggeredBy"`
 }
 
+type EndpointsTenantCapabilitiesOutput struct {
+	Capabilities []EndpointsTenantCapabilityView `json:"capabilities,omitempty"`
+}
+
+type EndpointsTenantCapabilityView struct {
+	Capability string `json:"capability"`
+	CustomerEnabled *bool `json:"customerEnabled,omitempty"`
+	CustomerUpdatedAt *string `json:"customerUpdatedAt,omitempty"`
+	Description string `json:"description"`
+	DisabledLabel string `json:"disabledLabel"`
+	Enabled *bool `json:"enabled,omitempty"`
+	EnabledLabel string `json:"enabledLabel"`
+	LockReason string `json:"lockReason"`
+	Locked bool `json:"locked"`
+	Source string `json:"source"`
+	Title string `json:"title"`
+}
+
+type EndpointsThreatNotificationDeliveryFailure struct {
+	FailedAt string `json:"failedAt"`
+	Message string `json:"message"`
+	Reason string `json:"reason"`
+}
+
+type EndpointsThreatNotificationDestinations struct {
+	MicrosoftTeams EndpointsThreatNotificationTeams `json:"microsoftTeams"`
+	NullifySharedSlack EndpointsThreatNotificationNullifySlack `json:"nullifySharedSlack"`
+	TenantSlack EndpointsThreatNotificationTenantSlack `json:"tenantSlack"`
+}
+
+type EndpointsThreatNotificationNullifySlack struct {
+	Enabled bool `json:"enabled"`
+}
+
+type EndpointsThreatNotificationTeams struct {
+	Enabled bool `json:"enabled"`
+	LastDeliveryFailure *EndpointsThreatNotificationDeliveryFailure `json:"lastDeliveryFailure,omitempty"`
+	WebhookHost *string `json:"webhookHost,omitempty"`
+}
+
+type EndpointsThreatNotificationTenantSlack struct {
+	Available bool `json:"available"`
+	ChannelID *string `json:"channelId,omitempty"`
+	Enabled bool `json:"enabled"`
+	LastDeliveryFailure *EndpointsThreatNotificationDeliveryFailure `json:"lastDeliveryFailure,omitempty"`
+}
+
+type EndpointsTicketActivityEntry struct {
+	Actor *DatabaseTicketAuditActor `json:"actor,omitempty"`
+	ActorID *string `json:"actorId,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DetailsJson *string `json:"detailsJson,omitempty"`
+	EventType *DatabaseTicketAuditEventType `json:"eventType,omitempty"`
+	FindingTicketID *string `json:"findingTicketId,omitempty"`
+	ID *string `json:"id,omitempty"`
+}
+
+type EndpointsTicketSettingsHistoryEntry struct {
+	AppliedAt *string `json:"appliedAt,omitempty"`
+	AppliedBy *string `json:"appliedBy,omitempty"`
+	FindingType *DatabaseFindingType `json:"findingType,omitempty"`
+	ID *string `json:"id,omitempty"`
+	MigrationAction *DatabaseTicketMigrationAction `json:"migrationAction,omitempty"`
+	NewSettingsJson *string `json:"newSettingsJson,omitempty"`
+	OldSettingsJson *string `json:"oldSettingsJson,omitempty"`
+}
+
+type EndpointsTicketSettingsImpactPreview struct {
+	ByBoard []EndpointsBoardImpactCount `json:"byBoard,omitempty"`
+	BySource []EndpointsSourceImpactCount `json:"bySource,omitempty"`
+	SampleTickets []EndpointsFindingTicketSummary `json:"sampleTickets,omitempty"`
+	TicketsNowOutOfScopeCount *int `json:"ticketsNowOutOfScopeCount,omitempty"`
+	TicketsToCreateCount *int `json:"ticketsToCreateCount,omitempty"`
+}
+
+type EndpointsTicketSettingsProposal struct {
+	DefaultBoardID *string `json:"defaultBoardId,omitempty"`
+	FiltersCweAllowlist []string `json:"filtersCweAllowlist,omitempty"`
+	FiltersCweBlocklist []string `json:"filtersCweBlocklist,omitempty"`
+	FiltersRepoAllowlist []string `json:"filtersRepoAllowlist,omitempty"`
+	FiltersRepoBlocklist []string `json:"filtersRepoBlocklist,omitempty"`
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	PriorityThreshold ModelsPriorityLabel `json:"priorityThreshold"`
+	SeverityThreshold *ModelsSeverity `json:"severityThreshold,omitempty"`
+	TeamRoutingEnabled *bool `json:"teamRoutingEnabled,omitempty"`
+	UnroutedBehavior *string `json:"unroutedBehavior,omitempty"`
+}
+
+type EndpointsTicketWorkbenchAuditEntry struct {
+	Actor *DatabaseTicketAuditActor `json:"actor,omitempty"`
+	ActorID *string `json:"actorId,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DetailsJson *string `json:"detailsJson,omitempty"`
+	EventType *DatabaseTicketAuditEventType `json:"eventType,omitempty"`
+	ID *string `json:"id,omitempty"`
+}
+
+type EndpointsTicketWorkbenchFilter struct {
+	BoardID *string `json:"boardId,omitempty"`
+	ClosedAfter *string `json:"closedAfter,omitempty"`
+	ClosedBefore *string `json:"closedBefore,omitempty"`
+	CreatedAfter *string `json:"createdAfter,omitempty"`
+	CreatedBefore *string `json:"createdBefore,omitempty"`
+	FindingTypes []DatabaseFindingType `json:"findingTypes,omitempty"`
+	HasSyncError *bool `json:"hasSyncError,omitempty"`
+	Ids []string `json:"ids,omitempty"`
+	LastSyncedBefore *string `json:"lastSyncedBefore,omitempty"`
+	OutOfEligibilitySinceAfter *string `json:"outOfEligibilitySinceAfter,omitempty"`
+	Platforms []DatabaseTicketPlatform `json:"platforms,omitempty"`
+	Sources []DatabaseTicketSource `json:"sources,omitempty"`
+	Statuses []DatabaseTicketStatus `json:"statuses,omitempty"`
+	TextSearch *string `json:"textSearch,omitempty"`
+}
+
+type EndpointsTriageContextCensusFinding struct {
+	FindingID string `json:"findingId"`
+	FindingType string `json:"findingType"`
+	MissingOrgContext bool `json:"missingOrgContext"`
+	MissingRepoContext bool `json:"missingRepoContext"`
+	OrgContextVersion *string `json:"orgContextVersion,omitempty"`
+	RepoContextVersion *string `json:"repoContextVersion,omitempty"`
+}
+
+type EndpointsTriageContextCensusSummary struct {
+	FindingType string `json:"findingType"`
+	MissingOrgContext int64 `json:"missingOrgContext"`
+	MissingRepoContext int64 `json:"missingRepoContext"`
+	Total int64 `json:"total"`
+}
+
+// EndpointsUnavailableFromGitHub — The GitHub repositories GitHub stopped sharing with Nullify. Repositories on other git platforms are never listed or counted, so a tenant without GitHub repositories always reads count 0
+type EndpointsUnavailableFromGitHub struct {
+	Count int `json:"count"`
+	Repositories []EndpointsUnavailableRepository `json:"repositories,omitempty"`
+}
+
+type EndpointsUnavailableRepository struct {
+	DeactivatedAt *string `json:"deactivatedAt,omitempty"`
+	Owner string `json:"owner"`
+	Reason string `json:"reason"`
+	Repository string `json:"repository"`
+	RepositoryID string `json:"repositoryId"`
+}
+
 type EndpointsUnifiedEventOutput struct {
 	AutofixID *string `json:"autofixId,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
@@ -1248,9 +3628,11 @@ type EndpointsUnifiedEventOutput struct {
 
 type EndpointsUpdateJiraConfigInput struct {
 	AutoCreate bool `json:"autoCreate"`
+	DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+	EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
 	IssueType string `json:"issueType"`
+	PriorityThreshold string `json:"priorityThreshold"`
 	ProjectKey string `json:"projectKey"`
-	SeverityThreshold string `json:"severityThreshold"`
 }
 
 type EndpointsUpdateJiraConfigOutput struct {
@@ -1303,6 +3685,82 @@ type EndpointsUserMappingSuggestion struct {
 	Teams []ModelsUser `json:"teams,omitempty"`
 }
 
+type EndpointsWorkspaceBootstrapIssueOutput struct {
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	InvitationToken *string `json:"invitationToken,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+}
+
+type EndpointsWorkspaceBootstrapOperatorInput struct {
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedDirectoryID *string `json:"expectedDirectoryId,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Recipient *string `json:"recipient,omitempty"`
+}
+
+type EndpointsWorkspaceBootstrapOperatorOutput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	Invitation *EndpointsWorkspaceBootstrapIssueOutput `json:"invitation,omitempty"`
+	Target *WorkspacebootstrapTarget `json:"target,omitempty"`
+}
+
+type EndpointsWorkspaceBootstrapRenewInput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+type EndpointsWorkspaceBootstrapRevokeInput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+type EndpointsWorkspaceEntraSSOPolicyInput struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedUpdatedAt string `json:"expectedUpdatedAt"`
+	Reason string `json:"reason"`
+	Required *bool `json:"required,omitempty"`
+}
+
+type EndpointsWorkspaceEntraSSOPolicyOutput struct {
+	DirectoryID *string `json:"directoryId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	MinimumAdminCount *int `json:"minimumAdminCount,omitempty"`
+	Pending *bool `json:"pending,omitempty"`
+	PendingRequired *bool `json:"pendingRequired,omitempty"`
+	Required *bool `json:"required,omitempty"`
+	UnlinkedMemberCount *int `json:"unlinkedMemberCount,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	UsableAdminCount *int `json:"usableAdminCount,omitempty"`
+}
+
+type EndpointsWorkspaceProvisioningApproveInput struct {
+	Action *string `json:"action,omitempty"`
+	Confirm *bool `json:"confirm,omitempty"`
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	ExpectedOperationRevision *int64 `json:"expectedOperationRevision,omitempty"`
+	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	RequestID *string `json:"requestId,omitempty"`
+	SetupKind *string `json:"setupKind,omitempty"`
+}
+
+type EndpointsWorkspaceProvisioningApproveOutput struct {
+	Decision *WorkspacebootstrapProvisioningDecision `json:"decision,omitempty"`
+}
+
+type EndpointsWorkspaceProvisioningQueueOutput struct {
+	NextCursor *string `json:"nextCursor,omitempty"`
+	Requests []WorkspacebootstrapProvisioningRequest `json:"requests,omitempty"`
+}
+
 type EventbusService string
 
 const (
@@ -1319,6 +3777,57 @@ const (
 	EventbusServiceAuth EventbusService = "auth"
 	EventbusServiceNotifications EventbusService = "notifications"
 	EventbusServiceBilling EventbusService = "billing"
+)
+
+type GitlabauthGroup struct {
+	FullPath *string `json:"full_path,omitempty"`
+	ID *int64 `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+	ParentID *int `json:"parent_id,omitempty"`
+}
+
+type GitlabauthProject struct {
+	Archived *bool `json:"archived,omitempty"`
+	DefaultBranch *string `json:"default_branch,omitempty"`
+	HttpUrlToRepo *string `json:"http_url_to_repo,omitempty"`
+	ID *int64 `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+	PathWithNamespace *string `json:"path_with_namespace,omitempty"`
+	WebURL *string `json:"web_url,omitempty"`
+}
+
+type MetricdefsPeriod struct {
+	Days int `json:"days"`
+	End string `json:"end"`
+	Kind string `json:"kind"`
+	Label string `json:"label"`
+	PreviousStart string `json:"previousStart"`
+	Start string `json:"start"`
+}
+
+type MetricdefsSpoke struct {
+	Available bool `json:"available"`
+	Definition string `json:"definition"`
+	Denominator int64 `json:"denominator"`
+	Key string `json:"key"`
+	Label string `json:"label"`
+	Numerator int64 `json:"numerator"`
+	SampleSize int64 `json:"sampleSize"`
+	Unit string `json:"unit"`
+	Value *float64 `json:"value,omitempty"`
+}
+
+type MetricdefsState string
+
+const (
+	MetricdefsStateOpen MetricdefsState = "open"
+	MetricdefsStateFixed MetricdefsState = "fixed"
+	MetricdefsStateFixPendingVerification MetricdefsState = "fix_pending_verification"
+	MetricdefsStateNoLongerDetected MetricdefsState = "no_longer_detected"
+	MetricdefsStateFalsePositive MetricdefsState = "false_positive"
+	MetricdefsStateAllowlisted MetricdefsState = "allowlisted"
+	MetricdefsStateArchived MetricdefsState = "archived"
+	MetricdefsStateDuplicate MetricdefsState = "duplicate"
 )
 
 type ModelsAWSAccount struct {
@@ -1342,9 +3851,34 @@ type ModelsAWSAccountWithStatus struct {
 	Status *string `json:"status,omitempty"`
 }
 
-type ModelsAssignee struct {
-	ID *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
+type ModelsAWSConnectorPermissionGap struct {
+	AccountID string `json:"accountId"`
+	CheckedAt *string `json:"checkedAt,omitempty"`
+	Permission string `json:"permission"`
+	Service *string `json:"service,omitempty"`
+}
+
+type ModelsAsanaOwnerProvider struct {
+	AccessToken string `json:"accessToken"`
+	WorkspaceID string `json:"workspaceId"`
+	WorkspaceName string `json:"workspaceName"`
+}
+
+type ModelsAsanaTicketProject struct {
+	ProjectGid string `json:"projectGid"`
+	ProjectName string `json:"projectName"`
+	TeamGid *string `json:"teamGid,omitempty"`
+	WorkspaceGid string `json:"workspaceGid"`
+}
+
+type ModelsAsanaTicketProvider struct {
+	ProjectGid string `json:"projectGid"`
+	TaskGid string `json:"taskGid"`
+	URL string `json:"url"`
+}
+
+type ModelsAsanaUserProvider struct {
+	ID string `json:"id"`
 }
 
 type ModelsAzureEntraOwnerProvider struct {
@@ -1372,7 +3906,7 @@ type ModelsAzureOwnerProvider struct {
 	BaseURL string `json:"baseUrl"`
 	OrganizationID string `json:"organizationId"`
 	OrganizationName string `json:"organizationName"`
-	TenantID string `json:"tenantId"`
+	TenantID *string `json:"tenantId,omitempty"`
 }
 
 type ModelsAzureSubscriptionInput struct {
@@ -1439,41 +3973,11 @@ type ModelsChecklistItem struct {
 	Name string `json:"name"`
 }
 
-type ModelsCode struct {
-	EnableFailBuilds *bool `json:"enableFailBuilds,omitempty"`
-	Ignore []ModelsCodeIgnore `json:"ignore,omitempty"`
-}
-
-type ModelsCodeIgnore struct {
-	Cwes []int `json:"cwes,omitempty"`
-	Dirs []string `json:"dirs,omitempty"`
-	Expiry *string `json:"expiry,omitempty"`
-	Paths []string `json:"paths,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-	Repositories []string `json:"repositories,omitempty"`
-	RuleIds []string `json:"ruleIds,omitempty"`
-}
-
 type ModelsCollection struct {
 	CollectionID string `json:"collectionId"`
 	Collections []ModelsSubCollection `json:"collections,omitempty"`
 	IsSensitive bool `json:"isSensitive"`
 	Name string `json:"name"`
-}
-
-type ModelsConfiguration struct {
-	Code *ModelsCode `json:"code,omitempty"`
-	Dependencies *ModelsDependencies `json:"dependencies,omitempty"`
-	EnableFailBuilds *bool `json:"enableFailBuilds,omitempty"`
-	EnableIssueDashboards *bool `json:"enableIssueDashboards,omitempty"`
-	EnablePullRequestReviews *bool `json:"enablePullRequestReviews,omitempty"`
-	IgnoreDirs []string `json:"ignoreDirs,omitempty"`
-	IgnorePaths []string `json:"ignorePaths,omitempty"`
-	Integrations *ModelsIntegrations `json:"integrations,omitempty"`
-	PriorityThreshold *string `json:"priorityThreshold,omitempty"`
-	Secrets *ModelsSecrets `json:"secrets,omitempty"`
-	SecretsWhitelist []string `json:"secretsWhitelist,omitempty"`
-	SeverityThreshold *string `json:"severityThreshold,omitempty"`
 }
 
 type ModelsContainerImageMetadata struct {
@@ -1487,20 +3991,6 @@ type ModelsContainerImageMetadata struct {
 }
 
 type ModelsDataMap struct {
-}
-
-type ModelsDependencies struct {
-	EnableFailBuilds *bool `json:"enableFailBuilds,omitempty"`
-	Ignore []ModelsDependenciesIgnore `json:"ignore,omitempty"`
-}
-
-type ModelsDependenciesIgnore struct {
-	Cves []string `json:"cves,omitempty"`
-	Dirs []string `json:"dirs,omitempty"`
-	Expiry *string `json:"expiry,omitempty"`
-	Paths []string `json:"paths,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-	Repositories []string `json:"repositories,omitempty"`
 }
 
 type ModelsDeploymentType string
@@ -1535,10 +4025,138 @@ type ModelsExternalOwnerProvider struct {
 	InstallationID string `json:"installationId"`
 }
 
+type ModelsFamilyScope struct {
+	InScope *bool `json:"inScope,omitempty"`
+	Paths *ModelsPathScope `json:"paths,omitempty"`
+	Reason *ModelsScanScopeReason `json:"reason,omitempty"`
+}
+
 type ModelsFileOwners struct {
 	ID string `json:"id"`
 	Owners []ModelsFileOwner `json:"owners,omitempty"`
 }
+
+type ModelsFindingPullRequestQuery struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	Page *int `json:"page,omitempty"`
+	PageSize *int `json:"pageSize,omitempty"`
+	PrIdentifiers []string `json:"prIdentifiers,omitempty"`
+	PrTypes []string `json:"prTypes,omitempty"`
+	RepositoryNames []string `json:"repositoryNames,omitempty"`
+	RepositoryOwners []string `json:"repositoryOwners,omitempty"`
+	Statuses []string `json:"statuses,omitempty"`
+}
+
+type ModelsFindingPullRequestRecord struct {
+	AutofixID *string `json:"autofixId,omitempty"`
+	AzureProjectID *string `json:"azureProjectId,omitempty"`
+	BitbucketWorkspace *string `json:"bitbucketWorkspace,omitempty"`
+	CiCheckedAt *string `json:"ciCheckedAt,omitempty"`
+	CiDetailURL *string `json:"ciDetailUrl,omitempty"`
+	CiState *ModelsPullRequestCIState `json:"ciState,omitempty"`
+	ClosedAt *string `json:"closedAt,omitempty"`
+	ClosedAtSource *string `json:"closedAtSource,omitempty"`
+	ClosedBy *string `json:"closedBy,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CurrentIterationID *string `json:"currentIterationId,omitempty"`
+	FindingID string `json:"findingId"`
+	FindingType string `json:"findingType"`
+	FirstReviewedAt *string `json:"firstReviewedAt,omitempty"`
+	GitlabProjectID *int `json:"gitlabProjectId,omitempty"`
+	HasCustomerCommit *bool `json:"hasCustomerCommit,omitempty"`
+	HasCustomerFeedback *bool `json:"hasCustomerFeedback,omitempty"`
+	ID string `json:"id"`
+	LastReviewedAt *string `json:"lastReviewedAt,omitempty"`
+	MergedAt *string `json:"mergedAt,omitempty"`
+	Platform string `json:"platform"`
+	PrCustomerInteracted *bool `json:"prCustomerInteracted,omitempty"`
+	PrIdentifier string `json:"prIdentifier"`
+	PrStatus string `json:"prStatus"`
+	PrTitle *string `json:"prTitle,omitempty"`
+	PrType string `json:"prType"`
+	PrURL *string `json:"prUrl,omitempty"`
+	Recovery *ModelsPullRequestRecoveryObservation `json:"recovery,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	RepositoryName *string `json:"repositoryName,omitempty"`
+	RepositoryOwner *string `json:"repositoryOwner,omitempty"`
+	SourceBranch *string `json:"sourceBranch,omitempty"`
+	TargetBranch *string `json:"targetBranch,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type ModelsFindingStatus string
+
+const (
+	ModelsFindingStatusBacklog ModelsFindingStatus = "BACKLOG"
+	ModelsFindingStatusInProgress ModelsFindingStatus = "IN_PROGRESS"
+	ModelsFindingStatusResolved ModelsFindingStatus = "RESOLVED"
+)
+
+type ModelsFindingsGroup struct {
+	Count int `json:"count"`
+	Key string `json:"key"`
+	Label string `json:"label"`
+}
+
+type ModelsFindingsGroupBy string
+
+const (
+	ModelsFindingsGroupByRepository ModelsFindingsGroupBy = "repository"
+	ModelsFindingsGroupByBranch ModelsFindingsGroupBy = "branch"
+	ModelsFindingsGroupByType ModelsFindingsGroupBy = "type"
+	ModelsFindingsGroupByPriority ModelsFindingsGroupBy = "priority"
+	ModelsFindingsGroupByLanguage ModelsFindingsGroupBy = "language"
+)
+
+type ModelsFindingsRepositoryMetrics struct {
+	FindingsCount int `json:"findingsCount"`
+	FindingsFalsePositiveCount *int `json:"findingsFalsePositiveCount,omitempty"`
+	FindingsFixedCount *int `json:"findingsFixedCount,omitempty"`
+	FindingsNoLongerDetectedCount *int `json:"findingsNoLongerDetectedCount,omitempty"`
+	FindingsOtherResolvedCount *int `json:"findingsOtherResolvedCount,omitempty"`
+	FindingsResolvedCount int `json:"findingsResolvedCount"`
+	MeanTimeToResolve *int `json:"meanTimeToResolve,omitempty"`
+	MedianTimeToResolve *int `json:"medianTimeToResolve,omitempty"`
+	Platform *string `json:"platform,omitempty"`
+	Repository string `json:"repository"`
+	RepositoryID string `json:"repositoryId"`
+	RepositoryOwner *string `json:"repositoryOwner,omitempty"`
+}
+
+type ModelsForgeProductSettings struct {
+	CompassEnabled *bool `json:"compassEnabled,omitempty"`
+	ConfluenceEnabled *bool `json:"confluenceEnabled,omitempty"`
+	ConfluenceSpaceIds []string `json:"confluenceSpaceIds,omitempty"`
+	JiraEnabled *bool `json:"jiraEnabled,omitempty"`
+	Revision *int64 `json:"revision,omitempty"`
+}
+
+type ModelsFrameworkControlSummary struct {
+	Control string `json:"control"`
+	Critical int `json:"critical"`
+	High int `json:"high"`
+	Total int `json:"total"`
+	Version *string `json:"version,omitempty"`
+}
+
+type ModelsFrameworkFindingsSummary struct {
+	Assessed bool `json:"assessed"`
+	Controls []ModelsFrameworkControlSummary `json:"controls,omitempty"`
+	Critical int `json:"critical"`
+	Framework string `json:"framework"`
+	High int `json:"high"`
+	Source ModelsFrameworkSource `json:"source"`
+	Title string `json:"title"`
+	Total int `json:"total"`
+	Version *string `json:"version,omitempty"`
+}
+
+type ModelsFrameworkSource string
+
+const (
+	ModelsFrameworkSourceCode ModelsFrameworkSource = "code"
+	ModelsFrameworkSourceCloud ModelsFrameworkSource = "cloud"
+)
 
 type ModelsGCPProjectInput struct {
 	DisplayName *string `json:"displayName,omitempty"`
@@ -1549,14 +4167,23 @@ type ModelsGCPProjectInput struct {
 
 type ModelsGCPProjectWithStatus struct {
 	AccountType *string `json:"accountType,omitempty"`
+	AutoDiscovered bool `json:"autoDiscovered"`
 	IsDefault bool `json:"isDefault"`
 	IsEnabled bool `json:"isEnabled"`
+	LastDiscoveredAt *string `json:"lastDiscoveredAt,omitempty"`
 	LastVerifiedAt *string `json:"lastVerifiedAt,omitempty"`
 	LastVerifiedStatus *string `json:"lastVerifiedStatus,omitempty"`
 	ProjectID string `json:"projectId"`
 	ProjectName *string `json:"projectName,omitempty"`
 	State *string `json:"state,omitempty"`
 }
+
+type ModelsGitHubCredentialSource string
+
+const (
+	ModelsGitHubCredentialSourceDedicatedDirect ModelsGitHubCredentialSource = "dedicated_direct"
+	ModelsGitHubCredentialSourceSharedRouter ModelsGitHubCredentialSource = "shared_router"
+)
 
 type ModelsGitHubGitPullRequest struct {
 	PullRequestNodeID string `json:"pullRequestNodeId"`
@@ -1574,6 +4201,7 @@ type ModelsGitHubGitRepositoryProvider struct {
 
 type ModelsGitHubOwnerProvider struct {
 	BaseURL string `json:"baseUrl"`
+	ExecutionIdentity *ModelsGitHubExecutionIdentity `json:"executionIdentity,omitempty"`
 	InstallationID int64 `json:"installationId"`
 	Owner string `json:"owner"`
 	OwnerID int64 `json:"ownerId"`
@@ -1596,7 +4224,7 @@ type ModelsGitHubTicketProvider struct {
 
 type ModelsGitHubUserProvider struct {
 	ID int64 `json:"id"`
-	NodeID string `json:"nodeId"`
+	NodeID *string `json:"nodeId,omitempty"`
 }
 
 type ModelsGitLabGitPullRequest struct {
@@ -1612,6 +4240,7 @@ type ModelsGitLabOwnerProvider struct {
 	BaseURL string `json:"baseUrl"`
 	GroupID int64 `json:"groupId"`
 	GroupName string `json:"groupName"`
+	Oauth *bool `json:"oauth,omitempty"`
 }
 
 type ModelsGitLabTicketProject struct {
@@ -1625,6 +4254,7 @@ type ModelsGitLabUserProvider struct {
 }
 
 type ModelsGoogleWorkspaceOwnerProvider struct {
+	AdminEmail *string `json:"adminEmail,omitempty"`
 	Domain string `json:"domain"`
 	ServiceAccountJson string `json:"serviceAccountJson"`
 }
@@ -1639,41 +4269,28 @@ type ModelsGroundRule struct {
 	Title string `json:"title"`
 }
 
-type ModelsIntegrations struct {
-	Jira *ModelsJira `json:"jira,omitempty"`
-}
+type ModelsInferenceRegion string
 
-type ModelsJira struct {
-	Assignee *ModelsAssignee `json:"assignee,omitempty"`
-	CommentOnClose *bool `json:"commentOnClose,omitempty"`
-	DescriptionTemplate *string `json:"descriptionTemplate,omitempty"`
-	Disabled *bool `json:"disabled,omitempty"`
-	Enabled *bool `json:"enabled,omitempty"`
-	IssueType *string `json:"issueType,omitempty"`
-	Labels []string `json:"labels,omitempty"`
-	OnFixTransition *string `json:"onFixTransition,omitempty"`
-	Priorities *ModelsPriorities `json:"priorities,omitempty"`
-	PriorityThreshold *string `json:"priorityThreshold,omitempty"`
-	ProjectKey *string `json:"projectKey,omitempty"`
-	SeverityThreshold *string `json:"severityThreshold,omitempty"`
-	TitleTemplate *string `json:"titleTemplate,omitempty"`
-}
+const (
+	ModelsInferenceRegionGlobal ModelsInferenceRegion = "global"
+	ModelsInferenceRegionUs ModelsInferenceRegion = "us"
+)
 
 type ModelsJiraConfig struct {
 	AutoCreate bool `json:"autoCreate"`
 	CreatedAt string `json:"createdAt"`
+	DefaultAssigneeID *string `json:"defaultAssigneeId,omitempty"`
+	EnabledFindingTypes []string `json:"enabledFindingTypes,omitempty"`
 	IssueType string `json:"issueType"`
+	PriorityThreshold ModelsPriorityLabel `json:"priorityThreshold"`
 	ProjectKey string `json:"projectKey"`
-	SeverityThreshold string `json:"severityThreshold"`
 	UpdatedAt string `json:"updatedAt"`
 }
 
 type ModelsJiraOwnerProvider struct {
-	AppKeyID string `json:"appKeyId"`
 	BaseURL string `json:"baseUrl"`
 	InstallationID string `json:"installationId"`
 	OwnerID string `json:"ownerId"`
-	SharedSecret string `json:"sharedSecret"`
 }
 
 type ModelsJiraTicketProject struct {
@@ -1690,6 +4307,43 @@ type ModelsJiraTicketProvider struct {
 type ModelsJiraUserProvider struct {
 	ID string `json:"id"`
 	Name *string `json:"name,omitempty"`
+}
+
+type ModelsK8SClusterInput struct {
+	CloudAccountID *string `json:"cloudAccountId,omitempty"`
+	ClusterName string `json:"clusterName"`
+	ClusterType ModelsK8SClusterType `json:"clusterType"`
+	CollectConfigMaps *bool `json:"collectConfigMaps,omitempty"`
+	CollectSecrets *bool `json:"collectSecrets,omitempty"`
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	Region *string `json:"region,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+type ModelsK8SClusterType string
+
+const (
+	ModelsK8SClusterTypeEks ModelsK8SClusterType = "EKS"
+	ModelsK8SClusterTypeAks ModelsK8SClusterType = "AKS"
+	ModelsK8SClusterTypeGke ModelsK8SClusterType = "GKE"
+	ModelsK8SClusterTypeOnPrem ModelsK8SClusterType = "ON_PREM"
+)
+
+type ModelsK8SClusterWithStatus struct {
+	CloudAccountID *string `json:"cloudAccountId,omitempty"`
+	ClusterName string `json:"clusterName"`
+	ClusterType ModelsK8SClusterType `json:"clusterType"`
+	CollectConfigMaps *bool `json:"collectConfigMaps,omitempty"`
+	CollectSecrets *bool `json:"collectSecrets,omitempty"`
+	ID string `json:"id"`
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	LastVerificationCode *string `json:"lastVerificationCode,omitempty"`
+	LastVerificationDetail *string `json:"lastVerificationDetail,omitempty"`
+	LastVerifiedAt *string `json:"lastVerifiedAt,omitempty"`
+	LastVerifiedStatus *string `json:"lastVerifiedStatus,omitempty"`
+	Region *string `json:"region,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	ScanIdentity string `json:"scanIdentity"`
 }
 
 type ModelsLanguageName string
@@ -1709,8 +4363,10 @@ const (
 	ModelsLanguageNameCsharp ModelsLanguageName = "C#"
 	ModelsLanguageNameDart ModelsLanguageName = "Dart"
 	ModelsLanguageNameElixir ModelsLanguageName = "Elixir"
+	ModelsLanguageNameErlang ModelsLanguageName = "Erlang"
 	ModelsLanguageNameGeneric ModelsLanguageName = "Generic"
 	ModelsLanguageNameGo ModelsLanguageName = "Go"
+	ModelsLanguageNameHaskell ModelsLanguageName = "Haskell"
 	ModelsLanguageNameHcl ModelsLanguageName = "HCL"
 	ModelsLanguageNameHtml ModelsLanguageName = "HTML"
 	ModelsLanguageNameJava ModelsLanguageName = "Java"
@@ -1735,6 +4391,7 @@ const (
 	ModelsLanguageNameServerless ModelsLanguageName = "Serverless"
 	ModelsLanguageNameShell ModelsLanguageName = "Shell"
 	ModelsLanguageNameSolidity ModelsLanguageName = "Solidity"
+	ModelsLanguageNameSql ModelsLanguageName = "SQL"
 	ModelsLanguageNameSwift ModelsLanguageName = "Swift"
 	ModelsLanguageNameTerraform ModelsLanguageName = "Terraform"
 	ModelsLanguageNameTypescript ModelsLanguageName = "TypeScript"
@@ -1743,18 +4400,23 @@ const (
 )
 
 type ModelsLimitedUnifiedFindingsQuery struct {
+	AiGenerated *bool `json:"aiGenerated,omitempty"`
 	AppName []string `json:"appName,omitempty"`
-	AppType []string `json:"appType,omitempty"`
+	AsOf *string `json:"asOf,omitempty"`
 	AutoFixState []string `json:"autoFixState,omitempty"`
 	Branch []string `json:"branch,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
 	Cve []string `json:"cve,omitempty"`
 	Cwe []string `json:"cwe,omitempty"`
 	ExploitValidated *bool `json:"exploitValidated,omitempty"`
 	FileOwner []string `json:"fileOwner,omitempty"`
 	FindingID []string `json:"findingId,omitempty"`
+	FixEvidence []string `json:"fixEvidence,omitempty"`
+	Frameworks []string `json:"frameworks,omitempty"`
 	FromDate *string `json:"fromDate,omitempty"`
 	FromPriorityScore *int `json:"fromPriorityScore,omitempty"`
 	HasAutoFix *bool `json:"hasAutoFix,omitempty"`
+	HasMultipleVersions *bool `json:"hasMultipleVersions,omitempty"`
 	HasTicket *bool `json:"hasTicket,omitempty"`
 	HasTicketOrPR *bool `json:"hasTicketOrPR,omitempty"`
 	Host []string `json:"host,omitempty"`
@@ -1765,13 +4427,16 @@ type ModelsLimitedUnifiedFindingsQuery struct {
 	IsAllowlisted *bool `json:"isAllowlisted,omitempty"`
 	IsArchived *bool `json:"isArchived,omitempty"`
 	IsAutofixed *bool `json:"isAutofixed,omitempty"`
+	IsDefaultBranch *bool `json:"isDefaultBranch,omitempty"`
 	IsDirect *bool `json:"isDirect,omitempty"`
 	IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
 	IsFixed *bool `json:"isFixed,omitempty"`
 	IsInternetReachable *bool `json:"isInternetReachable,omitempty"`
 	IsPushWorkflow *bool `json:"isPushWorkflow,omitempty"`
+	IsRepositoryArchived *bool `json:"isRepositoryArchived,omitempty"`
 	IsResolved *bool `json:"isResolved,omitempty"`
 	Language []string `json:"language,omitempty"`
+	MetricState []string `json:"metricState,omitempty"`
 	NotfindingID []string `json:"notfindingId,omitempty"`
 	Package []string `json:"package,omitempty"`
 	Platform []string `json:"platform,omitempty"`
@@ -1779,9 +4444,12 @@ type ModelsLimitedUnifiedFindingsQuery struct {
 	Repository []string `json:"repository,omitempty"`
 	RepositoryID []string `json:"repositoryId,omitempty"`
 	RuleID []string `json:"ruleId,omitempty"`
+	ScanRunID []string `json:"scanRunId,omitempty"`
 	Search *string `json:"search,omitempty"`
 	SecretType []string `json:"secretType,omitempty"`
+	SecretValidated *bool `json:"secretValidated,omitempty"`
 	Severity []string `json:"severity,omitempty"`
+	SeverityConfidence []string `json:"severityConfidence,omitempty"`
 	Sort []map[string]map[string]json.RawMessage `json:"sort,omitempty"`
 	SortPreset *ModelsUnifiedFindingsSortPreset `json:"sortPreset,omitempty"`
 	TeamIDs []string `json:"teamIDs,omitempty"`
@@ -1791,6 +4459,16 @@ type ModelsLimitedUnifiedFindingsQuery struct {
 	Type []string `json:"type,omitempty"`
 	UrgentMaxDays *int `json:"urgentMaxDays,omitempty"`
 }
+
+type ModelsLinearInstallState string
+
+const (
+	ModelsLinearInstallStateUnavailable ModelsLinearInstallState = "unavailable"
+	ModelsLinearInstallStateNotInstalled ModelsLinearInstallState = "not_installed"
+	ModelsLinearInstallStateCredentialsRejected ModelsLinearInstallState = "credentials_rejected"
+	ModelsLinearInstallStateReconnectRequired ModelsLinearInstallState = "reconnect_required"
+	ModelsLinearInstallStateInstalled ModelsLinearInstallState = "installed"
+)
 
 type ModelsLinearOwnerProvider struct {
 	AccessToken *string `json:"accessToken,omitempty"`
@@ -1850,6 +4528,12 @@ type ModelsNotificationEventNewAPIFindings struct {
 	MinimumSeverity *ModelsSeverity `json:"minimumSeverity,omitempty"`
 }
 
+type ModelsNotificationEventNewCloudFindings struct {
+	CloudProviders []string `json:"cloudProviders,omitempty"`
+	MinimumPriority *int `json:"minimumPriority,omitempty"`
+	MinimumSeverity *ModelsSeverity `json:"minimumSeverity,omitempty"`
+}
+
 type ModelsNotificationEventNewCodeFindings struct {
 	Cwes []int `json:"cwes,omitempty"`
 	MinimumPriority *int `json:"minimumPriority,omitempty"`
@@ -1867,6 +4551,11 @@ type ModelsNotificationEventNewSecretFindings struct {
 	Types []string `json:"types,omitempty"`
 }
 
+type ModelsNotificationEventNewSupplyChainFindings struct {
+	FindingTypes []string `json:"findingTypes,omitempty"`
+	MinimumSeverity *ModelsSeverity `json:"minimumSeverity,omitempty"`
+}
+
 type ModelsNotificationEventThreatIntel struct {
 	Cves []string `json:"cves,omitempty"`
 	Ecosystems []string `json:"ecosystems,omitempty"`
@@ -1876,9 +4565,11 @@ type ModelsNotificationEventThreatIntel struct {
 type ModelsNotificationEvents struct {
 	All *ModelsNotificationEventAll `json:"all,omitempty"`
 	NewApiFindings *ModelsNotificationEventNewAPIFindings `json:"newApiFindings,omitempty"`
+	NewCloudFindings *ModelsNotificationEventNewCloudFindings `json:"newCloudFindings,omitempty"`
 	NewCodeFindings *ModelsNotificationEventNewCodeFindings `json:"newCodeFindings,omitempty"`
 	NewDependencyFindings *ModelsNotificationEventNewDependencyFindings `json:"newDependencyFindings,omitempty"`
 	NewSecretFindings *ModelsNotificationEventNewSecretFindings `json:"newSecretFindings,omitempty"`
+	NewSupplyChainFindings *ModelsNotificationEventNewSupplyChainFindings `json:"newSupplyChainFindings,omitempty"`
 	ThreatIntel *ModelsNotificationEventThreatIntel `json:"threatIntel,omitempty"`
 }
 
@@ -1929,6 +4620,129 @@ type ModelsOrganization struct {
 	Teams []ModelsTeam `json:"teams,omitempty"`
 }
 
+type ModelsOverviewBotSignal struct {
+	BotPullRequests int64 `json:"botPullRequests"`
+	IssuesFoundInPullRequests int64 `json:"issuesFoundInPullRequests"`
+	Ratio MetricdefsRatio `json:"ratio"`
+}
+
+type ModelsOverviewCanonical struct {
+	Fixes ModelsOverviewFixes `json:"fixes"`
+	Funnel []ModelsOverviewFunnelStage `json:"funnel,omitempty"`
+	Lifecycle ModelsOverviewLifecycle `json:"lifecycle"`
+	Period MetricdefsPeriod `json:"period"`
+	Posture []MetricdefsSpoke `json:"posture,omitempty"`
+	Priority ModelsOverviewPriorityBands `json:"priority"`
+	PullRequests ModelsOverviewPullRequests `json:"pullRequests"`
+	Scope ModelsOverviewScope `json:"scope"`
+	Severity ModelsOverviewSeverityBands `json:"severity"`
+	SeverityFunnels []ModelsOverviewSeverityFunnel `json:"severityFunnels,omitempty"`
+	TimeToResolve ModelsOverviewTimeToResolve `json:"timeToResolve"`
+	Types []ModelsOverviewTypeTile `json:"types,omitempty"`
+}
+
+type ModelsOverviewFixEvidenceCounts struct {
+	BaseImageChanged int64 `json:"baseImageChanged"`
+	DependencyRemoved int64 `json:"dependencyRemoved"`
+	DependencyVersionChanged int64 `json:"dependencyVersionChanged"`
+	FileRemoved int64 `json:"fileRemoved"`
+	MergedFixPr int64 `json:"mergedFixPr"`
+	VulnerableLinesChanged int64 `json:"vulnerableLinesChanged"`
+}
+
+type ModelsOverviewFixes struct {
+	ByEvidence ModelsOverviewFixEvidenceCounts `json:"byEvidence"`
+	Dismissed int64 `json:"dismissed"`
+	InPeriod int64 `json:"inPeriod"`
+	InPeriodStillReported int64 `json:"inPeriodStillReported"`
+	InPreviousPeriod int64 `json:"inPreviousPeriod"`
+	PendingVerification int64 `json:"pendingVerification"`
+	RemovedWithMergedPrInPeriod int64 `json:"removedWithMergedPrInPeriod"`
+	ShippedInPeriod int64 `json:"shippedInPeriod"`
+	ToDate int64 `json:"toDate"`
+}
+
+type ModelsOverviewFunnelStage struct {
+	Count int64 `json:"count"`
+	Key string `json:"key"`
+	Label string `json:"label"`
+}
+
+type ModelsOverviewLifecycle struct {
+	Allowlisted int64 `json:"allowlisted"`
+	Archived int64 `json:"archived"`
+	Duplicate int64 `json:"duplicate"`
+	FalsePositive int64 `json:"falsePositive"`
+	FixPendingVerification int64 `json:"fixPendingVerification"`
+	Fixed int64 `json:"fixed"`
+	NoLongerDetected int64 `json:"noLongerDetected"`
+	Open int64 `json:"open"`
+}
+
+type ModelsOverviewPriorityBands struct {
+	Important int64 `json:"important"`
+	Negligible int64 `json:"negligible"`
+	Urgent int64 `json:"urgent"`
+}
+
+type ModelsOverviewPullRequests struct {
+	BotSignal ModelsOverviewBotSignal `json:"botSignal"`
+	ByType ModelsPullRequestTypeCounts `json:"byType"`
+	Closed int64 `json:"closed"`
+	ClosedUnmergedInPeriod int64 `json:"closedUnmergedInPeriod"`
+	CreatedInPeriod int64 `json:"createdInPeriod"`
+	Distinct int64 `json:"distinct"`
+	Draft int64 `json:"draft"`
+	MergeReady MetricdefsRatio `json:"mergeReady"`
+	Merged int64 `json:"merged"`
+	MergedAtWithoutMergedStatus int64 `json:"mergedAtWithoutMergedStatus"`
+	MergedInPeriod int64 `json:"mergedInPeriod"`
+	Open int64 `json:"open"`
+	TimeToMerge ModelsDurationStats `json:"timeToMerge"`
+	Unclassified int64 `json:"unclassified"`
+}
+
+type ModelsOverviewScope struct {
+	Description string `json:"description"`
+	Open int64 `json:"open"`
+	OpenFailedTriage int64 `json:"openFailedTriage"`
+	OpenUntriaged int64 `json:"openUntriaged"`
+	Total int64 `json:"total"`
+}
+
+type ModelsOverviewSeverityBands struct {
+	Critical int64 `json:"critical"`
+	High int64 `json:"high"`
+	Info int64 `json:"info"`
+	Low int64 `json:"low"`
+	Medium int64 `json:"medium"`
+	Unrated int64 `json:"unrated"`
+}
+
+type ModelsOverviewSeverityFunnel struct {
+	Critical int64 `json:"critical"`
+	High int64 `json:"high"`
+	Info int64 `json:"info"`
+	Key string `json:"key"`
+	Low int64 `json:"low"`
+	Medium int64 `json:"medium"`
+	Unrated int64 `json:"unrated"`
+}
+
+type ModelsOverviewTimeToResolve struct {
+	InPeriod ModelsDurationStats `json:"inPeriod"`
+	ToDate ModelsDurationStats `json:"toDate"`
+}
+
+type ModelsOverviewTypeTile struct {
+	Important int64 `json:"important"`
+	Key string `json:"key"`
+	Label string `json:"label"`
+	Negligible int64 `json:"negligible"`
+	Open int64 `json:"open"`
+	Urgent int64 `json:"urgent"`
+}
+
 type ModelsOwnerType string
 
 const (
@@ -1946,19 +4760,49 @@ type ModelsPII struct {
 	Sources []ModelsSource `json:"sources,omitempty"`
 }
 
-type ModelsPriorities struct {
-	Critical *string `json:"critical,omitempty"`
-	High *string `json:"high,omitempty"`
-	Important *string `json:"important,omitempty"`
-	Low *string `json:"low,omitempty"`
-	Medium *string `json:"medium,omitempty"`
-	Negligible *string `json:"negligible,omitempty"`
-	Urgent *string `json:"urgent,omitempty"`
-}
-
 type ModelsProcessing struct {
 	Occurrences []ModelsOccurrence `json:"occurrences,omitempty"`
 	SourceID string `json:"sourceId"`
+}
+
+type ModelsPullRequestDefinitions struct {
+	ByType ModelsPullRequestTypeCounts `json:"byType"`
+	Closed int64 `json:"closed"`
+	ClosedUnmergedInPeriod int64 `json:"closedUnmergedInPeriod"`
+	CreatedInPeriod int64 `json:"createdInPeriod"`
+	Distinct int64 `json:"distinct"`
+	Draft int64 `json:"draft"`
+	MergeReady MetricdefsRatio `json:"mergeReady"`
+	Merged int64 `json:"merged"`
+	MergedAtWithoutMergedStatus int64 `json:"mergedAtWithoutMergedStatus"`
+	MergedInPeriod int64 `json:"mergedInPeriod"`
+	Open int64 `json:"open"`
+	TimeToMerge ModelsDurationStats `json:"timeToMerge"`
+	Unclassified int64 `json:"unclassified"`
+}
+
+type ModelsPullRequestMetrics struct {
+	Definitions ModelsPullRequestDefinitions `json:"definitions"`
+	Period MetricdefsPeriod `json:"period"`
+}
+
+type ModelsPullRequestMetricsQuery struct {
+	FindingType []string `json:"findingType,omitempty"`
+	FromDate *string `json:"fromDate,omitempty"`
+	Platform []string `json:"platform,omitempty"`
+	PrType []string `json:"prType,omitempty"`
+	RepositoryID []string `json:"repositoryId,omitempty"`
+	RepositoryOwner []string `json:"repositoryOwner,omitempty"`
+	ToDate *string `json:"toDate,omitempty"`
+}
+
+type ModelsPullRequestRecoveryObservation struct {
+	Detail *string `json:"detail,omitempty"`
+	Disposition string `json:"disposition"`
+	Kind string `json:"kind"`
+	ObservedAt string `json:"observedAt"`
+	StuckDetectedAt *string `json:"stuckDetectedAt,omitempty"`
+	StuckReason *string `json:"stuckReason,omitempty"`
 }
 
 type ModelsPullRequestStateWithDiffs struct {
@@ -1966,6 +4810,35 @@ type ModelsPullRequestStateWithDiffs struct {
 	ID string `json:"id"`
 	State string `json:"state"`
 	URL string `json:"url"`
+}
+
+type ModelsPullRequestTypeCounts struct {
+	Allowlist int64 `json:"allowlist"`
+	Autofix int64 `json:"autofix"`
+	ManualFix int64 `json:"manualFix"`
+}
+
+type ModelsRemediationFunnel struct {
+	Aging ModelsRemediationFunnelAging `json:"aging"`
+	FixSourceBreakdown map[string]int `json:"fixSourceBreakdown,omitempty"`
+	Stages ModelsRemediationFunnelStages `json:"stages"`
+	Version int `json:"version"`
+}
+
+type ModelsRemediationFunnelAging struct {
+	CachedNoPr ModelsStageAge `json:"cachedNoPr"`
+	PrOpenReviewedUnmerged ModelsStageAge `json:"prOpenReviewedUnmerged"`
+	PrOpenUnreviewed ModelsStageAge `json:"prOpenUnreviewed"`
+}
+
+type ModelsRemediationFunnelStages struct {
+	CachedNoPr int `json:"cachedNoPr"`
+	Detected int `json:"detected"`
+	PrMerged int `json:"prMerged"`
+	PrOpenReviewed int `json:"prOpenReviewed"`
+	PrOpenUnreviewed int `json:"prOpenUnreviewed"`
+	Triaged int `json:"triaged"`
+	VerifiedFixed int `json:"verifiedFixed"`
 }
 
 type ModelsRepository struct {
@@ -1991,12 +4864,38 @@ type ModelsRepository struct {
 	OwnerProvider ModelsOwnerProvider `json:"ownerProvider"`
 	Provider ModelsGitRepositoryProvider `json:"provider"`
 	PushedAt *string `json:"pushedAt,omitempty"`
+	RepoSizeBytes *int64 `json:"repoSizeBytes,omitempty"`
 	RepoSizeGiB int32 `json:"repoSizeGiB"`
 	StarCount *int `json:"starCount,omitempty"`
 	Topics []string `json:"topics,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 	Visibility *string `json:"visibility,omitempty"`
 }
+
+type ModelsSCPMEnforcementSource string
+
+const (
+	ModelsSCPMEnforcementSourceDefault ModelsSCPMEnforcementSource = "default"
+	ModelsSCPMEnforcementSourceOrganization ModelsSCPMEnforcementSource = "organization"
+	ModelsSCPMEnforcementSourceRepository ModelsSCPMEnforcementSource = "repository"
+)
+
+type ModelsSCPMRuleMode string
+
+const (
+	ModelsSCPMRuleModeOff ModelsSCPMRuleMode = "off"
+	ModelsSCPMRuleModeWarn ModelsSCPMRuleMode = "warn"
+	ModelsSCPMRuleModeBlock ModelsSCPMRuleMode = "block"
+)
+
+type ModelsSCPMRuleSuppression string
+
+const (
+	// (skipped value "" — no representable Go identifier)
+	ModelsSCPMRuleSuppressionRuleOff ModelsSCPMRuleSuppression = "rule_off"
+	ModelsSCPMRuleSuppressionPathExcluded ModelsSCPMRuleSuppression = "path_excluded"
+	ModelsSCPMRuleSuppressionSeverityFloor ModelsSCPMRuleSuppression = "severity_floor"
+)
 
 type ModelsSLA struct {
 	AllowExtensions bool `json:"allowExtensions"`
@@ -2006,31 +4905,64 @@ type ModelsSLA struct {
 	Severity ModelsSeverity `json:"severity"`
 }
 
-type ModelsSecrets struct {
-	CustomPatterns map[string]ModelsSecretsCustomPattern `json:"customPatterns,omitempty"`
-	CustomPatternsOverrideGlobal *bool `json:"customPatternsOverrideGlobal,omitempty"`
-	EnableFailBuilds *bool `json:"enableFailBuilds,omitempty"`
-	Ignore []ModelsSecretsIgnore `json:"ignore,omitempty"`
+type ModelsScanScope struct {
+	Code *ModelsFamilyScope `json:"code,omitempty"`
+	Scoped *bool `json:"scoped,omitempty"`
+	Secrets *ModelsFamilyScope `json:"secrets,omitempty"`
 }
 
-type ModelsSecretsCustomPattern struct {
-	Description *string `json:"description,omitempty"`
-	Entropy *float64 `json:"entropy,omitempty"`
-	Keywords []string `json:"keywords,omitempty"`
-	PathRegex *string `json:"pathRegex,omitempty"`
-	SecretRegex *string `json:"secretRegex,omitempty"`
-	SecretRegexGroup *int `json:"secretRegexGroup,omitempty"`
+type ModelsScanScopeAvailability string
+
+const (
+	ModelsScanScopeAvailabilityInScope ModelsScanScopeAvailability = "in_scope"
+	ModelsScanScopeAvailabilityCustomerDisabled ModelsScanScopeAvailability = "customer_disabled"
+	ModelsScanScopeAvailabilityStaffExcluded ModelsScanScopeAvailability = "staff_excluded"
+	ModelsScanScopeAvailabilityGithubNotInstalled ModelsScanScopeAvailability = "github_not_installed"
+	ModelsScanScopeAvailabilityUnknown ModelsScanScopeAvailability = "unknown"
+)
+
+// ModelsScanScopeExplanation — lockedBy: who holds the repository out of the customer's reach: github when the platform no longer shares it, staff when the staff allowlist leaves it out. staff still lets the customer un-enroll the repository and edit its directories. none does not mean enrolling fits: check the entitlement's usage against its cap. An unscoped tenant reports in_scope alongside lockedBy github for an inactive or missing row; lockedBy is authoritative for display only, never for whether a family scans
+type ModelsScanScopeExplanation struct {
+	Code ModelsScanScopeFamilyExplanation `json:"code"`
+	CodePaths ModelsScanScopePathProvenance `json:"codePaths"`
+	LockedBy ModelsScanScopeLock `json:"lockedBy"`
+	Secrets ModelsScanScopeFamilyExplanation `json:"secrets"`
+	SecretsExcludes []string `json:"secretsExcludes,omitempty"`
 }
 
-type ModelsSecretsIgnore struct {
-	Expiry *string `json:"expiry,omitempty"`
-	Paths []string `json:"paths,omitempty"`
-	Pattern *string `json:"pattern,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-	Repositories []string `json:"repositories,omitempty"`
-	Sha256 *string `json:"sha256,omitempty"`
-	Value *string `json:"value,omitempty"`
+// ModelsScanScopeFamilyExplanation — reason: in_scope, or the first level that keeps the family out: github_not_installed, staff_excluded, then customer_disabled. unknown is out of scope for a reason none of those names: treat it as out of scope and not changeable
+type ModelsScanScopeFamilyExplanation struct {
+	InScope bool `json:"inScope"`
+	Reason ModelsScanScopeAvailability `json:"reason"`
 }
+
+type ModelsScanScopeLock string
+
+const (
+	ModelsScanScopeLockNone ModelsScanScopeLock = "none"
+	ModelsScanScopeLockStaff ModelsScanScopeLock = "staff"
+	ModelsScanScopeLockGithub ModelsScanScopeLock = "github"
+)
+
+// ModelsScanScopePathProvenance — effective: the directories code scans read, the customer rules cut to the staff rules, an empty scope being the whole repository; absent when code scans read nothing, because code is out of scope or every stored include is invalid. staff: the directories Nullify limits code scanning to and skips, as stored. customer: the directories the customer chose, as stored
+type ModelsScanScopePathProvenance struct {
+	Customer ModelsPathScope `json:"customer"`
+	Effective *ModelsPathScope `json:"effective,omitempty"`
+	Staff ModelsPathScope `json:"staff"`
+}
+
+type ModelsScanScopeReason string
+
+const (
+	ModelsScanScopeReasonUnscoped ModelsScanScopeReason = "unscoped"
+	ModelsScanScopeReasonEnrolled ModelsScanScopeReason = "enrolled"
+	ModelsScanScopeReasonNotEnrolled ModelsScanScopeReason = "not_enrolled"
+	ModelsScanScopeReasonNotSynced ModelsScanScopeReason = "not_synced"
+	ModelsScanScopeReasonInactive ModelsScanScopeReason = "inactive"
+	ModelsScanScopeReasonNotAllowlisted ModelsScanScopeReason = "not_allowlisted"
+	ModelsScanScopeReasonOutsideStaffPaths ModelsScanScopeReason = "outside_staff_paths"
+	ModelsScanScopeReasonExcluded ModelsScanScopeReason = "excluded"
+)
 
 type ModelsSensitivity string
 
@@ -2069,12 +5001,33 @@ type ModelsSource struct {
 	Tags ModelsDataMap `json:"tags"`
 }
 
+type ModelsStageAge struct {
+	Count int `json:"count"`
+	OldestMs int `json:"oldestMs"`
+	P50Ms int `json:"p50Ms"`
+	P90Ms int `json:"p90Ms"`
+}
+
+type ModelsStageSampleSizes struct {
+	Autofix *int `json:"autofix,omitempty"`
+	DetectAndTriage *int `json:"detectAndTriage,omitempty"`
+	DetectAndTriageAfterOutliers *int `json:"detectAndTriageAfterOutliers,omitempty"`
+	Merge *int `json:"merge,omitempty"`
+	MergeAfterOutliers *int `json:"mergeAfterOutliers,omitempty"`
+	PullRequestCreation *int `json:"pullRequestCreation,omitempty"`
+	PullRequestCreationAfterOutliers *int `json:"pullRequestCreationAfterOutliers,omitempty"`
+	Review *int `json:"review,omitempty"`
+	ReviewAfterOutliers *int `json:"reviewAfterOutliers,omitempty"`
+	Triage *int `json:"triage,omitempty"`
+}
+
 type ModelsSubCollection struct {
 	Occurrences []ModelsOccurrence `json:"occurrences,omitempty"`
 	SourceID string `json:"sourceId"`
 }
 
 type ModelsTeam struct {
+	Azure *ModelsTeamProviderAzure `json:"azure,omitempty"`
 	CodeOwnerships []ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
 	Github *ModelsTeamProviderGitHub `json:"github,omitempty"`
 	Gitlab *ModelsTeamProviderGitLab `json:"gitlab,omitempty"`
@@ -2101,6 +5054,7 @@ type ModelsTeam struct {
 	Source ModelsTeamSource `json:"source"`
 	SourceRepositoryPropertyName *string `json:"sourceRepositoryPropertyName,omitempty"`
 	SourceRepositoryPropertyValue *string `json:"sourceRepositoryPropertyValue,omitempty"`
+	TicketBoardID *string `json:"ticketBoardId,omitempty"`
 	TicketProjectProvider ModelsTicketProjectProvider `json:"ticketProjectProvider"`
 }
 
@@ -2113,6 +5067,7 @@ type ModelsTeamCodeOwnership struct {
 type ModelsTeamCodeOwnershipDataSource string
 
 const (
+	ModelsTeamCodeOwnershipDataSourceDx ModelsTeamCodeOwnershipDataSource = "dx"
 	ModelsTeamCodeOwnershipDataSourceGithubTeams ModelsTeamCodeOwnershipDataSource = "github_teams"
 	ModelsTeamCodeOwnershipDataSourceAtlassianCompass ModelsTeamCodeOwnershipDataSource = "atlassian_compass"
 	ModelsTeamCodeOwnershipDataSourceManual ModelsTeamCodeOwnershipDataSource = "manual"
@@ -2157,6 +5112,10 @@ const (
 	ModelsTeamPrivacySecret ModelsTeamPrivacy = "secret"
 )
 
+type ModelsTeamProviderAzure struct {
+	TeamID *string `json:"teamId,omitempty"`
+}
+
 type ModelsTeamProviderGitHub struct {
 	OrgLogin *string `json:"orgLogin,omitempty"`
 	TeamID *int64 `json:"teamId,omitempty"`
@@ -2191,6 +5150,7 @@ type ModelsTeamProviderSlack struct {
 type ModelsTeamSource string
 
 const (
+	ModelsTeamSourceDx ModelsTeamSource = "dx"
 	ModelsTeamSourceGithubTeams ModelsTeamSource = "github_teams"
 	ModelsTeamSourceRepositoryProperty ModelsTeamSource = "repository_property"
 	ModelsTeamSourceManual ModelsTeamSource = "manual"
@@ -2213,7 +5173,36 @@ type ModelsTeamsUserProvider struct {
 	TeamIDs []string `json:"teamIDs,omitempty"`
 }
 
+type ModelsTicketMetrics struct {
+	AutoResolvedTrend ModelsTicketTrend `json:"autoResolvedTrend"`
+	ByPlatform ModelsTicketPlatformBreakdown `json:"byPlatform"`
+	Closed int `json:"closed"`
+	ClosedTrend ModelsTicketTrend `json:"closedTrend"`
+	CreatedTrend ModelsTicketTrend `json:"createdTrend"`
+	InProgress int `json:"inProgress"`
+	Open int `json:"open"`
+	Resolved int `json:"resolved"`
+	Total int `json:"total"`
+	WontFix int `json:"wontFix"`
+}
+
+type ModelsTicketMetricsQuery struct {
+	FindingType []string `json:"findingType,omitempty"`
+	FromDate *string `json:"fromDate,omitempty"`
+	Platform []string `json:"platform,omitempty"`
+	Source []string `json:"source,omitempty"`
+	ToDate *string `json:"toDate,omitempty"`
+}
+
+type ModelsTicketPlatformBreakdown struct {
+	Azure int `json:"azure"`
+	Github int `json:"github"`
+	Jira int `json:"jira"`
+	Linear int `json:"linear"`
+}
+
 type ModelsTicketProjectProvider struct {
+	Asana *ModelsAsanaTicketProject `json:"asana,omitempty"`
 	Azure *ModelsAzureTicketProject `json:"azure,omitempty"`
 	Bitbucket *ModelsBitbucketTicketProject `json:"bitbucket,omitempty"`
 	Github *ModelsGitHubTicketProject `json:"github,omitempty"`
@@ -2221,6 +5210,11 @@ type ModelsTicketProjectProvider struct {
 	ID *ModelsProviderID `json:"id,omitempty"`
 	Jira *ModelsJiraTicketProject `json:"jira,omitempty"`
 	Linear *ModelsLinearTicketProject `json:"linear,omitempty"`
+}
+
+type ModelsTicketTrend struct {
+	LastMonth int `json:"lastMonth"`
+	ThisMonth int `json:"thisMonth"`
 }
 
 type ModelsUISavedView struct {
@@ -2260,6 +5254,7 @@ const (
 
 type ModelsUnifiedFindingPreview struct {
 	AiDevTitle string `json:"aiDevTitle"`
+	AiGenerated bool `json:"aiGenerated"`
 	AiTitle string `json:"aiTitle"`
 	AllowlistReason *string `json:"allowlistReason,omitempty"`
 	AllowlistState ModelsAllowlistState `json:"allowlistState"`
@@ -2267,24 +5262,33 @@ type ModelsUnifiedFindingPreview struct {
 	AppName string `json:"appName"`
 	AppType string `json:"appType"`
 	AssessmentFactors map[string]string `json:"assessmentFactors,omitempty"`
+	AssignedTeamID *string `json:"assignedTeamId,omitempty"`
+	AssignedTeamName *string `json:"assignedTeamName,omitempty"`
 	AutoFixEndTime *string `json:"autoFixEndTime,omitempty"`
 	AutoFixStartTime *string `json:"autoFixStartTime,omitempty"`
 	AutoFixState ModelsAutoFixState `json:"autoFixState"`
 	Branch string `json:"branch"`
+	BudgetExhausted *bool `json:"budgetExhausted,omitempty"`
+	BudgetLimit *float64 `json:"budgetLimit,omitempty"`
+	BudgetUsed *float64 `json:"budgetUsed,omitempty"`
 	Category string `json:"category"`
 	Commit string `json:"commit"`
 	CommitHash string `json:"commitHash"`
+	ConcurrencyLimit *int `json:"concurrencyLimit,omitempty"`
 	CreatedAt string `json:"createdAt"`
 	Cwe string `json:"cwe"`
 	EndLine int `json:"endLine"`
 	EndpointMethod string `json:"endpointMethod"`
 	EndpointPath string `json:"endpointPath"`
+	Enforcement *ModelsSCPMEnforcement `json:"enforcement,omitempty"`
 	Entropy float64 `json:"entropy"`
 	Entrypoint string `json:"entrypoint"`
 	ErrorDescription string `json:"errorDescription"`
 	ErrorType string `json:"errorType"`
 	ExploitValidated *bool `json:"exploitValidated,omitempty"`
+	ExploitabilityLabel *string `json:"exploitabilityLabel,omitempty"`
 	FailedTriage *bool `json:"failedTriage,omitempty"`
+	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
 	FileOwners []ModelsFileOwner `json:"fileOwners,omitempty"`
 	FilePath string `json:"filePath"`
 	FirstSeenCommit string `json:"firstSeenCommit"`
@@ -2305,13 +5309,18 @@ type ModelsUnifiedFindingPreview struct {
 	IsFalsePositive bool `json:"isFalsePositive"`
 	IsInternetReachable *bool `json:"isInternetReachable,omitempty"`
 	IsLatest *bool `json:"isLatest,omitempty"`
+	IsRepositoryArchived *bool `json:"isRepositoryArchived,omitempty"`
 	IsResolved *bool `json:"isResolved,omitempty"`
 	Language ModelsLanguageName `json:"language"`
 	LastEvent string `json:"lastEvent"`
+	LastObservedAt *string `json:"lastObservedAt,omitempty"`
+	LastScannedAt *string `json:"lastScannedAt,omitempty"`
 	Line int `json:"line"`
 	Match string `json:"match"`
 	Message string `json:"message"`
 	Method string `json:"method"`
+	MetricState *MetricdefsState `json:"metricState,omitempty"`
+	Movements []ModelsSCPMFindingMovement `json:"movements,omitempty"`
 	NumCritical int `json:"numCritical"`
 	NumHigh int `json:"numHigh"`
 	NumLow int `json:"numLow"`
@@ -2324,12 +5333,14 @@ type ModelsUnifiedFindingPreview struct {
 	PriorityLabel ModelsPriorityLabel `json:"priorityLabel"`
 	PriorityOverride ModelsPriorityLabel `json:"priorityOverride"`
 	PriorityScore int `json:"priorityScore"`
+	PrioritySource *ModelsPrioritySource `json:"prioritySource,omitempty"`
 	ProjectID string `json:"projectId"`
 	ProjectName string `json:"projectName"`
 	ProjectPathPrefix string `json:"projectPathPrefix"`
 	PullRequestsAllowlist []ModelsPullRequestInfo `json:"pullRequestsAllowlist,omitempty"`
 	PullRequestsAutofix []ModelsPullRequestInfo `json:"pullRequestsAutofix,omitempty"`
 	QueryParameters map[string]string `json:"queryParameters,omitempty"`
+	ReachableSuggestedVersion *string `json:"reachableSuggestedVersion,omitempty"`
 	RedactedSecret string `json:"redactedSecret"`
 	Repository string `json:"repository"`
 	RepositoryID string `json:"repositoryId"`
@@ -2349,7 +5360,9 @@ type ModelsUnifiedFindingPreview struct {
 	Scopes []string `json:"scopes,omitempty"`
 	SecretHash string `json:"secretHash"`
 	SecretType string `json:"secretType"`
+	SecretValidation *ModelsSecretsValidationResult `json:"secretValidation,omitempty"`
 	Severity ModelsSeverity `json:"severity"`
+	SeverityConfidence *ModelsTriageSeverityConfidence `json:"severityConfidence,omitempty"`
 	Solution string `json:"solution"`
 	Source string `json:"source"`
 	StartLine int `json:"startLine"`
@@ -2360,40 +5373,51 @@ type ModelsUnifiedFindingPreview struct {
 	TargetURL string `json:"targetUrl"`
 	TenantID string `json:"tenantId"`
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
+	TicketState *string `json:"ticketState,omitempty"`
+	TicketSyncPending *bool `json:"ticketSyncPending,omitempty"`
 	TimeSaved TimeDuration `json:"timeSaved"`
 	Title string `json:"title"`
 	TriageEnd *string `json:"triageEnd,omitempty"`
 	TriageStart *string `json:"triageStart,omitempty"`
+	TriageStopReason *string `json:"triageStopReason,omitempty"`
+	TriageTokenCount *int `json:"triageTokenCount,omitempty"`
 	TriageVersion string `json:"triageVersion"`
 	Type ModelsFindingType `json:"type"`
 	UpdatedAt string `json:"updatedAt"`
 	URI string `json:"uri"`
 	UserName string `json:"userName"`
 	Version string `json:"version"`
+	Versions []string `json:"versions,omitempty"`
 	VulnerabilitiesCVEIds []string `json:"vulnerabilitiesCVEIds,omitempty"`
 	VulnerabilitiesCWEIds []string `json:"vulnerabilitiesCWEIds,omitempty"`
 	VulnerabilitiesMaxPriority ModelsPriorityLabel `json:"vulnerabilitiesMaxPriority"`
 	VulnerabilitiesMaxSeverity ModelsSeverity `json:"vulnerabilitiesMaxSeverity"`
 	VulnerableParameterName string `json:"vulnerableParameterName"`
 	VulnerableParameterValue string `json:"vulnerableParameterValue"`
+	Workflow *string `json:"workflow,omitempty"`
 }
 
 type ModelsUnifiedFindingsMetricsQuery struct {
 }
 
 type ModelsUnifiedFindingsQuery struct {
+	AiGenerated *bool `json:"aiGenerated,omitempty"`
 	AppName []string `json:"appName,omitempty"`
-	AppType []string `json:"appType,omitempty"`
+	AsOf *string `json:"asOf,omitempty"`
 	AutoFixState []string `json:"autoFixState,omitempty"`
 	Branch []string `json:"branch,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
 	Cve []string `json:"cve,omitempty"`
 	Cwe []string `json:"cwe,omitempty"`
 	ExploitValidated *bool `json:"exploitValidated,omitempty"`
 	FileOwner []string `json:"fileOwner,omitempty"`
 	FindingID []string `json:"findingId,omitempty"`
+	FixEvidence []string `json:"fixEvidence,omitempty"`
+	Frameworks []string `json:"frameworks,omitempty"`
 	FromDate *string `json:"fromDate,omitempty"`
 	FromPriorityScore *int `json:"fromPriorityScore,omitempty"`
 	HasAutoFix *bool `json:"hasAutoFix,omitempty"`
+	HasMultipleVersions *bool `json:"hasMultipleVersions,omitempty"`
 	HasTicket *bool `json:"hasTicket,omitempty"`
 	HasTicketOrPR *bool `json:"hasTicketOrPR,omitempty"`
 	Host []string `json:"host,omitempty"`
@@ -2404,13 +5428,16 @@ type ModelsUnifiedFindingsQuery struct {
 	IsAllowlisted *bool `json:"isAllowlisted,omitempty"`
 	IsArchived *bool `json:"isArchived,omitempty"`
 	IsAutofixed *bool `json:"isAutofixed,omitempty"`
+	IsDefaultBranch *bool `json:"isDefaultBranch,omitempty"`
 	IsDirect *bool `json:"isDirect,omitempty"`
 	IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
 	IsFixed *bool `json:"isFixed,omitempty"`
 	IsInternetReachable *bool `json:"isInternetReachable,omitempty"`
 	IsPushWorkflow *bool `json:"isPushWorkflow,omitempty"`
+	IsRepositoryArchived *bool `json:"isRepositoryArchived,omitempty"`
 	IsResolved *bool `json:"isResolved,omitempty"`
 	Language []string `json:"language,omitempty"`
+	MetricState []string `json:"metricState,omitempty"`
 	NotfindingID []string `json:"notfindingId,omitempty"`
 	Package []string `json:"package,omitempty"`
 	Page *int `json:"page,omitempty"`
@@ -2420,10 +5447,13 @@ type ModelsUnifiedFindingsQuery struct {
 	Repository []string `json:"repository,omitempty"`
 	RepositoryID []string `json:"repositoryId,omitempty"`
 	RuleID []string `json:"ruleId,omitempty"`
+	ScanRunID []string `json:"scanRunId,omitempty"`
 	ScrollID *string `json:"scrollId,omitempty"`
 	Search *string `json:"search,omitempty"`
 	SecretType []string `json:"secretType,omitempty"`
+	SecretValidated *bool `json:"secretValidated,omitempty"`
 	Severity []string `json:"severity,omitempty"`
+	SeverityConfidence []string `json:"severityConfidence,omitempty"`
 	Sort []map[string]map[string]json.RawMessage `json:"sort,omitempty"`
 	SortPreset *string `json:"sortPreset,omitempty"`
 	TeamIDs []string `json:"teamIDs,omitempty"`
@@ -2445,9 +5475,16 @@ const (
 	ModelsUnifiedFindingsSortPresetCreatedAtAsc ModelsUnifiedFindingsSortPreset = "created_at_asc"
 	ModelsUnifiedFindingsSortPresetPriorityDesc ModelsUnifiedFindingsSortPreset = "priority_desc"
 	ModelsUnifiedFindingsSortPresetSeverityDesc ModelsUnifiedFindingsSortPreset = "severity_desc"
+	ModelsUnifiedFindingsSortPresetPriorityAsc ModelsUnifiedFindingsSortPreset = "priority_asc"
+	ModelsUnifiedFindingsSortPresetSeverityAsc ModelsUnifiedFindingsSortPreset = "severity_asc"
+	ModelsUnifiedFindingsSortPresetSeverityConfidenceDesc ModelsUnifiedFindingsSortPreset = "severity_confidence_desc"
+	ModelsUnifiedFindingsSortPresetSeverityConfidenceAsc ModelsUnifiedFindingsSortPreset = "severity_confidence_asc"
+	ModelsUnifiedFindingsSortPresetFixStageAsc ModelsUnifiedFindingsSortPreset = "fix_stage_asc"
+	ModelsUnifiedFindingsSortPresetFixStageDesc ModelsUnifiedFindingsSortPreset = "fix_stage_desc"
 )
 
 type ModelsUserMapping struct {
+	Asana *ModelsAsanaUserProvider `json:"asana,omitempty"`
 	Azure *ModelsAzureUserProvider `json:"azure,omitempty"`
 	AzureEntra *ModelsAzureEntraUserProvider `json:"azureEntra,omitempty"`
 	Bitbucket *ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
@@ -2467,6 +5504,7 @@ type ModelsUserMapping struct {
 }
 
 type ModelsUserProvider struct {
+	Asana *ModelsAsanaUserProvider `json:"asana,omitempty"`
 	Azure *ModelsAzureUserProvider `json:"azure,omitempty"`
 	AzureEntra *ModelsAzureEntraUserProvider `json:"azureEntra,omitempty"`
 	BitBucket *ModelsBitbucketUserProvider `json:"bitBucket,omitempty"`
@@ -2481,4 +5519,213 @@ type ModelsUserProvider struct {
 	Teams *ModelsTeamsUserProvider `json:"teams,omitempty"`
 }
 
+type RuneventsEngine string
+
+const (
+	RuneventsEngineStepFunctions RuneventsEngine = "step_functions"
+	RuneventsEngineTemporal RuneventsEngine = "temporal"
+	RuneventsEngineFargate RuneventsEngine = "fargate"
+	RuneventsEngineInline RuneventsEngine = "inline"
+)
+
+type RuneventsMachineRef struct {
+	DefinitionID *string `json:"definitionId,omitempty"`
+	DefinitionVersion *string `json:"definitionVersion,omitempty"`
+	Engine *RuneventsEngine `json:"engine,omitempty"`
+	ExecutionID *string `json:"executionId,omitempty"`
+}
+
+type RuneventsRunRef struct {
+	CausationEventID *string `json:"causationEventId,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Kind *string `json:"kind,omitempty"`
+	ParentID *string `json:"parentId,omitempty"`
+	ParentKind *string `json:"parentKind,omitempty"`
+	RootID *string `json:"rootId,omitempty"`
+	RootKind *string `json:"rootKind,omitempty"`
+}
+
+type RuneventsRunStatus string
+
+const (
+	RuneventsRunStatusPending RuneventsRunStatus = "pending"
+	RuneventsRunStatusRunning RuneventsRunStatus = "running"
+	RuneventsRunStatusWaitingApproval RuneventsRunStatus = "waiting_approval"
+	RuneventsRunStatusCompleted RuneventsRunStatus = "completed"
+	RuneventsRunStatusFailed RuneventsRunStatus = "failed"
+	RuneventsRunStatusCancelled RuneventsRunStatus = "cancelled"
+	RuneventsRunStatusSkipped RuneventsRunStatus = "skipped"
+)
+
+type RunsnapshotChild struct {
+	Run *RuneventsRunRef `json:"run,omitempty"`
+	Status *RuneventsRunStatus `json:"status,omitempty"`
+}
+
+type RunsnapshotSnapshot struct {
+	Children []RunsnapshotChild `json:"children,omitempty"`
+	ChildrenTruncated *bool `json:"childrenTruncated,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
+	EndedAt *string `json:"endedAt,omitempty"`
+	EventsTruncated *bool `json:"eventsTruncated,omitempty"`
+	Machine *RuneventsMachineRef `json:"machine,omitempty"`
+	Run *RuneventsRunRef `json:"run,omitempty"`
+	SkippedRows *int `json:"skippedRows,omitempty"`
+	Stages []RunsnapshotStage `json:"stages,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status *RuneventsRunStatus `json:"status,omitempty"`
+}
+
+type RunsnapshotStage struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	EnteredAt *string `json:"enteredAt,omitempty"`
+	Index *int `json:"index,omitempty"`
+	Name *string `json:"name,omitempty"`
+	State *RunsnapshotStageState `json:"state,omitempty"`
+	Total *int `json:"total,omitempty"`
+}
+
+type RunsnapshotStageState string
+
+const (
+	RunsnapshotStageStateActive RunsnapshotStageState = "active"
+	RunsnapshotStageStateDone RunsnapshotStageState = "done"
+	RunsnapshotStageStateFailed RunsnapshotStageState = "failed"
+)
+
+type ServiceGitHubTenantRouteInventory struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CreatedByUserID *int64 `json:"createdByUserId,omitempty"`
+	FirstSeenAt *string `json:"firstSeenAt,omitempty"`
+	GithubAppID *int64 `json:"githubAppId,omitempty"`
+	GithubOwner *string `json:"githubOwner,omitempty"`
+	GithubOwnerType *string `json:"githubOwnerType,omitempty"`
+	ID *string `json:"id,omitempty"`
+	InstallationID *int64 `json:"installationId,omitempty"`
+	LastObservedAction *string `json:"lastObservedAction,omitempty"`
+	LastSeenAt *string `json:"lastSeenAt,omitempty"`
+}
+
+type ServiceGitHubTenantRouteResult struct {
+	DryRun *bool `json:"dryRun,omitempty"`
+	Inventory *ServiceGitHubTenantRouteInventory `json:"inventory,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Route *ServiceGitHubTenantRouteRow `json:"route,omitempty"`
+	Siblings []ServiceGitHubTenantRouteRow `json:"siblings,omitempty"`
+	Status *string `json:"status,omitempty"`
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+type ServiceGitHubTenantRouteRow struct {
+	BaseDomain *string `json:"baseDomain,omitempty"`
+	ControlsUpdatedBy *string `json:"controlsUpdatedBy,omitempty"`
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	GithubOwner *string `json:"githubOwner,omitempty"`
+	GithubOwnerID *int64 `json:"githubOwnerId,omitempty"`
+	ID *string `json:"id,omitempty"`
+	InstallationID *int64 `json:"installationId,omitempty"`
+	Paused *bool `json:"paused,omitempty"`
+	PausedReason *string `json:"pausedReason,omitempty"`
+	PendingAppID *int64 `json:"pendingAppId,omitempty"`
+	Region *string `json:"region,omitempty"`
+	RepoAllowlistEnforced *bool `json:"repoAllowlistEnforced,omitempty"`
+	ScheduledWorkEnabled *bool `json:"scheduledWorkEnabled,omitempty"`
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+type ServiceNativeBootstrapAdministrator struct {
+	Email *string `json:"email,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Subject *string `json:"subject,omitempty"`
+}
+
+type ServiceNativeTenantBootstrapInput struct {
+	Administrators []ServiceNativeBootstrapAdministrator `json:"administrators,omitempty"`
+	BaseDomain *string `json:"baseDomain,omitempty"`
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DirectoryID *string `json:"directoryId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	ExpectedState *string `json:"expectedState,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Operator *string `json:"operator,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Region *string `json:"region,omitempty"`
+	Stage *string `json:"stage,omitempty"`
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+type ServiceNativeTenantBootstrapResult struct {
+	AdministratorSubjects []string `json:"administratorSubjects,omitempty"`
+	DesiredState *ServiceNativeTenantBootstrapInput `json:"desiredState,omitempty"`
+	DirectoryID *string `json:"directoryId,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+	IdentityReady *bool `json:"identityReady,omitempty"`
+	RouteReady *bool `json:"routeReady,omitempty"`
+	Stage *string `json:"stage,omitempty"`
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
 type TimeDuration = int64
+
+type WorkspacebootstrapOperatorInspection struct {
+	CanonicalTenantID *string `json:"canonicalTenantId,omitempty"`
+	Expired *bool `json:"expired,omitempty"`
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	PendingStage *string `json:"pendingStage,omitempty"`
+	Recipient *string `json:"recipient,omitempty"`
+	RenewAllowed *bool `json:"renewAllowed,omitempty"`
+	RenewedAt *string `json:"renewedAt,omitempty"`
+	RenewedBy *string `json:"renewedBy,omitempty"`
+	RenewedReason *string `json:"renewedReason,omitempty"`
+	Revision *int64 `json:"revision,omitempty"`
+	RevokeAllowed *bool `json:"revokeAllowed,omitempty"`
+	RevokedAt *string `json:"revokedAt,omitempty"`
+	RevokedBy *string `json:"revokedBy,omitempty"`
+	RevokedReason *string `json:"revokedReason,omitempty"`
+	Status *string `json:"status,omitempty"`
+	Target *WorkspacebootstrapTarget `json:"target,omitempty"`
+}
+
+type WorkspacebootstrapProvisioningDecision struct {
+	After *WorkspacebootstrapProvisioningSecurityState `json:"after,omitempty"`
+	Before *WorkspacebootstrapProvisioningSecurityState `json:"before,omitempty"`
+	DryRun *bool `json:"dryRun,omitempty"`
+}
+
+type WorkspacebootstrapProvisioningRequest struct {
+	CompanyName *string `json:"companyName,omitempty"`
+	ContactEmail *string `json:"contactEmail,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	DirectoryID *string `json:"directoryId,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	OperationRevision *int64 `json:"operationRevision,omitempty"`
+	OperationStatus *string `json:"operationStatus,omitempty"`
+	ProviderID *string `json:"providerId,omitempty"`
+	RequestID *string `json:"requestId,omitempty"`
+	ReviewedBy *string `json:"reviewedBy,omitempty"`
+	ReviewedReason *string `json:"reviewedReason,omitempty"`
+	Revision *int64 `json:"revision,omitempty"`
+	SetupKind *string `json:"setupKind,omitempty"`
+	SetupLive *bool `json:"setupLive,omitempty"`
+	Status *string `json:"status,omitempty"`
+	Subject *string `json:"subject,omitempty"`
+	Target *WorkspacebootstrapTarget `json:"target,omitempty"`
+	UsesAzureDevOps *bool `json:"usesAzureDevOps,omitempty"`
+}
+
+type WorkspacebootstrapProvisioningSecurityState struct {
+	OperationID *string `json:"operationId,omitempty"`
+	Revision *int64 `json:"revision,omitempty"`
+	SetupKind *string `json:"setupKind,omitempty"`
+	Status *string `json:"status,omitempty"`
+	Target *WorkspacebootstrapTarget `json:"target,omitempty"`
+}
+
+type WorkspacebootstrapTarget struct {
+	AccountID *string `json:"accountId,omitempty"`
+	ApiOrigin *string `json:"apiOrigin,omitempty"`
+	DeploymentID *string `json:"deploymentId,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
+	Region *string `json:"region,omitempty"`
+}

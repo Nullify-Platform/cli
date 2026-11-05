@@ -1,17 +1,5 @@
 package cmd
 
-// findingTypeToAPI maps CLI type slugs to the API's FindingType values.
-// The unified /admin/findings endpoint uses PascalCase type names.
-var findingTypeToAPI = map[string]string{
-	"sast":             "Code",
-	"sca_dependencies": "Dependencies",
-	"sca_containers":   "Containers",
-	"secrets":          "Secrets",
-	"pentest":          "Pentest",
-	"bughunt":          "BugHunting",
-	"cspm":             "Cloud",
-}
-
 type scannerEndpoint struct {
 	name               string
 	path               string

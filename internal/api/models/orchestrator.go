@@ -28,26 +28,72 @@ type EndpointsBatchAutofixStats struct {
 	TotalSucceeded *int `json:"totalSucceeded,omitempty"`
 }
 
-type EndpointsCodeReviewsResponse struct {
-	Branch string `json:"branch"`
+type EndpointsCheckRunResponse struct {
+	Branch *string `json:"branch,omitempty"`
+	CheckName string `json:"checkName"`
+	CheckRunID *string `json:"checkRunId,omitempty"`
 	CommitSha string `json:"commitSha"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	Conclusion *string `json:"conclusion,omitempty"`
+	DetailsURL *string `json:"detailsUrl,omitempty"`
+	DurationSeconds *int `json:"durationSeconds,omitempty"`
+	HtmlURL *string `json:"htmlUrl,omitempty"`
 	ID string `json:"id"`
 	IsDefaultBranch bool `json:"isDefaultBranch"`
+	Overridable bool `json:"overridable"`
+	PullRequest *ModelsGitPullRequestProvider `json:"pullRequest,omitempty"`
+	PullRequestNumber *int64 `json:"pullRequestNumber,omitempty"`
+	PullRequestTitle *string `json:"pullRequestTitle,omitempty"`
+	PullRequestURL *string `json:"pullRequestUrl,omitempty"`
+	Repository ModelsGitRepositoryProvider `json:"repository"`
+	RepositoryID string `json:"repositoryId"`
+	RepositoryName string `json:"repositoryName"`
+	RepositoryOwner *string `json:"repositoryOwner,omitempty"`
+	Result *string `json:"result,omitempty"`
+	Service *string `json:"service,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	State string `json:"state"`
+	Summary *string `json:"summary,omitempty"`
+}
+
+type EndpointsCodeReviewsResponse struct {
+	BlockingFindings *int `json:"blockingFindings,omitempty"`
+	Branch string `json:"branch"`
+	CheckName *string `json:"checkName,omitempty"`
+	CheckOverriddenAt *string `json:"checkOverriddenAt,omitempty"`
+	CheckOverriddenBy *string `json:"checkOverriddenBy,omitempty"`
+	CommitSha string `json:"commitSha"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	GateMode *string `json:"gateMode,omitempty"`
+	GatePolicy *string `json:"gatePolicy,omitempty"`
+	GateResult *string `json:"gateResult,omitempty"`
+	ID string `json:"id"`
+	IncompleteScanners []string `json:"incompleteScanners,omitempty"`
+	IsDefaultBranch bool `json:"isDefaultBranch"`
+	ProcessedFindings *int `json:"processedFindings,omitempty"`
 	PullRequest *ModelsGitPullRequestProvider `json:"pullRequest,omitempty"`
 	Repository *ModelsGitRepositoryProvider `json:"repository,omitempty"`
-}
-
-type EndpointsCompleteOnboardingInput struct {
-	TenantID string `json:"tenantId"`
-}
-
-type EndpointsCompleteOnboardingOutput struct {
-	Message string `json:"message"`
+	RepositoryID string `json:"repositoryId"`
+	ScanConclusion *string `json:"scanConclusion,omitempty"`
+	SkippedScanners []string `json:"skippedScanners,omitempty"`
+	StartedAt string `json:"startedAt"`
 	Status string `json:"status"`
-	Success bool `json:"success"`
-	TenantID string `json:"tenantId"`
-	Timestamp string `json:"timestamp"`
+	TotalFindings *int `json:"totalFindings,omitempty"`
 }
+
+type EndpointsFindingTypeQuery string
+
+const (
+	EndpointsFindingTypeQuerySast EndpointsFindingTypeQuery = "sast"
+	EndpointsFindingTypeQueryScaDependencies EndpointsFindingTypeQuery = "sca_dependencies"
+	EndpointsFindingTypeQueryScaContainers EndpointsFindingTypeQuery = "sca_containers"
+	EndpointsFindingTypeQuerySecretsCredentials EndpointsFindingTypeQuery = "secrets_credentials"
+	EndpointsFindingTypeQuerySecretsSensitiveData EndpointsFindingTypeQuery = "secrets_sensitive_data"
+	EndpointsFindingTypeQueryScpm EndpointsFindingTypeQuery = "scpm"
+	EndpointsFindingTypeQueryCspm EndpointsFindingTypeQuery = "cspm"
+	EndpointsFindingTypeQueryDastBughunt EndpointsFindingTypeQuery = "dast_bughunt"
+	EndpointsFindingTypeQueryDastPentest EndpointsFindingTypeQuery = "dast_pentest"
+)
 
 type EndpointsGetBatchAutofixStatusOutput struct {
 	CompletedAt *string `json:"completedAt,omitempty"`
@@ -64,6 +110,15 @@ type EndpointsGetBatchAutofixStatusOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetCheckRunsOutput struct {
+	CheckRuns []EndpointsCheckRunResponse `json:"checkRuns,omitempty"`
+	Partial bool `json:"partial"`
+	RepositoriesRead int `json:"repositoriesRead"`
+	ScopeTruncated bool `json:"scopeTruncated"`
+	UnreadableRepositories []string `json:"unreadableRepositories,omitempty"`
+	UnreadableRepositoryIds []string `json:"unreadableRepositoryIds,omitempty"`
+}
+
 type EndpointsGetCodeReviewOutput struct {
 	ID string `json:"id"`
 	Review EndpointsCodeReviewsResponse `json:"review"`
@@ -71,7 +126,9 @@ type EndpointsGetCodeReviewOutput struct {
 
 type EndpointsGetCodeReviewsOutput struct {
 	NextToken *string `json:"nextToken,omitempty"`
-	Reviews EndpointsCodeReviewsResponse `json:"reviews"`
+	NumItems int `json:"numItems"`
+	Reviews []EndpointsCodeReviewsResponse `json:"reviews,omitempty"`
+	TotalCount int `json:"totalCount"`
 }
 
 type EndpointsGetFindingAutofixIterationsOutput struct {
@@ -84,16 +141,82 @@ type EndpointsGetOnboardingStatusOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetRepositoryScanOutput struct {
+	Branch string `json:"branch"`
+	CommitSha string `json:"commitSha"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	Error *string `json:"error,omitempty"`
+	IncompleteScanners []string `json:"incompleteScanners,omitempty"`
+	PullRequestNumber *int `json:"pullRequestNumber,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	RunID string `json:"runId"`
+	ScanConclusion *string `json:"scanConclusion,omitempty"`
+	ScanRuns []EndpointsRepositoryScanRun `json:"scanRuns,omitempty"`
+	Services []EndpointsRepositoryScanService `json:"services,omitempty"`
+	SkippedScanners []string `json:"skippedScanners,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	State string `json:"state"`
+	Terminal *bool `json:"terminal,omitempty"`
+}
+
+type EndpointsGetRetriageActivityOutput struct {
+	ActivityID string `json:"activityId"`
+	Findings []EndpointsRetriageActivityFinding `json:"findings,omitempty"`
+	RetryOfActivityID *string `json:"retryOfActivityId,omitempty"`
+	Status EndpointsRunState `json:"status"`
+	Terminal *bool `json:"terminal,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetRunControlCapabilitiesOutput struct {
+	Approve bool `json:"approve"`
+	Steer bool `json:"steer"`
+	Stop bool `json:"stop"`
+	StopVia string `json:"stopVia"`
+}
+
+type EndpointsManualOnboardingCompletion struct {
+	CompletedAt string `json:"completedAt"`
+	CompletedBy string `json:"completedBy"`
+	PreviousCompletionType *string `json:"previousCompletionType,omitempty"`
+	PreviousStatus string `json:"previousStatus"`
+	Reason string `json:"reason"`
+	Source string `json:"source"`
+}
+
+type EndpointsOnboardingRequirementsOutput struct {
+	Customized bool `json:"customized"`
+	Required []string `json:"required,omitempty"`
+	Unmet []string `json:"unmet,omitempty"`
+}
+
+type EndpointsOnboardingStageOutcome struct {
+	At string `json:"at"`
+	Counts map[string]int64 `json:"counts,omitempty"`
+	Detail *string `json:"detail,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Stage string `json:"stage"`
+	Status string `json:"status"`
+}
+
 type EndpointsOnboardingStatusResponse struct {
 	CompletedAt *string `json:"completedAt,omitempty"`
 	CompletedSteps []string `json:"completedSteps,omitempty"`
+	CompletionType *string `json:"completionType,omitempty"`
 	CurrentPhase *string `json:"currentPhase,omitempty"`
 	CurrentStep *int `json:"currentStep,omitempty"`
 	ErrorMessage *string `json:"errorMessage,omitempty"`
 	ExecutionArn *string `json:"executionArn,omitempty"`
 	FailedStep *string `json:"failedStep,omitempty"`
+	IsOnboarded bool `json:"isOnboarded"`
+	LastCompletedStep *string `json:"lastCompletedStep,omitempty"`
+	ManualCompletion *EndpointsManualOnboardingCompletion `json:"manualCompletion,omitempty"`
+	OnboardingApprovalSet bool `json:"onboardingApprovalSet"`
 	ProgressPct *int `json:"progressPct,omitempty"`
+	RecordMissing bool `json:"recordMissing"`
+	Repositories []string `json:"repositories,omitempty"`
 	RepositoriesProcessed *int `json:"repositoriesProcessed,omitempty"`
+	StageOutcomes []EndpointsOnboardingStageOutcome `json:"stageOutcomes,omitempty"`
 	StartedAt string `json:"startedAt"`
 	Status *string `json:"status,omitempty"`
 	StatusMessage *string `json:"statusMessage,omitempty"`
@@ -119,23 +242,44 @@ type EndpointsPostBatchAutofixOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
-type EndpointsPostRetriageFindingsAggregation struct {
-	Comments []EndpointsPostRetriageFindingsComment `json:"comments,omitempty"`
-	RequestCount *int `json:"requestCount,omitempty"`
+type EndpointsPostCheckRunOverrideInput struct {
+	CheckName string `json:"checkName"`
+	CommitSha string `json:"commitSha"`
+	Reason *string `json:"reason,omitempty"`
+	Repository ModelsGitRepositoryProvider `json:"repository"`
 }
 
-type EndpointsPostRetriageFindingsAuthor struct {
-	ID *string `json:"id,omitempty"`
+type EndpointsPostCheckRunOverrideOutput struct {
+	AuditRecorded bool `json:"auditRecorded"`
+	CheckRun EndpointsCheckRunResponse `json:"checkRun"`
 }
 
-type EndpointsPostRetriageFindingsComment struct {
-	Content *string `json:"content,omitempty"`
-	FindingID *string `json:"findingId,omitempty"`
-	ID *string `json:"id,omitempty"`
-	MemoryID *string `json:"memoryId,omitempty"`
-	NodeID *string `json:"nodeId,omitempty"`
-	Timestamp *string `json:"timestamp,omitempty"`
-	User *EndpointsPostRetriageFindingsUser `json:"user,omitempty"`
+type EndpointsPostCloseFindingTicketInput struct {
+	ActorID *string `json:"actorId,omitempty"`
+	FindingType EndpointsFindingTypeQuery `json:"findingType"`
+	Reason *string `json:"reason,omitempty"`
+	Resolution *string `json:"resolution,omitempty"`
+}
+
+type EndpointsPostCloseFindingTicketOutput struct {
+	AlreadyClosed *bool `json:"alreadyClosed,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Success bool `json:"success"`
+	TicketIdentifier *string `json:"ticketIdentifier,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostIterateAutofixPRInput struct {
+	OwnerProvider ModelsOwnerProvider `json:"ownerProvider"`
+	PullRequest ModelsGitPullRequestProvider `json:"pullRequest"`
+	Reason *string `json:"reason,omitempty"`
+	Repository ModelsGitRepositoryProvider `json:"repository"`
+}
+
+type EndpointsPostIterateAutofixPROutput struct {
+	Accepted bool `json:"accepted"`
+	Message string `json:"message"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsPostRetriageFindingsInput struct {
@@ -143,30 +287,96 @@ type EndpointsPostRetriageFindingsInput struct {
 	DebounceBypass *bool `json:"debounceBypass,omitempty"`
 	Filters *ModelsRetriageFilters `json:"filters,omitempty"`
 	FindingType string `json:"findingType"`
-	Message *EndpointsPostRetriageFindingsMessage `json:"message,omitempty"`
+	Message *ModelsRetriageMessage `json:"message,omitempty"`
 	PlatformProvider *string `json:"platformProvider,omitempty"`
+	RetryOfActivityID *string `json:"retryOfActivityId,omitempty"`
 	TriggerSource *ModelsRetriageTriggerSource `json:"triggerSource,omitempty"`
 }
 
-type EndpointsPostRetriageFindingsMessage struct {
-	Aggregation *EndpointsPostRetriageFindingsAggregation `json:"aggregation,omitempty"`
-	Author *EndpointsPostRetriageFindingsAuthor `json:"author,omitempty"`
-	Comment *EndpointsPostRetriageFindingsComment `json:"comment,omitempty"`
-	GitOwnerProvider *ModelsOwnerProvider `json:"gitOwnerProvider,omitempty"`
-}
-
 type EndpointsPostRetriageFindingsOutput struct {
+	ActivityID *string `json:"activityId,omitempty"`
+	FailedFindingIds []string `json:"failedFindingIds,omitempty"`
 	Message string `json:"message"`
 	MessageID string `json:"messageId"`
 	Version *string `json:"version,omitempty"`
 }
 
-type EndpointsPostRetriageFindingsUser struct {
-	ID *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
+type EndpointsPostRunControlInput struct {
+	Action string `json:"action"`
+	ApprovalID *string `json:"approvalId,omitempty"`
+	IdempotencyKey string `json:"idempotencyKey"`
+	Message *string `json:"message,omitempty"`
+}
+
+type EndpointsPostRunControlOutput struct {
+	ControlID string `json:"controlId"`
+	Duplicate bool `json:"duplicate"`
+}
+
+type EndpointsRepositoryScanRun struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	FixedFindingsCount *int `json:"fixedFindingsCount,omitempty"`
+	LiveFindingsCount *int `json:"liveFindingsCount,omitempty"`
+	NewFindingsCount *int `json:"newFindingsCount,omitempty"`
+	ScanRunID string `json:"scanRunId"`
+	ScanType string `json:"scanType"`
+	Service EndpointsRepositoryScanService `json:"service"`
+	Severity *EndpointsScanSeverityCounts `json:"severity,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status string `json:"status"`
+	Terminal *bool `json:"terminal,omitempty"`
+}
+
+type EndpointsRepositoryScanService string
+
+const (
+	EndpointsRepositoryScanServiceSast EndpointsRepositoryScanService = "sast"
+	EndpointsRepositoryScanServiceSca EndpointsRepositoryScanService = "sca"
+	EndpointsRepositoryScanServiceSecrets EndpointsRepositoryScanService = "secrets"
+	EndpointsRepositoryScanServiceScpm EndpointsRepositoryScanService = "scpm"
+)
+
+type EndpointsRepositoryScanTriage string
+
+const (
+	EndpointsRepositoryScanTriageOn EndpointsRepositoryScanTriage = "on"
+	EndpointsRepositoryScanTriageOff EndpointsRepositoryScanTriage = "off"
+)
+
+type EndpointsRetriageActivityFinding struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	FindingID string `json:"findingId"`
+	FindingType string `json:"findingType"`
+	Reason *string `json:"reason,omitempty"`
+	Status EndpointsRetriageFindingStatus `json:"status"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type EndpointsRetriageFindingStatus string
+
+const (
+	EndpointsRetriageFindingStatusQueued EndpointsRetriageFindingStatus = "queued"
+	EndpointsRetriageFindingStatusDispatched EndpointsRetriageFindingStatus = "dispatched"
+	EndpointsRetriageFindingStatusCompleted EndpointsRetriageFindingStatus = "completed"
+	EndpointsRetriageFindingStatusIncomplete EndpointsRetriageFindingStatus = "incomplete"
+	EndpointsRetriageFindingStatusFailed EndpointsRetriageFindingStatus = "failed"
+	EndpointsRetriageFindingStatusDenied EndpointsRetriageFindingStatus = "denied"
+	EndpointsRetriageFindingStatusDeferred EndpointsRetriageFindingStatus = "deferred"
+	EndpointsRetriageFindingStatusNotNeeded EndpointsRetriageFindingStatus = "not_needed"
+)
+
+type EndpointsScanSeverityCounts struct {
+	Critical *int `json:"critical,omitempty"`
+	High *int `json:"high,omitempty"`
+	Low *int `json:"low,omitempty"`
+	Medium *int `json:"medium,omitempty"`
 }
 
 type EndpointsStartOnboardingInput struct {
+	AllRepositories *bool `json:"allRepositories,omitempty"`
+	BypassRequirements *bool `json:"bypassRequirements,omitempty"`
+	Force *bool `json:"force,omitempty"`
 	GitOwnerProvider ModelsOwnerProvider `json:"gitOwnerProvider"`
 	RepositoryIds []string `json:"repositoryIds,omitempty"`
 }
@@ -175,6 +385,37 @@ type EndpointsStartOnboardingOutput struct {
 	ExecutionArn *string `json:"executionArn,omitempty"`
 	Message string `json:"message"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsStartPullRequestReviewOutput struct {
+	AlreadyRunning *bool `json:"alreadyRunning,omitempty"`
+	CommitSha string `json:"commitSha"`
+	PullRequestNumber int `json:"pullRequestNumber"`
+	RepositoryID string `json:"repositoryId"`
+	RunID string `json:"runId"`
+	SourceBranch string `json:"sourceBranch"`
+	TargetBranch *string `json:"targetBranch,omitempty"`
+}
+
+type EndpointsStartRepositoryScanInput struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitSha *string `json:"commitSha,omitempty"`
+	FullHistory *bool `json:"fullHistory,omitempty"`
+	RegenerateContext *bool `json:"regenerateContext,omitempty"`
+	ScopeBackfill *bool `json:"scopeBackfill,omitempty"`
+	Services []EndpointsRepositoryScanService `json:"services,omitempty"`
+	Triage *EndpointsRepositoryScanTriage `json:"triage,omitempty"`
+}
+
+type EndpointsStartRepositoryScanOutput struct {
+	AlreadyRunning *bool `json:"alreadyRunning,omitempty"`
+	Branch string `json:"branch"`
+	CommitSha string `json:"commitSha"`
+	Queued *bool `json:"queued,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	RunID string `json:"runId"`
+	Services []EndpointsRepositoryScanService `json:"services,omitempty"`
+	SideEffects []string `json:"sideEffects,omitempty"`
 }
 
 type ModelsAutofixIteration struct {
@@ -187,8 +428,6 @@ type ModelsAutofixIteration struct {
 	ID string `json:"id"`
 	InputTokenCount *int `json:"inputTokenCount,omitempty"`
 	IterationNumber int `json:"iterationNumber"`
-	LangfuseSessionID *string `json:"langfuseSessionID,omitempty"`
-	LangfuseTraceID *string `json:"langfuseTraceID,omitempty"`
 	LlmCostUSD *float64 `json:"llmCostUSD,omitempty"`
 	ModelName *string `json:"modelName,omitempty"`
 	OtelTraceID *string `json:"otelTraceID,omitempty"`
@@ -196,6 +435,7 @@ type ModelsAutofixIteration struct {
 	StartedAt string `json:"startedAt"`
 	Status ModelsAutofixIterationStatus `json:"status"`
 	TenantID string `json:"tenantID"`
+	TerminalReason *string `json:"terminalReason,omitempty"`
 	TriggerEventID *string `json:"triggerEventID,omitempty"`
 	TriggerType ModelsAutofixIterationTriggerType `json:"triggerType"`
 }
@@ -214,12 +454,173 @@ const (
 type ModelsAutofixIterationTriggerType string
 
 const (
+	ModelsAutofixIterationTriggerTypeGeneratePreview ModelsAutofixIterationTriggerType = "generate_preview"
 	ModelsAutofixIterationTriggerTypeCreatePr ModelsAutofixIterationTriggerType = "create_pr"
 	ModelsAutofixIterationTriggerTypeCiFailure ModelsAutofixIterationTriggerType = "ci_failure"
 	ModelsAutofixIterationTriggerTypeCodeReview ModelsAutofixIterationTriggerType = "code_review"
 	ModelsAutofixIterationTriggerTypeUserComment ModelsAutofixIterationTriggerType = "user_comment"
 	ModelsAutofixIterationTriggerTypeRerun ModelsAutofixIterationTriggerType = "rerun"
 )
+
+type ModelsAzureGitBuildProvider struct {
+	CommitSha string `json:"commitSha"`
+	Genre *string `json:"genre,omitempty"`
+	Name *string `json:"name,omitempty"`
+	PullRequestID *int `json:"pullRequestId,omitempty"`
+	TargetURL *string `json:"targetUrl,omitempty"`
+}
+
+type ModelsBitbucketGitBuildProvider struct {
+	CheckID string `json:"checkId"`
+	CommitSha string `json:"commitSha"`
+}
+
+type ModelsBuildkiteGitBuildProvider struct {
+	BuildNumber int `json:"buildNumber"`
+	CommitSha string `json:"commitSha"`
+	CompletedAt string `json:"completedAt"`
+	JobID *string `json:"jobId,omitempty"`
+	OrgSlug string `json:"orgSlug"`
+	PipelineSlug string `json:"pipelineSlug"`
+	StartedAt string `json:"startedAt"`
+}
+
+type ModelsChatCommentReference struct {
+	Content string `json:"content"`
+	FindingID string `json:"findingId"`
+	ID string `json:"id"`
+	MemoryID *string `json:"memoryId,omitempty"`
+	NodeID *string `json:"nodeId,omitempty"`
+	Timestamp string `json:"timestamp"`
+	User ModelsUser `json:"user"`
+}
+
+type ModelsCommit struct {
+	Author ModelsUser `json:"author"`
+	CoAuthoredByNullify bool `json:"coAuthoredByNullify"`
+	CommittedAt *string `json:"committedAt,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	Message string `json:"message"`
+	Sha string `json:"sha"`
+	Timestamp string `json:"timestamp"`
+}
+
+type ModelsGitBuild struct {
+}
+
+type ModelsGitBuildProvider struct {
+	Azure *ModelsAzureGitBuildProvider `json:"azure,omitempty"`
+	Bitbucket *ModelsBitbucketGitBuildProvider `json:"bitbucket,omitempty"`
+	Buildkite *ModelsBuildkiteGitBuildProvider `json:"buildkite,omitempty"`
+	GitHub *ModelsGitHubGitBuildProvider `json:"gitHub,omitempty"`
+	GitLab *ModelsGitLabGitBuildProvider `json:"gitLab,omitempty"`
+	ID *ModelsProviderID `json:"id,omitempty"`
+	StatusAPI *ModelsStatusAPIGitBuildProvider `json:"statusApi,omitempty"`
+}
+
+type ModelsGitHubGitBuildProvider struct {
+	BuildID int64 `json:"buildId"`
+	CheckID int64 `json:"checkId"`
+	CommitSha string `json:"commitSha"`
+	CompletedAt string `json:"completedAt"`
+	ExecutionIdentity *ModelsGitHubExecutionIdentity `json:"executionIdentity,omitempty"`
+	StartedAt string `json:"startedAt"`
+}
+
+type ModelsGitLabGitBuildProvider struct {
+	CommitSha string `json:"commitSha"`
+	JobID int `json:"jobId"`
+	PipelineID int `json:"pipelineId"`
+}
+
+type ModelsPullRequest struct {
+	Additions *int `json:"additions,omitempty"`
+	BranchName string `json:"branchName"`
+	Builds []ModelsGitBuild `json:"builds,omitempty"`
+	ChangedFiles *int `json:"changed_files,omitempty"`
+	ClosedAt *string `json:"closed_at,omitempty"`
+	Commits []ModelsCommit `json:"commits,omitempty"`
+	CreationTime string `json:"creationTime"`
+	Deletions *int `json:"deletions,omitempty"`
+	Description string `json:"description"`
+	Diff *string `json:"diff,omitempty"`
+	DiffThreads []ModelsPullRequestReviewDiffThread `json:"diffThreads,omitempty"`
+	DiscussionComments []ModelsComment `json:"discussionComments,omitempty"`
+	GitPullRequestProvider ModelsGitPullRequestProvider `json:"gitPullRequestProvider"`
+	GitRepositoryProvider ModelsGitRepositoryProvider `json:"gitRepositoryProvider"`
+	ID int `json:"id"`
+	IsCreatedByNullify bool `json:"isCreatedByNullify"`
+	IsDraft bool `json:"isDraft"`
+	IsMerged bool `json:"isMerged"`
+	IsOpen bool `json:"isOpen"`
+	Link string `json:"link"`
+	MergeCommitSha *string `json:"merge_commit_sha,omitempty"`
+	Mergeable *bool `json:"mergeable,omitempty"`
+	MergeableState *string `json:"mergeable_state,omitempty"`
+	MergedAt *string `json:"merged_at,omitempty"`
+	MergedBy *ModelsUser `json:"merged_by,omitempty"`
+	NumCommits int `json:"numCommits"`
+	OwnerProvider ModelsOwnerProvider `json:"ownerProvider"`
+	Rebaseable *bool `json:"rebaseable,omitempty"`
+	Reviewers []ModelsUser `json:"reviewers,omitempty"`
+	Reviews []ModelsPullRequestReview `json:"reviews,omitempty"`
+	ReviewsIncomplete *bool `json:"reviewsIncomplete,omitempty"`
+	SourceBranch string `json:"sourceBranch"`
+	SourceHead string `json:"sourceHead"`
+	TargetBranch string `json:"targetBranch"`
+	TargetHead string `json:"targetHead"`
+	Title string `json:"title"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type ModelsPullRequestReview struct {
+	Body *string `json:"Body,omitempty"`
+	ID *int64 `json:"ID,omitempty"`
+	IsBot *bool `json:"IsBot,omitempty"`
+	IsNullify *bool `json:"IsNullify,omitempty"`
+	NodeID *string `json:"NodeID,omitempty"`
+	ReviewerUsername *string `json:"ReviewerUsername,omitempty"`
+	State *ModelsPullRequestReviewState `json:"State,omitempty"`
+	SubmittedAt *string `json:"SubmittedAt,omitempty"`
+	UpdatedAt *string `json:"UpdatedAt,omitempty"`
+}
+
+type ModelsPullRequestReviewDiffThread struct {
+	CommentHistory []ModelsComment `json:"commentHistory,omitempty"`
+	DiffHunk string `json:"diffHunk"`
+	EndLine int `json:"endLine"`
+	FilePath string `json:"filePath"`
+	IsNullifyAuthored *bool `json:"isNullifyAuthored,omitempty"`
+	IsResolved bool `json:"isResolved"`
+	NewComment *ModelsComment `json:"newComment,omitempty"`
+	Provider ModelsCommentProvider `json:"provider"`
+	SnapshotIncomplete *bool `json:"snapshotIncomplete,omitempty"`
+	StartLine int `json:"startLine"`
+}
+
+type ModelsPullRequestReviewState string
+
+const (
+	ModelsPullRequestReviewStateApproved ModelsPullRequestReviewState = "APPROVED"
+	ModelsPullRequestReviewStateChangesRequested ModelsPullRequestReviewState = "CHANGES_REQUESTED"
+	ModelsPullRequestReviewStateDismissed ModelsPullRequestReviewState = "DISMISSED"
+	ModelsPullRequestReviewStateCommented ModelsPullRequestReviewState = "COMMENTED"
+)
+
+type ModelsPush struct {
+	After string `json:"after"`
+	Before string `json:"before"`
+	Commits []ModelsCommit `json:"commits,omitempty"`
+	Ref string `json:"ref"`
+	Repository string `json:"repository"`
+}
+
+type ModelsRetriageAggregationInfo struct {
+	Comments []ModelsChatCommentReference `json:"comments,omitempty"`
+	MessageIds []string `json:"messageIds,omitempty"`
+	RequestCount int `json:"requestCount"`
+	TriggerSources []ModelsRetriageTriggerSource `json:"triggerSources,omitempty"`
+}
 
 type ModelsRetriageFilters struct {
 	Branch *string `json:"branch,omitempty"`
@@ -234,15 +635,56 @@ type ModelsRetriageFilters struct {
 	Silent *bool `json:"silent,omitempty"`
 }
 
+type ModelsRetriageMessage struct {
+	ActivityIds []string `json:"activityIds,omitempty"`
+	Aggregation *ModelsRetriageAggregationInfo `json:"aggregation,omitempty"`
+	Author *ModelsUser `json:"author,omitempty"`
+	CloneURL *string `json:"cloneUrl,omitempty"`
+	Comment *ModelsChatCommentReference `json:"comment,omitempty"`
+	ContextPresignedURL *string `json:"contextPresignedURL,omitempty"`
+	Entrypoints map[string][]string `json:"entrypoints,omitempty"`
+	GitBuildProvider *ModelsGitBuildProvider `json:"gitBuildProvider,omitempty"`
+	GitOwnerProvider *ModelsOwnerProvider `json:"gitOwnerProvider,omitempty"`
+	GitRepositoryProvider *ModelsGitRepositoryProvider `json:"gitRepositoryProvider,omitempty"`
+	HeadCommit ModelsCommit `json:"headCommit"`
+	PullRequestProvider *ModelsGitPullRequestProvider `json:"pullRequestProvider,omitempty"`
+	Pullrequest *ModelsPullRequest `json:"pullrequest,omitempty"`
+	Push *ModelsPush `json:"push,omitempty"`
+	RepoSizeGiB *int32 `json:"repoSizeGiB,omitempty"`
+	Requester *ModelsRetriageRequester `json:"requester,omitempty"`
+	ScanCommitSHA *string `json:"scanCommitSHA,omitempty"`
+	SkipScanHistory *bool `json:"skipScanHistory,omitempty"`
+	TicketProvider ModelsTicketProvider `json:"ticketProvider"`
+	Timestamp *string `json:"timestamp,omitempty"`
+	Tool *string `json:"tool,omitempty"`
+	ToolGroup *ModelsFindingType `json:"toolGroup,omitempty"`
+	TraceAttributes map[string]string `json:"traceAttributes,omitempty"`
+}
+
+type ModelsRetriageRequester string
+
+const (
+	ModelsRetriageRequesterHuman ModelsRetriageRequester = "human"
+)
+
 type ModelsRetriageTriggerSource string
 
 const (
 	ModelsRetriageTriggerSourceApi ModelsRetriageTriggerSource = "api"
+	ModelsRetriageTriggerSourceAdminManual ModelsRetriageTriggerSource = "admin_manual"
 	ModelsRetriageTriggerSourceChatComment ModelsRetriageTriggerSource = "chat_comment"
 	ModelsRetriageTriggerSourceScheduled ModelsRetriageTriggerSource = "scheduled"
 	ModelsRetriageTriggerSourceWebhook ModelsRetriageTriggerSource = "webhook"
 	ModelsRetriageTriggerSourceNodeMemory ModelsRetriageTriggerSource = "node_memory"
 	ModelsRetriageTriggerSourceQaAnswer ModelsRetriageTriggerSource = "qa_answer"
+	ModelsRetriageTriggerSourceCli ModelsRetriageTriggerSource = "cli"
 	ModelsRetriageTriggerSourceMixed ModelsRetriageTriggerSource = "mixed"
 	ModelsRetriageTriggerSourceOther ModelsRetriageTriggerSource = "other"
 )
+
+type ModelsStatusAPIGitBuildProvider struct {
+	CommitSha string `json:"commitSha"`
+	Context *string `json:"context,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	TargetURL *string `json:"targetUrl,omitempty"`
+}

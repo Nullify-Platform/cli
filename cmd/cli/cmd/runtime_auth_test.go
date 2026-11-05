@@ -2,12 +2,21 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/findings"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestResolveCommandAuthUsesEnvTokenWithoutStoredCredentials(t *testing.T) {
@@ -35,10 +44,15 @@ func TestResolveCommandAuthUsesEnvTokenWithoutStoredCredentials(t *testing.T) {
 	require.Empty(t, authCtx.QueryParams)
 }
 
-func TestResolveCommandAuthClonesStoredQueryParams(t *testing.T) {
+// Logins before this CLI saved the server's default org (the lowest id) as
+// query_parameters. That was never the user's choice, so it must not scope
+// requests: an API token leaves the org to the server instead.
+func TestResolveCommandAuthIgnoresLegacySavedScope(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("NULLIFY_HOST", "acme.nullify.ai")
 	t.Setenv("NULLIFY_TOKEN", "env-token")
+	t.Setenv("NULLIFY_ORG", "")
+	t.Setenv("NULLIFY_GITHUB_OWNER_ID", "")
 
 	err := auth.SaveHostCredentials("acme.nullify.ai", auth.HostCredentials{
 		AccessToken:  "stored-token",
@@ -49,6 +63,10 @@ func TestResolveCommandAuthClonesStoredQueryParams(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+	stubOrgList(t, func(string) (auth.OrgList, error) {
+		t.Error("an API token with no explicit org must not list orgs")
+		return auth.OrgList{}, nil
+	})
 
 	originalHost := host
 	originalNullifyToken := nullifyToken
@@ -64,13 +82,7 @@ func TestResolveCommandAuthClonesStoredQueryParams(t *testing.T) {
 
 	authCtx, err := resolveCommandAuth(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, map[string]string{"githubOwnerId": "123"}, authCtx.QueryParams)
-
-	authCtx.QueryParams["githubOwnerId"] = "456"
-
-	creds, err := auth.LoadCredentials()
-	require.NoError(t, err)
-	require.Equal(t, "123", creds[auth.CredentialKey("acme.nullify.ai")].QueryParameters["githubOwnerId"])
+	require.Empty(t, authCtx.QueryParams)
 }
 
 func resetCommandFlags(t *testing.T) {
@@ -78,13 +90,16 @@ func resetCommandFlags(t *testing.T) {
 	originalHost := host
 	originalNullifyToken := nullifyToken
 	originalGithubToken := githubToken
+	originalCoverTenant := coverTenant
 	host = ""
 	nullifyToken = ""
 	githubToken = ""
+	coverTenant = func(_ context.Context, tenant string) (bool, error) { return auth.CoverSelectedTenant(tenant) }
 	t.Cleanup(func() {
 		host = originalHost
 		nullifyToken = originalNullifyToken
 		githubToken = originalGithubToken
+		coverTenant = originalCoverTenant
 	})
 }
 
@@ -113,10 +128,8 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 		wantAuthHost string
 		wantDataHost string
 		wantToken    string
-		wantParams   map[string]string
 		wantErr      string
 		githubCI     bool
-		noHint       bool
 	}{
 		{
 			name:         "router config uses the selected installation for data",
@@ -126,7 +139,6 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 			wantAuthHost: "nullify.ai",
 			wantDataHost: "acme.nullify.ai",
 			wantToken:    "router-token",
-			wantParams:   map[string]string{"githubOwnerId": "7"},
 		},
 		{
 			name:         "router alias flag",
@@ -136,14 +148,18 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 			wantAuthHost: "nullify.ai",
 			wantDataHost: "acme.nullify.ai",
 			wantToken:    "router-token",
-			wantParams:   map[string]string{"githubOwnerId": "7"},
+		},
+		{
+			name:     "dev router alias flag",
+			flagHost: "app.router.dev.nullify.ai",
+			wantErr:  "no organization selected",
 		},
 		{
 			name:        "router without a selected installation fails",
 			configHost:  "nullify.ai",
 			routerCreds: true,
 			routerData:  "",
-			wantErr:     "no installation selected",
+			wantErr:     "no organization selected",
 		},
 		{
 			name:       "router with an env token and no sign-in points CI at the instance",
@@ -158,19 +174,20 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 			wantErr:    "set --host or NULLIFY_HOST to <instance>.nullify.ai",
 		},
 		{
-			name:        "tenant host ignores the router selection but hints at it",
-			envHost:     "acme.nullify.ai",
-			routerCreds: true,
-			routerData:  "acme.nullify.ai",
-			wantErr:     "not authenticated for acme.nullify.ai - run 'nullify auth login --host acme.nullify.ai' (signed in through nullify.ai - use --host nullify.ai or 'nullify auth switch --host nullify.ai')",
+			name:         "tenant host the router login selected signs in through the router",
+			envHost:      "acme.nullify.ai",
+			routerCreds:  true,
+			routerData:   "acme.nullify.ai",
+			wantAuthHost: "api.nullify.ai",
+			wantDataHost: "acme.nullify.ai",
+			wantToken:    "router-token",
 		},
 		{
-			name:        "tenant host without a matching router selection has no hint",
+			name:        "tenant host the router does not cover is not authenticated",
 			envHost:     "beta.nullify.ai",
 			routerCreds: true,
 			routerData:  "acme.nullify.ai",
 			wantErr:     "not authenticated for beta.nullify.ai - run 'nullify auth login --host beta.nullify.ai'",
-			noHint:      true,
 		},
 		{
 			name:         "tenant env token ignores router query parameters",
@@ -181,7 +198,6 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 			wantAuthHost: "acme.nullify.ai",
 			wantDataHost: "acme.nullify.ai",
 			wantToken:    "env-token",
-			wantParams:   map[string]string{},
 		},
 		{
 			name:         "tenant host uses its own credentials",
@@ -192,7 +208,6 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 			wantAuthHost: "acme.nullify.ai",
 			wantDataHost: "acme.nullify.ai",
 			wantToken:    "tenant-token",
-			wantParams:   map[string]string{"githubOwnerId": "1"},
 		},
 		{
 			name:         "other tenant stays on its own host",
@@ -203,7 +218,6 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 			wantAuthHost: "beta.nullify.ai",
 			wantDataHost: "beta.nullify.ai",
 			wantToken:    "env-token",
-			wantParams:   map[string]string{},
 		},
 	}
 	for _, tt := range tests {
@@ -236,19 +250,15 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 				}))
 			}
 
-			authCtx, err := resolveCommandAuth(context.Background())
+			authCtx, err := resolveCommandToken(context.Background())
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
-				if tt.noHint {
-					require.NotContains(t, err.Error(), "signed in through nullify.ai")
-				}
 				return
 			}
 			require.NoError(t, err)
 			require.Equal(t, tt.wantAuthHost, authCtx.AuthHost)
 			require.Equal(t, tt.wantDataHost, authCtx.DataHost)
 			require.Equal(t, tt.wantToken, authCtx.Token)
-			require.Equal(t, tt.wantParams, authCtx.QueryParams)
 			require.Equal(t, "https://api."+tt.wantDataHost, authCtx.APIClient().BaseURL)
 			require.Equal(t, "https://api."+tt.wantDataHost, authCtx.Client().BaseURL)
 
@@ -270,8 +280,11 @@ func TestDashboardURL(t *testing.T) {
 	}
 }
 
+// A router login's MCP server sends requests to the selected data host and
+// gets and refreshes its token at the router, which the data host is bound to.
 func TestMCPClientUsesAuthHostForTokensAndDataHostForRequests(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
+	t.Setenv("NULLIFY_HOST", "nullify.ai")
 	t.Setenv("NULLIFY_TOKEN", "")
 	t.Setenv("GITHUB_ACTIONS", "")
 	resetCommandFlags(t)
@@ -280,21 +293,101 @@ func TestMCPClientUsesAuthHostForTokensAndDataHostForRequests(t *testing.T) {
 		ExpiresAt:   time.Now().Add(time.Hour).Unix(),
 		DataHost:    "acme.nullify.ai",
 	}))
-	authCtx := &commandAuthContext{AuthHost: auth.RouterHost, DataHost: "acme.nullify.ai"}
 
-	apiClient, err := newMCPAPIClient(context.Background(), authCtx, map[string]string{"repository": "r"})
+	apiClient, _, _, err := mcpServeConfig(context.Background(), "r", "default")
 	require.NoError(t, err)
 	require.Equal(t, "https://api.acme.nullify.ai", apiClient.BaseURL)
 	require.Equal(t, map[string]string{"repository": "r"}, apiClient.DefaultParams)
 
-	tokenProvider, refreshProvider := mcpTokenProviders(context.Background(), authCtx.AuthHost)
-	token, err := tokenProvider()
+	tokenProvider, refreshProvider := mcpTokenProviders(auth.RouterHost)
+	token, err := tokenProvider(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, "router-token", token)
-	_, err = refreshProvider()
+	_, err = refreshProvider(context.Background())
 	require.ErrorIs(t, err, client.ErrTokenNotRefreshable, "refresh must look up the router credentials")
 
-	dataTokenProvider, _ := mcpTokenProviders(context.Background(), authCtx.DataHost)
-	_, err = dataTokenProvider()
-	require.ErrorContains(t, err, "not authenticated for acme.nullify.ai")
+	authHost, err := auth.AuthHostFor("acme.nullify.ai")
+	require.NoError(t, err)
+	require.Equal(t, "api.nullify.ai", authHost, "the selected data host is bound to the router")
+	dataTokenProvider, _ := mcpTokenProviders("acme.nullify.ai")
+	token, err = dataTokenProvider(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, "router-token", token)
+}
+
+func TestFixDeadlineCancelsCredentialRefresh(t *testing.T) {
+	t.Cleanup(func() { goleak.VerifyNone(t) })
+
+	for _, tt := range []struct {
+		name   string
+		cancel bool
+	}{
+		{name: "wait deadline"},
+		{name: "caller cancellation", cancel: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			loginEnv(t)
+			parent, cancel := context.WithTimeout(context.Background(),
+				2*time.Second)
+			defer cancel()
+			var refreshes atomic.Int32
+			refreshCanceled := make(chan struct{})
+			server := httptest.NewServer(http.HandlerFunc(func(
+				w http.ResponseWriter, r *http.Request,
+			) {
+				switch {
+				case strings.HasSuffix(r.URL.Path, "/fix"):
+					fmt.Fprint(w, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
+				case strings.HasSuffix(r.URL.Path, "/status"):
+					w.WriteHeader(http.StatusUnauthorized)
+				case r.URL.Path == "/auth/refresh_token":
+					refreshes.Add(1)
+					if tt.cancel {
+						cancel()
+					}
+					<-r.Context().Done()
+					close(refreshCanceled)
+				}
+			}))
+			t.Cleanup(server.Close)
+			target, err := url.Parse(server.URL)
+			require.NoError(t, err)
+			previous := http.DefaultTransport
+			http.DefaultTransport = roundTripperFunc(func(
+				r *http.Request,
+			) (*http.Response, error) {
+				forwarded := r.Clone(r.Context())
+				forwarded.URL.Scheme = target.Scheme
+				forwarded.URL.Host = target.Host
+				return previous.RoundTrip(forwarded)
+			})
+			t.Cleanup(func() { http.DefaultTransport = previous })
+			ctx, err := logger.ConfigureDevelopmentLogger(parent, "error")
+			require.NoError(t, err)
+			authCtx, err := resolveCommandToken(ctx)
+			require.NoError(t, err)
+			c, err := newRefreshingAPIClient(ctx, authCtx, nil)
+			require.NoError(t, err)
+
+			started := time.Now()
+			got, err := findings.Fix(ctx, c, "sast", "f1",
+				findings.FixOptions{Timeout: 100 * time.Millisecond})
+
+			require.Less(t, time.Since(started), time.Second)
+			if tt.cancel {
+				require.ErrorIs(t, err, context.Canceled)
+			} else {
+				require.NoError(t, err)
+				require.ErrorIs(t, got.Failure,
+					findings.ErrAutofixStatusUnreadable)
+			}
+			require.Equal(t, int32(1), refreshes.Load())
+			require.Equal(t, "r1", got.RunID)
+			select {
+			case <-refreshCanceled:
+			case <-time.After(time.Second):
+				t.Fatal("credential refresh did not receive cancellation")
+			}
+		})
+	}
 }

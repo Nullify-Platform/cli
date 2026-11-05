@@ -10,7 +10,7 @@ require (
 	github.com/google/go-github/v85 v85.0.0
 	github.com/mark3labs/mcp-go v0.54.1
 	github.com/spf13/cobra v1.10.2
-	github.com/spf13/pflag v1.0.10 // indirect
+	github.com/spf13/pflag v1.0.10
 	golang.org/x/sync v0.20.0
 )
 
@@ -90,8 +90,10 @@ require (
 )
 
 require (
+	github.com/gofrs/flock v0.13.0
 	github.com/nullify-platform/logger v1.32.2
 	github.com/stretchr/testify v1.11.1
+	go.uber.org/goleak v1.3.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/term v0.39.0
 	gopkg.in/yaml.v3 v3.0.1

@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/logger"
@@ -23,7 +25,13 @@ var httpClient = &http.Client{Timeout: 30 * time.Second}
 // tests can point the auth calls at an httptest server.
 var authBaseURL = func(host string) string { return "https://" + apiHost(host) }
 
-var openBrowser = OpenBrowser
+// authClient is httpClient without redirects. Session, redeem and refresh
+// carry secrets, and a 307 would replay them to wherever it points.
+func authClient() *http.Client {
+	c := *httpClient
+	c.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	return &c
+}
 
 type cliSessionResponse struct {
 	SessionID string `json:"session_id"`
@@ -38,20 +46,56 @@ type cliTokenResponse struct {
 	QueryParameters map[string]string `json:"query_parameters,omitempty"`
 }
 
-// Login signs in to host in the browser. For the router host it also selects the installation that serves data.
+// Login signs in for host in the browser. A router host signs in at that
+// router. A tenant host is asked where its CLI login runs: a tenant on a
+// router signs in at the router, which then covers every tenant it lists for
+// the user, and picker chooses the org among those on host; any other
+// tenant signs in itself.
 func Login(ctx context.Context, host string, picker InstallationPicker) error {
-	host = normalizeHost(host)
+	// The login is saved across credentials and hosts; an unreadable hosts
+	// file would fail the second write after the first, so it fails first.
+	if _, err := LoadHosts(); err != nil {
+		return fmt.Errorf("%w - remove the file and log in again", err)
+	}
 
+	router, onRouter := RouterFor(host)
+	tenant := ""
+	authHost := router.AuthHost
+	if !onRouter {
+		discovered, err := DiscoverAuthHost(ctx, host)
+		if err != nil {
+			return fmt.Errorf("failed to find the login host: %w", err)
+		}
+		authHost = discovered
+		router, onRouter = RouterFor(authHost)
+		if onRouter {
+			tenant = CredentialKey(host)
+			fmt.Printf("%s signs in through %s.\n", host, authHost)
+		}
+	}
+
+	tokenResp, err := browserLogin(ctx, authHost)
+	if err != nil {
+		return err
+	}
+
+	if onRouter {
+		return saveRouterLogin(ctx, router, tenant, tokenResp, picker)
+	}
+	return saveTenantLogin(host, tokenResp)
+}
+
+func browserLogin(ctx context.Context, authHost string) (*cliTokenResponse, error) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		return fmt.Errorf("failed to start local server: %w", err)
+		return nil, fmt.Errorf("failed to start local server: %w", err)
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
 
-	sessionResp, err := createCLISession(ctx, host, port)
+	sessionResp, err := createCLISession(ctx, authHost, port)
 	if err != nil {
 		listener.Close()
-		return fmt.Errorf("failed to create auth session: %w", err)
+		return nil, fmt.Errorf("failed to create auth session: %w", err)
 	}
 
 	sessionCh := make(chan cliCallback, 1)
@@ -89,48 +133,49 @@ waitLoop:
 		case callback = <-sessionCh:
 			break waitLoop
 		case err := <-errCh:
-			return fmt.Errorf("local server error: %w", err)
+			return nil, fmt.Errorf("local server error: %w", err)
 		case <-ctx.Done():
-			return fmt.Errorf("authentication cancelled")
+			return nil, fmt.Errorf("authentication cancelled")
 		case <-timeout:
-			return fmt.Errorf("authentication timed out — the session has expired")
+			return nil, fmt.Errorf("authentication timed out — the session has expired")
 		case <-ticker.C:
 			fmt.Println("Still waiting for authentication...")
 		}
 	}
 
-	tokenResp, err := fetchCLIToken(ctx, host, callback.SessionID, callback.RedemptionSecret)
+	tokenResp, err := fetchCLIToken(ctx, authHost, callback.SessionID, callback.RedemptionSecret)
 	if err != nil {
-		return fmt.Errorf("failed to fetch tokens: %w", err)
+		return nil, fmt.Errorf("failed to fetch tokens: %w", err)
 	}
-
 	if tokenResp.Error != "" {
-		return fmt.Errorf("authentication failed: %s", tokenResp.Error)
+		return nil, fmt.Errorf("authentication failed: %s", tokenResp.Error)
 	}
+	return tokenResp, nil
+}
 
-	hostCreds := HostCredentials{
+// saveTenantLogin stores a login a tenant ran itself. The query parameters it
+// returned are the server's default org, kept only for older CLI versions
+// reading this file; this version never takes them as the user's choice.
+func saveTenantLogin(host string, tokenResp *cliTokenResponse) error {
+	err := SaveHostCredentials(host, HostCredentials{
 		AccessToken:     tokenResp.AccessToken,
 		RefreshToken:    tokenResp.RefreshToken,
 		ExpiresAt:       time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second).Unix(),
 		QueryParameters: tokenResp.QueryParameters,
-	}
-
-	if host == RouterHost {
-		install, err := selectInstallation(ctx, tokenResp.AccessToken, picker)
-		if err != nil {
-			return err
-		}
-		hostCreds = withInstallation(hostCreds, install)
-		fmt.Printf("Using installation %s (%s)\n", install.Name, install.DataHost)
-	}
-
-	err = SaveHostCredentials(host, hostCreds)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to save credentials: %w", err)
 	}
 
-	err = SaveConfig(&Config{Host: host})
+	err = UpdateHostConfig(host, func(hc HostConfig) HostConfig {
+		hc.AuthHost = apiHost(host)
+		return hc
+	})
 	if err != nil {
+		return fmt.Errorf("failed to save host config: %w", err)
+	}
+
+	if err := SaveConfig(&Config{Host: host}); err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
@@ -138,49 +183,219 @@ waitLoop:
 	return nil
 }
 
-func selectInstallation(ctx context.Context, token string, picker InstallationPicker) (Installation, error) {
-	installs, err := fetchInstallations(ctx, token)
+// saveRouterLogin stores a router login and the org it starts with. Every
+// tenant the router lists for the user is bound to the router, and a login a
+// listed tenant ran itself before is removed: the router's covers it now.
+// tenant, when set, limits the starting org to that tenant's. Nothing is
+// saved when no org can be selected.
+func saveRouterLogin(ctx context.Context, router Router, tenant string, tokenResp *cliTokenResponse, picker InstallationPicker) error {
+	orgs, err := fetchOrgs(ctx, router.AuthHost, tokenResp.AccessToken)
 	if err != nil {
-		return Installation{}, err
+		return err
 	}
-	return picker.Pick(installs)
+	routed := routedOrgs(orgs)
+
+	choices := routed
+	if tenant != "" {
+		choices = orgsOn(routed, tenant)
+	}
+	if picker.Name == "" && picker.Remembered == nil {
+		picker.Remembered = rememberedPick(router, tenant)
+	}
+	org, err := picker.Pick(choices)
+	if err != nil {
+		if tenant != "" {
+			return fmt.Errorf("signed in through %s, but none of your organizations on %s can be used: %w", router.Key, tenant, err)
+		}
+		return err
+	}
+
+	hostCreds := withSelection(HostCredentials{
+		AccessToken:  tokenResp.AccessToken,
+		RefreshToken: tokenResp.RefreshToken,
+		ExpiresAt:    time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second).Unix(),
+	}, org)
+
+	tenants := map[string]bool{}
+	for _, o := range routed {
+		tenants[o.DataHost()] = true
+	}
+
+	err = updateCredentials(func(creds Credentials) Credentials {
+		next := maps.Clone(creds)
+		for t := range tenants {
+			if t != router.Key {
+				delete(next, t)
+			}
+		}
+		next[router.Key] = hostCreds
+		return next
+	})
+	if err != nil {
+		return fmt.Errorf("failed to save credentials: %w", err)
+	}
+
+	err = updateHosts(func(hosts Hosts) Hosts {
+		next := maps.Clone(hosts)
+		for t := range tenants {
+			hc := next[t]
+			hc.AuthHost = router.AuthHost
+			next[t] = hc
+		}
+		hc := next[org.DataHost()]
+		hc.Org = pickOf(org)
+		next[org.DataHost()] = hc
+		return next
+	})
+	if err != nil {
+		return fmt.Errorf("failed to save host config: %w", err)
+	}
+
+	if err := SaveConfig(&Config{Host: router.Key}); err != nil {
+		return fmt.Errorf("failed to save config: %w", err)
+	}
+
+	fmt.Printf("Using %s on %s\n", org, org.DataHost())
+	fmt.Println("\nAuthenticated successfully!")
+	return nil
 }
 
-func withInstallation(hostCreds HostCredentials, install Installation) HostCredentials {
-	hostCreds.DataHost = install.DataHost
-	hostCreds.Installation = install.Name
-	hostCreds.QueryParameters = install.QueryParameters
+// rememberedPick is the org last chosen on tenant, or on the router's
+// selected data host when no tenant is named.
+func rememberedPick(router Router, tenant string) *OrgPick {
+	if tenant == "" {
+		creds, err := LoadCredentials()
+		if err != nil {
+			return nil
+		}
+		tenant = creds[router.Key].DataHost
+		if tenant == "" {
+			return nil
+		}
+	}
+	hosts, err := LoadHosts()
+	if err != nil {
+		return nil
+	}
+	return hosts[CredentialKey(tenant)].Org
+}
+
+func pickOf(org Org) *OrgPick {
+	return &OrgPick{Name: org.Name, Key: org.Key, ID: org.ID}
+}
+
+// withSelection records org as the router login's selected installation, in
+// the fields CLI v0.26.0 reads too.
+func withSelection(hostCreds HostCredentials, org Org) HostCredentials {
+	hostCreds.DataHost = org.DataHost()
+	hostCreds.Installation = org.Name
+	hostCreds.QueryParameters = org.Query()
 	return hostCreds
 }
 
-// SwitchInstallation selects the named installation for the stored router credentials and makes the router the default host.
-func SwitchInstallation(ctx context.Context, name string) (Installation, error) {
-	token, err := GetValidToken(ctx, RouterHost)
-	if err != nil {
-		return Installation{}, err
-	}
-
-	install, err := selectInstallation(ctx, token, InstallationPicker{Name: name})
-	if err != nil {
-		return Installation{}, err
-	}
-
-	err = updateHostCredentials(RouterHost, func(hostCreds HostCredentials) HostCredentials {
-		return withInstallation(hostCreds, install)
+// RememberOrg makes org the default for its data host without moving the
+// default host: a router login's selection follows only when it is already
+// on that data host.
+func RememberOrg(org Org) error {
+	dataHost := org.DataHost()
+	err := UpdateHostConfig(dataHost, func(hc HostConfig) HostConfig {
+		hc.Org = pickOf(org)
+		return hc
 	})
 	if err != nil {
-		return Installation{}, fmt.Errorf("failed to save credentials: %w", err)
+		return fmt.Errorf("failed to save the organization: %w", err)
+	}
+	authHost, err := AuthHostFor(dataHost)
+	if err != nil {
+		return err
+	}
+	router, onRouter := RouterFor(authHost)
+	if !onRouter {
+		return nil
+	}
+	return updateHostCredentials(router.Key, func(hostCreds HostCredentials) HostCredentials {
+		if hostCreds.DataHost != dataHost {
+			return hostCreds
+		}
+		return withSelection(hostCreds, org)
+	})
+}
+
+// SelectOrg makes org the default for its data host and, for a router login,
+// moves the router's selected data host to it and makes the router the
+// default host. The login picker, 'nullify org use' and 'nullify auth switch
+// --installation' save through here; the prompt uses RememberOrg, which does
+// not move the default host.
+func SelectOrg(org Org) error {
+	dataHost := org.DataHost()
+	if dataHost == "" {
+		return fmt.Errorf("%s is not served by a Nullify host yet", org.Name)
+	}
+	authHost, err := AuthHostFor(dataHost)
+	if err != nil {
+		return err
 	}
 
-	if err := SaveConfig(&Config{Host: RouterHost}); err != nil {
-		return Installation{}, fmt.Errorf("failed to save config: %w", err)
+	err = UpdateHostConfig(dataHost, func(hc HostConfig) HostConfig {
+		hc.Org = pickOf(org)
+		return hc
+	})
+	if err != nil {
+		return fmt.Errorf("failed to save the organization: %w", err)
 	}
-	return install, nil
+
+	router, onRouter := RouterFor(authHost)
+	if !onRouter {
+		return nil
+	}
+	err = updateHostCredentials(router.Key, func(hostCreds HostCredentials) HostCredentials {
+		return withSelection(hostCreds, org)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to save credentials: %w", err)
+	}
+	if err := SaveConfig(&Config{Host: router.Key}); err != nil {
+		return fmt.Errorf("failed to save config: %w", err)
+	}
+	return nil
+}
+
+// SwitchInstallation selects the named org among the router login's and makes the router the default host.
+func SwitchInstallation(ctx context.Context, router Router, name string) (Org, error) {
+	token, err := GetValidToken(ctx, router.Key)
+	if err != nil {
+		return Org{}, err
+	}
+
+	orgs, err := fetchOrgs(ctx, router.AuthHost, token)
+	if err != nil {
+		return Org{}, err
+	}
+	org, err := InstallationPicker{Name: name}.Pick(routedOrgs(orgs))
+	if err != nil {
+		return Org{}, err
+	}
+	if err := BindTenant(org.DataHost(), router); err != nil {
+		return Org{}, err
+	}
+	return org, SelectOrg(org)
+}
+
+// BindTenant records that tenant signs in through router, unless it already does.
+func BindTenant(tenant string, router Router) error {
+	if authHost, err := AuthHostFor(tenant); err == nil && authHost == router.AuthHost {
+		return nil
+	}
+	return UpdateHostConfig(tenant, func(hc HostConfig) HostConfig {
+		hc.AuthHost = router.AuthHost
+		return hc
+	})
 }
 
 // DataHost returns the host that serves data for the credentials stored under authHost.
 func DataHost(authHost string) (string, error) {
-	if !IsRouterHost(authHost) {
+	router, onRouter := RouterFor(authHost)
+	if !onRouter {
 		return authHost, nil
 	}
 
@@ -191,7 +406,7 @@ func DataHost(authHost string) (string, error) {
 		}
 		return "", fmt.Errorf("load credentials: %w", err)
 	}
-	dataHost := creds[RouterHost].DataHost
+	dataHost := creds[router.Key].DataHost
 	if dataHost == "" {
 		return "", ErrNoDataHost
 	}
@@ -207,37 +422,50 @@ func CheckSession(ctx context.Context, host string) error {
 	return err
 }
 
+// Logout removes the credentials that serve host. On a router tenant those
+// are the router login, shared with every other tenant signed in through it.
 func Logout(host string) error {
+	host = normalizeHost(host)
+	authHost, err := AuthHostFor(host)
+	if err != nil {
+		return err
+	}
+	if err := DeleteHostCredentials(authHost); err != nil {
+		return err
+	}
+	// A login from before the auth host was recorded sits under host itself.
 	return DeleteHostCredentials(host)
 }
 
-func GetValidToken(ctx context.Context, host string) (string, error) {
-	host = normalizeHost(host)
-
-	creds, err := LoadCredentials()
+// storedCredentials returns the credentials that serve the API host and the
+// auth host that issued them, which is where they must be refreshed.
+func storedCredentials(host string) (HostCredentials, string, error) {
+	hostCreds, authHost, ok, err := LookupCredentials(normalizeHost(host))
+	if errors.Is(err, os.ErrNotExist) {
+		return HostCredentials{}, "", fmt.Errorf("not authenticated - run 'nullify auth login'")
+	}
 	if err != nil {
-		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
+		return HostCredentials{}, "", fmt.Errorf("read stored credentials: %w", err)
 	}
-
-	key := CredentialKey(host)
-	hostCreds, ok := creds[key]
 	if !ok {
-		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
+		return HostCredentials{}, "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
 	}
+	return hostCreds, authHost, nil
+}
 
-	if hostCreds.ExpiresAt > 0 && time.Now().Unix() > hostCreds.ExpiresAt {
-		if hostCreds.RefreshToken != "" {
-			logger.L(ctx).Debug("access token expired, attempting refresh")
-			refreshed, err := refreshToken(ctx, host, hostCreds.RefreshToken)
-			if err != nil {
-				return "", fmt.Errorf("token expired and refresh failed - run 'nullify auth login': %w", err)
-			}
-			return refreshed, nil
-		}
-		return "", fmt.Errorf("token expired - run 'nullify auth login'")
+func GetValidToken(ctx context.Context, host string) (string, error) {
+	hostCreds, _, err := storedCredentials(host)
+	if err != nil {
+		return "", err
 	}
+	if !expired(hostCreds) {
+		return hostCreds.AccessToken, nil
+	}
+	return refreshOnce(ctx, host, false)
+}
 
-	return hostCreds.AccessToken, nil
+func expired(hostCreds HostCredentials) bool {
+	return hostCreds.ExpiresAt > 0 && time.Now().Unix() > hostCreds.ExpiresAt
 }
 
 // ErrNotRefreshable reports that the stored credentials for a host carry no
@@ -250,23 +478,118 @@ var ErrNotRefreshable = errors.New("no refresh token stored")
 // the server rejects while the CLI still believes it is valid -- revocation, a
 // killed session, or a local clock running behind the server's.
 func ForceRefreshToken(ctx context.Context, host string) (string, error) {
-	host = normalizeHost(host)
+	return refreshOnce(ctx, host, true)
+}
 
-	creds, err := LoadCredentials()
+// refreshReuse is how long a refresh answers every caller that was waiting on
+// it, so concurrent calls rejected with the same token refresh once.
+var refreshReuse = 30 * time.Second
+
+type refreshState struct {
+	mu sync.Mutex
+	at time.Time
+}
+
+var refreshes sync.Map
+
+// refreshOnce refreshes host's token at its auth host, one refresh at a time
+// per auth host in this process.
+func refreshOnce(ctx context.Context, host string, force bool) (string, error) {
+	_, authHost, err := storedCredentials(host)
 	if err != nil {
-		return "", fmt.Errorf("not authenticated - run 'nullify auth login'")
+		return "", err
 	}
+	dir, err := configDir()
+	if err != nil {
+		return "", err
+	}
+	v, _ := refreshes.LoadOrStore(dir+"|"+CredentialKey(authHost), &refreshState{})
+	state := v.(*refreshState)
+	state.mu.Lock()
+	defer state.mu.Unlock()
 
-	hostCreds, ok := creds[CredentialKey(host)]
-	if !ok {
-		return "", fmt.Errorf("not authenticated for %s - run 'nullify auth login --host %s'", host, host)
+	hostCreds, authHost, err := storedCredentials(host)
+	if err != nil {
+		return "", err
+	}
+	if !expired(hostCreds) && (!force || time.Since(state.at) < refreshReuse) {
+		return hostCreds.AccessToken, nil
 	}
 	if hostCreds.RefreshToken == "" {
-		return "", ErrNotRefreshable
+		if force {
+			return "", ErrNotRefreshable
+		}
+		return "", fmt.Errorf("token expired - run 'nullify auth login'")
 	}
 
-	logger.L(ctx).Debug("forcing access token refresh")
-	return refreshToken(ctx, host, hostCreds.RefreshToken)
+	logger.L(ctx).Debug("refreshing access token", logger.String("authHost", authHost))
+	token, err := refreshToken(ctx, authHost, hostCreds)
+	if err != nil {
+		if force {
+			return "", err
+		}
+		return "", fmt.Errorf("token expired and refresh failed - run 'nullify auth login': %w", err)
+	}
+	state.at = time.Now()
+	return token, nil
+}
+
+// routerAuthHost reports whether host is a router API host a tenant may hand
+// its CLI login to. The CLI sends the user's login and refresh token wherever
+// the tenant says, so any other answer is refused rather than followed.
+func routerAuthHost(host string) bool {
+	for _, r := range routers {
+		if host == r.AuthHost {
+			return true
+		}
+	}
+	return false
+}
+
+// DiscoverAuthHost asks host where its CLI login runs (GET /auth/cli/config).
+// A stack that predates the endpoint answers 404 and logs in on its own host.
+// Any other failure, or an answer that is neither this tenant nor a known
+// router, is an error: credentials never go to a host the CLI did not expect,
+// and a failed discovery is never retried on another host.
+func DiscoverAuthHost(ctx context.Context, host string) (string, error) {
+	own := apiHost(host)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, authBaseURL(host)+"/auth/cli/config", nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := authClient().Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return own, nil
+	default:
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return "", fmt.Errorf("auth config request returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var config struct {
+		AuthHost string `json:"auth_host"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 4<<10)).Decode(&config); err != nil {
+		return "", fmt.Errorf("decode auth config: %w", err)
+	}
+
+	authHost := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(config.AuthHost)), ":443")
+	switch {
+	case strings.EqualFold(authHost, own):
+		return own, nil
+	case routerAuthHost(authHost):
+		return authHost, nil
+	default:
+		return "", fmt.Errorf("%s names %q as its login host, which is neither this tenant nor a Nullify router", own, config.AuthHost)
+	}
 }
 
 func createCLISession(ctx context.Context, host string, port int) (*cliSessionResponse, error) {
@@ -283,7 +606,7 @@ func createCLISession(ctx context.Context, host string, port int) (*cliSessionRe
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := authClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +640,7 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string, redemptio
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := authClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -337,16 +660,24 @@ func fetchCLIToken(ctx context.Context, host string, sessionID string, redemptio
 	return &tokenResp, nil
 }
 
-func refreshToken(ctx context.Context, host string, refreshTok string) (string, error) {
-	refreshURL := authBaseURL(host) + "/auth/refresh_token"
+// errLoginReplaced reports that the login a refresh started from was removed
+// or replaced while it ran, so its result must not be saved over the new one.
+var errLoginReplaced = errors.New("the stored login changed during the refresh - run the command again")
+
+// refreshToken exchanges stored's refresh token at authHost and saves the new
+// access token over it. The org scope the server returns is not saved: it is
+// the server's default (the lowest org id), not a choice the user made. The
+// result is saved only if the stored login is still the one it started from.
+func refreshToken(ctx context.Context, authHost string, stored HostCredentials) (string, error) {
+	refreshURL := authBaseURL(authHost) + "/auth/refresh_token"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, refreshURL, nil)
 	if err != nil {
 		return "", err
 	}
-	req.AddCookie(&http.Cookie{Name: "refresh_token", Value: refreshTok})
+	req.AddCookie(&http.Cookie{Name: "refresh_token", Value: stored.RefreshToken})
 
-	resp, err := httpClient.Do(req)
+	resp, err := authClient().Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -357,9 +688,8 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	}
 
 	var result struct {
-		AccessToken     string            `json:"accessToken"`
-		ExpiresIn       int               `json:"expiresIn"`
-		QueryParameters map[string]string `json:"queryParameters"`
+		AccessToken string `json:"accessToken"`
+		ExpiresIn   int    `json:"expiresIn"`
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -386,18 +716,24 @@ func refreshToken(ctx context.Context, host string, refreshTok string) (string, 
 	}
 
 	expiresAt := time.Now().Add(time.Duration(result.ExpiresIn) * time.Second).Unix()
-
-	err = updateHostCredentials(host, func(hostCreds HostCredentials) HostCredentials {
-		hostCreds.AccessToken = result.AccessToken
-		hostCreds.RefreshToken = refreshTok
-		hostCreds.ExpiresAt = expiresAt
-		if hostCreds.DataHost == "" {
-			hostCreds.QueryParameters = result.QueryParameters
+	replaced := false
+	err = updateCredentials(func(creds Credentials) Credentials {
+		current, ok := creds[CredentialKey(authHost)]
+		if !ok || current.RefreshToken != stored.RefreshToken {
+			replaced = true
+			return creds
 		}
-		return hostCreds
+		next := maps.Clone(creds)
+		current.AccessToken = result.AccessToken
+		current.ExpiresAt = expiresAt
+		next[CredentialKey(authHost)] = current
+		return next
 	})
 	if err != nil {
 		logger.L(ctx).Warn("failed to save refreshed credentials", logger.Err(err))
+	}
+	if replaced {
+		return "", errLoginReplaced
 	}
 
 	return result.AccessToken, nil
@@ -428,6 +764,9 @@ func apiHost(host string) string {
 	}
 	return "api." + host
 }
+
+// openBrowser is OpenBrowser, a var so tests can stand in for the user.
+var openBrowser = OpenBrowser
 
 // OpenBrowser opens the given URL in the user's default browser.
 func OpenBrowser(url string) error {

@@ -23,6 +23,10 @@ var _ = models.RequestScope{}
 
 // ListContextApplicationsInput is the input for ListContextApplications — Get Applications.
 type ListContextApplicationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -34,6 +38,18 @@ func (c *Client) ListContextApplications(ctx context.Context, in ListContextAppl
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -55,6 +71,7 @@ func (c *Client) ListContextApplications(ctx context.Context, in ListContextAppl
 
 // CreateContextApplicationsInput is the input for CreateContextApplications — Create Application.
 type CreateContextApplicationsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Application models.ModelsAgentAppContextSeed `json:"application"`
 	models.RequestScope
 }
@@ -67,6 +84,9 @@ func (c *Client) CreateContextApplications(ctx context.Context, in CreateContext
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -96,6 +116,7 @@ func (c *Client) CreateContextApplications(ctx context.Context, in CreateContext
 
 // CreateContextApplicationsRebuildInput is the input for CreateContextApplicationsRebuild — Rebuild Applications.
 type CreateContextApplicationsRebuildInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Force bool `json:"force"`
 	ProviderOwnerID string `json:"providerOwnerId"`
 	models.RequestScope
@@ -109,6 +130,9 @@ func (c *Client) CreateContextApplicationsRebuild(ctx context.Context, in Create
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -138,9 +162,48 @@ func (c *Client) CreateContextApplicationsRebuild(ctx context.Context, in Create
 	return &out, nil
 }
 
+// GetContextApplicationsRebuildsRunIdInput is the input for GetContextApplicationsRebuildsRunId — Get Application Rebuild.
+type GetContextApplicationsRebuildsRunIdInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextApplicationsRebuildsRunId - Get Application Rebuild
+// GET /context/applications/rebuilds/{runId}
+func (c *Client) GetContextApplicationsRebuildsRunId(ctx context.Context, in GetContextApplicationsRebuildsRunIdInput) (*models.EndpointsGetApplicationRebuildOutput, error) {
+	path := "/context/applications/rebuilds/{runId}"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetApplicationRebuildOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // DeleteContextApplicationsApplicationIdInput is the input for DeleteContextApplicationsApplicationId — Delete Application.
 type DeleteContextApplicationsApplicationIdInput struct {
 	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -153,6 +216,9 @@ func (c *Client) DeleteContextApplicationsApplicationId(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -175,6 +241,7 @@ func (c *Client) DeleteContextApplicationsApplicationId(ctx context.Context, in 
 // GetContextApplicationsApplicationIdInput is the input for GetContextApplicationsApplicationId — Get Application.
 type GetContextApplicationsApplicationIdInput struct {
 	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -187,6 +254,9 @@ func (c *Client) GetContextApplicationsApplicationId(ctx context.Context, in Get
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -209,7 +279,8 @@ func (c *Client) GetContextApplicationsApplicationId(ctx context.Context, in Get
 // PatchContextApplicationsApplicationIdInput is the input for PatchContextApplicationsApplicationId — Update Application.
 type PatchContextApplicationsApplicationIdInput struct {
 	ApplicationID string `path:"applicationId" json:"-"`
-	Application models.ModelsAppContextSeed `json:"application"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Application models.ModelsAgentAppContextSeed `json:"application"`
 	models.RequestScope
 }
 
@@ -223,6 +294,9 @@ func (c *Client) PatchContextApplicationsApplicationId(ctx context.Context, in P
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -231,7 +305,7 @@ func (c *Client) PatchContextApplicationsApplicationId(ctx context.Context, in P
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		Application models.ModelsAppContextSeed `json:"application"`
+		Application models.ModelsAgentAppContextSeed `json:"application"`
 	}{
 		Application: in.Application,
 	})
@@ -249,9 +323,68 @@ func (c *Client) PatchContextApplicationsApplicationId(ctx context.Context, in P
 	return &out, nil
 }
 
+// ListContextApplicationsApplicationIdExecutionRecipeInput is the input for ListContextApplicationsApplicationIdExecutionRecipe — Get Application Execution Recipe.
+type ListContextApplicationsApplicationIdExecutionRecipeInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	AllowEdits *bool `url:"allowEdits,omitempty" json:"-"`
+	Capabilities *string `url:"capabilities,omitempty" json:"-"`
+	CommitSha *string `url:"commitSha,omitempty" json:"-"`
+	Docker *bool `url:"docker,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InputHash *string `url:"inputHash,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextApplicationsApplicationIdExecutionRecipe - Get Application Execution Recipe
+// GET /context/applications/{applicationId}/execution-recipe
+func (c *Client) ListContextApplicationsApplicationIdExecutionRecipe(ctx context.Context, in ListContextApplicationsApplicationIdExecutionRecipeInput) (*models.EndpointsGetApplicationExecutionRecipeOutput, error) {
+	path := "/context/applications/{applicationId}/execution-recipe"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.CommitSha != nil {
+		query.Set("commitSha", string(*in.CommitSha))
+	}
+	if in.InputHash != nil {
+		query.Set("inputHash", string(*in.InputHash))
+	}
+	if in.Docker != nil {
+		query.Set("docker", strconv.FormatBool(*in.Docker))
+	}
+	if in.Capabilities != nil {
+		query.Set("capabilities", string(*in.Capabilities))
+	}
+	if in.AllowEdits != nil {
+		query.Set("allowEdits", strconv.FormatBool(*in.AllowEdits))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetApplicationExecutionRecipeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextApplicationsApplicationIdSchemaInput is the input for ListContextApplicationsApplicationIdSchema — Get Application Schema.
 type ListContextApplicationsApplicationIdSchemaInput struct {
 	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -264,6 +397,9 @@ func (c *Client) ListContextApplicationsApplicationIdSchema(ctx context.Context,
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -288,6 +424,7 @@ type ListContextArtifactDeploymentsInput struct {
 	ArtifactID *string `url:"artifactId,omitempty" json:"-"`
 	CloudResourceID *string `url:"cloudResourceId,omitempty" json:"-"`
 	ComputeType *string `url:"computeType,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
@@ -325,6 +462,9 @@ func (c *Client) ListContextArtifactDeployments(ctx context.Context, in ListCont
 	if in.IncludeDeleted != nil {
 		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -346,6 +486,7 @@ func (c *Client) ListContextArtifactDeployments(ctx context.Context, in ListCont
 // GetContextArtifactDeploymentsDeploymentIdInput is the input for GetContextArtifactDeploymentsDeploymentId — Get Artifact Deployment.
 type GetContextArtifactDeploymentsDeploymentIdInput struct {
 	DeploymentID string `path:"deploymentId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -358,6 +499,9 @@ func (c *Client) GetContextArtifactDeploymentsDeploymentId(ctx context.Context, 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -379,11 +523,14 @@ func (c *Client) GetContextArtifactDeploymentsDeploymentId(ctx context.Context, 
 
 // ListContextArtifactsInput is the input for ListContextArtifacts — List Artifacts.
 type ListContextArtifactsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
 	ProjectID *string `url:"projectId,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
 	Type *string `url:"type,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -412,8 +559,17 @@ func (c *Client) ListContextArtifacts(ctx context.Context, in ListContextArtifac
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
 	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
+	}
 	if in.IncludeDeleted != nil {
 		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -436,6 +592,7 @@ func (c *Client) ListContextArtifacts(ctx context.Context, in ListContextArtifac
 // DeleteContextArtifactsArtifactIdInput is the input for DeleteContextArtifactsArtifactId — Delete Artifact.
 type DeleteContextArtifactsArtifactIdInput struct {
 	ArtifactID string `path:"artifactId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -448,6 +605,9 @@ func (c *Client) DeleteContextArtifactsArtifactId(ctx context.Context, in Delete
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -470,6 +630,7 @@ func (c *Client) DeleteContextArtifactsArtifactId(ctx context.Context, in Delete
 // GetContextArtifactsArtifactIdInput is the input for GetContextArtifactsArtifactId — Get Artifact.
 type GetContextArtifactsArtifactIdInput struct {
 	ArtifactID string `path:"artifactId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -482,6 +643,9 @@ func (c *Client) GetContextArtifactsArtifactId(ctx context.Context, in GetContex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -501,35 +665,39 @@ func (c *Client) GetContextArtifactsArtifactId(ctx context.Context, in GetContex
 	return &out, nil
 }
 
-// ListContextAssetInventoryCloudAccountsInput is the input for ListContextAssetInventoryCloudAccounts — Get Asset Inventory Cloud Accounts.
-type ListContextAssetInventoryCloudAccountsInput struct {
-	Active *bool `url:"active,omitempty" json:"-"`
+// ListContextAssetGraphAttackPathsInput is the input for ListContextAssetGraphAttackPaths — List Asset Graph Attack Paths.
+type ListContextAssetGraphAttackPathsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	HasCriticalFinding *bool `url:"hasCriticalFinding,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
-	NextToken *string `url:"nextToken,omitempty" json:"-"`
-	Provider *string `url:"provider,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	TerminalNodeKind *models.EndpointsAttackPathTerminalNodeKind `url:"terminalNodeKind,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// ListContextAssetInventoryCloudAccounts - Get Asset Inventory Cloud Accounts
-// GET /context/asset-inventory/cloud-accounts
-func (c *Client) ListContextAssetInventoryCloudAccounts(ctx context.Context, in ListContextAssetInventoryCloudAccountsInput) (*models.EndpointsGetCloudAccountRecordsOutput, error) {
-	path := "/context/asset-inventory/cloud-accounts"
+// ListContextAssetGraphAttackPaths - List Asset Graph Attack Paths
+// GET /context/asset-graph/attack-paths
+func (c *Client) ListContextAssetGraphAttackPaths(ctx context.Context, in ListContextAssetGraphAttackPathsInput) (*models.EndpointsGetAssetGraphAttackPathsOutput, error) {
+	path := "/context/asset-graph/attack-paths"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if in.Provider != nil {
-		query.Set("provider", string(*in.Provider))
+	if in.TerminalNodeKind != nil {
+		query.Set("terminalNodeKind", string(*in.TerminalNodeKind))
 	}
-	if in.Active != nil {
-		query.Set("active", strconv.FormatBool(*in.Active))
-	}
-	if in.NextToken != nil {
-		query.Set("nextToken", string(*in.NextToken))
+	if in.HasCriticalFinding != nil {
+		query.Set("hasCriticalFinding", strconv.FormatBool(*in.HasCriticalFinding))
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -542,39 +710,412 @@ func (c *Client) ListContextAssetInventoryCloudAccounts(ctx context.Context, in 
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsGetCloudAccountRecordsOutput
+	var out models.EndpointsGetAssetGraphAttackPathsOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
 }
 
-// ListContextAssetInventoryCloudResourcesInput is the input for ListContextAssetInventoryCloudResources — Get Asset Inventory Cloud Resources.
-type ListContextAssetInventoryCloudResourcesInput struct {
-	AccountID *string `url:"accountId,omitempty" json:"-"`
-	Active *bool `url:"active,omitempty" json:"-"`
-	Category *string `url:"category,omitempty" json:"-"`
-	Limit *int `url:"limit,omitempty" json:"-"`
-	NextToken *string `url:"nextToken,omitempty" json:"-"`
-	Provider *string `url:"provider,omitempty" json:"-"`
-	Type *string `url:"type,omitempty" json:"-"`
+// ListContextAssetGraphLandingInput is the input for ListContextAssetGraphLanding — Get Asset Graph Landing.
+type ListContextAssetGraphLandingInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	PerCategory *int `url:"perCategory,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// ListContextAssetInventoryCloudResources - Get Asset Inventory Cloud Resources
-// GET /context/asset-inventory/cloud-resources
-func (c *Client) ListContextAssetInventoryCloudResources(ctx context.Context, in ListContextAssetInventoryCloudResourcesInput) (*models.EndpointsGetAssetInventoryCloudResourcesOutput, error) {
-	path := "/context/asset-inventory/cloud-resources"
+// ListContextAssetGraphLanding - Get Asset Graph Landing
+// GET /context/asset-graph/landing
+func (c *Client) ListContextAssetGraphLanding(ctx context.Context, in ListContextAssetGraphLandingInput) (*models.EndpointsGetAssetGraphLandingOutput, error) {
+	path := "/context/asset-graph/landing"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.PerCategory != nil {
+		query.Set("perCategory", strconv.Itoa(int(*in.PerCategory)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphLandingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetGraphNodeInput is the input for ListContextAssetGraphNode — Get Asset Graph Node.
+type ListContextAssetGraphNodeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NodeID *string `url:"nodeId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetGraphNode - Get Asset Graph Node
+// GET /context/asset-graph/node
+func (c *Client) ListContextAssetGraphNode(ctx context.Context, in ListContextAssetGraphNodeInput) (*models.EndpointsGetAssetGraphNodeOutput, error) {
+	path := "/context/asset-graph/node"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.NodeID != nil {
+		query.Set("nodeId", string(*in.NodeID))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphNodeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetGraphNodesInput is the input for ListContextAssetGraphNodes — List Asset Graph Nodes.
+type ListContextAssetGraphNodesInput struct {
+	ChildCounts *bool `url:"childCounts,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Kinds []string `url:"kinds,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetGraphNodes - List Asset Graph Nodes
+// GET /context/asset-graph/nodes
+func (c *Client) ListContextAssetGraphNodes(ctx context.Context, in ListContextAssetGraphNodesInput) (*models.EndpointsGetAssetGraphNodesOutput, error) {
+	path := "/context/asset-graph/nodes"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	for _, v := range in.Kinds {
+		query.Add("kinds", string(v))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.ChildCounts != nil {
+		query.Set("childCounts", strconv.FormatBool(*in.ChildCounts))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphNodesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetGraphReachabilityInput is the input for ListContextAssetGraphReachability — Get Asset Graph Reachability.
+type ListContextAssetGraphReachabilityInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NodeID *string `url:"nodeId,omitempty" json:"-"`
+	Port *int `url:"port,omitempty" json:"-"`
+	Protocol *string `url:"protocol,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetGraphReachability - Get Asset Graph Reachability
+// GET /context/asset-graph/reachability
+func (c *Client) ListContextAssetGraphReachability(ctx context.Context, in ListContextAssetGraphReachabilityInput) (*models.EndpointsGetAssetGraphReachabilityOutput, error) {
+	path := "/context/asset-graph/reachability"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.NodeID != nil {
+		query.Set("nodeId", string(*in.NodeID))
+	}
+	if in.Port != nil {
+		query.Set("port", strconv.Itoa(int(*in.Port)))
+	}
+	if in.Protocol != nil {
+		query.Set("protocol", string(*in.Protocol))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphReachabilityOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetGraphRetrieveInput is the input for ListContextAssetGraphRetrieve — Retrieve Asset Graph Nodes.
+type ListContextAssetGraphRetrieveInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	MaxResults *int `url:"maxResults,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetGraphRetrieve - Retrieve Asset Graph Nodes
+// GET /context/asset-graph/retrieve
+func (c *Client) ListContextAssetGraphRetrieve(ctx context.Context, in ListContextAssetGraphRetrieveInput) (*models.EndpointsGetAssetGraphRetrieveOutput, error) {
+	path := "/context/asset-graph/retrieve"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
+	}
+	if in.MaxResults != nil {
+		query.Set("maxResults", strconv.Itoa(int(*in.MaxResults)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphRetrieveOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetGraphSearchInput is the input for ListContextAssetGraphSearch — Search Asset Graph.
+type ListContextAssetGraphSearchInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	MaxResults *int `url:"maxResults,omitempty" json:"-"`
+	ObjectTypes []string `url:"objectTypes,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetGraphSearch - Search Asset Graph
+// GET /context/asset-graph/search
+func (c *Client) ListContextAssetGraphSearch(ctx context.Context, in ListContextAssetGraphSearchInput) (*models.EndpointsGetAssetGraphSearchOutput, error) {
+	path := "/context/asset-graph/search"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
+	}
+	for _, v := range in.ObjectTypes {
+		query.Add("objectTypes", string(v))
+	}
+	if in.MaxResults != nil {
+		query.Set("maxResults", strconv.Itoa(int(*in.MaxResults)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphSearchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetGraphSubgraphInput is the input for ListContextAssetGraphSubgraph — Get Asset Graph Subgraph.
+type ListContextAssetGraphSubgraphInput struct {
+	Depth *int `url:"depth,omitempty" json:"-"`
+	EdgeTypes []string `url:"edgeTypes,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	MaxNodes *int `url:"maxNodes,omitempty" json:"-"`
+	ObjectTypes []string `url:"objectTypes,omitempty" json:"-"`
+	RootNodeID *string `url:"rootNodeId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetGraphSubgraph - Get Asset Graph Subgraph
+// GET /context/asset-graph/subgraph
+func (c *Client) ListContextAssetGraphSubgraph(ctx context.Context, in ListContextAssetGraphSubgraphInput) (*models.EndpointsGetAssetGraphSubgraphOutput, error) {
+	path := "/context/asset-graph/subgraph"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.RootNodeID != nil {
+		query.Set("rootNodeId", string(*in.RootNodeID))
+	}
+	if in.Depth != nil {
+		query.Set("depth", strconv.Itoa(int(*in.Depth)))
+	}
+	if in.MaxNodes != nil {
+		query.Set("maxNodes", strconv.Itoa(int(*in.MaxNodes)))
+	}
+	for _, v := range in.ObjectTypes {
+		query.Add("objectTypes", string(v))
+	}
+	for _, v := range in.EdgeTypes {
+		query.Add("edgeTypes", string(v))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphSubgraphOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetGraphSummaryInput is the input for ListContextAssetGraphSummary — Get Asset Graph Summary.
+type ListContextAssetGraphSummaryInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetGraphSummary - Get Asset Graph Summary
+// GET /context/asset-graph/summary
+func (c *Client) ListContextAssetGraphSummary(ctx context.Context, in ListContextAssetGraphSummaryInput) (*models.EndpointsGetAssetGraphSummaryOutput, error) {
+	path := "/context/asset-graph/summary"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAssetGraphSummaryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryInput is the input for ListContextAssetInventory — List Asset Inventory.
+type ListContextAssetInventoryInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	Category *string `url:"category,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	UpdatedAfter *string `url:"updatedAfter,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventory - List Asset Inventory
+// GET /context/asset-inventory
+func (c *Client) ListContextAssetInventory(ctx context.Context, in ListContextAssetInventoryInput) (*models.EndpointsListAssetInventoryOutput, error) {
+	path := "/context/asset-inventory"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	if in.Category != nil {
 		query.Set("category", string(*in.Category))
 	}
-	if in.Type != nil {
-		query.Set("type", string(*in.Type))
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
 	}
 	if in.Provider != nil {
 		query.Set("provider", string(*in.Provider))
@@ -582,8 +1123,23 @@ func (c *Client) ListContextAssetInventoryCloudResources(ctx context.Context, in
 	if in.AccountID != nil {
 		query.Set("accountId", string(*in.AccountID))
 	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
 	if in.Active != nil {
 		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
+	}
+	if in.UpdatedAfter != nil {
+		query.Set("updatedAfter", string(*in.UpdatedAfter))
 	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
@@ -602,37 +1158,61 @@ func (c *Client) ListContextAssetInventoryCloudResources(ctx context.Context, in
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsGetAssetInventoryCloudResourcesOutput
+	var out models.EndpointsListAssetInventoryOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
 }
 
-// ListContextAssetInventoryPublicFacingInput is the input for ListContextAssetInventoryPublicFacing — Get Public Facing Assets.
-type ListContextAssetInventoryPublicFacingInput struct {
+// ListContextAssetInventoryAiMlInput is the input for ListContextAssetInventoryAiMl — List AI/ML Assets.
+type ListContextAssetInventoryAiMlInput struct {
 	AccountID *string `url:"accountId,omitempty" json:"-"`
-	CloudProvider *string `url:"cloudProvider,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// ListContextAssetInventoryPublicFacing - Get Public Facing Assets
-// GET /context/asset-inventory/public-facing
-func (c *Client) ListContextAssetInventoryPublicFacing(ctx context.Context, in ListContextAssetInventoryPublicFacingInput) (*models.EndpointsGetPublicFacingAssetsOutput, error) {
-	path := "/context/asset-inventory/public-facing"
+// ListContextAssetInventoryAiMl - List AI/ML Assets
+// GET /context/asset-inventory/ai-ml
+func (c *Client) ListContextAssetInventoryAiMl(ctx context.Context, in ListContextAssetInventoryAiMlInput) (*models.EndpointsListAiMlAssetsOutput, error) {
+	path := "/context/asset-inventory/ai-ml"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if in.CloudProvider != nil {
-		query.Set("cloudProvider", string(*in.CloudProvider))
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
 	}
 	if in.AccountID != nil {
 		query.Set("accountId", string(*in.AccountID))
 	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
 	}
@@ -650,40 +1230,98 @@ func (c *Client) ListContextAssetInventoryPublicFacing(ctx context.Context, in L
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsGetPublicFacingAssetsOutput
+	var out models.EndpointsListAiMlAssetsOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
 }
 
-// ListContextAssetInventoryResourcesInput is the input for ListContextAssetInventoryResources — Get Asset Inventory Resources.
-type ListContextAssetInventoryResourcesInput struct {
-	Active *bool `url:"active,omitempty" json:"-"`
-	Category *string `url:"category,omitempty" json:"-"`
-	Limit *int `url:"limit,omitempty" json:"-"`
-	NextToken *string `url:"nextToken,omitempty" json:"-"`
-	Type *string `url:"type,omitempty" json:"-"`
+// GetContextAssetInventoryAiMlIdInput is the input for GetContextAssetInventoryAiMlId — Get AI/ML Asset.
+type GetContextAssetInventoryAiMlIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
-// ListContextAssetInventoryResources - Get Asset Inventory Resources
-// GET /context/asset-inventory/resources
-func (c *Client) ListContextAssetInventoryResources(ctx context.Context, in ListContextAssetInventoryResourcesInput) (*models.EndpointsGetAssetInventoryResourcesOutput, error) {
-	path := "/context/asset-inventory/resources"
+// GetContextAssetInventoryAiMlId - Get AI/ML Asset
+// GET /context/asset-inventory/ai-ml/{id}
+func (c *Client) GetContextAssetInventoryAiMlId(ctx context.Context, in GetContextAssetInventoryAiMlIdInput) (*models.EndpointsGetAiMlAssetOutput, error) {
+	path := "/context/asset-inventory/ai-ml/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
-	if in.Category != nil {
-		query.Set("category", string(*in.Category))
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
-	if in.Type != nil {
-		query.Set("type", string(*in.Type))
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetAiMlAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryArtifactRepositoriesInput is the input for ListContextAssetInventoryArtifactRepositories — List Artifact Repositories Assets.
+type ListContextAssetInventoryArtifactRepositoriesInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryArtifactRepositories - List Artifact Repositories Assets
+// GET /context/asset-inventory/artifact-repositories
+func (c *Client) ListContextAssetInventoryArtifactRepositories(ctx context.Context, in ListContextAssetInventoryArtifactRepositoriesInput) (*models.EndpointsListArtifactRepositoriesAssetsOutput, error) {
+	path := "/context/asset-inventory/artifact-repositories"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
 	}
 	if in.Active != nil {
 		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
 	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
@@ -702,7 +1340,2568 @@ func (c *Client) ListContextAssetInventoryResources(ctx context.Context, in List
 	if err != nil {
 		return nil, err
 	}
-	var out models.EndpointsGetAssetInventoryResourcesOutput
+	var out models.EndpointsListArtifactRepositoriesAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryArtifactRepositoriesIdInput is the input for GetContextAssetInventoryArtifactRepositoriesId — Get Artifact Repositories Asset.
+type GetContextAssetInventoryArtifactRepositoriesIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryArtifactRepositoriesId - Get Artifact Repositories Asset
+// GET /context/asset-inventory/artifact-repositories/{id}
+func (c *Client) GetContextAssetInventoryArtifactRepositoriesId(ctx context.Context, in GetContextAssetInventoryArtifactRepositoriesIdInput) (*models.EndpointsGetArtifactRepositoriesAssetOutput, error) {
+	path := "/context/asset-inventory/artifact-repositories/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetArtifactRepositoriesAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryArtifactsInput is the input for ListContextAssetInventoryArtifacts — List Artifacts Assets.
+type ListContextAssetInventoryArtifactsInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryArtifacts - List Artifacts Assets
+// GET /context/asset-inventory/artifacts
+func (c *Client) ListContextAssetInventoryArtifacts(ctx context.Context, in ListContextAssetInventoryArtifactsInput) (*models.EndpointsListArtifactsAssetsOutput, error) {
+	path := "/context/asset-inventory/artifacts"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListArtifactsAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryArtifactsIdInput is the input for GetContextAssetInventoryArtifactsId — Get Artifacts Asset.
+type GetContextAssetInventoryArtifactsIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryArtifactsId - Get Artifacts Asset
+// GET /context/asset-inventory/artifacts/{id}
+func (c *Client) GetContextAssetInventoryArtifactsId(ctx context.Context, in GetContextAssetInventoryArtifactsIdInput) (*models.EndpointsGetArtifactsAssetOutput, error) {
+	path := "/context/asset-inventory/artifacts/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetArtifactsAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryCdnAndDnsInput is the input for ListContextAssetInventoryCdnAndDns — List CDN and DNS Assets.
+type ListContextAssetInventoryCdnAndDnsInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryCdnAndDns - List CDN and DNS Assets
+// GET /context/asset-inventory/cdn-and-dns
+func (c *Client) ListContextAssetInventoryCdnAndDns(ctx context.Context, in ListContextAssetInventoryCdnAndDnsInput) (*models.EndpointsListCDNAndDNSAssetsOutput, error) {
+	path := "/context/asset-inventory/cdn-and-dns"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListCDNAndDNSAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryCdnAndDnsIdInput is the input for GetContextAssetInventoryCdnAndDnsId — Get CDN and DNS Asset.
+type GetContextAssetInventoryCdnAndDnsIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryCdnAndDnsId - Get CDN and DNS Asset
+// GET /context/asset-inventory/cdn-and-dns/{id}
+func (c *Client) GetContextAssetInventoryCdnAndDnsId(ctx context.Context, in GetContextAssetInventoryCdnAndDnsIdInput) (*models.EndpointsGetCDNAndDNSAssetOutput, error) {
+	path := "/context/asset-inventory/cdn-and-dns/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCDNAndDNSAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryCiCdInput is the input for ListContextAssetInventoryCiCd — List CI/CD Assets.
+type ListContextAssetInventoryCiCdInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryCiCd - List CI/CD Assets
+// GET /context/asset-inventory/ci-cd
+func (c *Client) ListContextAssetInventoryCiCd(ctx context.Context, in ListContextAssetInventoryCiCdInput) (*models.EndpointsListCiCdAssetsOutput, error) {
+	path := "/context/asset-inventory/ci-cd"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListCiCdAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryCiCdIdInput is the input for GetContextAssetInventoryCiCdId — Get CI/CD Asset.
+type GetContextAssetInventoryCiCdIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryCiCdId - Get CI/CD Asset
+// GET /context/asset-inventory/ci-cd/{id}
+func (c *Client) GetContextAssetInventoryCiCdId(ctx context.Context, in GetContextAssetInventoryCiCdIdInput) (*models.EndpointsGetCiCdAssetOutput, error) {
+	path := "/context/asset-inventory/ci-cd/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCiCdAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryClusterInput is the input for ListContextAssetInventoryCluster — List Cluster Assets.
+type ListContextAssetInventoryClusterInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryCluster - List Cluster Assets
+// GET /context/asset-inventory/cluster
+func (c *Client) ListContextAssetInventoryCluster(ctx context.Context, in ListContextAssetInventoryClusterInput) (*models.EndpointsListClusterAssetsOutput, error) {
+	path := "/context/asset-inventory/cluster"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListClusterAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryClusterIdInput is the input for GetContextAssetInventoryClusterId — Get Cluster Asset.
+type GetContextAssetInventoryClusterIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryClusterId - Get Cluster Asset
+// GET /context/asset-inventory/cluster/{id}
+func (c *Client) GetContextAssetInventoryClusterId(ctx context.Context, in GetContextAssetInventoryClusterIdInput) (*models.EndpointsGetClusterAssetOutput, error) {
+	path := "/context/asset-inventory/cluster/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetClusterAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryComputeInput is the input for ListContextAssetInventoryCompute — List Compute Assets.
+type ListContextAssetInventoryComputeInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryCompute - List Compute Assets
+// GET /context/asset-inventory/compute
+func (c *Client) ListContextAssetInventoryCompute(ctx context.Context, in ListContextAssetInventoryComputeInput) (*models.EndpointsListComputeAssetsOutput, error) {
+	path := "/context/asset-inventory/compute"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListComputeAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryComputeIdInput is the input for GetContextAssetInventoryComputeId — Get Compute Asset.
+type GetContextAssetInventoryComputeIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryComputeId - Get Compute Asset
+// GET /context/asset-inventory/compute/{id}
+func (c *Client) GetContextAssetInventoryComputeId(ctx context.Context, in GetContextAssetInventoryComputeIdInput) (*models.EndpointsGetComputeAssetOutput, error) {
+	path := "/context/asset-inventory/compute/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetComputeAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryConnectivityInput is the input for ListContextAssetInventoryConnectivity — List Connectivity Assets.
+type ListContextAssetInventoryConnectivityInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryConnectivity - List Connectivity Assets
+// GET /context/asset-inventory/connectivity
+func (c *Client) ListContextAssetInventoryConnectivity(ctx context.Context, in ListContextAssetInventoryConnectivityInput) (*models.EndpointsListConnectivityAssetsOutput, error) {
+	path := "/context/asset-inventory/connectivity"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListConnectivityAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryConnectivityIdInput is the input for GetContextAssetInventoryConnectivityId — Get Connectivity Asset.
+type GetContextAssetInventoryConnectivityIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryConnectivityId - Get Connectivity Asset
+// GET /context/asset-inventory/connectivity/{id}
+func (c *Client) GetContextAssetInventoryConnectivityId(ctx context.Context, in GetContextAssetInventoryConnectivityIdInput) (*models.EndpointsGetConnectivityAssetOutput, error) {
+	path := "/context/asset-inventory/connectivity/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetConnectivityAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryContainerInput is the input for ListContextAssetInventoryContainer — List Container Assets.
+type ListContextAssetInventoryContainerInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryContainer - List Container Assets
+// GET /context/asset-inventory/container
+func (c *Client) ListContextAssetInventoryContainer(ctx context.Context, in ListContextAssetInventoryContainerInput) (*models.EndpointsListContainerAssetsOutput, error) {
+	path := "/context/asset-inventory/container"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListContainerAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryContainerIdInput is the input for GetContextAssetInventoryContainerId — Get Container Asset.
+type GetContextAssetInventoryContainerIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryContainerId - Get Container Asset
+// GET /context/asset-inventory/container/{id}
+func (c *Client) GetContextAssetInventoryContainerId(ctx context.Context, in GetContextAssetInventoryContainerIdInput) (*models.EndpointsGetContainerAssetOutput, error) {
+	path := "/context/asset-inventory/container/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetContainerAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryDataPipelineInput is the input for ListContextAssetInventoryDataPipeline — List Data Pipeline Assets.
+type ListContextAssetInventoryDataPipelineInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryDataPipeline - List Data Pipeline Assets
+// GET /context/asset-inventory/data-pipeline
+func (c *Client) ListContextAssetInventoryDataPipeline(ctx context.Context, in ListContextAssetInventoryDataPipelineInput) (*models.EndpointsListDataPipelineAssetsOutput, error) {
+	path := "/context/asset-inventory/data-pipeline"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListDataPipelineAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryDataPipelineIdInput is the input for GetContextAssetInventoryDataPipelineId — Get Data Pipeline Asset.
+type GetContextAssetInventoryDataPipelineIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryDataPipelineId - Get Data Pipeline Asset
+// GET /context/asset-inventory/data-pipeline/{id}
+func (c *Client) GetContextAssetInventoryDataPipelineId(ctx context.Context, in GetContextAssetInventoryDataPipelineIdInput) (*models.EndpointsGetDataPipelineAssetOutput, error) {
+	path := "/context/asset-inventory/data-pipeline/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDataPipelineAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryDatabaseInput is the input for ListContextAssetInventoryDatabase — List Database Assets.
+type ListContextAssetInventoryDatabaseInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryDatabase - List Database Assets
+// GET /context/asset-inventory/database
+func (c *Client) ListContextAssetInventoryDatabase(ctx context.Context, in ListContextAssetInventoryDatabaseInput) (*models.EndpointsListDatabaseAssetsOutput, error) {
+	path := "/context/asset-inventory/database"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListDatabaseAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryDatabaseIdInput is the input for GetContextAssetInventoryDatabaseId — Get Database Asset.
+type GetContextAssetInventoryDatabaseIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryDatabaseId - Get Database Asset
+// GET /context/asset-inventory/database/{id}
+func (c *Client) GetContextAssetInventoryDatabaseId(ctx context.Context, in GetContextAssetInventoryDatabaseIdInput) (*models.EndpointsGetDatabaseAssetOutput, error) {
+	path := "/context/asset-inventory/database/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDatabaseAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryEndpointsInput is the input for ListContextAssetInventoryEndpoints — List Asset Inventory Endpoints.
+type ListContextAssetInventoryEndpointsInput struct {
+	Active *bool `url:"active,omitempty" json:"-"`
+	AwsService *string `url:"awsService,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	HostCategory *string `url:"hostCategory,omitempty" json:"-"`
+	HostID *string `url:"hostId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Q *string `url:"q,omitempty" json:"-"`
+	SourceType *string `url:"sourceType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryEndpoints - List Asset Inventory Endpoints
+// GET /context/asset-inventory/endpoints
+func (c *Client) ListContextAssetInventoryEndpoints(ctx context.Context, in ListContextAssetInventoryEndpointsInput) (*models.EndpointsListEndpointsAssetsOutput, error) {
+	path := "/context/asset-inventory/endpoints"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.HostCategory != nil {
+		query.Set("hostCategory", string(*in.HostCategory))
+	}
+	if in.HostID != nil {
+		query.Set("hostId", string(*in.HostID))
+	}
+	if in.AwsService != nil {
+		query.Set("awsService", string(*in.AwsService))
+	}
+	if in.SourceType != nil {
+		query.Set("sourceType", string(*in.SourceType))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.Q != nil {
+		query.Set("q", string(*in.Q))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListEndpointsAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryEndpointsIdInput is the input for GetContextAssetInventoryEndpointsId — Get Asset Inventory Endpoint.
+type GetContextAssetInventoryEndpointsIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryEndpointsId - Get Asset Inventory Endpoint
+// GET /context/asset-inventory/endpoints/{id}
+func (c *Client) GetContextAssetInventoryEndpointsId(ctx context.Context, in GetContextAssetInventoryEndpointsIdInput) (*models.EndpointsGetEndpointsAssetOutput, error) {
+	path := "/context/asset-inventory/endpoints/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetEndpointsAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryIdentityInput is the input for ListContextAssetInventoryIdentity — List Identity Assets.
+type ListContextAssetInventoryIdentityInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryIdentity - List Identity Assets
+// GET /context/asset-inventory/identity
+func (c *Client) ListContextAssetInventoryIdentity(ctx context.Context, in ListContextAssetInventoryIdentityInput) (*models.EndpointsListIdentityAssetsOutput, error) {
+	path := "/context/asset-inventory/identity"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListIdentityAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryIdentityIdInput is the input for GetContextAssetInventoryIdentityId — Get Identity Asset.
+type GetContextAssetInventoryIdentityIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryIdentityId - Get Identity Asset
+// GET /context/asset-inventory/identity/{id}
+func (c *Client) GetContextAssetInventoryIdentityId(ctx context.Context, in GetContextAssetInventoryIdentityIdInput) (*models.EndpointsGetIdentityAssetOutput, error) {
+	path := "/context/asset-inventory/identity/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetIdentityAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryLoadBalancerInput is the input for ListContextAssetInventoryLoadBalancer — List Load Balancer Assets.
+type ListContextAssetInventoryLoadBalancerInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryLoadBalancer - List Load Balancer Assets
+// GET /context/asset-inventory/load-balancer
+func (c *Client) ListContextAssetInventoryLoadBalancer(ctx context.Context, in ListContextAssetInventoryLoadBalancerInput) (*models.EndpointsListLoadBalancerAssetsOutput, error) {
+	path := "/context/asset-inventory/load-balancer"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListLoadBalancerAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryLoadBalancerIdInput is the input for GetContextAssetInventoryLoadBalancerId — Get Load Balancer Asset.
+type GetContextAssetInventoryLoadBalancerIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryLoadBalancerId - Get Load Balancer Asset
+// GET /context/asset-inventory/load-balancer/{id}
+func (c *Client) GetContextAssetInventoryLoadBalancerId(ctx context.Context, in GetContextAssetInventoryLoadBalancerIdInput) (*models.EndpointsGetLoadBalancerAssetOutput, error) {
+	path := "/context/asset-inventory/load-balancer/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetLoadBalancerAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryMessagingInput is the input for ListContextAssetInventoryMessaging — List Messaging Assets.
+type ListContextAssetInventoryMessagingInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryMessaging - List Messaging Assets
+// GET /context/asset-inventory/messaging
+func (c *Client) ListContextAssetInventoryMessaging(ctx context.Context, in ListContextAssetInventoryMessagingInput) (*models.EndpointsListMessagingAssetsOutput, error) {
+	path := "/context/asset-inventory/messaging"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListMessagingAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryMessagingIdInput is the input for GetContextAssetInventoryMessagingId — Get Messaging Asset.
+type GetContextAssetInventoryMessagingIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryMessagingId - Get Messaging Asset
+// GET /context/asset-inventory/messaging/{id}
+func (c *Client) GetContextAssetInventoryMessagingId(ctx context.Context, in GetContextAssetInventoryMessagingIdInput) (*models.EndpointsGetMessagingAssetOutput, error) {
+	path := "/context/asset-inventory/messaging/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMessagingAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryNetworkInput is the input for ListContextAssetInventoryNetwork — List Network Assets.
+type ListContextAssetInventoryNetworkInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryNetwork - List Network Assets
+// GET /context/asset-inventory/network
+func (c *Client) ListContextAssetInventoryNetwork(ctx context.Context, in ListContextAssetInventoryNetworkInput) (*models.EndpointsListNetworkAssetsOutput, error) {
+	path := "/context/asset-inventory/network"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListNetworkAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryNetworkIdInput is the input for GetContextAssetInventoryNetworkId — Get Network Asset.
+type GetContextAssetInventoryNetworkIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryNetworkId - Get Network Asset
+// GET /context/asset-inventory/network/{id}
+func (c *Client) GetContextAssetInventoryNetworkId(ctx context.Context, in GetContextAssetInventoryNetworkIdInput) (*models.EndpointsGetNetworkAssetOutput, error) {
+	path := "/context/asset-inventory/network/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetNetworkAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryObservabilityInput is the input for ListContextAssetInventoryObservability — List Observability Assets.
+type ListContextAssetInventoryObservabilityInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryObservability - List Observability Assets
+// GET /context/asset-inventory/observability
+func (c *Client) ListContextAssetInventoryObservability(ctx context.Context, in ListContextAssetInventoryObservabilityInput) (*models.EndpointsListObservabilityAssetsOutput, error) {
+	path := "/context/asset-inventory/observability"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListObservabilityAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryObservabilityIdInput is the input for GetContextAssetInventoryObservabilityId — Get Observability Asset.
+type GetContextAssetInventoryObservabilityIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryObservabilityId - Get Observability Asset
+// GET /context/asset-inventory/observability/{id}
+func (c *Client) GetContextAssetInventoryObservabilityId(ctx context.Context, in GetContextAssetInventoryObservabilityIdInput) (*models.EndpointsGetObservabilityAssetOutput, error) {
+	path := "/context/asset-inventory/observability/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetObservabilityAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryPipelinesInput is the input for ListContextAssetInventoryPipelines — List Pipelines Assets.
+type ListContextAssetInventoryPipelinesInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	ProjectID *string `url:"projectId,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	RepoID *string `url:"repoId,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryPipelines - List Pipelines Assets
+// GET /context/asset-inventory/pipelines
+func (c *Client) ListContextAssetInventoryPipelines(ctx context.Context, in ListContextAssetInventoryPipelinesInput) (*models.EndpointsListPipelinesAssetsOutput, error) {
+	path := "/context/asset-inventory/pipelines"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.RepoID != nil {
+		query.Set("repoId", string(*in.RepoID))
+	}
+	if in.ProjectID != nil {
+		query.Set("projectId", string(*in.ProjectID))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListPipelinesAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryPipelinesIdInput is the input for GetContextAssetInventoryPipelinesId — Get Pipelines Asset.
+type GetContextAssetInventoryPipelinesIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryPipelinesId - Get Pipelines Asset
+// GET /context/asset-inventory/pipelines/{id}
+func (c *Client) GetContextAssetInventoryPipelinesId(ctx context.Context, in GetContextAssetInventoryPipelinesIdInput) (*models.EndpointsGetPipelinesAssetOutput, error) {
+	path := "/context/asset-inventory/pipelines/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPipelinesAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryProjectsInput is the input for ListContextAssetInventoryProjects — List Projects Assets.
+type ListContextAssetInventoryProjectsInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	RepoID *string `url:"repoId,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryProjects - List Projects Assets
+// GET /context/asset-inventory/projects
+func (c *Client) ListContextAssetInventoryProjects(ctx context.Context, in ListContextAssetInventoryProjectsInput) (*models.EndpointsListProjectsAssetsOutput, error) {
+	path := "/context/asset-inventory/projects"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.RepoID != nil {
+		query.Set("repoId", string(*in.RepoID))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListProjectsAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryProjectsIdInput is the input for GetContextAssetInventoryProjectsId — Get Projects Asset.
+type GetContextAssetInventoryProjectsIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryProjectsId - Get Projects Asset
+// GET /context/asset-inventory/projects/{id}
+func (c *Client) GetContextAssetInventoryProjectsId(ctx context.Context, in GetContextAssetInventoryProjectsIdInput) (*models.EndpointsGetProjectsAssetOutput, error) {
+	path := "/context/asset-inventory/projects/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectsAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryPublicInput is the input for ListContextAssetInventoryPublic — List Public Asset Inventory.
+type ListContextAssetInventoryPublicInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Category *string `url:"category,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Policy *string `url:"policy,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryPublic - List Public Asset Inventory
+// GET /context/asset-inventory/public
+func (c *Client) ListContextAssetInventoryPublic(ctx context.Context, in ListContextAssetInventoryPublicInput) (*models.EndpointsListAssetInventoryOutput, error) {
+	path := "/context/asset-inventory/public"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Category != nil {
+		query.Set("category", string(*in.Category))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Policy != nil {
+		query.Set("policy", string(*in.Policy))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListAssetInventoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryReposInput is the input for ListContextAssetInventoryRepos — List Repos Assets.
+type ListContextAssetInventoryReposInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryRepos - List Repos Assets
+// GET /context/asset-inventory/repos
+func (c *Client) ListContextAssetInventoryRepos(ctx context.Context, in ListContextAssetInventoryReposInput) (*models.EndpointsListReposAssetsOutput, error) {
+	path := "/context/asset-inventory/repos"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListReposAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryReposIdInput is the input for GetContextAssetInventoryReposId — Get Repos Asset.
+type GetContextAssetInventoryReposIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryReposId - Get Repos Asset
+// GET /context/asset-inventory/repos/{id}
+func (c *Client) GetContextAssetInventoryReposId(ctx context.Context, in GetContextAssetInventoryReposIdInput) (*models.EndpointsGetReposAssetOutput, error) {
+	path := "/context/asset-inventory/repos/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetReposAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventorySecurityInput is the input for ListContextAssetInventorySecurity — List Security Assets.
+type ListContextAssetInventorySecurityInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventorySecurity - List Security Assets
+// GET /context/asset-inventory/security
+func (c *Client) ListContextAssetInventorySecurity(ctx context.Context, in ListContextAssetInventorySecurityInput) (*models.EndpointsListSecurityAssetsOutput, error) {
+	path := "/context/asset-inventory/security"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListSecurityAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventorySecurityIdInput is the input for GetContextAssetInventorySecurityId — Get Security Asset.
+type GetContextAssetInventorySecurityIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventorySecurityId - Get Security Asset
+// GET /context/asset-inventory/security/{id}
+func (c *Client) GetContextAssetInventorySecurityId(ctx context.Context, in GetContextAssetInventorySecurityIdInput) (*models.EndpointsGetSecurityAssetOutput, error) {
+	path := "/context/asset-inventory/security/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSecurityAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryServerlessInput is the input for ListContextAssetInventoryServerless — List Serverless Assets.
+type ListContextAssetInventoryServerlessInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryServerless - List Serverless Assets
+// GET /context/asset-inventory/serverless
+func (c *Client) ListContextAssetInventoryServerless(ctx context.Context, in ListContextAssetInventoryServerlessInput) (*models.EndpointsListServerlessAssetsOutput, error) {
+	path := "/context/asset-inventory/serverless"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListServerlessAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryServerlessIdInput is the input for GetContextAssetInventoryServerlessId — Get Serverless Asset.
+type GetContextAssetInventoryServerlessIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryServerlessId - Get Serverless Asset
+// GET /context/asset-inventory/serverless/{id}
+func (c *Client) GetContextAssetInventoryServerlessId(ctx context.Context, in GetContextAssetInventoryServerlessIdInput) (*models.EndpointsGetServerlessAssetOutput, error) {
+	path := "/context/asset-inventory/serverless/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetServerlessAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextAssetInventoryStorageAndBackupInput is the input for ListContextAssetInventoryStorageAndBackup — List Storage and Backup Assets.
+type ListContextAssetInventoryStorageAndBackupInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Active *bool `url:"active,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachable *bool `url:"internetReachable,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	PublicFacing *bool `url:"publicFacing,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
+	SubType *string `url:"subType,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextAssetInventoryStorageAndBackup - List Storage and Backup Assets
+// GET /context/asset-inventory/storage-and-backup
+func (c *Client) ListContextAssetInventoryStorageAndBackup(ctx context.Context, in ListContextAssetInventoryStorageAndBackupInput) (*models.EndpointsListStorageAndBackupAssetsOutput, error) {
+	path := "/context/asset-inventory/storage-and-backup"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.SubType != nil {
+		query.Set("subType", string(*in.SubType))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
+	}
+	if in.Active != nil {
+		query.Set("active", strconv.FormatBool(*in.Active))
+	}
+	if in.PublicFacing != nil {
+		query.Set("publicFacing", strconv.FormatBool(*in.PublicFacing))
+	}
+	if in.InternetReachable != nil {
+		query.Set("internetReachable", strconv.FormatBool(*in.InternetReachable))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListStorageAndBackupAssetsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextAssetInventoryStorageAndBackupIdInput is the input for GetContextAssetInventoryStorageAndBackupId — Get Storage and Backup Asset.
+type GetContextAssetInventoryStorageAndBackupIdInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextAssetInventoryStorageAndBackupId - Get Storage and Backup Asset
+// GET /context/asset-inventory/storage-and-backup/{id}
+func (c *Client) GetContextAssetInventoryStorageAndBackupId(ctx context.Context, in GetContextAssetInventoryStorageAndBackupIdInput) (*models.EndpointsGetStorageAndBackupAssetOutput, error) {
+	path := "/context/asset-inventory/storage-and-backup/{id}"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetStorageAndBackupAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteContextAssetInventoryCategoryIdInput is the input for DeleteContextAssetInventoryCategoryId — Delete Asset.
+type DeleteContextAssetInventoryCategoryIdInput struct {
+	Category string `path:"category" json:"-"`
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteContextAssetInventoryCategoryId - Delete Asset
+// DELETE /context/asset-inventory/{category}/{id}
+func (c *Client) DeleteContextAssetInventoryCategoryId(ctx context.Context, in DeleteContextAssetInventoryCategoryIdInput) (*models.EndpointsDeleteAssetOutput, error) {
+	path := "/context/asset-inventory/{category}/{id}"
+	path = strings.Replace(path, "{category}", url.PathEscape(in.Category), 1)
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteAssetOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextAssetInventoryCategoryIdFlagsInput is the input for PatchContextAssetInventoryCategoryIdFlags — Patch Asset Flags.
+type PatchContextAssetInventoryCategoryIdFlagsInput struct {
+	Category string `path:"category" json:"-"`
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	models.RequestScope
+}
+
+// PatchContextAssetInventoryCategoryIdFlags - Patch Asset Flags
+// PATCH /context/asset-inventory/{category}/{id}/flags
+func (c *Client) PatchContextAssetInventoryCategoryIdFlags(ctx context.Context, in PatchContextAssetInventoryCategoryIdFlagsInput) (*models.EndpointsPatchAssetFlagsOutput, error) {
+	path := "/context/asset-inventory/{category}/{id}/flags"
+	path = strings.Replace(path, "{category}", url.PathEscape(in.Category), 1)
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		IsInternetReachable bool `json:"isInternetReachable"`
+		IsPublicFacing bool `json:"isPublicFacing"`
+	}{
+		IsInternetReachable: in.IsInternetReachable,
+		IsPublicFacing: in.IsPublicFacing,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchAssetFlagsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// PatchContextAssetInventoryCategoryIdTagsInput is the input for PatchContextAssetInventoryCategoryIdTags — Patch Asset Tags.
+type PatchContextAssetInventoryCategoryIdTagsInput struct {
+	Category string `path:"category" json:"-"`
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Tags map[string]string `json:"tags,omitempty"`
+	models.RequestScope
+}
+
+// PatchContextAssetInventoryCategoryIdTags - Patch Asset Tags
+// PATCH /context/asset-inventory/{category}/{id}/tags
+func (c *Client) PatchContextAssetInventoryCategoryIdTags(ctx context.Context, in PatchContextAssetInventoryCategoryIdTagsInput) (*models.EndpointsPatchAssetTagsOutput, error) {
+	path := "/context/asset-inventory/{category}/{id}/tags"
+	path = strings.Replace(path, "{category}", url.PathEscape(in.Category), 1)
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Tags map[string]string `json:"tags,omitempty"`
+	}{
+		Tags: in.Tags,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PATCH", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPatchAssetTagsOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -711,6 +3910,7 @@ func (c *Client) ListContextAssetInventoryResources(ctx context.Context, in List
 
 // ListContextCicdPipelinesInput is the input for ListContextCicdPipelines — List CI/CD Pipelines.
 type ListContextCicdPipelinesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
@@ -747,6 +3947,9 @@ func (c *Client) ListContextCicdPipelines(ctx context.Context, in ListContextCic
 	if in.IncludeDeleted != nil {
 		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -768,6 +3971,7 @@ func (c *Client) ListContextCicdPipelines(ctx context.Context, in ListContextCic
 // DeleteContextCicdPipelinesPipelineIdInput is the input for DeleteContextCicdPipelinesPipelineId — Delete CI/CD Pipeline.
 type DeleteContextCicdPipelinesPipelineIdInput struct {
 	PipelineID string `path:"pipelineId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -780,6 +3984,9 @@ func (c *Client) DeleteContextCicdPipelinesPipelineId(ctx context.Context, in De
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -802,6 +4009,7 @@ func (c *Client) DeleteContextCicdPipelinesPipelineId(ctx context.Context, in De
 // GetContextCicdPipelinesPipelineIdInput is the input for GetContextCicdPipelinesPipelineId — Get CI/CD Pipeline.
 type GetContextCicdPipelinesPipelineIdInput struct {
 	PipelineID string `path:"pipelineId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -814,6 +4022,9 @@ func (c *Client) GetContextCicdPipelinesPipelineId(ctx context.Context, in GetCo
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -833,9 +4044,305 @@ func (c *Client) GetContextCicdPipelinesPipelineId(ctx context.Context, in GetCo
 	return &out, nil
 }
 
+// CreateContextCloudConnectorPrRunsInput is the input for CreateContextCloudConnectorPrRuns — Start Cloud Connector PR Run.
+type CreateContextCloudConnectorPrRunsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Digest *string `json:"digest,omitempty"`
+	ExpectedRunID *string `json:"expectedRunId,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextCloudConnectorPrRuns - Start Cloud Connector PR Run
+// POST /context/cloud-connector-pr/runs
+func (c *Client) CreateContextCloudConnectorPrRuns(ctx context.Context, in CreateContextCloudConnectorPrRunsInput) (*models.EndpointsContextStartCloudConnectorPRRunOutput, error) {
+	path := "/context/cloud-connector-pr/runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Digest *string `json:"digest,omitempty"`
+		ExpectedRunID *string `json:"expectedRunId,omitempty"`
+	}{
+		Digest: in.Digest,
+		ExpectedRunID: in.ExpectedRunID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextStartCloudConnectorPRRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextCloudConnectorPrRunsRunIdInput is the input for GetContextCloudConnectorPrRunsRunId — Get Cloud Connector PR Run.
+type GetContextCloudConnectorPrRunsRunIdInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextCloudConnectorPrRunsRunId - Get Cloud Connector PR Run
+// GET /context/cloud-connector-pr/runs/{runId}
+func (c *Client) GetContextCloudConnectorPrRunsRunId(ctx context.Context, in GetContextCloudConnectorPrRunsRunIdInput) (*models.EndpointsContextGetCloudConnectorPRRunOutput, error) {
+	path := "/context/cloud-connector-pr/runs/{runId}"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextGetCloudConnectorPRRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextCloudConnectorPrRunsRunIdApproveInput is the input for CreateContextCloudConnectorPrRunsRunIdApprove — Create approved AWS connector draft PR.
+type CreateContextCloudConnectorPrRunsRunIdApproveInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Digest string `json:"digest"`
+	models.RequestScope
+}
+
+// CreateContextCloudConnectorPrRunsRunIdApprove - Create approved AWS connector draft PR
+// POST /context/cloud-connector-pr/runs/{runId}/approve
+func (c *Client) CreateContextCloudConnectorPrRunsRunIdApprove(ctx context.Context, in CreateContextCloudConnectorPrRunsRunIdApproveInput) (*models.EndpointsContextApproveCloudConnectorProposalOutput, error) {
+	path := "/context/cloud-connector-pr/runs/{runId}/approve"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Digest string `json:"digest"`
+	}{
+		Digest: in.Digest,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextApproveCloudConnectorProposalOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudConnectorPrRunsRunIdProposalInput is the input for ListContextCloudConnectorPrRunsRunIdProposal — Review AWS connector proposal.
+type ListContextCloudConnectorPrRunsRunIdProposalInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudConnectorPrRunsRunIdProposal - Review AWS connector proposal
+// GET /context/cloud-connector-pr/runs/{runId}/proposal
+func (c *Client) ListContextCloudConnectorPrRunsRunIdProposal(ctx context.Context, in ListContextCloudConnectorPrRunsRunIdProposalInput) (*models.EndpointsContextGetCloudConnectorProposalOutput, error) {
+	path := "/context/cloud-connector-pr/runs/{runId}/proposal"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextGetCloudConnectorProposalOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextCloudConnectorPrRunsRunIdRecoverInput is the input for CreateContextCloudConnectorPrRunsRunIdRecover — Recover unresolved connector publication.
+type CreateContextCloudConnectorPrRunsRunIdRecoverInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
+	Digest string `json:"digest"`
+	models.RequestScope
+}
+
+// CreateContextCloudConnectorPrRunsRunIdRecover - Recover unresolved connector publication
+// POST /context/cloud-connector-pr/runs/{runId}/recover
+func (c *Client) CreateContextCloudConnectorPrRunsRunIdRecover(ctx context.Context, in CreateContextCloudConnectorPrRunsRunIdRecoverInput) (*models.EndpointsContextRecoverCloudConnectorProposalOutput, error) {
+	path := "/context/cloud-connector-pr/runs/{runId}/recover"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
+		Digest string `json:"digest"`
+	}{
+		ConfirmNoPullRequest: in.ConfirmNoPullRequest,
+		Digest: in.Digest,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextRecoverCloudConnectorProposalOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudConnectorPrStatusInput is the input for ListContextCloudConnectorPrStatus — Get Cloud Connector PR Status.
+type ListContextCloudConnectorPrStatusInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudConnectorPrStatus - Get Cloud Connector PR Status
+// GET /context/cloud-connector-pr/status
+func (c *Client) ListContextCloudConnectorPrStatus(ctx context.Context, in ListContextCloudConnectorPrStatusInput) (*models.EndpointsContextGetCloudConnectorPRStatusOutput, error) {
+	path := "/context/cloud-connector-pr/status"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextGetCloudConnectorPRStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdCrossAccountRelationshipsInput is the input for ListContextCloudReconAccountsAccountIdCrossAccountRelationships — Get Cloud Recon Cross-Account Relationships.
+type ListContextCloudReconAccountsAccountIdCrossAccountRelationshipsInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdCrossAccountRelationships - Get Cloud Recon Cross-Account Relationships
+// GET /context/cloud-recon/accounts/{accountId}/cross-account-relationships
+func (c *Client) ListContextCloudReconAccountsAccountIdCrossAccountRelationships(ctx context.Context, in ListContextCloudReconAccountsAccountIdCrossAccountRelationshipsInput) (*models.EndpointsGetCloudReconCrossAccountRelationshipsOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/cross-account-relationships"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconCrossAccountRelationshipsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextCloudReconAccountsAccountIdDiscoveredNodesInput is the input for ListContextCloudReconAccountsAccountIdDiscoveredNodes — Get Cloud Recon Discovered Nodes.
 type ListContextCloudReconAccountsAccountIdDiscoveredNodesInput struct {
 	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	ObjectType *string `url:"objectType,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
@@ -852,6 +4359,9 @@ func (c *Client) ListContextCloudReconAccountsAccountIdDiscoveredNodes(ctx conte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.ObjectType != nil {
 		query.Set("objectType", string(*in.ObjectType))
@@ -883,9 +4393,48 @@ func (c *Client) ListContextCloudReconAccountsAccountIdDiscoveredNodes(ctx conte
 	return &out, nil
 }
 
+// ListContextCloudReconAccountsAccountIdGraphGapsInput is the input for ListContextCloudReconAccountsAccountIdGraphGaps — Get Cloud Recon Graph Gaps.
+type ListContextCloudReconAccountsAccountIdGraphGapsInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdGraphGaps - Get Cloud Recon Graph Gaps
+// GET /context/cloud-recon/accounts/{accountId}/graph-gaps
+func (c *Client) ListContextCloudReconAccountsAccountIdGraphGaps(ctx context.Context, in ListContextCloudReconAccountsAccountIdGraphGapsInput) (*models.EndpointsGetCloudReconGraphGapsOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/graph-gaps"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconGraphGapsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextCloudReconAccountsAccountIdHotspotsInput is the input for ListContextCloudReconAccountsAccountIdHotspots — Get Cloud Recon Hotspots.
 type ListContextCloudReconAccountsAccountIdHotspotsInput struct {
 	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	Severity *string `url:"severity,omitempty" json:"-"`
@@ -901,6 +4450,9 @@ func (c *Client) ListContextCloudReconAccountsAccountIdHotspots(ctx context.Cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Severity != nil {
 		query.Set("severity", string(*in.Severity))
@@ -929,9 +4481,125 @@ func (c *Client) ListContextCloudReconAccountsAccountIdHotspots(ctx context.Cont
 	return &out, nil
 }
 
+// ListContextCloudReconAccountsAccountIdIamPostureInput is the input for ListContextCloudReconAccountsAccountIdIamPosture — Get Cloud Recon IAM Posture.
+type ListContextCloudReconAccountsAccountIdIamPostureInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdIamPosture - Get Cloud Recon IAM Posture
+// GET /context/cloud-recon/accounts/{accountId}/iam-posture
+func (c *Client) ListContextCloudReconAccountsAccountIdIamPosture(ctx context.Context, in ListContextCloudReconAccountsAccountIdIamPostureInput) (*models.EndpointsGetCloudReconIamPostureOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/iam-posture"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconIamPostureOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdNetworkExposuresInput is the input for ListContextCloudReconAccountsAccountIdNetworkExposures — Get Cloud Recon Network Exposures.
+type ListContextCloudReconAccountsAccountIdNetworkExposuresInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdNetworkExposures - Get Cloud Recon Network Exposures
+// GET /context/cloud-recon/accounts/{accountId}/network-exposures
+func (c *Client) ListContextCloudReconAccountsAccountIdNetworkExposures(ctx context.Context, in ListContextCloudReconAccountsAccountIdNetworkExposuresInput) (*models.EndpointsGetCloudReconNetworkExposuresOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/network-exposures"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconNetworkExposuresOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdOverviewInput is the input for ListContextCloudReconAccountsAccountIdOverview — Get Cloud Recon Account Overview.
+type ListContextCloudReconAccountsAccountIdOverviewInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdOverview - Get Cloud Recon Account Overview
+// GET /context/cloud-recon/accounts/{accountId}/overview
+func (c *Client) ListContextCloudReconAccountsAccountIdOverview(ctx context.Context, in ListContextCloudReconAccountsAccountIdOverviewInput) (*models.EndpointsGetCloudReconAccountOverviewOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/overview"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconAccountOverviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextCloudReconAccountsAccountIdScansLatestInput is the input for ListContextCloudReconAccountsAccountIdScansLatest — Get Latest Cloud Recon Scan.
 type ListContextCloudReconAccountsAccountIdScansLatestInput struct {
 	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ScanID *string `url:"scanId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -944,6 +4612,12 @@ func (c *Client) ListContextCloudReconAccountsAccountIdScansLatest(ctx context.C
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.ScanID != nil {
+		query.Set("scanId", string(*in.ScanID))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -963,8 +4637,243 @@ func (c *Client) ListContextCloudReconAccountsAccountIdScansLatest(ctx context.C
 	return &out, nil
 }
 
+// ListContextCloudReconAccountsAccountIdSecurityBoundariesInput is the input for ListContextCloudReconAccountsAccountIdSecurityBoundaries — Get Cloud Recon Security Boundaries.
+type ListContextCloudReconAccountsAccountIdSecurityBoundariesInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdSecurityBoundaries - Get Cloud Recon Security Boundaries
+// GET /context/cloud-recon/accounts/{accountId}/security-boundaries
+func (c *Client) ListContextCloudReconAccountsAccountIdSecurityBoundaries(ctx context.Context, in ListContextCloudReconAccountsAccountIdSecurityBoundariesInput) (*models.EndpointsGetCloudReconSecurityBoundariesOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/security-boundaries"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconSecurityBoundariesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdSynthesisLatestInput is the input for ListContextCloudReconAccountsAccountIdSynthesisLatest — Get Latest Cloud Recon Account Synthesis.
+type ListContextCloudReconAccountsAccountIdSynthesisLatestInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ScanID *string `url:"scanId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdSynthesisLatest - Get Latest Cloud Recon Account Synthesis
+// GET /context/cloud-recon/accounts/{accountId}/synthesis/latest
+func (c *Client) ListContextCloudReconAccountsAccountIdSynthesisLatest(ctx context.Context, in ListContextCloudReconAccountsAccountIdSynthesisLatestInput) (*models.EndpointsGetCloudReconAccountSynthesisOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/synthesis/latest"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.ScanID != nil {
+		query.Set("scanId", string(*in.ScanID))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconAccountSynthesisOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdTopologyInput is the input for ListContextCloudReconAccountsAccountIdTopology — Get Cloud Recon Topology.
+type ListContextCloudReconAccountsAccountIdTopologyInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdTopology - Get Cloud Recon Topology
+// GET /context/cloud-recon/accounts/{accountId}/topology
+func (c *Client) ListContextCloudReconAccountsAccountIdTopology(ctx context.Context, in ListContextCloudReconAccountsAccountIdTopologyInput) (*models.EndpointsGetCloudReconTopologyOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/topology"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconTopologyOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdTrafficFlowsInput is the input for ListContextCloudReconAccountsAccountIdTrafficFlows — Get Cloud Recon Traffic Flows.
+type ListContextCloudReconAccountsAccountIdTrafficFlowsInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdTrafficFlows - Get Cloud Recon Traffic Flows
+// GET /context/cloud-recon/accounts/{accountId}/traffic-flows
+func (c *Client) ListContextCloudReconAccountsAccountIdTrafficFlows(ctx context.Context, in ListContextCloudReconAccountsAccountIdTrafficFlowsInput) (*models.EndpointsGetCloudReconTrafficFlowsOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/traffic-flows"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconTrafficFlowsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconAccountsAccountIdTrustedServicesInput is the input for ListContextCloudReconAccountsAccountIdTrustedServices — Get Cloud Recon Trusted Services.
+type ListContextCloudReconAccountsAccountIdTrustedServicesInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconAccountsAccountIdTrustedServices - Get Cloud Recon Trusted Services
+// GET /context/cloud-recon/accounts/{accountId}/trusted-services
+func (c *Client) ListContextCloudReconAccountsAccountIdTrustedServices(ctx context.Context, in ListContextCloudReconAccountsAccountIdTrustedServicesInput) (*models.EndpointsGetCloudReconTrustedServicesOutput, error) {
+	path := "/context/cloud-recon/accounts/{accountId}/trusted-services"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconTrustedServicesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextCloudReconOrganizationSynthesisLatestInput is the input for ListContextCloudReconOrganizationSynthesisLatest — Get Latest Cloud Recon Org Synthesis.
+type ListContextCloudReconOrganizationSynthesisLatestInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ScanRunID *string `url:"scanRunId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextCloudReconOrganizationSynthesisLatest - Get Latest Cloud Recon Org Synthesis
+// GET /context/cloud-recon/organization/synthesis/latest
+func (c *Client) ListContextCloudReconOrganizationSynthesisLatest(ctx context.Context, in ListContextCloudReconOrganizationSynthesisLatestInput) (*models.EndpointsGetCloudReconOrgSynthesisOutput, error) {
+	path := "/context/cloud-recon/organization/synthesis/latest"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.ScanRunID != nil {
+		query.Set("scanRunId", string(*in.ScanRunID))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCloudReconOrgSynthesisOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateContextCloudReconScansInput is the input for CreateContextCloudReconScans — Persist Cloud Recon Scan.
 type CreateContextCloudReconScansInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AccountID string `json:"accountId"`
 	CompletedAt *string `json:"completedAt,omitempty"`
 	ModelName *string `json:"modelName,omitempty"`
@@ -984,6 +4893,9 @@ func (c *Client) CreateContextCloudReconScans(ctx context.Context, in CreateCont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1027,6 +4939,7 @@ func (c *Client) CreateContextCloudReconScans(ctx context.Context, in CreateCont
 
 // ListContextCloudReconTenantsCrossAccountTrustsInput is the input for ListContextCloudReconTenantsCrossAccountTrusts — Get Tenant Cloud Recon Cross-Account Trusts.
 type ListContextCloudReconTenantsCrossAccountTrustsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1038,6 +4951,9 @@ func (c *Client) ListContextCloudReconTenantsCrossAccountTrusts(ctx context.Cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1059,6 +4975,11 @@ func (c *Client) ListContextCloudReconTenantsCrossAccountTrusts(ctx context.Cont
 
 // CreateContextCloudScanStartInput is the input for CreateContextCloudScanStart — Start Cloud Scan.
 type CreateContextCloudScanStartInput struct {
+	AccountIds []string `url:"accountIds,omitempty" json:"-"`
+	ClusterIds []string `url:"clusterIds,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Provider *string `url:"provider,omitempty" json:"-"`
+	RebuildInfraGraph *bool `url:"rebuildInfraGraph,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1070,6 +4991,21 @@ func (c *Client) CreateContextCloudScanStart(ctx context.Context, in CreateConte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Provider != nil {
+		query.Set("provider", string(*in.Provider))
+	}
+	for _, v := range in.ClusterIds {
+		query.Add("clusterIds", string(v))
+	}
+	for _, v := range in.AccountIds {
+		query.Add("accountIds", string(v))
+	}
+	if in.RebuildInfraGraph != nil {
+		query.Set("rebuildInfraGraph", strconv.FormatBool(*in.RebuildInfraGraph))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1092,6 +5028,7 @@ func (c *Client) CreateContextCloudScanStart(ctx context.Context, in CreateConte
 // ListContextCloudScanScanIdStatusInput is the input for ListContextCloudScanScanIdStatus — Get Cloud Scan Status.
 type ListContextCloudScanScanIdStatusInput struct {
 	ScanID string `path:"scanId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1104,6 +5041,9 @@ func (c *Client) ListContextCloudScanScanIdStatus(ctx context.Context, in ListCo
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1126,6 +5066,7 @@ func (c *Client) ListContextCloudScanScanIdStatus(ctx context.Context, in ListCo
 // DeleteContextDepsInput is the input for DeleteContextDeps — Delete dependency data.
 type DeleteContextDepsInput struct {
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Global *bool `url:"global,omitempty" json:"-"`
 	IntroducedAt *string `url:"introducedAt,omitempty" json:"-"`
 	Name *string `url:"name,omitempty" json:"-"`
@@ -1143,6 +5084,9 @@ func (c *Client) DeleteContextDeps(ctx context.Context, in DeleteContextDepsInpu
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.RepositoryID != nil {
 		query.Set("repositoryId", string(*in.RepositoryID))
@@ -1186,6 +5130,7 @@ func (c *Client) DeleteContextDeps(ctx context.Context, in DeleteContextDepsInpu
 // ListContextDepsInput is the input for ListContextDeps — List Tenant Wide Dependencies (Historical).
 type ListContextDepsInput struct {
 	Cursor *string `url:"cursor,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1198,6 +5143,9 @@ func (c *Client) ListContextDeps(ctx context.Context, in ListContextDepsInput) (
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
@@ -1228,6 +5176,7 @@ type ListContextDepsActiveInput struct {
 	Cursor *string `url:"cursor,omitempty" json:"-"`
 	Direct *bool `url:"direct,omitempty" json:"-"`
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `url:"name,omitempty" json:"-"`
 	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
 	ProjectID *string `url:"projectId,omitempty" json:"-"`
@@ -1245,6 +5194,9 @@ func (c *Client) ListContextDepsActive(ctx context.Context, in ListContextDepsAc
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
@@ -1295,6 +5247,7 @@ func (c *Client) ListContextDepsActive(ctx context.Context, in ListContextDepsAc
 type ListContextDepsActiveSummaryInput struct {
 	Direct *bool `url:"direct,omitempty" json:"-"`
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `url:"name,omitempty" json:"-"`
 	ProjectID *string `url:"projectId,omitempty" json:"-"`
 	Range *string `url:"range,omitempty" json:"-"`
@@ -1311,6 +5264,9 @@ func (c *Client) ListContextDepsActiveSummary(ctx context.Context, in ListContex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Search != nil {
 		query.Set("search", string(*in.Search))
@@ -1355,6 +5311,7 @@ func (c *Client) ListContextDepsActiveSummary(ctx context.Context, in ListContex
 type ListContextDepsByRefBomRefInput struct {
 	BomRef string `path:"bomRef" json:"-"`
 	Cursor *string `url:"cursor,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1368,6 +5325,9 @@ func (c *Client) ListContextDepsByRefBomRef(ctx context.Context, in ListContextD
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
@@ -1397,6 +5357,7 @@ func (c *Client) ListContextDepsByRefBomRef(ctx context.Context, in ListContextD
 type ListContextDepsDependentsBomRefInput struct {
 	BomRef string `path:"bomRef" json:"-"`
 	Cursor *string `url:"cursor,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PageSize *int32 `url:"pageSize,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1410,6 +5371,9 @@ func (c *Client) ListContextDepsDependentsBomRef(ctx context.Context, in ListCon
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
@@ -1438,6 +5402,7 @@ func (c *Client) ListContextDepsDependentsBomRef(ctx context.Context, in ListCon
 // ListContextDepsExposureInput is the input for ListContextDepsExposure — Global package exposure by version filter (semver or hash).
 type ListContextDepsExposureInput struct {
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `url:"name,omitempty" json:"-"`
 	Range *string `url:"range,omitempty" json:"-"`
 	models.RequestScope
@@ -1451,6 +5416,9 @@ func (c *Client) ListContextDepsExposure(ctx context.Context, in ListContextDeps
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Ecosystem != nil {
 		query.Set("ecosystem", string(*in.Ecosystem))
@@ -1485,6 +5453,7 @@ type ListContextDepsRepositoryRepositoryIdProjectProjectIdActiveInput struct {
 	ProjectID string `path:"projectId" json:"-"`
 	Direct *bool `url:"direct,omitempty" json:"-"`
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Search *string `url:"search,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1499,6 +5468,9 @@ func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdActive(ctx
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Search != nil {
 		query.Set("search", string(*in.Search))
@@ -1532,6 +5504,7 @@ type ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommitInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
 	Commit string `path:"commit" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1546,6 +5519,9 @@ func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdAtCommit(c
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1570,6 +5546,7 @@ type ListContextDepsRepositoryRepositoryIdProjectProjectIdDiffInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
 	FromCommit *string `url:"fromCommit,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ToCommit *string `url:"toCommit,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1584,6 +5561,9 @@ func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdDiff(ctx c
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.FromCommit != nil {
 		query.Set("fromCommit", string(*in.FromCommit))
@@ -1614,6 +5594,7 @@ type ListContextDepsRepositoryRepositoryIdProjectProjectIdExposureInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `url:"name,omitempty" json:"-"`
 	Range *string `url:"range,omitempty" json:"-"`
 	models.RequestScope
@@ -1629,6 +5610,9 @@ func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdExposure(c
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Ecosystem != nil {
 		query.Set("ecosystem", string(*in.Ecosystem))
@@ -1662,6 +5646,7 @@ type ListContextDepsRepositoryRepositoryIdProjectProjectIdHistoryInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `url:"name,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1676,6 +5661,9 @@ func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory(ct
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Ecosystem != nil {
 		query.Set("ecosystem", string(*in.Ecosystem))
@@ -1703,6 +5691,7 @@ func (c *Client) ListContextDepsRepositoryRepositoryIdProjectProjectIdHistory(ct
 
 // ListContextDepsWithoutLockfileInput is the input for ListContextDepsWithoutLockfile — List projects/repos without lockfiles.
 type ListContextDepsWithoutLockfileInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Level *string `url:"level,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -1715,6 +5704,9 @@ func (c *Client) ListContextDepsWithoutLockfile(ctx context.Context, in ListCont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Level != nil {
 		query.Set("level", string(*in.Level))
@@ -1739,6 +5731,7 @@ func (c *Client) ListContextDepsWithoutLockfile(ctx context.Context, in ListCont
 
 // ListContextEntrypointsInput is the input for ListContextEntrypoints — List Entrypoints.
 type ListContextEntrypointsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
 	Kind *string `url:"kind,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
@@ -1775,6 +5768,9 @@ func (c *Client) ListContextEntrypoints(ctx context.Context, in ListContextEntry
 	if in.IncludeDeleted != nil {
 		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1796,6 +5792,7 @@ func (c *Client) ListContextEntrypoints(ctx context.Context, in ListContextEntry
 // DeleteContextEntrypointsEntrypointIdInput is the input for DeleteContextEntrypointsEntrypointId — Delete Entrypoint.
 type DeleteContextEntrypointsEntrypointIdInput struct {
 	EntrypointID string `path:"entrypointId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1808,6 +5805,9 @@ func (c *Client) DeleteContextEntrypointsEntrypointId(ctx context.Context, in De
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1830,6 +5830,7 @@ func (c *Client) DeleteContextEntrypointsEntrypointId(ctx context.Context, in De
 // GetContextEntrypointsEntrypointIdInput is the input for GetContextEntrypointsEntrypointId — Get Entrypoint.
 type GetContextEntrypointsEntrypointIdInput struct {
 	EntrypointID string `path:"entrypointId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1842,6 +5843,9 @@ func (c *Client) GetContextEntrypointsEntrypointId(ctx context.Context, in GetCo
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1861,15 +5865,323 @@ func (c *Client) GetContextEntrypointsEntrypointId(ctx context.Context, in GetCo
 	return &out, nil
 }
 
+// ListContextInfrastructureGraphsInput is the input for ListContextInfrastructureGraphs — List Infrastructure Graphs.
+type ListContextInfrastructureGraphsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextInfrastructureGraphs - List Infrastructure Graphs
+// GET /context/infrastructure/graphs
+func (c *Client) ListContextInfrastructureGraphs(ctx context.Context, in ListContextInfrastructureGraphsInput) (*models.EndpointsListInfrastructureGraphsOutput, error) {
+	path := "/context/infrastructure/graphs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListInfrastructureGraphsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextInfrastructureGraphsInfoInput is the input for ListContextInfrastructureGraphsInfo — Get Infrastructure Graph Info.
+type ListContextInfrastructureGraphsInfoInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextInfrastructureGraphsInfo - Get Infrastructure Graph Info
+// GET /context/infrastructure/graphs/info
+func (c *Client) ListContextInfrastructureGraphsInfo(ctx context.Context, in ListContextInfrastructureGraphsInfoInput) (*models.EndpointsInfrastructureGraphInfo, error) {
+	path := "/context/infrastructure/graphs/info"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsInfrastructureGraphInfo
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextInfrastructureGraphsSummaryInput is the input for ListContextInfrastructureGraphsSummary — Get Infrastructure Graph Summary.
+type ListContextInfrastructureGraphsSummaryInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextInfrastructureGraphsSummary - Get Infrastructure Graph Summary
+// GET /context/infrastructure/graphs/summary
+func (c *Client) ListContextInfrastructureGraphsSummary(ctx context.Context, in ListContextInfrastructureGraphsSummaryInput) (*models.EndpointsGetInfrastructureGraphSummaryOutput, error) {
+	path := "/context/infrastructure/graphs/summary"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphSummaryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextInfrastructureGraphsAccountIdInput is the input for GetContextInfrastructureGraphsAccountId — Get Infrastructure Graph.
+type GetContextInfrastructureGraphsAccountIdInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextInfrastructureGraphsAccountId - Get Infrastructure Graph
+// GET /context/infrastructure/graphs/{accountId}
+func (c *Client) GetContextInfrastructureGraphsAccountId(ctx context.Context, in GetContextInfrastructureGraphsAccountIdInput) (*models.EndpointsGetInfrastructureGraphOutput, error) {
+	path := "/context/infrastructure/graphs/{accountId}"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextInfrastructureGraphsAccountIdDownloadInput is the input for ListContextInfrastructureGraphsAccountIdDownload — Get Infrastructure Graph Download URL.
+type ListContextInfrastructureGraphsAccountIdDownloadInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Version *string `url:"version,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextInfrastructureGraphsAccountIdDownload - Get Infrastructure Graph Download URL
+// GET /context/infrastructure/graphs/{accountId}/download
+func (c *Client) ListContextInfrastructureGraphsAccountIdDownload(ctx context.Context, in ListContextInfrastructureGraphsAccountIdDownloadInput) (*models.EndpointsGetInfrastructureGraphDownloadOutput, error) {
+	path := "/context/infrastructure/graphs/{accountId}/download"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Version != nil {
+		query.Set("version", string(*in.Version))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphDownloadOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextInfrastructureGraphsAccountIdVersionsInput is the input for ListContextInfrastructureGraphsAccountIdVersions — List Infrastructure Graph Versions.
+type ListContextInfrastructureGraphsAccountIdVersionsInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextInfrastructureGraphsAccountIdVersions - List Infrastructure Graph Versions
+// GET /context/infrastructure/graphs/{accountId}/versions
+func (c *Client) ListContextInfrastructureGraphsAccountIdVersions(ctx context.Context, in ListContextInfrastructureGraphsAccountIdVersionsInput) (*models.EndpointsListInfrastructureGraphVersionsOutput, error) {
+	path := "/context/infrastructure/graphs/{accountId}/versions"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListInfrastructureGraphVersionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextInfrastructureGraphsAccountIdVersionsVersionInput is the input for ListContextInfrastructureGraphsAccountIdVersionsVersion — Get Infrastructure Graph Version.
+type ListContextInfrastructureGraphsAccountIdVersionsVersionInput struct {
+	AccountID string `path:"accountId" json:"-"`
+	Version string `path:"version" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextInfrastructureGraphsAccountIdVersionsVersion - Get Infrastructure Graph Version
+// GET /context/infrastructure/graphs/{accountId}/versions/{version}
+func (c *Client) ListContextInfrastructureGraphsAccountIdVersionsVersion(ctx context.Context, in ListContextInfrastructureGraphsAccountIdVersionsVersionInput) (*models.EndpointsGetInfrastructureGraphVersionOutput, error) {
+	path := "/context/infrastructure/graphs/{accountId}/versions/{version}"
+	path = strings.Replace(path, "{accountId}", url.PathEscape(in.AccountID), 1)
+	path = strings.Replace(path, "{version}", url.PathEscape(in.Version), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetInfrastructureGraphVersionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextK8sCollectorClustersInput is the input for ListContextK8sCollectorClusters — List K8s Collector Clusters.
+type ListContextK8sCollectorClustersInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextK8sCollectorClusters - List K8s Collector Clusters
+// GET /context/k8s/collector-clusters
+func (c *Client) ListContextK8sCollectorClusters(ctx context.Context, in ListContextK8sCollectorClustersInput) (*models.EndpointsListK8SCollectorClustersOutput, error) {
+	path := "/context/k8s/collector-clusters"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListK8SCollectorClustersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextMemoriesInput is the input for ListContextMemories — Get Memories.
 type ListContextMemoriesInput struct {
+	CreatedBy *string `url:"createdBy,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
+	MemoryClass *string `url:"memoryClass,omitempty" json:"-"`
 	MemoryType *string `url:"memoryType,omitempty" json:"-"`
+	MinTrustTier *int `url:"minTrustTier,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
 	Priority *string `url:"priority,omitempty" json:"-"`
 	ResourceID *string `url:"resourceId,omitempty" json:"-"`
 	ResourceType *string `url:"resourceType,omitempty" json:"-"`
+	Status *string `url:"status,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1881,6 +6193,9 @@ func (c *Client) ListContextMemories(ctx context.Context, in ListContextMemories
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.ResourceID != nil {
 		query.Set("resourceId", string(*in.ResourceID))
@@ -1897,8 +6212,23 @@ func (c *Client) ListContextMemories(ctx context.Context, in ListContextMemories
 	if in.IsLatest != nil {
 		query.Set("isLatest", strconv.FormatBool(*in.IsLatest))
 	}
+	if in.MemoryClass != nil {
+		query.Set("memoryClass", string(*in.MemoryClass))
+	}
+	if in.Status != nil {
+		query.Set("status", string(*in.Status))
+	}
+	if in.MinTrustTier != nil {
+		query.Set("minTrustTier", strconv.Itoa(int(*in.MinTrustTier)))
+	}
+	if in.CreatedBy != nil {
+		query.Set("createdBy", string(*in.CreatedBy))
+	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
@@ -1923,20 +6253,31 @@ func (c *Client) ListContextMemories(ctx context.Context, in ListContextMemories
 
 // CreateContextMemoriesInput is the input for CreateContextMemories — Create Memory.
 type CreateContextMemoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Anchors []string `json:"anchors,omitempty"`
 	Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
+	CommentIds []string `json:"commentIds,omitempty"`
 	Confidence *float64 `json:"confidence,omitempty"`
 	Content string `json:"content"`
 	CreatedBy *string `json:"createdBy,omitempty"`
 	CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+	EventTime *string `json:"eventTime,omitempty"`
 	IsUserCreated *bool `json:"isUserCreated,omitempty"`
+	MemoryClass *models.ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+	MemoryID *string `json:"memoryId,omitempty"`
 	MemoryType models.ModelsMemoryMemoryType `json:"memoryType"`
 	Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
 	ParentNoteID *string `json:"parentNoteId,omitempty"`
 	Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+	PromptVersion *string `json:"promptVersion,omitempty"`
 	ResourceID *string `json:"resourceId,omitempty"`
 	ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	Scope *models.ModelsMemoryScope `json:"scope,omitempty"`
+	SourceEvent *string `json:"sourceEvent,omitempty"`
+	SupersedesMemoryID *string `json:"supersedesMemoryId,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 	Title *string `json:"title,omitempty"`
+	TrustTier *int `json:"trustTier,omitempty"`
 	models.RequestScope
 }
 
@@ -1949,6 +6290,9 @@ func (c *Client) CreateContextMemories(ctx context.Context, in CreateContextMemo
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1957,35 +6301,55 @@ func (c *Client) CreateContextMemories(ctx context.Context, in CreateContextMemo
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		Anchors []string `json:"anchors,omitempty"`
 		Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
+		CommentIds []string `json:"commentIds,omitempty"`
 		Confidence *float64 `json:"confidence,omitempty"`
 		Content string `json:"content"`
 		CreatedBy *string `json:"createdBy,omitempty"`
 		CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+		EventTime *string `json:"eventTime,omitempty"`
 		IsUserCreated *bool `json:"isUserCreated,omitempty"`
+		MemoryClass *models.ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+		MemoryID *string `json:"memoryId,omitempty"`
 		MemoryType models.ModelsMemoryMemoryType `json:"memoryType"`
 		Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
 		ParentNoteID *string `json:"parentNoteId,omitempty"`
 		Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+		PromptVersion *string `json:"promptVersion,omitempty"`
 		ResourceID *string `json:"resourceId,omitempty"`
 		ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+		Scope *models.ModelsMemoryScope `json:"scope,omitempty"`
+		SourceEvent *string `json:"sourceEvent,omitempty"`
+		SupersedesMemoryID *string `json:"supersedesMemoryId,omitempty"`
 		Tags []string `json:"tags,omitempty"`
 		Title *string `json:"title,omitempty"`
+		TrustTier *int `json:"trustTier,omitempty"`
 	}{
+		Anchors: in.Anchors,
 		Citations: in.Citations,
+		CommentIds: in.CommentIds,
 		Confidence: in.Confidence,
 		Content: in.Content,
 		CreatedBy: in.CreatedBy,
 		CrossReferences: in.CrossReferences,
+		EventTime: in.EventTime,
 		IsUserCreated: in.IsUserCreated,
+		MemoryClass: in.MemoryClass,
+		MemoryID: in.MemoryID,
 		MemoryType: in.MemoryType,
 		Metadata: in.Metadata,
 		ParentNoteID: in.ParentNoteID,
 		Priority: in.Priority,
+		PromptVersion: in.PromptVersion,
 		ResourceID: in.ResourceID,
 		ResourceType: in.ResourceType,
+		Scope: in.Scope,
+		SourceEvent: in.SourceEvent,
+		SupersedesMemoryID: in.SupersedesMemoryID,
 		Tags: in.Tags,
 		Title: in.Title,
+		TrustTier: in.TrustTier,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -2001,12 +6365,244 @@ func (c *Client) CreateContextMemories(ctx context.Context, in CreateContextMemo
 	return &out, nil
 }
 
-// ListContextMemoriesTypeInput is the input for ListContextMemoriesType — Get Memories By Type.
-type ListContextMemoriesTypeInput struct {
-	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
+// GetContextMemoriesDocumentDocumentIdInput is the input for GetContextMemoriesDocumentDocumentId — Get Memories By Document.
+type GetContextMemoriesDocumentDocumentIdInput struct {
+	DocumentID string `path:"documentId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	PaginationToken *string `url:"paginationToken,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextMemoriesDocumentDocumentId - Get Memories By Document
+// GET /context/memories/document/{documentId}
+func (c *Client) GetContextMemoriesDocumentDocumentId(ctx context.Context, in GetContextMemoriesDocumentDocumentIdInput) (*models.EndpointsGetMemoriesByDocumentOutput, error) {
+	path := "/context/memories/document/{documentId}"
+	path = strings.Replace(path, "{documentId}", url.PathEscape(in.DocumentID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.PaginationToken != nil {
+		query.Set("paginationToken", string(*in.PaginationToken))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMemoriesByDocumentOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextMemoriesDocumentDocumentIdTypeInput is the input for ListContextMemoriesDocumentDocumentIdType — Get Memories By Document And Type.
+type ListContextMemoriesDocumentDocumentIdTypeInput struct {
+	DocumentID string `path:"documentId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	MemoryType *string `url:"memoryType,omitempty" json:"-"`
 	PaginationToken *string `url:"paginationToken,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextMemoriesDocumentDocumentIdType - Get Memories By Document And Type
+// GET /context/memories/document/{documentId}/type
+func (c *Client) ListContextMemoriesDocumentDocumentIdType(ctx context.Context, in ListContextMemoriesDocumentDocumentIdTypeInput) (*models.EndpointsGetMemoriesByDocumentAndTypeOutput, error) {
+	path := "/context/memories/document/{documentId}/type"
+	path = strings.Replace(path, "{documentId}", url.PathEscape(in.DocumentID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.MemoryType != nil {
+		query.Set("memoryType", string(*in.MemoryType))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.PaginationToken != nil {
+		query.Set("paginationToken", string(*in.PaginationToken))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMemoriesByDocumentAndTypeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextMemoriesGrepInput is the input for CreateContextMemoriesGrep — Grep Memories.
+type CreateContextMemoriesGrepInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `json:"limit,omitempty"`
+	MemoryClass *models.ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+	MemoryTypes []models.ModelsMemoryMemoryType `json:"memoryTypes,omitempty"`
+	MinTrustTier *int `json:"minTrustTier,omitempty"`
+	Pattern string `json:"pattern"`
+	ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	Scope *models.ModelsMemoryScope `json:"scope,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextMemoriesGrep - Grep Memories
+// POST /context/memories/grep
+func (c *Client) CreateContextMemoriesGrep(ctx context.Context, in CreateContextMemoriesGrepInput) (*models.EndpointsGrepMemoriesOutput, error) {
+	path := "/context/memories/grep"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Limit *int `json:"limit,omitempty"`
+		MemoryClass *models.ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+		MemoryTypes []models.ModelsMemoryMemoryType `json:"memoryTypes,omitempty"`
+		MinTrustTier *int `json:"minTrustTier,omitempty"`
+		Pattern string `json:"pattern"`
+		ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+		Scope *models.ModelsMemoryScope `json:"scope,omitempty"`
+	}{
+		Limit: in.Limit,
+		MemoryClass: in.MemoryClass,
+		MemoryTypes: in.MemoryTypes,
+		MinTrustTier: in.MinTrustTier,
+		Pattern: in.Pattern,
+		ResourceType: in.ResourceType,
+		Scope: in.Scope,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGrepMemoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextMemoriesSearchInput is the input for CreateContextMemoriesSearch — Search Memories.
+type CreateContextMemoriesSearchInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Anchors []string `json:"anchors,omitempty"`
+	IncludeOrgWide *bool `json:"includeOrgWide,omitempty"`
+	Limit *int `json:"limit,omitempty"`
+	MemoryClass *models.ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+	MemoryTypes []models.ModelsMemoryMemoryType `json:"memoryTypes,omitempty"`
+	MinTrustTier *int `json:"minTrustTier,omitempty"`
+	Query string `json:"query"`
+	ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	Scope *models.ModelsMemoryScope `json:"scope,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextMemoriesSearch - Search Memories
+// POST /context/memories/search
+func (c *Client) CreateContextMemoriesSearch(ctx context.Context, in CreateContextMemoriesSearchInput) (*models.EndpointsSearchMemoriesOutput, error) {
+	path := "/context/memories/search"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Anchors []string `json:"anchors,omitempty"`
+		IncludeOrgWide *bool `json:"includeOrgWide,omitempty"`
+		Limit *int `json:"limit,omitempty"`
+		MemoryClass *models.ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+		MemoryTypes []models.ModelsMemoryMemoryType `json:"memoryTypes,omitempty"`
+		MinTrustTier *int `json:"minTrustTier,omitempty"`
+		Query string `json:"query"`
+		ResourceType *models.ModelsMemoryResourceType `json:"resourceType,omitempty"`
+		Scope *models.ModelsMemoryScope `json:"scope,omitempty"`
+	}{
+		Anchors: in.Anchors,
+		IncludeOrgWide: in.IncludeOrgWide,
+		Limit: in.Limit,
+		MemoryClass: in.MemoryClass,
+		MemoryTypes: in.MemoryTypes,
+		MinTrustTier: in.MinTrustTier,
+		Query: in.Query,
+		ResourceType: in.ResourceType,
+		Scope: in.Scope,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSearchMemoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextMemoriesTypeInput is the input for ListContextMemoriesType — Get Memories By Type.
+type ListContextMemoriesTypeInput struct {
+	CreatedBy *string `url:"createdBy,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IsLatest *bool `url:"isLatest,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	MemoryType *string `url:"memoryType,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	PaginationToken *string `url:"paginationToken,omitempty" json:"-"`
+	ResourceID *string `url:"resourceId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2019,14 +6615,26 @@ func (c *Client) ListContextMemoriesType(ctx context.Context, in ListContextMemo
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	if in.MemoryType != nil {
 		query.Set("memoryType", string(*in.MemoryType))
+	}
+	if in.CreatedBy != nil {
+		query.Set("createdBy", string(*in.CreatedBy))
+	}
+	if in.ResourceID != nil {
+		query.Set("resourceId", string(*in.ResourceID))
 	}
 	if in.IsLatest != nil {
 		query.Set("isLatest", strconv.FormatBool(*in.IsLatest))
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
 	}
 	if in.PaginationToken != nil {
 		query.Set("paginationToken", string(*in.PaginationToken))
@@ -2052,6 +6660,8 @@ func (c *Client) ListContextMemoriesType(ctx context.Context, in ListContextMemo
 // DeleteContextMemoriesMemoryIdInput is the input for DeleteContextMemoriesMemoryId — Delete Memory.
 type DeleteContextMemoriesMemoryIdInput struct {
 	MemoryID string `path:"memoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reason *string `url:"reason,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2064,6 +6674,12 @@ func (c *Client) DeleteContextMemoriesMemoryId(ctx context.Context, in DeleteCon
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Reason != nil {
+		query.Set("reason", string(*in.Reason))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2086,6 +6702,7 @@ func (c *Client) DeleteContextMemoriesMemoryId(ctx context.Context, in DeleteCon
 // GetContextMemoriesMemoryIdInput is the input for GetContextMemoriesMemoryId — Get Memory.
 type GetContextMemoriesMemoryIdInput struct {
 	MemoryID string `path:"memoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Version *string `url:"version,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -2099,6 +6716,9 @@ func (c *Client) GetContextMemoriesMemoryId(ctx context.Context, in GetContextMe
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Version != nil {
 		query.Set("version", string(*in.Version))
@@ -2124,14 +6744,15 @@ func (c *Client) GetContextMemoriesMemoryId(ctx context.Context, in GetContextMe
 // PatchContextMemoriesMemoryIdInput is the input for PatchContextMemoriesMemoryId — Update Memory.
 type PatchContextMemoriesMemoryIdInput struct {
 	MemoryID string `path:"memoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
 	Confidence *float64 `json:"confidence,omitempty"`
 	Content *string `json:"content,omitempty"`
-	CreateNewVersion *bool `json:"createNewVersion,omitempty"`
 	CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
 	Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
 	ParentNoteID *string `json:"parentNoteId,omitempty"`
 	Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+	SupersedesMemoryID *string `json:"supersedesMemoryId,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 	Title *string `json:"title,omitempty"`
 	models.RequestScope
@@ -2147,6 +6768,9 @@ func (c *Client) PatchContextMemoriesMemoryId(ctx context.Context, in PatchConte
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2158,22 +6782,22 @@ func (c *Client) PatchContextMemoriesMemoryId(ctx context.Context, in PatchConte
 		Citations []models.ModelsMemoryCitationsElem `json:"citations,omitempty"`
 		Confidence *float64 `json:"confidence,omitempty"`
 		Content *string `json:"content,omitempty"`
-		CreateNewVersion *bool `json:"createNewVersion,omitempty"`
 		CrossReferences []models.ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
 		Metadata *models.ModelsMemoryMetadata `json:"metadata,omitempty"`
 		ParentNoteID *string `json:"parentNoteId,omitempty"`
 		Priority *models.ModelsMemoryPriority `json:"priority,omitempty"`
+		SupersedesMemoryID *string `json:"supersedesMemoryId,omitempty"`
 		Tags []string `json:"tags,omitempty"`
 		Title *string `json:"title,omitempty"`
 	}{
 		Citations: in.Citations,
 		Confidence: in.Confidence,
 		Content: in.Content,
-		CreateNewVersion: in.CreateNewVersion,
 		CrossReferences: in.CrossReferences,
 		Metadata: in.Metadata,
 		ParentNoteID: in.ParentNoteID,
 		Priority: in.Priority,
+		SupersedesMemoryID: in.SupersedesMemoryID,
 		Tags: in.Tags,
 		Title: in.Title,
 	})
@@ -2191,9 +6815,102 @@ func (c *Client) PatchContextMemoriesMemoryId(ctx context.Context, in PatchConte
 	return &out, nil
 }
 
+// ListContextMemoriesMemoryIdFindingsInput is the input for ListContextMemoriesMemoryIdFindings — Get Memory Findings.
+type ListContextMemoriesMemoryIdFindingsInput struct {
+	MemoryID string `path:"memoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextMemoriesMemoryIdFindings - Get Memory Findings
+// GET /context/memories/{memoryId}/findings
+func (c *Client) ListContextMemoriesMemoryIdFindings(ctx context.Context, in ListContextMemoriesMemoryIdFindingsInput) (*models.EndpointsGetMemoryFindingsOutput, error) {
+	path := "/context/memories/{memoryId}/findings"
+	path = strings.Replace(path, "{memoryId}", url.PathEscape(in.MemoryID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetMemoryFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextMemoriesMemoryIdRetractInput is the input for CreateContextMemoriesMemoryIdRetract — Retract Memory.
+type CreateContextMemoriesMemoryIdRetractInput struct {
+	MemoryID string `path:"memoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reason string `json:"reason"`
+	RetractedBy *string `json:"retractedBy,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextMemoriesMemoryIdRetract - Retract Memory
+// POST /context/memories/{memoryId}/retract
+func (c *Client) CreateContextMemoriesMemoryIdRetract(ctx context.Context, in CreateContextMemoriesMemoryIdRetractInput) (*models.EndpointsRetractMemoryOutput, error) {
+	path := "/context/memories/{memoryId}/retract"
+	path = strings.Replace(path, "{memoryId}", url.PathEscape(in.MemoryID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Reason string `json:"reason"`
+		RetractedBy *string `json:"retractedBy,omitempty"`
+	}{
+		Reason: in.Reason,
+		RetractedBy: in.RetractedBy,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsRetractMemoryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextMemoriesMemoryIdVersionsInput is the input for ListContextMemoriesMemoryIdVersions — Get Memory Versions.
 type ListContextMemoriesMemoryIdVersionsInput struct {
 	MemoryID string `path:"memoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int32 `url:"limit,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -2207,6 +6924,9 @@ func (c *Client) ListContextMemoriesMemoryIdVersions(ctx context.Context, in Lis
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
@@ -2231,6 +6951,7 @@ func (c *Client) ListContextMemoriesMemoryIdVersions(ctx context.Context, in Lis
 
 // ListContextOrganizationInput is the input for ListContextOrganization — Get Organization Context.
 type ListContextOrganizationInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2242,6 +6963,9 @@ func (c *Client) ListContextOrganization(ctx context.Context, in ListContextOrga
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2263,6 +6987,7 @@ func (c *Client) ListContextOrganization(ctx context.Context, in ListContextOrga
 
 // PatchContextOrganizationInput is the input for PatchContextOrganization — Update Classification of the Organization.
 type PatchContextOrganizationInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `json:"name,omitempty"`
 	Notes *string `json:"notes,omitempty"`
 	models.RequestScope
@@ -2276,6 +7001,9 @@ func (c *Client) PatchContextOrganization(ctx context.Context, in PatchContextOr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2300,6 +7028,7 @@ func (c *Client) PatchContextOrganization(ctx context.Context, in PatchContextOr
 
 // UpdateContextOrganizationInput is the input for UpdateContextOrganization — Upsert Classification of the Organization.
 type UpdateContextOrganizationInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Organization *models.ModelsOrgContext `json:"organization,omitempty"`
 	models.RequestScope
 }
@@ -2312,6 +7041,9 @@ func (c *Client) UpdateContextOrganization(ctx context.Context, in UpdateContext
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2339,8 +7071,52 @@ func (c *Client) UpdateContextOrganization(ctx context.Context, in UpdateContext
 	return &out, nil
 }
 
+// GetContextOrganizationRunsRunIdInput is the input for GetContextOrganizationRunsRunId — Get Organization Context Run.
+type GetContextOrganizationRunsRunIdInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeResult *bool `url:"includeResult,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextOrganizationRunsRunId - Get Organization Context Run
+// GET /context/organization/runs/{runId}
+func (c *Client) GetContextOrganizationRunsRunId(ctx context.Context, in GetContextOrganizationRunsRunIdInput) (*models.EndpointsGetOrgContextRunOutput, error) {
+	path := "/context/organization/runs/{runId}"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.IncludeResult != nil {
+		query.Set("includeResult", strconv.FormatBool(*in.IncludeResult))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetOrgContextRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateContextRagResyncInput is the input for CreateContextRagResync — Resync RAG Vector Store.
 type CreateContextRagResyncInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfluenceOnly *bool `json:"confluenceOnly,omitempty"`
 	models.RequestScope
 }
 
@@ -2353,6 +7129,9 @@ func (c *Client) CreateContextRagResync(ctx context.Context, in CreateContextRag
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2360,7 +7139,15 @@ func (c *Client) CreateContextRagResync(ctx context.Context, in CreateContextRag
 		fullURL += "?" + query.Encode()
 	}
 
-	data, err := c.do(ctx, "POST", fullURL, nil)
+	bodyBytes, err := json.Marshal(struct {
+		ConfluenceOnly *bool `json:"confluenceOnly,omitempty"`
+	}{
+		ConfluenceOnly: in.ConfluenceOnly,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -2374,10 +7161,12 @@ func (c *Client) CreateContextRagResync(ctx context.Context, in CreateContextRag
 // ListContextRepoScansInput is the input for ListContextRepoScans — List Repo Context Scans.
 type ListContextRepoScansInput struct {
 	CommitSha *string `url:"commitSha,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	Status *string `url:"status,omitempty" json:"-"`
+	VersionsOnly *bool `url:"versionsOnly,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2405,6 +7194,12 @@ func (c *Client) ListContextRepoScans(ctx context.Context, in ListContextRepoSca
 	if in.PageSize != nil {
 		query.Set("pageSize", strconv.Itoa(int(*in.PageSize)))
 	}
+	if in.VersionsOnly != nil {
+		query.Set("versionsOnly", strconv.FormatBool(*in.VersionsOnly))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2425,6 +7220,7 @@ func (c *Client) ListContextRepoScans(ctx context.Context, in ListContextRepoSca
 
 // CreateContextRepoScansInput is the input for CreateContextRepoScans — Create Repo Context Scan.
 type CreateContextRepoScansInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Branch *string `json:"branch,omitempty"`
 	CommitSha string `json:"commitSha"`
 	ProjectsTouched []models.EndpointsRepoScanProjectTouched `json:"projectsTouched,omitempty"`
@@ -2443,6 +7239,9 @@ func (c *Client) CreateContextRepoScans(ctx context.Context, in CreateContextRep
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2485,6 +7284,7 @@ func (c *Client) CreateContextRepoScans(ctx context.Context, in CreateContextRep
 // GetContextRepoScansScanIdInput is the input for GetContextRepoScansScanId — Get Repo Context Scan.
 type GetContextRepoScansScanIdInput struct {
 	ScanID string `path:"scanId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2497,6 +7297,9 @@ func (c *Client) GetContextRepoScansScanId(ctx context.Context, in GetContextRep
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2519,6 +7322,7 @@ func (c *Client) GetContextRepoScansScanId(ctx context.Context, in GetContextRep
 // PatchContextRepoScansScanIdInput is the input for PatchContextRepoScansScanId — Update Repo Context Scan.
 type PatchContextRepoScansScanIdInput struct {
 	ScanID string `path:"scanId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	CompletedAt *string `json:"completedAt,omitempty"`
 	ErrorMessage *string `json:"errorMessage,omitempty"`
 	ProjectsTouched []models.EndpointsRepoScanProjectTouched `json:"projectsTouched,omitempty"`
@@ -2537,6 +7341,9 @@ func (c *Client) PatchContextRepoScansScanId(ctx context.Context, in PatchContex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2574,8 +7381,100 @@ func (c *Client) PatchContextRepoScansScanId(ctx context.Context, in PatchContex
 	return &out, nil
 }
 
+// CreateContextRepoScopeScansInput is the input for CreateContextRepoScopeScans — Start Repo-Scope Scan.
+type CreateContextRepoScopeScansInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeArchived *bool `url:"includeArchived,omitempty" json:"-"`
+	IncludeArchivedBody *bool `json:"includeArchived,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextRepoScopeScans - Start Repo-Scope Scan
+// POST /context/repo-scope/scans
+func (c *Client) CreateContextRepoScopeScans(ctx context.Context, in CreateContextRepoScopeScansInput) (*models.EndpointsContextStartRepoScopeScanOutput, error) {
+	path := "/context/repo-scope/scans"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.IncludeArchived != nil {
+		query.Set("includeArchived", strconv.FormatBool(*in.IncludeArchived))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		IncludeArchived *bool `json:"includeArchived,omitempty"`
+	}{
+		IncludeArchived: in.IncludeArchivedBody,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextStartRepoScopeScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextRepoScopeScansScanIdInput is the input for GetContextRepoScopeScansScanId — Get Repo-Scope Scan.
+type GetContextRepoScopeScansScanIdInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	ExecutionArn *string `url:"executionArn,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextRepoScopeScansScanId - Get Repo-Scope Scan
+// GET /context/repo-scope/scans/{scanId}
+func (c *Client) GetContextRepoScopeScansScanId(ctx context.Context, in GetContextRepoScopeScansScanIdInput) (*models.EndpointsGetRepoScopeScanOutput, error) {
+	path := "/context/repo-scope/scans/{scanId}"
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.ExecutionArn != nil {
+		query.Set("executionArn", string(*in.ExecutionArn))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetRepoScopeScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateContextReportsInput is the input for CreateContextReports — Create Report Generation Job.
 type CreateContextReportsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Packages []models.EndpointsPackageFilter `json:"packages,omitempty"`
 	Repositories []string `json:"repositories,omitempty"`
 	models.RequestScope
@@ -2589,6 +7488,9 @@ func (c *Client) CreateContextReports(ctx context.Context, in CreateContextRepor
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2621,6 +7523,7 @@ func (c *Client) CreateContextReports(ctx context.Context, in CreateContextRepor
 // GetContextReportsJobIdInput is the input for GetContextReportsJobId — Get Report Status.
 type GetContextReportsJobIdInput struct {
 	JobID string `path:"jobId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2633,6 +7536,9 @@ func (c *Client) GetContextReportsJobId(ctx context.Context, in GetContextReport
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2654,6 +7560,7 @@ func (c *Client) GetContextReportsJobId(ctx context.Context, in GetContextReport
 
 // ListContextRepositoriesInput is the input for ListContextRepositories — Get Contexts of Repositories.
 type ListContextRepositoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
@@ -2682,6 +7589,9 @@ func (c *Client) ListContextRepositories(ctx context.Context, in ListContextRepo
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2703,6 +7613,7 @@ func (c *Client) ListContextRepositories(ctx context.Context, in ListContextRepo
 // DeleteContextRepositoriesRepositoryIdInput is the input for DeleteContextRepositoriesRepositoryId — Delete Repository.
 type DeleteContextRepositoriesRepositoryIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2715,6 +7626,9 @@ func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, in D
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2737,6 +7651,8 @@ func (c *Client) DeleteContextRepositoriesRepositoryId(ctx context.Context, in D
 // GetContextRepositoriesRepositoryIdInput is the input for GetContextRepositoriesRepositoryId — Get Repository.
 type GetContextRepositoriesRepositoryIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	PreferURL *bool `url:"preferUrl,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2749,6 +7665,12 @@ func (c *Client) GetContextRepositoriesRepositoryId(ctx context.Context, in GetC
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.PreferURL != nil {
+		query.Set("preferUrl", strconv.FormatBool(*in.PreferURL))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2771,6 +7693,7 @@ func (c *Client) GetContextRepositoriesRepositoryId(ctx context.Context, in GetC
 // PatchContextRepositoriesRepositoryIdInput is the input for PatchContextRepositoriesRepositoryId — Update Repository.
 type PatchContextRepositoriesRepositoryIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `json:"name,omitempty"`
 	models.RequestScope
 }
@@ -2784,6 +7707,9 @@ func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, in Pa
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2804,9 +7730,60 @@ func (c *Client) PatchContextRepositoriesRepositoryId(ctx context.Context, in Pa
 	return data, err
 }
 
+// CreateContextRepositoriesRepositoryIdExecutionRecipesDiscoverInput is the input for CreateContextRepositoriesRepositoryIdExecutionRecipesDiscover — Start Repository Execution Recipe Discovery.
+type CreateContextRepositoriesRepositoryIdExecutionRecipesDiscoverInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Branch *string `json:"branch,omitempty"`
+	ProjectIds []string `json:"projectIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextRepositoriesRepositoryIdExecutionRecipesDiscover - Start Repository Execution Recipe Discovery
+// POST /context/repositories/{repositoryId}/execution-recipes/discover
+func (c *Client) CreateContextRepositoriesRepositoryIdExecutionRecipesDiscover(ctx context.Context, in CreateContextRepositoriesRepositoryIdExecutionRecipesDiscoverInput) (*models.EndpointsStartRepositoryExecutionRecipeDiscoveryOutput, error) {
+	path := "/context/repositories/{repositoryId}/execution-recipes/discover"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+		ProjectIds []string `json:"projectIds,omitempty"`
+	}{
+		Branch: in.Branch,
+		ProjectIds: in.ProjectIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsStartRepositoryExecutionRecipeDiscoveryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextRepositoriesRepositoryIdProjectsInput is the input for ListContextRepositoriesRepositoryIdProjects — List Projects.
 type ListContextRepositoriesRepositoryIdProjectsInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IncludeDeleted *bool `url:"includeDeleted,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
@@ -2832,6 +7809,9 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjects(ctx context.Context
 	if in.IncludeDeleted != nil {
 		query.Set("includeDeleted", strconv.FormatBool(*in.IncludeDeleted))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -2854,6 +7834,7 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjects(ctx context.Context
 type DeleteContextRepositoriesRepositoryIdProjectsProjectIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2867,6 +7848,9 @@ func (c *Client) DeleteContextRepositoriesRepositoryIdProjectsProjectId(ctx cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2890,6 +7874,7 @@ func (c *Client) DeleteContextRepositoriesRepositoryIdProjectsProjectId(ctx cont
 type GetContextRepositoriesRepositoryIdProjectsProjectIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2903,6 +7888,9 @@ func (c *Client) GetContextRepositoriesRepositoryIdProjectsProjectId(ctx context
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2926,6 +7914,7 @@ func (c *Client) GetContextRepositoriesRepositoryIdProjectsProjectId(ctx context
 type PatchContextRepositoriesRepositoryIdProjectsProjectIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	DeletedAt *string `json:"deletedAt,omitempty"`
 	Description *string `json:"description,omitempty"`
 	IsDeleted *bool `json:"isDeleted,omitempty"`
@@ -2944,6 +7933,9 @@ func (c *Client) PatchContextRepositoriesRepositoryIdProjectsProjectId(ctx conte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -2979,10 +7971,167 @@ func (c *Client) PatchContextRepositoriesRepositoryIdProjectsProjectId(ctx conte
 	return &out, nil
 }
 
+// ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeInput is the input for ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipe — Get Project Execution Recipe.
+type ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	AllowEdits *bool `url:"allowEdits,omitempty" json:"-"`
+	Capabilities *string `url:"capabilities,omitempty" json:"-"`
+	CommitSha *string `url:"commitSha,omitempty" json:"-"`
+	Docker *bool `url:"docker,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InputHash *string `url:"inputHash,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipe - Get Project Execution Recipe
+// GET /context/repositories/{repositoryId}/projects/{projectId}/execution-recipe
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipe(ctx context.Context, in ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeInput) (*models.EndpointsGetProjectExecutionRecipeOutput, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}/execution-recipe"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.CommitSha != nil {
+		query.Set("commitSha", string(*in.CommitSha))
+	}
+	if in.InputHash != nil {
+		query.Set("inputHash", string(*in.InputHash))
+	}
+	if in.Docker != nil {
+		query.Set("docker", strconv.FormatBool(*in.Docker))
+	}
+	if in.Capabilities != nil {
+		query.Set("capabilities", string(*in.Capabilities))
+	}
+	if in.AllowEdits != nil {
+		query.Set("allowEdits", strconv.FormatBool(*in.AllowEdits))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectExecutionRecipeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeValidationsInput is the input for ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeValidations — List Project Execution Recipe Validations.
+type ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeValidationsInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeValidations - List Project Execution Recipe Validations
+// GET /context/repositories/{repositoryId}/projects/{projectId}/execution-recipe/validations
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeValidations(ctx context.Context, in ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeValidationsInput) (*models.EndpointsListProjectExecutionRecipeValidationsOutput, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}/execution-recipe/validations"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListProjectExecutionRecipeValidationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeVersionsInput is the input for ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeVersions — List Project Execution Recipe Versions.
+type ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeVersionsInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeVersions - List Project Execution Recipe Versions
+// GET /context/repositories/{repositoryId}/projects/{projectId}/execution-recipe/versions
+func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeVersions(ctx context.Context, in ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRecipeVersionsInput) (*models.EndpointsListProjectExecutionRecipeVersionsOutput, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}/execution-recipe/versions"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListProjectExecutionRecipeVersionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput is the input for ListContextRepositoriesRepositoryIdProjectsProjectIdSchema — Get Project Schema.
 type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -2996,6 +8145,9 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3019,6 +8171,7 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx 
 type CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Content string `json:"content"`
 	Format models.ModelsSchemaFormat `json:"format"`
 	Type models.ModelsSchemaType `json:"type"`
@@ -3035,6 +8188,9 @@ func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema(ct
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3070,6 +8226,7 @@ func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema(ct
 type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetadataInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3083,6 +8240,9 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetad
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3106,6 +8266,7 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetad
 type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRawInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3119,6 +8280,9 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRaw(c
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3138,8 +8302,114 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRaw(c
 	return &out, nil
 }
 
+// CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTriggerInput is the input for CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTrigger — Trigger Project Schema Reversing.
+type CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTriggerInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	ProjectID string `path:"projectId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Branch *string `json:"branch,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTrigger - Trigger Project Schema Reversing
+// POST /context/repositories/{repositoryId}/projects/{projectId}/schema/trigger
+func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTrigger(ctx context.Context, in CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTriggerInput) (*models.EndpointsTriggerProjectSchemaOutput, error) {
+	path := "/context/repositories/{repositoryId}/projects/{projectId}/schema/trigger"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+	path = strings.Replace(path, "{projectId}", url.PathEscape(in.ProjectID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+	}{
+		Branch: in.Branch,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsTriggerProjectSchemaOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextRepositoriesRepositoryIdRepoContextTriggerInput is the input for CreateContextRepositoriesRepositoryIdRepoContextTrigger — Trigger Repository Context.
+type CreateContextRepositoriesRepositoryIdRepoContextTriggerInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Branch *string `json:"branch,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	PathPrefixes []string `json:"pathPrefixes,omitempty"`
+	Subagents []string `json:"subagents,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextRepositoriesRepositoryIdRepoContextTrigger - Trigger Repository Context
+// POST /context/repositories/{repositoryId}/repo-context/trigger
+func (c *Client) CreateContextRepositoriesRepositoryIdRepoContextTrigger(ctx context.Context, in CreateContextRepositoriesRepositoryIdRepoContextTriggerInput) (*models.EndpointsTriggerRepoContextOutput, error) {
+	path := "/context/repositories/{repositoryId}/repo-context/trigger"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+		Force *bool `json:"force,omitempty"`
+		PathPrefixes []string `json:"pathPrefixes,omitempty"`
+		Subagents []string `json:"subagents,omitempty"`
+	}{
+		Branch: in.Branch,
+		Force: in.Force,
+		PathPrefixes: in.PathPrefixes,
+		Subagents: in.Subagents,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsTriggerRepoContextOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateContextSbomingestorReplayInput is the input for CreateContextSbomingestorReplay — Compute Dependencies Repository/Project SBOM Ingest Replay.
 type CreateContextSbomingestorReplayInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	GlobalReplay *bool `json:"globalReplay,omitempty"`
 	ProjectID *string `json:"projectID,omitempty"`
 	RepositoryID *string `json:"repositoryID,omitempty"`
@@ -3154,6 +8424,9 @@ func (c *Client) CreateContextSbomingestorReplay(ctx context.Context, in CreateC
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3188,6 +8461,7 @@ func (c *Client) CreateContextSbomingestorReplay(ctx context.Context, in CreateC
 // DeleteContextSbomsInput is the input for DeleteContextSboms — Delete SBOMs for tenant.
 type DeleteContextSbomsInput struct {
 	DryRun *bool `url:"dryRun,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	InvalidOnly *bool `url:"invalidOnly,omitempty" json:"-"`
 	ProjectID *string `url:"projectId,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
@@ -3202,6 +8476,9 @@ func (c *Client) DeleteContextSboms(ctx context.Context, in DeleteContextSbomsIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.RepositoryID != nil {
 		query.Set("repositoryId", string(*in.RepositoryID))
@@ -3235,6 +8512,7 @@ func (c *Client) DeleteContextSboms(ctx context.Context, in DeleteContextSbomsIn
 
 // CreateContextSbomsGenerateInput is the input for CreateContextSbomsGenerate — Generate SBOM.
 type CreateContextSbomsGenerateInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	CloneURL *string `json:"cloneUrl,omitempty"`
 	CommitSha *string `json:"commitSha,omitempty"`
 	DefaultBranch *string `json:"defaultBranch,omitempty"`
@@ -3250,6 +8528,9 @@ func (c *Client) CreateContextSbomsGenerate(ctx context.Context, in CreateContex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3286,6 +8567,7 @@ func (c *Client) CreateContextSbomsGenerate(ctx context.Context, in CreateContex
 // ListContextSbomsRepositoryRepositoryIdLatestInput is the input for ListContextSbomsRepositoryRepositoryIdLatest — Get Latest SBOMs for Repository.
 type ListContextSbomsRepositoryRepositoryIdLatestInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3298,6 +8580,9 @@ func (c *Client) ListContextSbomsRepositoryRepositoryIdLatest(ctx context.Contex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3323,6 +8608,7 @@ type GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput struct {
 	ProjectID string `path:"projectId" json:"-"`
 	FromCommit *string `url:"fromCommit,omitempty" json:"-"`
 	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
 	UntilCommit *string `url:"untilCommit,omitempty" json:"-"`
@@ -3359,6 +8645,9 @@ func (c *Client) GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx conte
 	if in.UntilTime != nil {
 		query.Set("untilTime", string(*in.UntilTime))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -3379,12 +8668,15 @@ func (c *Client) GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx conte
 
 // CreateContextSbomsResolveInput is the input for CreateContextSbomsResolve — Get or generate SBOM.
 type CreateContextSbomsResolveInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	BaselineOnly *bool `json:"baselineOnly,omitempty"`
 	Branch *string `json:"branch,omitempty"`
 	CdxgenMajor *int `json:"cdxgenMajor,omitempty"`
 	CloneURL *string `json:"cloneURL,omitempty"`
 	CommitSHA *string `json:"commitSHA,omitempty"`
 	IsDefaultBranchPush *bool `json:"isDefaultBranchPush,omitempty"`
 	LockfileSetHash *string `json:"lockfileSetHash,omitempty"`
+	ManifestOnly *bool `json:"manifestOnly,omitempty"`
 	OwnerProvider *models.ModelsOwnerProvider `json:"ownerProvider,omitempty"`
 	RepositoryID *string `json:"repositoryID,omitempty"`
 	RepositoryProvider *models.ModelsGitRepositoryProvider `json:"repositoryProvider,omitempty"`
@@ -3403,6 +8695,9 @@ func (c *Client) CreateContextSbomsResolve(ctx context.Context, in CreateContext
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -3411,12 +8706,14 @@ func (c *Client) CreateContextSbomsResolve(ctx context.Context, in CreateContext
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		BaselineOnly *bool `json:"baselineOnly,omitempty"`
 		Branch *string `json:"branch,omitempty"`
 		CdxgenMajor *int `json:"cdxgenMajor,omitempty"`
 		CloneURL *string `json:"cloneURL,omitempty"`
 		CommitSHA *string `json:"commitSHA,omitempty"`
 		IsDefaultBranchPush *bool `json:"isDefaultBranchPush,omitempty"`
 		LockfileSetHash *string `json:"lockfileSetHash,omitempty"`
+		ManifestOnly *bool `json:"manifestOnly,omitempty"`
 		OwnerProvider *models.ModelsOwnerProvider `json:"ownerProvider,omitempty"`
 		RepositoryID *string `json:"repositoryID,omitempty"`
 		RepositoryProvider *models.ModelsGitRepositoryProvider `json:"repositoryProvider,omitempty"`
@@ -3424,12 +8721,14 @@ func (c *Client) CreateContextSbomsResolve(ctx context.Context, in CreateContext
 		TenantID *string `json:"tenantID,omitempty"`
 		Timestamp *string `json:"timestamp,omitempty"`
 	}{
+		BaselineOnly: in.BaselineOnly,
 		Branch: in.Branch,
 		CdxgenMajor: in.CdxgenMajor,
 		CloneURL: in.CloneURL,
 		CommitSHA: in.CommitSHA,
 		IsDefaultBranchPush: in.IsDefaultBranchPush,
 		LockfileSetHash: in.LockfileSetHash,
+		ManifestOnly: in.ManifestOnly,
 		OwnerProvider: in.OwnerProvider,
 		RepositoryID: in.RepositoryID,
 		RepositoryProvider: in.RepositoryProvider,
@@ -3451,8 +8750,60 @@ func (c *Client) CreateContextSbomsResolve(ctx context.Context, in CreateContext
 	return &out, nil
 }
 
+// CreateContextSbomsRunsInput is the input for CreateContextSbomsRuns — Start SBOM Run.
+type CreateContextSbomsRunsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Branch *string `json:"branch,omitempty"`
+	CommitSha *string `json:"commitSha,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	models.RequestScope
+}
+
+// CreateContextSbomsRuns - Start SBOM Run
+// POST /context/sboms/runs
+func (c *Client) CreateContextSbomsRuns(ctx context.Context, in CreateContextSbomsRunsInput) (*models.EndpointsPostSBOMRunOutput, error) {
+	path := "/context/sboms/runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Branch *string `json:"branch,omitempty"`
+		CommitSha *string `json:"commitSha,omitempty"`
+		RepositoryID string `json:"repositoryId"`
+	}{
+		Branch: in.Branch,
+		CommitSha: in.CommitSha,
+		RepositoryID: in.RepositoryID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSBOMRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateContextSbomsScanInput is the input for CreateContextSbomsScan — Scan SBOM (get-or-generate).
 type CreateContextSbomsScanInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	CommitSha string `json:"commitSha"`
 	ForceRegenerate *bool `json:"forceRegenerate,omitempty"`
 	ProjectID string `json:"projectId"`
@@ -3468,6 +8819,9 @@ func (c *Client) CreateContextSbomsScan(ctx context.Context, in CreateContextSbo
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3503,6 +8857,7 @@ func (c *Client) CreateContextSbomsScan(ctx context.Context, in CreateContextSbo
 
 // ListContextSbomsTreeInput is the input for ListContextSbomsTree — Get SBOM key tree for tenant.
 type ListContextSbomsTreeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Verbose *bool `url:"verbose,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -3515,6 +8870,9 @@ func (c *Client) ListContextSbomsTree(ctx context.Context, in ListContextSbomsTr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	if in.Verbose != nil {
 		query.Set("verbose", strconv.FormatBool(*in.Verbose))
@@ -3539,6 +8897,7 @@ func (c *Client) ListContextSbomsTree(ctx context.Context, in ListContextSbomsTr
 
 // ListContextSchemasInput is the input for ListContextSchemas — List Schemas.
 type ListContextSchemasInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3550,6 +8909,9 @@ func (c *Client) ListContextSchemas(ctx context.Context, in ListContextSchemasIn
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3569,10 +8931,380 @@ func (c *Client) ListContextSchemas(ctx context.Context, in ListContextSchemasIn
 	return &out, nil
 }
 
+// ListContextSetupRecommendationsPentestAssessmentsInput is the input for ListContextSetupRecommendationsPentestAssessments — List assessment setup proposals.
+type ListContextSetupRecommendationsPentestAssessmentsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextSetupRecommendationsPentestAssessments - List assessment setup proposals
+// GET /context/setup-recommendations/pentest-assessments
+func (c *Client) ListContextSetupRecommendationsPentestAssessments(ctx context.Context, in ListContextSetupRecommendationsPentestAssessmentsInput) (*models.EndpointsSetupPentestAssessmentRecommendationsOutput, error) {
+	path := "/context/setup-recommendations/pentest-assessments"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSetupPentestAssessmentRecommendationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSetupRecommendationsPentestAssessmentsRefreshInput is the input for CreateContextSetupRecommendationsPentestAssessmentsRefresh — Refresh assessment setup proposals.
+type CreateContextSetupRecommendationsPentestAssessmentsRefreshInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateContextSetupRecommendationsPentestAssessmentsRefresh - Refresh assessment setup proposals
+// POST /context/setup-recommendations/pentest-assessments/refresh
+func (c *Client) CreateContextSetupRecommendationsPentestAssessmentsRefresh(ctx context.Context, in CreateContextSetupRecommendationsPentestAssessmentsRefreshInput) (*models.EndpointsSetupPentestAssessmentRecommendationsOutput, error) {
+	path := "/context/setup-recommendations/pentest-assessments/refresh"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSetupPentestAssessmentRecommendationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdAcceptInput is the input for CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdAccept — Accept assessment setup proposal.
+type CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdAcceptInput struct {
+	RecommendationID string `path:"recommendationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ApplicationID string `json:"applicationId"`
+	models.RequestScope
+}
+
+// CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdAccept - Accept assessment setup proposal
+// POST /context/setup-recommendations/pentest-assessments/{recommendationId}/accept
+func (c *Client) CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdAccept(ctx context.Context, in CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdAcceptInput) (*models.EndpointsDecideSetupPentestAssessmentRecommendationOutput, error) {
+	path := "/context/setup-recommendations/pentest-assessments/{recommendationId}/accept"
+	path = strings.Replace(path, "{recommendationId}", url.PathEscape(in.RecommendationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ApplicationID string `json:"applicationId"`
+	}{
+		ApplicationID: in.ApplicationID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDecideSetupPentestAssessmentRecommendationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdDismissInput is the input for CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdDismiss — Dismiss assessment setup proposal.
+type CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdDismissInput struct {
+	RecommendationID string `path:"recommendationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdDismiss - Dismiss assessment setup proposal
+// POST /context/setup-recommendations/pentest-assessments/{recommendationId}/dismiss
+func (c *Client) CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdDismiss(ctx context.Context, in CreateContextSetupRecommendationsPentestAssessmentsRecommendationIdDismissInput) (*models.EndpointsDecideSetupPentestAssessmentRecommendationOutput, error) {
+	path := "/context/setup-recommendations/pentest-assessments/{recommendationId}/dismiss"
+	path = strings.Replace(path, "{recommendationId}", url.PathEscape(in.RecommendationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDecideSetupPentestAssessmentRecommendationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextSetupRecommendationsPentestTargetsInput is the input for ListContextSetupRecommendationsPentestTargets — List pentest target recommendations.
+type ListContextSetupRecommendationsPentestTargetsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextSetupRecommendationsPentestTargets - List pentest target recommendations
+// GET /context/setup-recommendations/pentest-targets
+func (c *Client) ListContextSetupRecommendationsPentestTargets(ctx context.Context, in ListContextSetupRecommendationsPentestTargetsInput) (*models.EndpointsSetupPentestTargetRecommendationsOutput, error) {
+	path := "/context/setup-recommendations/pentest-targets"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSetupPentestTargetRecommendationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSetupRecommendationsPentestTargetsRefreshInput is the input for CreateContextSetupRecommendationsPentestTargetsRefresh — Refresh pentest target recommendations.
+type CreateContextSetupRecommendationsPentestTargetsRefreshInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateContextSetupRecommendationsPentestTargetsRefresh - Refresh pentest target recommendations
+// POST /context/setup-recommendations/pentest-targets/refresh
+func (c *Client) CreateContextSetupRecommendationsPentestTargetsRefresh(ctx context.Context, in CreateContextSetupRecommendationsPentestTargetsRefreshInput) (*models.EndpointsSetupPentestTargetRecommendationsOutput, error) {
+	path := "/context/setup-recommendations/pentest-targets/refresh"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSetupPentestTargetRecommendationsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSetupRecommendationsPentestTargetsRecommendationIdAcceptInput is the input for CreateContextSetupRecommendationsPentestTargetsRecommendationIdAccept — Accept pentest target recommendation.
+type CreateContextSetupRecommendationsPentestTargetsRecommendationIdAcceptInput struct {
+	RecommendationID string `path:"recommendationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	TargetID string `json:"targetId"`
+	models.RequestScope
+}
+
+// CreateContextSetupRecommendationsPentestTargetsRecommendationIdAccept - Accept pentest target recommendation
+// POST /context/setup-recommendations/pentest-targets/{recommendationId}/accept
+func (c *Client) CreateContextSetupRecommendationsPentestTargetsRecommendationIdAccept(ctx context.Context, in CreateContextSetupRecommendationsPentestTargetsRecommendationIdAcceptInput) (*models.EndpointsDecideSetupPentestTargetRecommendationOutput, error) {
+	path := "/context/setup-recommendations/pentest-targets/{recommendationId}/accept"
+	path = strings.Replace(path, "{recommendationId}", url.PathEscape(in.RecommendationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		TargetID string `json:"targetId"`
+	}{
+		TargetID: in.TargetID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDecideSetupPentestTargetRecommendationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextSetupRecommendationsPentestTargetsRecommendationIdDismissInput is the input for CreateContextSetupRecommendationsPentestTargetsRecommendationIdDismiss — Dismiss pentest target recommendation.
+type CreateContextSetupRecommendationsPentestTargetsRecommendationIdDismissInput struct {
+	RecommendationID string `path:"recommendationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateContextSetupRecommendationsPentestTargetsRecommendationIdDismiss - Dismiss pentest target recommendation
+// POST /context/setup-recommendations/pentest-targets/{recommendationId}/dismiss
+func (c *Client) CreateContextSetupRecommendationsPentestTargetsRecommendationIdDismiss(ctx context.Context, in CreateContextSetupRecommendationsPentestTargetsRecommendationIdDismissInput) (*models.EndpointsDecideSetupPentestTargetRecommendationOutput, error) {
+	path := "/context/setup-recommendations/pentest-targets/{recommendationId}/dismiss"
+	path = strings.Replace(path, "{recommendationId}", url.PathEscape(in.RecommendationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDecideSetupPentestTargetRecommendationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextVaultDocumentDocumentIdTextInput is the input for ListContextVaultDocumentDocumentIdText — Get Vault Document Text.
+type ListContextVaultDocumentDocumentIdTextInput struct {
+	DocumentID string `path:"documentId" json:"-"`
+	EndPage *int `url:"endPage,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	MaxChars *int `url:"maxChars,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	StartPage *int `url:"startPage,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextVaultDocumentDocumentIdText - Get Vault Document Text
+// GET /context/vault/document/{documentId}/text
+func (c *Client) ListContextVaultDocumentDocumentIdText(ctx context.Context, in ListContextVaultDocumentDocumentIdTextInput) (*models.EndpointsGetVaultDocumentTextOutput, error) {
+	path := "/context/vault/document/{documentId}/text"
+	path = strings.Replace(path, "{documentId}", url.PathEscape(in.DocumentID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.StartPage != nil {
+		query.Set("startPage", strconv.Itoa(int(*in.StartPage)))
+	}
+	if in.EndPage != nil {
+		query.Set("endPage", strconv.Itoa(int(*in.EndPage)))
+	}
+	if in.MaxChars != nil {
+		query.Set("maxChars", strconv.Itoa(int(*in.MaxChars)))
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetVaultDocumentTextOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateContextVaultFileInput is the input for CreateContextVaultFile — Post Vault File.
 type CreateContextVaultFileInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Description *string `json:"description,omitempty"`
 	FileName string `json:"fileName"`
+	Size *int64 `json:"size,omitempty"`
 	models.RequestScope
 }
 
@@ -3585,6 +9317,9 @@ func (c *Client) CreateContextVaultFile(ctx context.Context, in CreateContextVau
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -3595,9 +9330,11 @@ func (c *Client) CreateContextVaultFile(ctx context.Context, in CreateContextVau
 	bodyBytes, err := json.Marshal(struct {
 		Description *string `json:"description,omitempty"`
 		FileName string `json:"fileName"`
+		Size *int64 `json:"size,omitempty"`
 	}{
 		Description: in.Description,
 		FileName: in.FileName,
+		Size: in.Size,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -3616,6 +9353,7 @@ func (c *Client) CreateContextVaultFile(ctx context.Context, in CreateContextVau
 // DeleteContextVaultFileFileIdInput is the input for DeleteContextVaultFileFileId — Delete Vault File.
 type DeleteContextVaultFileFileIdInput struct {
 	FileID string `path:"fileId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3628,6 +9366,9 @@ func (c *Client) DeleteContextVaultFileFileId(ctx context.Context, in DeleteCont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3643,6 +9384,7 @@ func (c *Client) DeleteContextVaultFileFileId(ctx context.Context, in DeleteCont
 // GetContextVaultFileFileIdInput is the input for GetContextVaultFileFileId — Get Vault File.
 type GetContextVaultFileFileIdInput struct {
 	FileID string `path:"fileId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3655,6 +9397,9 @@ func (c *Client) GetContextVaultFileFileId(ctx context.Context, in GetContextVau
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3677,6 +9422,7 @@ func (c *Client) GetContextVaultFileFileId(ctx context.Context, in GetContextVau
 // PatchContextVaultFileFileNameInput is the input for PatchContextVaultFileFileName — Patch Vault File.
 type PatchContextVaultFileFileNameInput struct {
 	FileName string `path:"fileName" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	DocumentID *string `json:"documentId,omitempty"`
 	Metadata map[string]json.RawMessage `json:"metadata,omitempty"`
 	ProcessedAt *string `json:"processedAt,omitempty"`
@@ -3692,6 +9438,9 @@ func (c *Client) PatchContextVaultFileFileName(ctx context.Context, in PatchCont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3725,6 +9474,10 @@ func (c *Client) PatchContextVaultFileFileName(ctx context.Context, in PatchCont
 
 // ListContextVaultFilesInput is the input for ListContextVaultFiles — Get Vault Files.
 type ListContextVaultFilesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3736,6 +9489,18 @@ func (c *Client) ListContextVaultFiles(ctx context.Context, in ListContextVaultF
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3757,6 +9522,7 @@ func (c *Client) ListContextVaultFiles(ctx context.Context, in ListContextVaultF
 
 // ListContextVaultFilesListInput is the input for ListContextVaultFilesList — Get Vault Files List.
 type ListContextVaultFilesListInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3768,6 +9534,9 @@ func (c *Client) ListContextVaultFilesList(ctx context.Context, in ListContextVa
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3787,20 +9556,24 @@ func (c *Client) ListContextVaultFilesList(ctx context.Context, in ListContextVa
 	return &out, nil
 }
 
-// CreateContextVaultOnboardInput is the input for CreateContextVaultOnboard — Trigger Vault Onboarding.
-type CreateContextVaultOnboardInput struct {
+// CreateContextVaultIndexInput is the input for CreateContextVaultIndex — Index Vault Files.
+type CreateContextVaultIndexInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	FileIDs []string `json:"fileIDs,omitempty"`
 	models.RequestScope
 }
 
-// CreateContextVaultOnboard - Trigger Vault Onboarding
-// POST /context/vault/onboard
-func (c *Client) CreateContextVaultOnboard(ctx context.Context, in CreateContextVaultOnboardInput) (*models.EndpointsPostVaultOnboardOutput, error) {
-	path := "/context/vault/onboard"
+// CreateContextVaultIndex - Index Vault Files
+// POST /context/vault/index
+func (c *Client) CreateContextVaultIndex(ctx context.Context, in CreateContextVaultIndexInput) (*models.EndpointsPostVaultIndexOutput, error) {
+	path := "/context/vault/index"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -3821,7 +9594,366 @@ func (c *Client) CreateContextVaultOnboard(ctx context.Context, in CreateContext
 	if err != nil {
 		return nil, err
 	}
+	var out models.EndpointsPostVaultIndexOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextVaultOnboardInput is the input for CreateContextVaultOnboard — Trigger Vault Onboarding.
+type CreateContextVaultOnboardInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FileIDs []string `json:"fileIDs,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextVaultOnboard - Trigger Vault Onboarding
+// POST /context/vault/onboard
+func (c *Client) CreateContextVaultOnboard(ctx context.Context, in CreateContextVaultOnboardInput) (*models.EndpointsPostVaultOnboardOutput, error) {
+	path := "/context/vault/onboard"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FileIDs []string `json:"fileIDs,omitempty"`
+		RunID *string `json:"runId,omitempty"`
+	}{
+		FileIDs: in.FileIDs,
+		RunID: in.RunID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
 	var out models.EndpointsPostVaultOnboardOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextVaultSearchInput is the input for CreateContextVaultSearch — Search Vault Documents.
+type CreateContextVaultSearchInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	DocTypes []string `json:"docTypes,omitempty"`
+	DocumentIds []string `json:"documentIds,omitempty"`
+	Limit *int `json:"limit,omitempty"`
+	Query string `json:"query"`
+	models.RequestScope
+}
+
+// CreateContextVaultSearch - Search Vault Documents
+// POST /context/vault/search
+func (c *Client) CreateContextVaultSearch(ctx context.Context, in CreateContextVaultSearchInput) (*models.EndpointsSearchVaultOutput, error) {
+	path := "/context/vault/search"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		DocTypes []string `json:"docTypes,omitempty"`
+		DocumentIds []string `json:"documentIds,omitempty"`
+		Limit *int `json:"limit,omitempty"`
+		Query string `json:"query"`
+	}{
+		DocTypes: in.DocTypes,
+		DocumentIds: in.DocumentIds,
+		Limit: in.Limit,
+		Query: in.Query,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsSearchVaultOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextWafAllowlistPrRunsInput is the input for CreateContextWafAllowlistPrRuns — Start WAF Allowlist PR Run.
+type CreateContextWafAllowlistPrRunsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Digest *string `json:"digest,omitempty"`
+	ExpectedRunID *string `json:"expectedRunId,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextWafAllowlistPrRuns - Start WAF Allowlist PR Run
+// POST /context/waf-allowlist-pr/runs
+func (c *Client) CreateContextWafAllowlistPrRuns(ctx context.Context, in CreateContextWafAllowlistPrRunsInput) (*models.EndpointsContextStartCloudConnectorPRRunOutput, error) {
+	path := "/context/waf-allowlist-pr/runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Digest *string `json:"digest,omitempty"`
+		ExpectedRunID *string `json:"expectedRunId,omitempty"`
+	}{
+		Digest: in.Digest,
+		ExpectedRunID: in.ExpectedRunID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextStartCloudConnectorPRRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextWafAllowlistPrRunsRunIdInput is the input for GetContextWafAllowlistPrRunsRunId — Get WAF Allowlist PR Run.
+type GetContextWafAllowlistPrRunsRunIdInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextWafAllowlistPrRunsRunId - Get WAF Allowlist PR Run
+// GET /context/waf-allowlist-pr/runs/{runId}
+func (c *Client) GetContextWafAllowlistPrRunsRunId(ctx context.Context, in GetContextWafAllowlistPrRunsRunIdInput) (*models.EndpointsContextGetCloudConnectorPRRunOutput, error) {
+	path := "/context/waf-allowlist-pr/runs/{runId}"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextGetCloudConnectorPRRunOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextWafAllowlistPrRunsRunIdApproveInput is the input for CreateContextWafAllowlistPrRunsRunIdApprove — Create approved WAF allowlist draft PR.
+type CreateContextWafAllowlistPrRunsRunIdApproveInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Digest string `json:"digest"`
+	models.RequestScope
+}
+
+// CreateContextWafAllowlistPrRunsRunIdApprove - Create approved WAF allowlist draft PR
+// POST /context/waf-allowlist-pr/runs/{runId}/approve
+func (c *Client) CreateContextWafAllowlistPrRunsRunIdApprove(ctx context.Context, in CreateContextWafAllowlistPrRunsRunIdApproveInput) (*models.EndpointsContextApproveCloudConnectorProposalOutput, error) {
+	path := "/context/waf-allowlist-pr/runs/{runId}/approve"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Digest string `json:"digest"`
+	}{
+		Digest: in.Digest,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextApproveCloudConnectorProposalOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextWafAllowlistPrRunsRunIdProposalInput is the input for ListContextWafAllowlistPrRunsRunIdProposal — Review WAF allowlist proposal.
+type ListContextWafAllowlistPrRunsRunIdProposalInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextWafAllowlistPrRunsRunIdProposal - Review WAF allowlist proposal
+// GET /context/waf-allowlist-pr/runs/{runId}/proposal
+func (c *Client) ListContextWafAllowlistPrRunsRunIdProposal(ctx context.Context, in ListContextWafAllowlistPrRunsRunIdProposalInput) (*models.EndpointsContextGetCloudConnectorProposalOutput, error) {
+	path := "/context/waf-allowlist-pr/runs/{runId}/proposal"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextGetCloudConnectorProposalOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextWafAllowlistPrRunsRunIdRecoverInput is the input for CreateContextWafAllowlistPrRunsRunIdRecover — Recover unresolved WAF allowlist publication.
+type CreateContextWafAllowlistPrRunsRunIdRecoverInput struct {
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
+	Digest string `json:"digest"`
+	models.RequestScope
+}
+
+// CreateContextWafAllowlistPrRunsRunIdRecover - Recover unresolved WAF allowlist publication
+// POST /context/waf-allowlist-pr/runs/{runId}/recover
+func (c *Client) CreateContextWafAllowlistPrRunsRunIdRecover(ctx context.Context, in CreateContextWafAllowlistPrRunsRunIdRecoverInput) (*models.EndpointsContextRecoverCloudConnectorProposalOutput, error) {
+	path := "/context/waf-allowlist-pr/runs/{runId}/recover"
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
+		Digest string `json:"digest"`
+	}{
+		ConfirmNoPullRequest: in.ConfirmNoPullRequest,
+		Digest: in.Digest,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextRecoverCloudConnectorProposalOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextWafAllowlistPrStatusInput is the input for ListContextWafAllowlistPrStatus — Get WAF Allowlist PR Status.
+type ListContextWafAllowlistPrStatusInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextWafAllowlistPrStatus - Get WAF Allowlist PR Status
+// GET /context/waf-allowlist-pr/status
+func (c *Client) ListContextWafAllowlistPrStatus(ctx context.Context, in ListContextWafAllowlistPrStatusInput) (*models.EndpointsContextGetCloudConnectorPRStatusOutput, error) {
+	path := "/context/waf-allowlist-pr/status"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextGetCloudConnectorPRStatusOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
