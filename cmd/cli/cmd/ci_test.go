@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -133,7 +135,7 @@ func TestCountFindings(t *testing.T) {
 		},
 		{
 			name:     "pentest envelope",
-			body:     `{"findings":[{"id":"f1"},{"id":"f2"},{"id":"f3"}],"numItems":3,"nextToken":""}`,
+			body:     `{"findings":[{"id":"f1"},{"id":"f2"},{"id":"f3"}],"numItems":0,"nextToken":""}`,
 			expected: 3,
 		},
 		{
@@ -177,7 +179,7 @@ func TestCountFindingsRejectsUnknownEnvelopes(t *testing.T) {
 		{name: "object with zero count", body: `{"findings":{},"numItems":0}`},
 		{name: "boolean with zero count", body: `{"findings":false,"numItems":0}`},
 		{name: "negative count", body: `{"findings":[],"numItems":-1}`},
-		{name: "understated count", body: `{"findings":[{"id":"f1"}],"numItems":0}`},
+		{name: "understated positive count", body: `{"findings":[{"id":"f1"},{"id":"f2"}],"numItems":1}`},
 		{name: "overstated count", body: `{"findings":[],"numItems":1}`},
 	}
 
@@ -207,7 +209,7 @@ func TestCIGateResponseValidation(t *testing.T) {
 	}{
 		{"missing findings", "sast", `{}`, ExitNetworkError},
 		{"malformed findings", "sast", `{"findings":{},"numItems":0}`, ExitNetworkError},
-		{"hidden finding", "sast", `{"findings":[{"id":"f1"}],"numItems":0}`, ExitNetworkError},
+		{"legacy zero count", "pentest", `{"findings":[{"id":"f1"}],"numItems":0}`, ExitFindings},
 		{"negative count", "sast", `{"findings":[],"numItems":-1}`, ExitNetworkError},
 		{"finding", "sast", `{"findings":[{"id":"f1"}],"numItems":1}`, ExitFindings},
 		{"clean", "sast", `{"findings":[],"numItems":0}`, ExitSuccess},
@@ -246,6 +248,75 @@ func TestCIGateResponseValidation(t *testing.T) {
 
 			require.Equal(t, tt.wantExit, ExitCodeForError(err))
 			require.Equal(t, int64(1), calls.Load())
+		})
+	}
+}
+
+func TestCIReportPreservesPentestFindingsWithZeroCount(t *testing.T) {
+	t.Setenv("NULLIFY_HOST", "review.nullify.ai")
+	t.Setenv("NULLIFY_TOKEN", "synthetic-token")
+	originalHost, originalToken, originalGithub := host, nullifyToken, githubToken
+	host, nullifyToken, githubToken = "review.nullify.ai", "synthetic-token", ""
+	t.Cleanup(func() {
+		host, nullifyToken, githubToken = originalHost, originalToken, originalGithub
+	})
+
+	originalTransport := http.DefaultTransport
+	t.Cleanup(func() { http.DefaultTransport = originalTransport })
+	http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		body := `{"findings":[],"numItems":0}`
+		if req.URL.Path == "/dast/pentest/findings" {
+			body = `{"findings":[{"id":"pentest-1","title":"Critical pentest finding","severity":"CRITICAL"}],"groups":null,"numItems":0,"nextToken":""}`
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(strings.NewReader(body)),
+			Header:     make(http.Header),
+			Request:    req,
+		}, nil
+	})
+
+	for _, format := range []string{"markdown", "sarif"} {
+		t.Run(format, func(t *testing.T) {
+			stdout, err := os.CreateTemp(t.TempDir(), "report")
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = stdout.Close() })
+			originalStdout := os.Stdout
+			os.Stdout = stdout
+			t.Cleanup(func() { os.Stdout = originalStdout })
+
+			cmd := &cobra.Command{}
+			cmd.SetContext(context.Background())
+			cmd.Flags().String("repo", "org/repo", "")
+			cmd.Flags().String("format", format, "")
+			require.NoError(t, ciReportCmd.RunE(cmd, nil))
+
+			_, err = stdout.Seek(0, io.SeekStart)
+			require.NoError(t, err)
+			report, err := io.ReadAll(stdout)
+			require.NoError(t, err)
+			if format == "markdown" {
+				require.Contains(t, string(report), "| pentest | critical | 1 |")
+				return
+			}
+
+			var sarif struct {
+				Runs []struct {
+					Results []struct {
+						Level   string `json:"level"`
+						Message struct {
+							Text string `json:"text"`
+						} `json:"message"`
+					} `json:"results"`
+				} `json:"runs"`
+			}
+			require.NoError(t, json.Unmarshal(report, &sarif))
+			require.Len(t, sarif.Runs, 1)
+			require.NotEmpty(t, sarif.Runs[0].Results)
+			for _, result := range sarif.Runs[0].Results {
+				require.Equal(t, "error", result.Level)
+				require.Equal(t, "Critical pentest finding", result.Message.Text)
+			}
 		})
 	}
 }

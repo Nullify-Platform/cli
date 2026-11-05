@@ -359,7 +359,7 @@ func countFindings(body string) (int, error) {
 	if err := json.Unmarshal(envelope.Findings, &findings); err != nil {
 		return 0, fmt.Errorf("%w: \"findings\" is not an array: %w", errUnreadableFindings, err)
 	}
-	if envelope.NumItems != nil && *envelope.NumItems != len(findings) {
+	if envelope.NumItems != nil && *envelope.NumItems != 0 && *envelope.NumItems != len(findings) {
 		return 0, fmt.Errorf(
 			"%w: numItems %d does not match findings length %d",
 			errUnreadableFindings, *envelope.NumItems, len(findings),
