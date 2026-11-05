@@ -3,10 +3,349 @@ package models
 
 import "encoding/json"
 
+type DotnetsetupSelection struct {
+	Command *string `json:"command,omitempty"`
+	Configuration *string `json:"configuration,omitempty"`
+	ConfigurationInputs []string `json:"configurationInputs,omitempty"`
+	Framework *string `json:"framework,omitempty"`
+	Invocation *string `json:"invocation,omitempty"`
+	PermittedTestPath *string `json:"permittedTestPath,omitempty"`
+	Platform *string `json:"platform,omitempty"`
+	ProductionProject *string `json:"productionProject,omitempty"`
+	ProjectSdk *string `json:"projectSdk,omitempty"`
+	RequestedSdk *string `json:"requestedSdk,omitempty"`
+	SdkAllowPrerelease *string `json:"sdkAllowPrerelease,omitempty"`
+	SdkRollForward *string `json:"sdkRollForward,omitempty"`
+	TargetFrameworks []string `json:"targetFrameworks,omitempty"`
+	TestPlatform *string `json:"testPlatform,omitempty"`
+	TestProject *string `json:"testProject,omitempty"`
+	WorkingDir *string `json:"workingDir,omitempty"`
+}
+
+type EndpointsAWSACMDetailsView struct {
+}
+
+type EndpointsAWSALBDetailsView struct {
+}
+
+type EndpointsAWSAPIGatewayDetailsView struct {
+}
+
+type EndpointsAWSAppRunnerDetailsView struct {
+}
+
+type EndpointsAWSAppSyncDetailsView struct {
+}
+
+type EndpointsAWSAthenaDetailsView struct {
+}
+
+type EndpointsAWSAutoscalingGroupDetailsView struct {
+	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	DesiredCapacity *int `json:"desiredCapacity,omitempty"`
+	HealthCheckType *string `json:"healthCheckType,omitempty"`
+	LaunchTemplate *string `json:"launchTemplate,omitempty"`
+	LoadBalancerNames []string `json:"loadBalancerNames,omitempty"`
+	MaxSize *int `json:"maxSize,omitempty"`
+	MinSize *int `json:"minSize,omitempty"`
+	TargetGroupArns []string `json:"targetGroupArns,omitempty"`
+	TerminationPolicies []string `json:"terminationPolicies,omitempty"`
+}
+
+type EndpointsAWSBackupVaultDetailsView struct {
+}
+
+type EndpointsAWSBedrockModelDetailsView struct {
+}
+
+type EndpointsAWSCLBDetailsView struct {
+}
+
+type EndpointsAWSCloudFrontDetailsView struct {
+}
+
+type EndpointsAWSCloudTrailDetailsView struct {
+}
+
+type EndpointsAWSCloudWatchAlarmDetailsView struct {
+}
+
+type EndpointsAWSCloudWatchDashboardDetailsView struct {
+}
+
+type EndpointsAWSCloudWatchLogGroupDetailsView struct {
+}
+
+type EndpointsAWSCodeArtifactDetailsView struct {
+}
+
+type EndpointsAWSCodeBuildDetailsView struct {
+}
+
+type EndpointsAWSCodeCommitDetailsView struct {
+}
+
+type EndpointsAWSCodeDeployDetailsView struct {
+}
+
+type EndpointsAWSCodePipelineDetailsView struct {
+}
+
+type EndpointsAWSCognitoUserPoolDetailsView struct {
+}
+
+type EndpointsAWSConfigDetailsView struct {
+}
+
+type EndpointsAWSDirectConnectDetailsView struct {
+}
+
+type EndpointsAWSDynamoDBDetailsView struct {
+}
+
+type EndpointsAWSEBSVolumeDetailsView struct {
+}
+
+type EndpointsAWSEC2DetailsView struct {
+	Architecture *string `json:"architecture,omitempty"`
+	EbsVolumeIds []string `json:"ebsVolumeIds,omitempty"`
+	Hypervisor *string `json:"hypervisor,omitempty"`
+	IamInstanceProfile *string `json:"iamInstanceProfile,omitempty"`
+	KernelID *string `json:"kernelId,omitempty"`
+	LaunchTime *string `json:"launchTime,omitempty"`
+	Monitoring *string `json:"monitoring,omitempty"`
+	NetworkInterfaceIds []string `json:"networkInterfaceIds,omitempty"`
+	RootDeviceType *string `json:"rootDeviceType,omitempty"`
+	SecurityGroupIds []string `json:"securityGroupIds,omitempty"`
+	Tenancy *string `json:"tenancy,omitempty"`
+	UserDataSha256 *string `json:"userDataSha256,omitempty"`
+}
+
+type EndpointsAWSECRDetailsView struct {
+}
+
+type EndpointsAWSECSClusterDetailsView struct {
+}
+
+type EndpointsAWSECSServiceDetailsView struct {
+}
+
+type EndpointsAWSECSTaskDefinitionDetailsView struct {
+}
+
+type EndpointsAWSECSTaskDetailsView struct {
+}
+
+type EndpointsAWSEFSDetailsView struct {
+}
+
+type EndpointsAWSEIPDetailsView struct {
+}
+
+type EndpointsAWSEKSClusterDetailsView struct {
+}
+
+type EndpointsAWSEMRDetailsView struct {
+}
+
+type EndpointsAWSElastiCacheDetailsView struct {
+}
+
+type EndpointsAWSEventBridgeDetailsView struct {
+}
+
+type EndpointsAWSGlobalAcceleratorDetailsView struct {
+}
+
+type EndpointsAWSGlueDetailsView struct {
+}
+
+type EndpointsAWSGuardDutyDetailsView struct {
+}
+
+type EndpointsAWSIAMGroupDetailsView struct {
+}
+
+type EndpointsAWSIAMPolicyDetailsView struct {
+}
+
+type EndpointsAWSIAMRoleDetailsView struct {
+}
+
+type EndpointsAWSIAMUserDetailsView struct {
+}
+
+type EndpointsAWSInternetGatewayDetailsView struct {
+}
+
+type EndpointsAWSKMSDetailsView struct {
+}
+
+type EndpointsAWSKinesisDetailsView struct {
+}
+
+type EndpointsAWSLambdaDetailsView struct {
+}
+
+type EndpointsAWSMQDetailsView struct {
+}
+
+type EndpointsAWSMSKDetailsView struct {
+}
+
+type EndpointsAWSMemoryDBDetailsView struct {
+}
+
+type EndpointsAWSNACLDetailsView struct {
+}
+
+type EndpointsAWSNATGatewayDetailsView struct {
+}
+
+type EndpointsAWSNLBDetailsView struct {
+}
+
+type EndpointsAWSNeptuneDetailsView struct {
+}
+
+type EndpointsAWSNetworkFirewallDetailsView struct {
+}
+
+type EndpointsAWSOpenSearchDetailsView struct {
+}
+
+type EndpointsAWSPrivateLinkDetailsView struct {
+}
+
+type EndpointsAWSRDSDetailsView struct {
+}
+
+type EndpointsAWSRedshiftDetailsView struct {
+}
+
+type EndpointsAWSRoute53HostedZoneDetailsView struct {
+}
+
+type EndpointsAWSRouteTableDetailsView struct {
+}
+
+type EndpointsAWSS3BucketDetailsView struct {
+}
+
+type EndpointsAWSSESDetailsView struct {
+}
+
+type EndpointsAWSSNSDetailsView struct {
+}
+
+type EndpointsAWSSQSDetailsView struct {
+}
+
+type EndpointsAWSSSMDetailsView struct {
+}
+
+type EndpointsAWSSageMakerEndpointDetailsView struct {
+}
+
+type EndpointsAWSSecretsManagerDetailsView struct {
+}
+
+type EndpointsAWSSecurityGroupDetailsView struct {
+}
+
+type EndpointsAWSStepFunctionDetailsView struct {
+}
+
+type EndpointsAWSStorageGatewayDetailsView struct {
+}
+
+type EndpointsAWSSubnetDetailsView struct {
+}
+
+type EndpointsAWSTGWAttachmentDetailsView struct {
+}
+
+type EndpointsAWSTargetGroupDetailsView struct {
+}
+
+type EndpointsAWSVPCDetailsView struct {
+}
+
+type EndpointsAWSVPCEndpointDetailsView struct {
+}
+
+type EndpointsAWSVPNConnectionDetailsView struct {
+}
+
+type EndpointsAWSWAFDetailsView struct {
+}
+
+type EndpointsAWSWorkspaceDetailsView struct {
+	BundleID *string `json:"bundleId,omitempty"`
+	ComputerName *string `json:"computerName,omitempty"`
+	DirectoryID *string `json:"directoryId,omitempty"`
+	RootVolumeSizeGb *int `json:"rootVolumeSizeGb,omitempty"`
+	RunningMode *string `json:"runningMode,omitempty"`
+	UserName *string `json:"userName,omitempty"`
+	UserVolumeSizeGb *int `json:"userVolumeSizeGb,omitempty"`
+}
+
+type EndpointsAWSXRayDetailsView struct {
+}
+
+type EndpointsAcceptSetupPentestAssessmentRecommendationInput struct {
+	ApplicationID string `json:"applicationId"`
+}
+
+type EndpointsAcceptSetupPentestTargetRecommendationInput struct {
+	TargetID string `json:"targetId"`
+}
+
 type EndpointsActiveDepsSummaryOldest struct {
 	Ecosystem string `json:"ecosystem"`
 	IntroducedAt string `json:"introducedAt"`
 	Name string `json:"name"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsAiMlAssetDetailsView struct {
+	AwsBedrockModel *EndpointsAWSBedrockModelDetailsView `json:"awsBedrockModel,omitempty"`
+	AwsSageMakerEndpoint *EndpointsAWSSageMakerEndpointDetailsView `json:"awsSageMakerEndpoint,omitempty"`
+	AzureMachineLearning *EndpointsAzureMachineLearningDetailsView `json:"azureMachineLearning,omitempty"`
+	AzureMlWorkspace *EndpointsAzureMLWorkspaceDetailsView `json:"azureMlWorkspace,omitempty"`
+	AzureOpenAiDeployment *EndpointsAzureOpenAIDeploymentDetailsView `json:"azureOpenAiDeployment,omitempty"`
+	GcpVertexEndpoint *EndpointsGCPVertexEndpointDetailsView `json:"gcpVertexEndpoint,omitempty"`
+	SubType ModelsAiMlSubType `json:"subType"`
+}
+
+type EndpointsAiMlAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DataSourceRefs []string `json:"dataSourceRefs,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	EndpointVisibility *string `json:"endpointVisibility,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	Framework *string `json:"framework,omitempty"`
+	GpuType *string `json:"gpuType,omitempty"`
+	GuardrailsEnabled *bool `json:"guardrailsEnabled,omitempty"`
+	IamRoleArn *string `json:"iamRoleArn,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	Kind *string `json:"kind,omitempty"`
+	LastInvocationAt *string `json:"lastInvocationAt,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	ModelName *string `json:"modelName,omitempty"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsAiMlSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 type EndpointsArtifactDeploymentSummary struct {
@@ -39,6 +378,47 @@ type EndpointsArtifactRegistrySummary struct {
 	Type *string `json:"type,omitempty"`
 }
 
+type EndpointsArtifactRepositoriesAssetDetailsView struct {
+	AwsCodeArtifact *EndpointsAWSCodeArtifactDetailsView `json:"awsCodeArtifact,omitempty"`
+	AwsEcr *EndpointsAWSECRDetailsView `json:"awsEcr,omitempty"`
+	AzureAcr *EndpointsAzureACRDetailsView `json:"azureAcr,omitempty"`
+	Crates *EndpointsCratesDetailsView `json:"crates,omitempty"`
+	Dockerhub *EndpointsDockerHubDetailsView `json:"dockerhub,omitempty"`
+	GcpArtifactRegistry *EndpointsGCPArtifactRegistryDetailsView `json:"gcpArtifactRegistry,omitempty"`
+	Ghcr *EndpointsGHCRDetailsView `json:"ghcr,omitempty"`
+	Maven *EndpointsMavenDetailsView `json:"maven,omitempty"`
+	Npm *EndpointsNPMRegistryDetailsView `json:"npm,omitempty"`
+	Nuget *EndpointsNuGetDetailsView `json:"nuget,omitempty"`
+	Other *EndpointsOtherRegistryDetailsView `json:"other,omitempty"`
+	Pypi *EndpointsPyPIDetailsView `json:"pypi,omitempty"`
+	Rubygems *EndpointsRubyGemsDetailsView `json:"rubygems,omitempty"`
+	SubType ModelsArtifactRepositoriesSubType `json:"subType"`
+}
+
+type EndpointsArtifactRepositoriesAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	BaseURL *string `json:"baseUrl,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	PathTemplate *string `json:"pathTemplate,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	RegistryKind *string `json:"registryKind,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsArtifactRepositoriesSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
 type EndpointsArtifactSummary struct {
 	ArtifactName *string `json:"artifactName,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
@@ -57,6 +437,644 @@ type EndpointsArtifactSummary struct {
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
 
+type EndpointsArtifactsAssetDetailsView struct {
+	DockerImage *EndpointsDockerImageDetailsView `json:"dockerImage,omitempty"`
+	Executable *EndpointsExecutableDetailsView `json:"executable,omitempty"`
+	Jar *EndpointsJARDetailsView `json:"jar,omitempty"`
+	NpmPackage *EndpointsNPMPackageDetailsView `json:"npmPackage,omitempty"`
+	Other *EndpointsOtherArtifactDetailsView `json:"other,omitempty"`
+	SubType ModelsArtifactsSubType `json:"subType"`
+	Wheel *EndpointsWheelDetailsView `json:"wheel,omitempty"`
+}
+
+type EndpointsArtifactsAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	ArtifactType *string `json:"artifactType,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	ImageDigest *string `json:"imageDigest,omitempty"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	NonProduction *bool `json:"nonProduction,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubArtifactType *string `json:"subArtifactType,omitempty"`
+	SubType ModelsArtifactsSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsAssessmentContextReadiness struct {
+	AssessmentVersion *string `json:"assessmentVersion,omitempty"`
+	CloudState *string `json:"cloudState,omitempty"`
+	Message *string `json:"message,omitempty"`
+	NeedsReassessment *bool `json:"needsReassessment,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	SourceVersion *string `json:"sourceVersion,omitempty"`
+	State *string `json:"state,omitempty"`
+}
+
+type EndpointsAssetGraphComponent struct {
+	AccountType *string `json:"accountType,omitempty"`
+	ComponentType string `json:"componentType"`
+	DownloadURL string `json:"downloadUrl"`
+	EdgeCount int `json:"edgeCount"`
+	ExpiresAt string `json:"expiresAt"`
+	ID string `json:"id"`
+	LastUpdated *string `json:"lastUpdated,omitempty"`
+	Name *string `json:"name,omitempty"`
+	NodeCount int `json:"nodeCount"`
+	OwnerID *string `json:"ownerId,omitempty"`
+	Platform *string `json:"platform,omitempty"`
+	Services []string `json:"services,omitempty"`
+}
+
+type EndpointsAssetGraphNodeSummary struct {
+	AccountID *string `json:"accountId,omitempty"`
+	ChildCounts map[string]int `json:"childCounts,omitempty"`
+	Name string `json:"name"`
+	NodeID string `json:"nodeId"`
+	NodeKind string `json:"nodeKind"`
+	ObjectType string `json:"objectType"`
+	Region *string `json:"region,omitempty"`
+	SubType *string `json:"subType,omitempty"`
+}
+
+type EndpointsAssetGraphRetrievedNode struct {
+	AccountID *string `json:"accountId,omitempty"`
+	Name *string `json:"name,omitempty"`
+	NodeID *string `json:"nodeId,omitempty"`
+	NodeKind *string `json:"nodeKind,omitempty"`
+	ObjectType *string `json:"objectType,omitempty"`
+	Region *string `json:"region,omitempty"`
+	Score *float64 `json:"score,omitempty"`
+	SubType *string `json:"subType,omitempty"`
+	Text *string `json:"text,omitempty"`
+}
+
+type EndpointsAssetGraphSearchResultEntry struct {
+	AccountID *string `json:"accountId,omitempty"`
+	Name string `json:"name"`
+	NodeID string `json:"nodeId"`
+	ObjectType string `json:"objectType"`
+	Region *string `json:"region,omitempty"`
+	SubTitle *string `json:"subTitle,omitempty"`
+}
+
+type EndpointsAssetGraphSyncCoverage struct {
+	Complete bool `json:"complete"`
+	Message *string `json:"message,omitempty"`
+	NodesDroppedNoCanonical int64 `json:"nodesDroppedNoCanonical"`
+	Status string `json:"status"`
+	SyncedAt string `json:"syncedAt"`
+}
+
+type EndpointsAssetLinks struct {
+	Detail *string `json:"detail,omitempty"`
+	Endpoints *string `json:"endpoints,omitempty"`
+	Project *string `json:"project,omitempty"`
+	Repo *string `json:"repo,omitempty"`
+	Self *string `json:"self,omitempty"`
+}
+
+type EndpointsAttackPathDTO struct {
+	ComputedAt string `json:"computedAt"`
+	EdgeTypes []string `json:"edgeTypes,omitempty"`
+	EntryNodeID string `json:"entryNodeId"`
+	EntryNodeKind string `json:"entryNodeKind"`
+	HasCriticalFinding bool `json:"hasCriticalFinding"`
+	ID string `json:"id"`
+	MaxFindingSeverity *string `json:"maxFindingSeverity,omitempty"`
+	PathNodeIds []string `json:"pathNodeIds,omitempty"`
+	TerminalNodeID string `json:"terminalNodeId"`
+	TerminalNodeKind string `json:"terminalNodeKind"`
+}
+
+type EndpointsAttackPathTerminalNodeKind string
+
+const (
+	EndpointsAttackPathTerminalNodeKindK8srouting EndpointsAttackPathTerminalNodeKind = "k8sRouting"
+	EndpointsAttackPathTerminalNodeKindInputsource EndpointsAttackPathTerminalNodeKind = "inputSource"
+	EndpointsAttackPathTerminalNodeKindBughuntfinding EndpointsAttackPathTerminalNodeKind = "bughuntFinding"
+	EndpointsAttackPathTerminalNodeKindCspmfinding EndpointsAttackPathTerminalNodeKind = "cspmFinding"
+	EndpointsAttackPathTerminalNodeKindSensitivedatafinding EndpointsAttackPathTerminalNodeKind = "sensitiveDataFinding"
+	EndpointsAttackPathTerminalNodeKindApplication EndpointsAttackPathTerminalNodeKind = "application"
+	EndpointsAttackPathTerminalNodeKindAuthentication EndpointsAttackPathTerminalNodeKind = "authentication"
+	EndpointsAttackPathTerminalNodeKindAuthorization EndpointsAttackPathTerminalNodeKind = "authorization"
+	EndpointsAttackPathTerminalNodeKindAutoscalinggroup EndpointsAttackPathTerminalNodeKind = "autoScalingGroup"
+	EndpointsAttackPathTerminalNodeKindBuildartifact EndpointsAttackPathTerminalNodeKind = "buildArtifact"
+	EndpointsAttackPathTerminalNodeKindBuildartifactrepository EndpointsAttackPathTerminalNodeKind = "buildArtifactRepository"
+	EndpointsAttackPathTerminalNodeKindCertificate EndpointsAttackPathTerminalNodeKind = "certificate"
+	EndpointsAttackPathTerminalNodeKindCicdpipeline EndpointsAttackPathTerminalNodeKind = "cicdPipeline"
+	EndpointsAttackPathTerminalNodeKindCloudaccount EndpointsAttackPathTerminalNodeKind = "cloudAccount"
+	EndpointsAttackPathTerminalNodeKindCrossaccountreference EndpointsAttackPathTerminalNodeKind = "crossAccountReference"
+	EndpointsAttackPathTerminalNodeKindCodeartifact EndpointsAttackPathTerminalNodeKind = "codeArtifact"
+	EndpointsAttackPathTerminalNodeKindCodelocation EndpointsAttackPathTerminalNodeKind = "codeLocation"
+	EndpointsAttackPathTerminalNodeKindContainer EndpointsAttackPathTerminalNodeKind = "container"
+	EndpointsAttackPathTerminalNodeKindContainerfile EndpointsAttackPathTerminalNodeKind = "containerfile"
+	EndpointsAttackPathTerminalNodeKindCredential EndpointsAttackPathTerminalNodeKind = "credential"
+	EndpointsAttackPathTerminalNodeKindCve EndpointsAttackPathTerminalNodeKind = "cve"
+	EndpointsAttackPathTerminalNodeKindDaemonset EndpointsAttackPathTerminalNodeKind = "daemonSet"
+	EndpointsAttackPathTerminalNodeKindDatabasetable EndpointsAttackPathTerminalNodeKind = "databaseTable"
+	EndpointsAttackPathTerminalNodeKindDataclassification EndpointsAttackPathTerminalNodeKind = "dataClassification"
+	EndpointsAttackPathTerminalNodeKindDomain EndpointsAttackPathTerminalNodeKind = "domain"
+	EndpointsAttackPathTerminalNodeKindEndpoint EndpointsAttackPathTerminalNodeKind = "endpoint"
+	EndpointsAttackPathTerminalNodeKindExternalservice EndpointsAttackPathTerminalNodeKind = "externalService"
+	EndpointsAttackPathTerminalNodeKindFunction EndpointsAttackPathTerminalNodeKind = "function"
+	EndpointsAttackPathTerminalNodeKindGateway EndpointsAttackPathTerminalNodeKind = "gateway"
+	EndpointsAttackPathTerminalNodeKindHost EndpointsAttackPathTerminalNodeKind = "host"
+	EndpointsAttackPathTerminalNodeKindIampolicy EndpointsAttackPathTerminalNodeKind = "iamPolicy"
+	EndpointsAttackPathTerminalNodeKindIamrole EndpointsAttackPathTerminalNodeKind = "iamRole"
+	EndpointsAttackPathTerminalNodeKindIamuser EndpointsAttackPathTerminalNodeKind = "iamUser"
+	EndpointsAttackPathTerminalNodeKindIdentity EndpointsAttackPathTerminalNodeKind = "identity"
+	EndpointsAttackPathTerminalNodeKindIdentityprovider EndpointsAttackPathTerminalNodeKind = "identityProvider"
+	EndpointsAttackPathTerminalNodeKindInternet EndpointsAttackPathTerminalNodeKind = "internet"
+	EndpointsAttackPathTerminalNodeKindIpaddress EndpointsAttackPathTerminalNodeKind = "ipAddress"
+	EndpointsAttackPathTerminalNodeKindK8scluster EndpointsAttackPathTerminalNodeKind = "k8sCluster"
+	EndpointsAttackPathTerminalNodeKindK8sconfigmap EndpointsAttackPathTerminalNodeKind = "k8sConfigMap"
+	EndpointsAttackPathTerminalNodeKindK8sdeployment EndpointsAttackPathTerminalNodeKind = "k8sDeployment"
+	EndpointsAttackPathTerminalNodeKindK8singress EndpointsAttackPathTerminalNodeKind = "k8sIngress"
+	EndpointsAttackPathTerminalNodeKindK8snamespace EndpointsAttackPathTerminalNodeKind = "k8sNamespace"
+	EndpointsAttackPathTerminalNodeKindK8snetworkpolicy EndpointsAttackPathTerminalNodeKind = "k8sNetworkPolicy"
+	EndpointsAttackPathTerminalNodeKindK8spersistentvolumeclaim EndpointsAttackPathTerminalNodeKind = "k8sPersistentVolumeClaim"
+	EndpointsAttackPathTerminalNodeKindK8ssecret EndpointsAttackPathTerminalNodeKind = "k8sSecret"
+	EndpointsAttackPathTerminalNodeKindK8sservice EndpointsAttackPathTerminalNodeKind = "k8sService"
+	EndpointsAttackPathTerminalNodeKindK8sserviceaccount EndpointsAttackPathTerminalNodeKind = "k8sServiceAccount"
+	EndpointsAttackPathTerminalNodeKindK8svolume EndpointsAttackPathTerminalNodeKind = "k8sVolume"
+	EndpointsAttackPathTerminalNodeKindK8spod EndpointsAttackPathTerminalNodeKind = "k8sPod"
+	EndpointsAttackPathTerminalNodeKindK8sreplicaset EndpointsAttackPathTerminalNodeKind = "k8sReplicaSet"
+	EndpointsAttackPathTerminalNodeKindK8sendpoint EndpointsAttackPathTerminalNodeKind = "k8sEndpoint"
+	EndpointsAttackPathTerminalNodeKindK8snode EndpointsAttackPathTerminalNodeKind = "k8sNode"
+	EndpointsAttackPathTerminalNodeKindK8sjob EndpointsAttackPathTerminalNodeKind = "k8sJob"
+	EndpointsAttackPathTerminalNodeKindK8scronjob EndpointsAttackPathTerminalNodeKind = "k8sCronJob"
+	EndpointsAttackPathTerminalNodeKindManagedcloudresource EndpointsAttackPathTerminalNodeKind = "managedCloudResource"
+	EndpointsAttackPathTerminalNodeKindMemory EndpointsAttackPathTerminalNodeKind = "memory"
+	EndpointsAttackPathTerminalNodeKindNacl EndpointsAttackPathTerminalNodeKind = "nacl"
+	EndpointsAttackPathTerminalNodeKindNetworkinterface EndpointsAttackPathTerminalNodeKind = "networkInterface"
+	EndpointsAttackPathTerminalNodeKindNote EndpointsAttackPathTerminalNodeKind = "note"
+	EndpointsAttackPathTerminalNodeKindPackage EndpointsAttackPathTerminalNodeKind = "package"
+	EndpointsAttackPathTerminalNodeKindPentestfinding EndpointsAttackPathTerminalNodeKind = "pentestFinding"
+	EndpointsAttackPathTerminalNodeKindPort EndpointsAttackPathTerminalNodeKind = "port"
+	EndpointsAttackPathTerminalNodeKindProduct EndpointsAttackPathTerminalNodeKind = "product"
+	EndpointsAttackPathTerminalNodeKindProject EndpointsAttackPathTerminalNodeKind = "project"
+	EndpointsAttackPathTerminalNodeKindRepository EndpointsAttackPathTerminalNodeKind = "repository"
+	EndpointsAttackPathTerminalNodeKindRoutetable EndpointsAttackPathTerminalNodeKind = "routeTable"
+	EndpointsAttackPathTerminalNodeKindSastfinding EndpointsAttackPathTerminalNodeKind = "sastFinding"
+	EndpointsAttackPathTerminalNodeKindScpmfinding EndpointsAttackPathTerminalNodeKind = "scpmFinding"
+	EndpointsAttackPathTerminalNodeKindScacontainerfinding EndpointsAttackPathTerminalNodeKind = "scaContainerFinding"
+	EndpointsAttackPathTerminalNodeKindScadependencyfinding EndpointsAttackPathTerminalNodeKind = "scaDependencyFinding"
+	EndpointsAttackPathTerminalNodeKindSecretfinding EndpointsAttackPathTerminalNodeKind = "secretFinding"
+	EndpointsAttackPathTerminalNodeKindSecuritygroup EndpointsAttackPathTerminalNodeKind = "securityGroup"
+	EndpointsAttackPathTerminalNodeKindTicket EndpointsAttackPathTerminalNodeKind = "ticket"
+	EndpointsAttackPathTerminalNodeKindActionitem EndpointsAttackPathTerminalNodeKind = "actionItem"
+	EndpointsAttackPathTerminalNodeKindStatefulset EndpointsAttackPathTerminalNodeKind = "statefulSet"
+	EndpointsAttackPathTerminalNodeKindSubnet EndpointsAttackPathTerminalNodeKind = "subnet"
+	EndpointsAttackPathTerminalNodeKindTeam EndpointsAttackPathTerminalNodeKind = "team"
+	EndpointsAttackPathTerminalNodeKindThreatactor EndpointsAttackPathTerminalNodeKind = "threatActor"
+	EndpointsAttackPathTerminalNodeKindUser EndpointsAttackPathTerminalNodeKind = "user"
+	EndpointsAttackPathTerminalNodeKindVpc EndpointsAttackPathTerminalNodeKind = "vpc"
+	EndpointsAttackPathTerminalNodeKindPrefixlist EndpointsAttackPathTerminalNodeKind = "prefixList"
+	EndpointsAttackPathTerminalNodeKindUnknowncloudresource EndpointsAttackPathTerminalNodeKind = "unknownCloudResource"
+	EndpointsAttackPathTerminalNodeKindHttpendpoint EndpointsAttackPathTerminalNodeKind = "httpEndpoint"
+	EndpointsAttackPathTerminalNodeKindGraphqlendpoint EndpointsAttackPathTerminalNodeKind = "graphqlEndpoint"
+	EndpointsAttackPathTerminalNodeKindGrpcendpoint EndpointsAttackPathTerminalNodeKind = "grpcEndpoint"
+	EndpointsAttackPathTerminalNodeKindWebsocketendpoint EndpointsAttackPathTerminalNodeKind = "websocketEndpoint"
+	EndpointsAttackPathTerminalNodeKindMessagequeueendpoint EndpointsAttackPathTerminalNodeKind = "messageQueueEndpoint"
+	EndpointsAttackPathTerminalNodeKindDocument EndpointsAttackPathTerminalNodeKind = "document"
+	EndpointsAttackPathTerminalNodeKindOrganization EndpointsAttackPathTerminalNodeKind = "organization"
+	EndpointsAttackPathTerminalNodeKindCampaign EndpointsAttackPathTerminalNodeKind = "campaign"
+)
+
+type EndpointsAzureACIDetailsView struct {
+}
+
+type EndpointsAzureACRDetailsView struct {
+}
+
+type EndpointsAzureADGroupDetailsView struct {
+}
+
+type EndpointsAzureADUserDetailsView struct {
+}
+
+type EndpointsAzureAKSDetailsView struct {
+}
+
+type EndpointsAzureAPIManagementDetailsView struct {
+}
+
+type EndpointsAzureAppGatewayDetailsView struct {
+}
+
+type EndpointsAzureAppServiceDetailsView struct {
+}
+
+type EndpointsAzureApplicationDetailsView struct {
+}
+
+type EndpointsAzureAutomationDetailsView struct {
+}
+
+type EndpointsAzureBatchDetailsView struct {
+}
+
+type EndpointsAzureBlobDetailsView struct {
+}
+
+type EndpointsAzureCDNProfileDetailsView struct {
+}
+
+type EndpointsAzureCosmosDetailsView struct {
+}
+
+type EndpointsAzureDNSZoneDetailsView struct {
+}
+
+type EndpointsAzureDataFactoryDetailsView struct {
+}
+
+type EndpointsAzureDatabricksDetailsView struct {
+}
+
+type EndpointsAzureDefenderDetailsView struct {
+}
+
+type EndpointsAzureDevOpsPipelinesDetailsView struct {
+}
+
+type EndpointsAzureDiskDetailsView struct {
+}
+
+type EndpointsAzureEntraIDDetailsView struct {
+}
+
+type EndpointsAzureEventGridDetailsView struct {
+}
+
+type EndpointsAzureEventHubDetailsView struct {
+}
+
+type EndpointsAzureExpressRouteDetailsView struct {
+}
+
+type EndpointsAzureFilesDetailsView struct {
+}
+
+type EndpointsAzureFirewallDetailsView struct {
+}
+
+type EndpointsAzureFrontDoorDetailsView struct {
+}
+
+type EndpointsAzureFunctionDetailsView struct {
+}
+
+type EndpointsAzureHDInsightDetailsView struct {
+}
+
+type EndpointsAzureIotHubDetailsView struct {
+}
+
+type EndpointsAzureKeyVaultDetailsView struct {
+}
+
+type EndpointsAzureLogicAppsDetailsView struct {
+}
+
+type EndpointsAzureMLWorkspaceDetailsView struct {
+}
+
+type EndpointsAzureMachineLearningDetailsView struct {
+}
+
+type EndpointsAzureManagedIdentityDetailsView struct {
+}
+
+type EndpointsAzureMonitorDetailsView struct {
+}
+
+type EndpointsAzureMySQLDetailsView struct {
+}
+
+type EndpointsAzureNSGDetailsView struct {
+}
+
+type EndpointsAzureOpenAIDeploymentDetailsView struct {
+}
+
+type EndpointsAzurePipelinesDetailsView struct {
+}
+
+type EndpointsAzurePolicyDetailsView struct {
+}
+
+type EndpointsAzurePostgresDetailsView struct {
+}
+
+type EndpointsAzureRedisDetailsView struct {
+}
+
+type EndpointsAzureRepoDetailsView struct {
+}
+
+type EndpointsAzureRoleAssignmentDetailsView struct {
+}
+
+type EndpointsAzureSQLDetailsView struct {
+}
+
+type EndpointsAzureServiceBusDetailsView struct {
+}
+
+type EndpointsAzureServicePrincipalDetailsView struct {
+}
+
+type EndpointsAzureStorageAccountDetailsView struct {
+}
+
+type EndpointsAzureSubnetDetailsView struct {
+}
+
+type EndpointsAzureSynapseDetailsView struct {
+}
+
+type EndpointsAzureVMDetailsView struct {
+	AdminUsername *string `json:"adminUsername,omitempty"`
+	AvailabilitySet *string `json:"availabilitySet,omitempty"`
+	AzureTags map[string]string `json:"azureTags,omitempty"`
+	DataDisks []string `json:"dataDisks,omitempty"`
+	NetworkProfile *string `json:"networkProfile,omitempty"`
+	OsDisk *string `json:"osDisk,omitempty"`
+	ResourceGroup *string `json:"resourceGroup,omitempty"`
+	VmSize *string `json:"vmSize,omitempty"`
+}
+
+type EndpointsAzureVMSSDetailsView struct {
+	Capacity *int `json:"capacity,omitempty"`
+	OverProvision *bool `json:"overProvision,omitempty"`
+	ResourceGroup *string `json:"resourceGroup,omitempty"`
+	SkuName *string `json:"skuName,omitempty"`
+	SkuTier *string `json:"skuTier,omitempty"`
+	UpgradePolicy *string `json:"upgradePolicy,omitempty"`
+}
+
+type EndpointsAzureVNetDetailsView struct {
+}
+
+type EndpointsAzureVPNDetailsView struct {
+}
+
+type EndpointsAzureVirtualDesktopDetailsView struct {
+	AllowNewSession *bool `json:"allowNewSession,omitempty"`
+	AssignedUser *string `json:"assignedUser,omitempty"`
+	HostPoolName *string `json:"hostPoolName,omitempty"`
+	SessionHostStatus *string `json:"sessionHostStatus,omitempty"`
+	UpdateState *string `json:"updateState,omitempty"`
+}
+
+type EndpointsBitbucketRepoDetailsView struct {
+}
+
+type EndpointsBuildkiteDetailsView struct {
+}
+
+type EndpointsCDNAndDNSAssetDetailsView struct {
+	AwsApiGateway *EndpointsAWSAPIGatewayDetailsView `json:"awsApiGateway,omitempty"`
+	AwsAppSync *EndpointsAWSAppSyncDetailsView `json:"awsAppSync,omitempty"`
+	AwsCloudFront *EndpointsAWSCloudFrontDetailsView `json:"awsCloudFront,omitempty"`
+	AwsRoute53HostedZone *EndpointsAWSRoute53HostedZoneDetailsView `json:"awsRoute53HostedZone,omitempty"`
+	AzureApiManagement *EndpointsAzureAPIManagementDetailsView `json:"azureApiManagement,omitempty"`
+	AzureCdnProfile *EndpointsAzureCDNProfileDetailsView `json:"azureCdnProfile,omitempty"`
+	AzureDnsZone *EndpointsAzureDNSZoneDetailsView `json:"azureDnsZone,omitempty"`
+	AzureFrontDoor *EndpointsAzureFrontDoorDetailsView `json:"azureFrontDoor,omitempty"`
+	CodeDeclaredHost *EndpointsCodeDeclaredHostDetailsView `json:"codeDeclaredHost,omitempty"`
+	GcpApiGateway *EndpointsGCPAPIGatewayDetailsView `json:"gcpApiGateway,omitempty"`
+	GcpCloudCdn *EndpointsGCPCloudCDNDetailsView `json:"gcpCloudCdn,omitempty"`
+	GcpCloudDnsRecord *EndpointsGCPCloudDNSRecordDetailsView `json:"gcpCloudDnsRecord,omitempty"`
+	GcpCloudDnsZone *EndpointsGCPCloudDNSZoneDetailsView `json:"gcpCloudDnsZone,omitempty"`
+	SubType ModelsCDNAndDNSSubType `json:"subType"`
+}
+
+type EndpointsCDNAndDNSAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	CachePolicy *string `json:"cachePolicy,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	DnssecEnabled *bool `json:"dnssecEnabled,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	GeoRestrictions *string `json:"geoRestrictions,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	Kind *string `json:"kind,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	OriginOrTarget *string `json:"originOrTarget,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	RecordType *string `json:"recordType,omitempty"`
+	Region *string `json:"region,omitempty"`
+	SignedUrlsRequired *bool `json:"signedUrlsRequired,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsCDNAndDNSSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+	TlsCertificateArn *string `json:"tlsCertificateArn,omitempty"`
+}
+
+type EndpointsCiCdAssetDetailsView struct {
+	AwsCodeBuild *EndpointsAWSCodeBuildDetailsView `json:"awsCodeBuild,omitempty"`
+	AwsCodeCommit *EndpointsAWSCodeCommitDetailsView `json:"awsCodeCommit,omitempty"`
+	AwsCodeDeploy *EndpointsAWSCodeDeployDetailsView `json:"awsCodeDeploy,omitempty"`
+	AwsCodePipeline *EndpointsAWSCodePipelineDetailsView `json:"awsCodePipeline,omitempty"`
+	AzureDevOpsPipelines *EndpointsAzureDevOpsPipelinesDetailsView `json:"azureDevOpsPipelines,omitempty"`
+	GcpCloudBuild *EndpointsGCPCloudBuildDetailsView `json:"gcpCloudBuild,omitempty"`
+	SubType ModelsCiCdSubType `json:"subType"`
+}
+
+type EndpointsCiCdAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DefaultBranch *string `json:"defaultBranch,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	IamRoleArn *string `json:"iamRoleArn,omitempty"`
+	ID string `json:"id"`
+	ImageScanningEnabled *bool `json:"imageScanningEnabled,omitempty"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	Kind *string `json:"kind,omitempty"`
+	LastBuildAt *string `json:"lastBuildAt,omitempty"`
+	LastBuildStatus *string `json:"lastBuildStatus,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Public *bool `json:"public,omitempty"`
+	Region *string `json:"region,omitempty"`
+	SigningEnabled *bool `json:"signingEnabled,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsCiCdSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsCircleCIDetailsView struct {
+}
+
+type EndpointsCloudConnectorAutomation struct {
+	Actions []EndpointsCloudConnectorAutomationAction `json:"actions,omitempty"`
+	Attempt *int32 `json:"attempt,omitempty"`
+	MaxAttempts *int32 `json:"maxAttempts,omitempty"`
+	Message *string `json:"message,omitempty"`
+	NextAttemptAt *string `json:"nextAttemptAt,omitempty"`
+	OnboardingStarted *bool `json:"onboardingStarted,omitempty"`
+	Progress *string `json:"progress,omitempty"`
+	Proposal *EndpointsCloudConnectorAutomationProposal `json:"proposal,omitempty"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	SelectionRevision *string `json:"selectionRevision,omitempty"`
+	State string `json:"state"`
+}
+
+type EndpointsCloudConnectorAutomationAction struct {
+	Code *string `json:"code,omitempty"`
+	Label *string `json:"label,omitempty"`
+	RequiresPermission *string `json:"requiresPermission,omitempty"`
+}
+
+type EndpointsCloudConnectorAutomationProposal struct {
+	ApprovalAllowed *bool `json:"approvalAllowed,omitempty"`
+	Digest *string `json:"digest,omitempty"`
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	PreparedAt *string `json:"preparedAt,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	StaleReason *string `json:"staleReason,omitempty"`
+}
+
+type EndpointsCloudConnectorPRRecord struct {
+	Branch *string `json:"branch,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	CreatedBy string `json:"createdBy"`
+	IsDraft *bool `json:"isDraft,omitempty"`
+	PrNumber *int64 `json:"prNumber,omitempty"`
+	PrURL string `json:"prUrl"`
+	Repo *string `json:"repo,omitempty"`
+}
+
+type EndpointsCloudConnectorPRRunStatus struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	RunID string `json:"runId"`
+	StartedAt string `json:"startedAt"`
+	Status string `json:"status"`
+}
+
+type EndpointsCloudConnectorProposal struct {
+	BaseBranch string `json:"baseBranch"`
+	BaseSha string `json:"baseSha"`
+	Body string `json:"body"`
+	Digest string `json:"digest"`
+	EgressIps []string `json:"egressIps,omitempty"`
+	Files []EndpointsCloudConnectorProposalFile `json:"files,omitempty"`
+	PrURL *string `json:"prUrl,omitempty"`
+	PreparedExclude []string `json:"preparedExclude,omitempty"`
+	PreparedInclude []string `json:"preparedInclude,omitempty"`
+	Repo string `json:"repo"`
+	RepositoryID string `json:"repositoryId"`
+	RetiredEgressIps []string `json:"retiredEgressIps,omitempty"`
+	RunID string `json:"runId"`
+	Status string `json:"status"`
+	Title string `json:"title"`
+}
+
+type EndpointsCloudConnectorProposalFile struct {
+	Action string `json:"action"`
+	Before string `json:"before"`
+	Content string `json:"content"`
+	Path string `json:"path"`
+}
+
+type EndpointsCloudReconAccountOverviewDTO struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DiscoveryCompleteness *string `json:"discoveryCompleteness,omitempty"`
+	ExplorationStatus *string `json:"explorationStatus,omitempty"`
+	Exposure *EndpointsCloudReconExposureSummaryDTO `json:"exposure,omitempty"`
+	GraphCoverage *EndpointsCloudReconGraphCoverageDTO `json:"graphCoverage,omitempty"`
+	GraphGapsBlocking *int `json:"graphGapsBlocking,omitempty"`
+	HotspotCounts *EndpointsCloudReconSeverityCounts `json:"hotspotCounts,omitempty"`
+	HotspotTotal *int `json:"hotspotTotal,omitempty"`
+	IamRedFlags *EndpointsCloudReconIamRedFlagsDTO `json:"iamRedFlags,omitempty"`
+	InfrastructureSummary *EndpointsCloudReconInfrastructureSummaryDTO `json:"infrastructureSummary,omitempty"`
+	Metadata *EndpointsCloudReconSynthesisMetadataDTO `json:"metadata,omitempty"`
+	Provider *string `json:"provider,omitempty"`
+	ScanID *string `json:"scanId,omitempty"`
+	ScanStatus *string `json:"scanStatus,omitempty"`
+	Summary *string `json:"summary,omitempty"`
+	TopHotspots []EndpointsCloudReconHotspotSummaryDTO `json:"topHotspots,omitempty"`
+}
+
+type EndpointsCloudReconAccountSummaryDTO struct {
+	AccountID *string `json:"accountId,omitempty"`
+	BoundaryCount *int `json:"boundaryCount,omitempty"`
+	DiscoveryCompleteness *string `json:"discoveryCompleteness,omitempty"`
+	Environment *string `json:"environment,omitempty"`
+	ExplorationStatus *string `json:"explorationStatus,omitempty"`
+	HotspotCounts *EndpointsCloudReconSeverityCounts `json:"hotspotCounts,omitempty"`
+	HotspotTotal *int `json:"hotspotTotal,omitempty"`
+	InternetFacingCount *int `json:"internetFacingCount,omitempty"`
+	Provider *string `json:"provider,omitempty"`
+	TrustedServiceCount *int `json:"trustedServiceCount,omitempty"`
+}
+
+type EndpointsCloudReconCapabilitiesDTO struct {
+	HasApiGateway *bool `json:"hasApiGateway,omitempty"`
+	HasAuditLogging *bool `json:"hasAuditLogging,omitempty"`
+	HasContainerServices *bool `json:"hasContainerServices,omitempty"`
+	HasCrossAccountDependencies *bool `json:"hasCrossAccountDependencies,omitempty"`
+	HasDatabases *bool `json:"hasDatabases,omitempty"`
+	HasFlowLogs *bool `json:"hasFlowLogs,omitempty"`
+	HasKubernetes *bool `json:"hasKubernetes,omitempty"`
+	HasLoadBalancers *bool `json:"hasLoadBalancers,omitempty"`
+	HasMessageQueues *bool `json:"hasMessageQueues,omitempty"`
+	HasObjectStorage *bool `json:"hasObjectStorage,omitempty"`
+	HasServerlessFunctions *bool `json:"hasServerlessFunctions,omitempty"`
+}
+
+type EndpointsCloudReconComputeInventoryDTO struct {
+	ContainerServices *int `json:"containerServices,omitempty"`
+	KubernetesWorkloads *int `json:"kubernetesWorkloads,omitempty"`
+	Other *int `json:"other,omitempty"`
+	ServerlessFunctions *int `json:"serverlessFunctions,omitempty"`
+	TotalComputeServices *int `json:"totalComputeServices,omitempty"`
+	VirtualMachines *int `json:"virtualMachines,omitempty"`
+}
+
+type EndpointsCloudReconCrossAccountRelationshipDTO struct {
+	Confidence *string `json:"confidence,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Direction *string `json:"direction,omitempty"`
+	ExternalAccountID *string `json:"externalAccountId,omitempty"`
+	ID *string `json:"id,omitempty"`
+	IsWideOpen *bool `json:"isWideOpen,omitempty"`
+	NodeIds []string `json:"nodeIds,omitempty"`
+	RelationshipType *string `json:"relationshipType,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
 type EndpointsCloudReconDiscoveredNodeDTO struct {
 	Cidr *string `json:"cidr,omitempty"`
 	NodeID *string `json:"nodeId,omitempty"`
@@ -73,6 +1091,34 @@ type EndpointsCloudReconDiscoveredNodeDTO struct {
 	VpcID *string `json:"vpcId,omitempty"`
 }
 
+type EndpointsCloudReconExposureSummaryDTO struct {
+	CriticalNetworkExposureCount *int `json:"criticalNetworkExposureCount,omitempty"`
+	InternetReachableFlowCount *int `json:"internetReachableFlowCount,omitempty"`
+	InternetReachableServiceCount *int `json:"internetReachableServiceCount,omitempty"`
+	PublicDataStoreCount *int `json:"publicDataStoreCount,omitempty"`
+	WideOpenCrossAccountCount *int `json:"wideOpenCrossAccountCount,omitempty"`
+}
+
+type EndpointsCloudReconGraphCoverageDTO struct {
+	DiscoveredCount *int `json:"discoveredCount,omitempty"`
+	EdgeCount *int `json:"edgeCount,omitempty"`
+	HotspotCount *int `json:"hotspotCount,omitempty"`
+	NodeCount *int `json:"nodeCount,omitempty"`
+}
+
+type EndpointsCloudReconGraphGapDTO struct {
+	BlocksAnalysis *bool `json:"blocksAnalysis,omitempty"`
+	Category *string `json:"category,omitempty"`
+	Confidence *string `json:"confidence,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ID *string `json:"id,omitempty"`
+	MissingObjectType *string `json:"missingObjectType,omitempty"`
+	RelatedArtifactIds []string `json:"relatedArtifactIds,omitempty"`
+	RelatedNodeIds []string `json:"relatedNodeIds,omitempty"`
+	Severity *string `json:"severity,omitempty"`
+	SuggestedNextStep *string `json:"suggestedNextStep,omitempty"`
+}
+
 type EndpointsCloudReconHotspotDTO struct {
 	Category *string `json:"category,omitempty"`
 	Confidence *string `json:"confidence,omitempty"`
@@ -83,12 +1129,101 @@ type EndpointsCloudReconHotspotDTO struct {
 	Title *string `json:"title,omitempty"`
 }
 
+type EndpointsCloudReconHotspotSummaryDTO struct {
+	Category *string `json:"category,omitempty"`
+	Confidence *string `json:"confidence,omitempty"`
+	ID *string `json:"id,omitempty"`
+	InternetFacing *bool `json:"internetFacing,omitempty"`
+	Severity *string `json:"severity,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type EndpointsCloudReconIamFindingDTO struct {
+	Finding *string `json:"finding,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	ResourceType *string `json:"resourceType,omitempty"`
+	Severity *string `json:"severity,omitempty"`
+}
+
+type EndpointsCloudReconIamPostureDTO struct {
+	Confidence *string `json:"confidence,omitempty"`
+	CrossAccountRoleCount *int `json:"crossAccountRoleCount,omitempty"`
+	Findings []EndpointsCloudReconIamFindingDTO `json:"findings,omitempty"`
+	MfaAdoptionRate *string `json:"mfaAdoptionRate,omitempty"`
+	OverlyPermissiveRoleCount *int `json:"overlyPermissiveRoleCount,omitempty"`
+	RootAccountSecured *bool `json:"rootAccountSecured,omitempty"`
+	ServiceAccountCount *int `json:"serviceAccountCount,omitempty"`
+	StaleCredentialCount *int `json:"staleCredentialCount,omitempty"`
+	TotalRoles *int `json:"totalRoles,omitempty"`
+}
+
+type EndpointsCloudReconIamRedFlagsDTO struct {
+	CriticalFindingCount *int `json:"criticalFindingCount,omitempty"`
+	CrossAccountRoleCount *int `json:"crossAccountRoleCount,omitempty"`
+	MfaAdoptionRate *string `json:"mfaAdoptionRate,omitempty"`
+	OverlyPermissiveRoleCount *int `json:"overlyPermissiveRoleCount,omitempty"`
+	RootAccountSecured *bool `json:"rootAccountSecured,omitempty"`
+	StaleCredentialCount *int `json:"staleCredentialCount,omitempty"`
+	TotalRoles *int `json:"totalRoles,omitempty"`
+}
+
+type EndpointsCloudReconInfrastructureSummaryDTO struct {
+	Capabilities *EndpointsCloudReconCapabilitiesDTO `json:"capabilities,omitempty"`
+	ComputeInventory *EndpointsCloudReconComputeInventoryDTO `json:"computeInventory,omitempty"`
+	Confidence *string `json:"confidence,omitempty"`
+	CriticalDataStoreCount *int `json:"criticalDataStoreCount,omitempty"`
+	CrossAccountDependencyCount *int `json:"crossAccountDependencyCount,omitempty"`
+	Environment *string `json:"environment,omitempty"`
+	GraphGapCount *int `json:"graphGapCount,omitempty"`
+	InternetFacingHotspotCount *int `json:"internetFacingHotspotCount,omitempty"`
+	MajorTrafficFlowCount *int `json:"majorTrafficFlowCount,omitempty"`
+	Regions []string `json:"regions,omitempty"`
+	SecurityBoundaryCount *int `json:"securityBoundaryCount,omitempty"`
+	TrustedServiceCount *int `json:"trustedServiceCount,omitempty"`
+}
+
+type EndpointsCloudReconNetworkExposureDTO struct {
+	Cidr *string `json:"cidr,omitempty"`
+	CidrDirection *string `json:"cidrDirection,omitempty"`
+	Confidence *string `json:"confidence,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ExposureType *string `json:"exposureType,omitempty"`
+	ID *string `json:"id,omitempty"`
+	NodeIds []string `json:"nodeIds,omitempty"`
+	Port *int `json:"port,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	ResourceType *string `json:"resourceType,omitempty"`
+	Severity *string `json:"severity,omitempty"`
+}
+
+type EndpointsCloudReconOrgSynthesisDTO struct {
+	AccountCount *int `json:"accountCount,omitempty"`
+	AggregateMetadata *json.RawMessage `json:"aggregateMetadata,omitempty"`
+	CombinedMermaidDiagram *string `json:"combinedMermaidDiagram,omitempty"`
+	CombinedSummary *string `json:"combinedSummary,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	CrossAccountCorrelations *json.RawMessage `json:"crossAccountCorrelations,omitempty"`
+	ModelName *string `json:"modelName,omitempty"`
+	OrganizationID *string `json:"organizationId,omitempty"`
+	PerAccountSummaries []EndpointsCloudReconAccountSummaryDTO `json:"perAccountSummaries,omitempty"`
+	Provider *string `json:"provider,omitempty"`
+	S3Bucket *string `json:"s3Bucket,omitempty"`
+	S3Key *string `json:"s3Key,omitempty"`
+	ScanRunID *string `json:"scanRunId,omitempty"`
+	SchemaVersion *string `json:"schemaVersion,omitempty"`
+	SourceAccountIds []string `json:"sourceAccountIds,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
 type EndpointsCloudReconScanMetadataDTO struct {
 	AccountID *string `json:"accountId,omitempty"`
 	CompletedAt *string `json:"completedAt,omitempty"`
 	DiscoveredCount *int `json:"discoveredCount,omitempty"`
 	EdgeCount *int `json:"edgeCount,omitempty"`
 	HotspotCount *int `json:"hotspotCount,omitempty"`
+	InputGraphHash *string `json:"inputGraphHash,omitempty"`
 	ModelName *string `json:"modelName,omitempty"`
 	NodeCount *int `json:"nodeCount,omitempty"`
 	Provider *string `json:"provider,omitempty"`
@@ -100,10 +1235,284 @@ type EndpointsCloudReconScanMetadataDTO struct {
 	Status *string `json:"status,omitempty"`
 }
 
+type EndpointsCloudReconSecurityBoundaryDTO struct {
+	Confidence *string `json:"confidence,omitempty"`
+	DataClassification *string `json:"dataClassification,omitempty"`
+	Description *string `json:"description,omitempty"`
+	EgressNodeIds []string `json:"egressNodeIds,omitempty"`
+	Exposure *string `json:"exposure,omitempty"`
+	ID *string `json:"id,omitempty"`
+	IngressNodeIds []string `json:"ingressNodeIds,omitempty"`
+	Name *string `json:"name,omitempty"`
+	NodeIds []string `json:"nodeIds,omitempty"`
+	TrustLevel *string `json:"trustLevel,omitempty"`
+	Type *string `json:"type,omitempty"`
+}
+
+type EndpointsCloudReconSeverityCounts struct {
+	Critical *int `json:"critical,omitempty"`
+	High *int `json:"high,omitempty"`
+	Low *int `json:"low,omitempty"`
+	Medium *int `json:"medium,omitempty"`
+}
+
+type EndpointsCloudReconSynthesisMetadataDTO struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	DurationSeconds *float64 `json:"durationSeconds,omitempty"`
+	GeneratorModel *string `json:"generatorModel,omitempty"`
+	GeneratorPromptVersion *string `json:"generatorPromptVersion,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+}
+
 type EndpointsCloudReconTenantTrustDTO struct {
 	ExternalAccountID *string `json:"externalAccountId,omitempty"`
 	TrustingAccountCount *int `json:"trustingAccountCount,omitempty"`
 	TrustingAccounts []string `json:"trustingAccounts,omitempty"`
+}
+
+type EndpointsCloudReconTopologyDTO struct {
+	DiscoveryCompleteness *string `json:"discoveryCompleteness,omitempty"`
+	EdgeCount *int `json:"edgeCount,omitempty"`
+	ExplorationStatus *string `json:"explorationStatus,omitempty"`
+	MermaidDiagram *string `json:"mermaidDiagram,omitempty"`
+	NodeCount *int `json:"nodeCount,omitempty"`
+}
+
+type EndpointsCloudReconTrafficFlowDTO struct {
+	BoundaryIds []string `json:"boundaryIds,omitempty"`
+	Confidence *string `json:"confidence,omitempty"`
+	DataClassification *string `json:"dataClassification,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ID *string `json:"id,omitempty"`
+	InternetReachable *bool `json:"internetReachable,omitempty"`
+	PathEdgeTypes []string `json:"pathEdgeTypes,omitempty"`
+	PathNodeIds []string `json:"pathNodeIds,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
+	SourceNodeID *string `json:"sourceNodeId,omitempty"`
+	TargetNodeID *string `json:"targetNodeId,omitempty"`
+	Title *string `json:"title,omitempty"`
+	TrustedServiceIds []string `json:"trustedServiceIds,omitempty"`
+}
+
+type EndpointsCloudReconTrustedServiceDTO struct {
+	AccessedByNodeIds []string `json:"accessedByNodeIds,omitempty"`
+	BoundaryIds []string `json:"boundaryIds,omitempty"`
+	Category *string `json:"category,omitempty"`
+	Confidence *string `json:"confidence,omitempty"`
+	DataClassification *string `json:"dataClassification,omitempty"`
+	Description *string `json:"description,omitempty"`
+	EncryptionAtRest *bool `json:"encryptionAtRest,omitempty"`
+	ID *string `json:"id,omitempty"`
+	InternetReachable *bool `json:"internetReachable,omitempty"`
+	Name *string `json:"name,omitempty"`
+	NodeIds []string `json:"nodeIds,omitempty"`
+	PublicAccess *string `json:"publicAccess,omitempty"`
+	ServiceType *string `json:"serviceType,omitempty"`
+}
+
+type EndpointsClusterAssetDetailsView struct {
+	AwsEcsCluster *EndpointsAWSECSClusterDetailsView `json:"awsEcsCluster,omitempty"`
+	AwsEksCluster *EndpointsAWSEKSClusterDetailsView `json:"awsEksCluster,omitempty"`
+	AzureAks *EndpointsAzureAKSDetailsView `json:"azureAks,omitempty"`
+	GcpGke *EndpointsGCPGKEDetailsView `json:"gcpGke,omitempty"`
+	K8sCluster *EndpointsK8SClusterDetailsView `json:"k8sCluster,omitempty"`
+	SubType ModelsClusterSubType `json:"subType"`
+}
+
+type EndpointsClusterAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	ControlPlaneLogging *bool `json:"controlPlaneLogging,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	EndpointVisibility *string `json:"endpointVisibility,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	NetworkPlugin *string `json:"networkPlugin,omitempty"`
+	NodeCount *int `json:"nodeCount,omitempty"`
+	OidcProviderURL *string `json:"oidcProviderUrl,omitempty"`
+	PodSecurityStandard *string `json:"podSecurityStandard,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	RbacEnabled *bool `json:"rbacEnabled,omitempty"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsClusterSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsCodeDeclaredHostDetailsView struct {
+}
+
+type EndpointsComputeAssetDetailsView struct {
+	AwsAutoscalingGroup *EndpointsAWSAutoscalingGroupDetailsView `json:"awsAutoscalingGroup,omitempty"`
+	AwsEc2 *EndpointsAWSEC2DetailsView `json:"awsEc2,omitempty"`
+	AwsWorkspace *EndpointsAWSWorkspaceDetailsView `json:"awsWorkspace,omitempty"`
+	AzureVirtualDesktop *EndpointsAzureVirtualDesktopDetailsView `json:"azureVirtualDesktop,omitempty"`
+	AzureVm *EndpointsAzureVMDetailsView `json:"azureVm,omitempty"`
+	AzureVmss *EndpointsAzureVMSSDetailsView `json:"azureVmss,omitempty"`
+	GcpGce *EndpointsGCPGCEDetailsView `json:"gcpGce,omitempty"`
+	GcpMig *EndpointsGCPMIGDetailsView `json:"gcpMig,omitempty"`
+	K8sNode *EndpointsK8SNodeDetailsView `json:"k8sNode,omitempty"`
+	SubType ModelsComputeSubType `json:"subType"`
+}
+
+type EndpointsComputeAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	IamRoleArn *string `json:"iamRoleArn,omitempty"`
+	ID string `json:"id"`
+	ImageID *string `json:"imageId,omitempty"`
+	InstanceType *string `json:"instanceType,omitempty"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	OsPlatform *string `json:"osPlatform,omitempty"`
+	PrivateIp *string `json:"privateIp,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	PublicIp *string `json:"publicIp,omitempty"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsComputeSubType `json:"subType"`
+	SubnetID *string `json:"subnetId,omitempty"`
+	Tags map[string]string `json:"tags,omitempty"`
+	VpcID *string `json:"vpcId,omitempty"`
+	WorkloadType *ModelsComputeWorkloadType `json:"workloadType,omitempty"`
+}
+
+type EndpointsConnectivityAssetDetailsView struct {
+	AwsDirectConnect *EndpointsAWSDirectConnectDetailsView `json:"awsDirectConnect,omitempty"`
+	AwsGlobalAccelerator *EndpointsAWSGlobalAcceleratorDetailsView `json:"awsGlobalAccelerator,omitempty"`
+	AwsNetworkFirewall *EndpointsAWSNetworkFirewallDetailsView `json:"awsNetworkFirewall,omitempty"`
+	AwsPrivateLink *EndpointsAWSPrivateLinkDetailsView `json:"awsPrivateLink,omitempty"`
+	AwsTgwAttachment *EndpointsAWSTGWAttachmentDetailsView `json:"awsTgwAttachment,omitempty"`
+	AwsVpnConnection *EndpointsAWSVPNConnectionDetailsView `json:"awsVpnConnection,omitempty"`
+	AzureExpressRoute *EndpointsAzureExpressRouteDetailsView `json:"azureExpressRoute,omitempty"`
+	AzureFirewall *EndpointsAzureFirewallDetailsView `json:"azureFirewall,omitempty"`
+	AzureVpn *EndpointsAzureVPNDetailsView `json:"azureVpn,omitempty"`
+	GcpCloudArmor *EndpointsGCPCloudArmorDetailsView `json:"gcpCloudArmor,omitempty"`
+	GcpFirewallRule *EndpointsGCPFirewallRuleDetailsView `json:"gcpFirewallRule,omitempty"`
+	GcpVpcServiceControls *EndpointsGCPVPCServiceControlsDetailsView `json:"gcpVpcServiceControls,omitempty"`
+	GcpVpnTunnel *EndpointsGCPVPNTunnelDetailsView `json:"gcpVpnTunnel,omitempty"`
+	SubType ModelsConnectivitySubType `json:"subType"`
+}
+
+type EndpointsConnectivityAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	AllowedPrincipalsCount *int `json:"allowedPrincipalsCount,omitempty"`
+	BandwidthMbps *int `json:"bandwidthMbps,omitempty"`
+	BgpAsn *int `json:"bgpAsn,omitempty"`
+	ConnectionType *string `json:"connectionType,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	EncryptionAlgorithm *string `json:"encryptionAlgorithm,omitempty"`
+	EndpointDns *string `json:"endpointDns,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	PeerCidrOrOrg *string `json:"peerCidrOrOrg,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsConnectivitySubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+	TunnelStatus *string `json:"tunnelStatus,omitempty"`
+}
+
+type EndpointsContainerAssetDetailsView struct {
+	AwsEcsService *EndpointsAWSECSServiceDetailsView `json:"awsEcsService,omitempty"`
+	AwsEcsTask *EndpointsAWSECSTaskDetailsView `json:"awsEcsTask,omitempty"`
+	AwsEcsTaskDefinition *EndpointsAWSECSTaskDefinitionDetailsView `json:"awsEcsTaskDefinition,omitempty"`
+	AzureAci *EndpointsAzureACIDetailsView `json:"azureAci,omitempty"`
+	AzureAppService *EndpointsAzureAppServiceDetailsView `json:"azureAppService,omitempty"`
+	GcpCloudRun *EndpointsGCPCloudRunDetailsView `json:"gcpCloudRun,omitempty"`
+	K8sDaemonSet *EndpointsK8SDaemonSetDetailsView `json:"k8sDaemonSet,omitempty"`
+	K8sDeployment *EndpointsK8SDeploymentDetailsView `json:"k8sDeployment,omitempty"`
+	K8sNamespace *EndpointsK8SNamespaceDetailsView `json:"k8sNamespace,omitempty"`
+	K8sPod *EndpointsK8SPodDetailsView `json:"k8sPod,omitempty"`
+	K8sStatefulSet *EndpointsK8SStatefulSetDetailsView `json:"k8sStatefulSet,omitempty"`
+	SubType ModelsContainerSubType `json:"subType"`
+}
+
+type EndpointsContainerAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	ClusterID *string `json:"clusterId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	DeployedBy *string `json:"deployedBy,omitempty"`
+	ExposedPorts []string `json:"exposedPorts,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	ImageDigest *string `json:"imageDigest,omitempty"`
+	ImageRef *string `json:"imageRef,omitempty"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	Namespace *string `json:"namespace,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	Replicas *int `json:"replicas,omitempty"`
+	ServiceAccount *string `json:"serviceAccount,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsContainerSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+	WorkloadKind *string `json:"workloadKind,omitempty"`
+}
+
+type EndpointsContextApproveCloudConnectorProposalInput struct {
+	Digest string `json:"digest"`
+}
+
+type EndpointsContextApproveCloudConnectorProposalOutput struct {
+	PrURL string `json:"prUrl"`
+}
+
+type EndpointsContextApproveWAFAllowlistProposalInput struct {
+	Digest string `json:"digest"`
+}
+
+type EndpointsContextGetCloudConnectorPRRunOutput struct {
+	Pr *EndpointsCloudConnectorPRRecord `json:"pr,omitempty"`
+	Run EndpointsRunStatus `json:"run"`
+	Status string `json:"status"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsContextGetCloudConnectorPRStatusOutput struct {
+	Automation *EndpointsCloudConnectorAutomation `json:"automation,omitempty"`
+	Pr *EndpointsCloudConnectorPRRecord `json:"pr,omitempty"`
+	PreparationAvailable *bool `json:"preparationAvailable,omitempty"`
+	Run *EndpointsCloudConnectorPRRunStatus `json:"run,omitempty"`
+}
+
+type EndpointsContextGetCloudConnectorProposalOutput struct {
+	Proposal EndpointsCloudConnectorProposal `json:"proposal"`
 }
 
 type EndpointsContextGetCloudScanStatusOutput struct {
@@ -112,10 +1521,55 @@ type EndpointsContextGetCloudScanStatusOutput struct {
 	ScanID string `json:"scanId"`
 }
 
+type EndpointsContextRecoverCloudConnectorProposalInput struct {
+	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
+	Digest string `json:"digest"`
+}
+
+type EndpointsContextRecoverCloudConnectorProposalOutput struct {
+	PrURL *string `json:"prUrl,omitempty"`
+	Recovered bool `json:"recovered"`
+}
+
+type EndpointsContextRecoverWAFAllowlistProposalInput struct {
+	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
+	Digest string `json:"digest"`
+}
+
+type EndpointsContextStartCloudConnectorPRRunInput struct {
+	Digest *string `json:"digest,omitempty"`
+	ExpectedRunID *string `json:"expectedRunId,omitempty"`
+}
+
+type EndpointsContextStartCloudConnectorPRRunOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	StatusCode *int `json:"statusCode,omitempty"`
+}
+
 type EndpointsContextStartCloudScanOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+	ScanID *string `json:"scanId,omitempty"`
+	StatusCode *int `json:"statusCode,omitempty"`
+}
+
+type EndpointsContextStartRepoScopeScanInput struct {
+	IncludeArchived *bool `json:"includeArchived,omitempty"`
+}
+
+type EndpointsContextStartRepoScopeScanOutput struct {
 	ExecutionArn *string `json:"executionArn,omitempty"`
 	ScanID *string `json:"scanId,omitempty"`
 	StatusCode *int `json:"statusCode,omitempty"`
+}
+
+type EndpointsContextStartWAFAllowlistPRRunInput struct {
+	Digest *string `json:"digest,omitempty"`
+	ExpectedRunID *string `json:"expectedRunId,omitempty"`
+}
+
+type EndpointsCratesDetailsView struct {
 }
 
 type EndpointsCreateOrganizationInput struct {
@@ -142,9 +1596,121 @@ type EndpointsCreateRepoScanOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsDataPipelineAssetDetailsView struct {
+	AwsAthena *EndpointsAWSAthenaDetailsView `json:"awsAthena,omitempty"`
+	AwsEmr *EndpointsAWSEMRDetailsView `json:"awsEmr,omitempty"`
+	AwsGlue *EndpointsAWSGlueDetailsView `json:"awsGlue,omitempty"`
+	AzureBatch *EndpointsAzureBatchDetailsView `json:"azureBatch,omitempty"`
+	AzureDataFactory *EndpointsAzureDataFactoryDetailsView `json:"azureDataFactory,omitempty"`
+	AzureDatabricks *EndpointsAzureDatabricksDetailsView `json:"azureDatabricks,omitempty"`
+	AzureHdInsight *EndpointsAzureHDInsightDetailsView `json:"azureHdInsight,omitempty"`
+	AzureSynapse *EndpointsAzureSynapseDetailsView `json:"azureSynapse,omitempty"`
+	GcpCloudBatch *EndpointsGCPCloudBatchDetailsView `json:"gcpCloudBatch,omitempty"`
+	GcpDataflow *EndpointsGCPDataflowDetailsView `json:"gcpDataflow,omitempty"`
+	GcpDataproc *EndpointsGCPDataprocDetailsView `json:"gcpDataproc,omitempty"`
+	GcpWorkflows *EndpointsGCPWorkflowsDetailsView `json:"gcpWorkflows,omitempty"`
+	SubType ModelsDataPipelineSubType `json:"subType"`
+}
+
+type EndpointsDataPipelineAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DataEncryptionEnabled *bool `json:"dataEncryptionEnabled,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	IamRoleArn *string `json:"iamRoleArn,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastRunAt *string `json:"lastRunAt,omitempty"`
+	LastRunStatus *string `json:"lastRunStatus,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	PipelineKind *string `json:"pipelineKind,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	Schedule *string `json:"schedule,omitempty"`
+	SinkCount *int `json:"sinkCount,omitempty"`
+	SourceCount *int `json:"sourceCount,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsDataPipelineSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+	VpcAttached *bool `json:"vpcAttached,omitempty"`
+}
+
+type EndpointsDatabaseAssetDetailsView struct {
+	AwsDynamoDb *EndpointsAWSDynamoDBDetailsView `json:"awsDynamoDb,omitempty"`
+	AwsElastiCache *EndpointsAWSElastiCacheDetailsView `json:"awsElastiCache,omitempty"`
+	AwsMemoryDb *EndpointsAWSMemoryDBDetailsView `json:"awsMemoryDb,omitempty"`
+	AwsNeptune *EndpointsAWSNeptuneDetailsView `json:"awsNeptune,omitempty"`
+	AwsOpenSearch *EndpointsAWSOpenSearchDetailsView `json:"awsOpenSearch,omitempty"`
+	AwsRds *EndpointsAWSRDSDetailsView `json:"awsRds,omitempty"`
+	AwsRedshift *EndpointsAWSRedshiftDetailsView `json:"awsRedshift,omitempty"`
+	AzureCosmos *EndpointsAzureCosmosDetailsView `json:"azureCosmos,omitempty"`
+	AzureMysql *EndpointsAzureMySQLDetailsView `json:"azureMysql,omitempty"`
+	AzurePostgres *EndpointsAzurePostgresDetailsView `json:"azurePostgres,omitempty"`
+	AzureRedis *EndpointsAzureRedisDetailsView `json:"azureRedis,omitempty"`
+	AzureSql *EndpointsAzureSQLDetailsView `json:"azureSql,omitempty"`
+	GcpAlloyDb *EndpointsGCPAlloyDBDetailsView `json:"gcpAlloyDb,omitempty"`
+	GcpBigQuery *EndpointsGCPBigQueryDetailsView `json:"gcpBigQuery,omitempty"`
+	GcpCloudSql *EndpointsGCPCloudSQLDetailsView `json:"gcpCloudSql,omitempty"`
+	GcpFirestore *EndpointsGCPFirestoreDetailsView `json:"gcpFirestore,omitempty"`
+	GcpMemorystore *EndpointsGCPMemorystoreDetailsView `json:"gcpMemorystore,omitempty"`
+	GcpSpanner *EndpointsGCPSpannerDetailsView `json:"gcpSpanner,omitempty"`
+	SubType ModelsDatabaseSubType `json:"subType"`
+}
+
+type EndpointsDatabaseAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	BackupRetentionDays *int `json:"backupRetentionDays,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	EncryptionAtRest *bool `json:"encryptionAtRest,omitempty"`
+	Endpoint *string `json:"endpoint,omitempty"`
+	Engine *string `json:"engine,omitempty"`
+	EngineVersion *string `json:"engineVersion,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	InstanceClassOrCapacity *string `json:"instanceClassOrCapacity,omitempty"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	MultiAzOrReplicaCount *int `json:"multiAzOrReplicaCount,omitempty"`
+	Name string `json:"name"`
+	Port *int `json:"port,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	PubliclyAccessible *bool `json:"publiclyAccessible,omitempty"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	StorageBytes *int64 `json:"storageBytes,omitempty"`
+	SubType ModelsDatabaseSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsDecideSetupPentestAssessmentRecommendationOutput struct {
+	Recommendation EndpointsSetupPentestAssessmentRecommendation `json:"recommendation"`
+}
+
+type EndpointsDecideSetupPentestTargetRecommendationOutput struct {
+	Recommendation EndpointsSetupPentestTargetRecommendation `json:"recommendation"`
+}
+
 type EndpointsDeleteArtifactOutput struct {
 	Message string `json:"message"`
 	Success bool `json:"success"`
+}
+
+type EndpointsDeleteAssetOutput struct {
+	Success bool `json:"success"`
+	Version string `json:"version"`
 }
 
 type EndpointsDeleteContextApplicationOutput struct {
@@ -192,6 +1758,32 @@ type EndpointsDeleteSBOMOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsDockerHubDetailsView struct {
+}
+
+type EndpointsDockerImageDetailsView struct {
+}
+
+type EndpointsEndpointsAssetView struct {
+	AwsService *string `json:"awsService,omitempty"`
+	BodyType *string `json:"bodyType,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	HostCategory ModelsAssetInventoryCategory `json:"hostCategory"`
+	HostID string `json:"hostId"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsAutoGenerated *bool `json:"isAutoGenerated,omitempty"`
+	IsConfirmedAtRuntime *bool `json:"isConfirmedAtRuntime,omitempty"`
+	IsConfirmedByUser *bool `json:"isConfirmedByUser,omitempty"`
+	Method string `json:"method"`
+	Path string `json:"path"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
 type EndpointsEntrypointSummary struct {
 	ApplicationTypes []string `json:"applicationTypes,omitempty"`
 	ArtifactIds []string `json:"artifactIds,omitempty"`
@@ -211,6 +1803,153 @@ type EndpointsEntrypointSummary struct {
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
 
+type EndpointsExecutableDetailsView struct {
+}
+
+type EndpointsGCPAPIGatewayDetailsView struct {
+}
+
+type EndpointsGCPAlloyDBDetailsView struct {
+}
+
+type EndpointsGCPAppEngineDetailsView struct {
+}
+
+type EndpointsGCPArtifactRegistryDetailsView struct {
+}
+
+type EndpointsGCPBigQueryDetailsView struct {
+}
+
+type EndpointsGCPCloudArmorDetailsView struct {
+}
+
+type EndpointsGCPCloudBatchDetailsView struct {
+}
+
+type EndpointsGCPCloudBuildDetailsView struct {
+}
+
+type EndpointsGCPCloudCDNDetailsView struct {
+}
+
+type EndpointsGCPCloudDNSRecordDetailsView struct {
+}
+
+type EndpointsGCPCloudDNSZoneDetailsView struct {
+}
+
+type EndpointsGCPCloudFunctionDetailsView struct {
+}
+
+type EndpointsGCPCloudNATDetailsView struct {
+}
+
+type EndpointsGCPCloudRunDetailsView struct {
+}
+
+type EndpointsGCPCloudSQLDetailsView struct {
+}
+
+type EndpointsGCPDataflowDetailsView struct {
+}
+
+type EndpointsGCPDataprocDetailsView struct {
+}
+
+type EndpointsGCPFilestoreDetailsView struct {
+}
+
+type EndpointsGCPFirestoreDetailsView struct {
+}
+
+type EndpointsGCPFirewallRuleDetailsView struct {
+}
+
+type EndpointsGCPGCEDetailsView struct {
+	DiskNames []string `json:"diskNames,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
+	MachineType *string `json:"machineType,omitempty"`
+	NetworkTags []string `json:"networkTags,omitempty"`
+	Preemptible *bool `json:"preemptible,omitempty"`
+	ServiceAccount *string `json:"serviceAccount,omitempty"`
+	Zone *string `json:"zone,omitempty"`
+}
+
+type EndpointsGCPGCSBucketDetailsView struct {
+}
+
+type EndpointsGCPGKEDetailsView struct {
+}
+
+type EndpointsGCPKMSDetailsView struct {
+}
+
+type EndpointsGCPLBDetailsView struct {
+}
+
+type EndpointsGCPLoggingDetailsView struct {
+}
+
+type EndpointsGCPMIGDetailsView struct {
+	AutoHealing *bool `json:"autoHealing,omitempty"`
+	InstanceTemplate *string `json:"instanceTemplate,omitempty"`
+	Region *string `json:"region,omitempty"`
+	TargetSize *int `json:"targetSize,omitempty"`
+	Zones []string `json:"zones,omitempty"`
+}
+
+type EndpointsGCPMemorystoreDetailsView struct {
+}
+
+type EndpointsGCPOrgPolicyDetailsView struct {
+}
+
+type EndpointsGCPPDDetailsView struct {
+}
+
+type EndpointsGCPPolicyAnalyzerDetailsView struct {
+}
+
+type EndpointsGCPPubSubDetailsView struct {
+}
+
+type EndpointsGCPRoleDetailsView struct {
+}
+
+type EndpointsGCPSecretManagerDetailsView struct {
+}
+
+type EndpointsGCPSecurityCommandCtrDetailsView struct {
+}
+
+type EndpointsGCPServiceAccountDetailsView struct {
+}
+
+type EndpointsGCPSpannerDetailsView struct {
+}
+
+type EndpointsGCPStackdriverDetailsView struct {
+}
+
+type EndpointsGCPVPCDetailsView struct {
+}
+
+type EndpointsGCPVPCServiceControlsDetailsView struct {
+}
+
+type EndpointsGCPVPNTunnelDetailsView struct {
+}
+
+type EndpointsGCPVertexEndpointDetailsView struct {
+}
+
+type EndpointsGCPWorkflowsDetailsView struct {
+}
+
+type EndpointsGHCRDetailsView struct {
+}
+
 type EndpointsGetActiveDepsOutput struct {
 	Dependencies []ModelsDependencyOccurrence `json:"dependencies,omitempty"`
 	NextCursor string `json:"nextCursor"`
@@ -224,6 +1963,23 @@ type EndpointsGetActiveDepsSummaryOutput struct {
 	TotalCount int64 `json:"totalCount"`
 	TransitiveCount int64 `json:"transitiveCount"`
 	Version string `json:"version"`
+}
+
+type EndpointsGetAiMlAssetOutput struct {
+	Asset EndpointsAiMlAssetView `json:"asset"`
+	Details EndpointsAiMlAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetApplicationExecutionRecipeOutput struct {
+	Resolution ModelsExecutionRecipeResolution `json:"resolution"`
+}
+
+type EndpointsGetApplicationRebuildOutput struct {
+	ApplicationCount *int `json:"applicationCount,omitempty"`
+	Applications []ModelsApplication `json:"applications,omitempty"`
+	Run EndpointsRunStatus `json:"run"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetApplicationSchemaOutput struct {
@@ -243,37 +1999,196 @@ type EndpointsGetArtifactOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
-type EndpointsGetAssetInventoryCloudResourcesOutput struct {
-	NextToken *string `json:"nextToken,omitempty"`
-	Resources []ModelsAssetInventoryResource `json:"resources,omitempty"`
-	Total int `json:"total"`
+type EndpointsGetArtifactRepositoriesAssetOutput struct {
+	Asset EndpointsArtifactRepositoriesAssetView `json:"asset"`
+	Details EndpointsArtifactRepositoriesAssetDetailsView `json:"details"`
 	Version string `json:"version"`
 }
 
-type EndpointsGetAssetInventoryResourcesOutput struct {
-	NextToken *string `json:"nextToken,omitempty"`
-	Resources []ModelsAssetInventoryHost `json:"resources,omitempty"`
-	Total int `json:"total"`
+type EndpointsGetArtifactsAssetOutput struct {
+	Asset EndpointsArtifactsAssetView `json:"asset"`
+	Details EndpointsArtifactsAssetDetailsView `json:"details"`
 	Version string `json:"version"`
 }
 
-type EndpointsGetCloudAccountRecordsOutput struct {
-	CloudAccounts []ModelsAssetInventoryCloudAccountRecord `json:"cloudAccounts,omitempty"`
-	NextToken *string `json:"nextToken,omitempty"`
+type EndpointsGetAssetGraphAttackPathsOutput struct {
+	AttackPaths []EndpointsAttackPathDTO `json:"attackPaths,omitempty"`
+	Truncated *bool `json:"truncated,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphLandingOutput struct {
+	Applications []EndpointsAssetGraphNodeSummary `json:"applications,omitempty"`
+	CloudAccounts []EndpointsAssetGraphNodeSummary `json:"cloudAccounts,omitempty"`
+	Counts map[string]int64 `json:"counts,omitempty"`
+	InternetNodeID *string `json:"internetNodeId,omitempty"`
+	K8sClusters []EndpointsAssetGraphNodeSummary `json:"k8sClusters,omitempty"`
+	Repositories []EndpointsAssetGraphNodeSummary `json:"repositories,omitempty"`
+	SyncCoverage *EndpointsAssetGraphSyncCoverage `json:"syncCoverage,omitempty"`
+	TotalEdgeCount *int64 `json:"totalEdgeCount,omitempty"`
+	TotalNodeCount *int64 `json:"totalNodeCount,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphNodeOutput struct {
+	Node EndpointsAssetGraphNodeSummary `json:"node"`
+	NodeData *json.RawMessage `json:"nodeData,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphNodesOutput struct {
+	Nodes []EndpointsAssetGraphNodeSummary `json:"nodes,omitempty"`
 	Total int `json:"total"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphReachabilityOutput struct {
+	IsInternetFacing bool `json:"isInternetFacing"`
+	Path []EndpointsReachabilityPathDTO `json:"path,omitempty"`
+	TargetNodeFound bool `json:"targetNodeFound"`
+	TargetNodeID string `json:"targetNodeId"`
+	TargetNodeKind *string `json:"targetNodeKind,omitempty"`
+	Truncated *bool `json:"truncated,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphRetrieveOutput struct {
+	Results []EndpointsAssetGraphRetrievedNode `json:"results,omitempty"`
+	Total int `json:"total"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphSearchOutput struct {
+	Results []EndpointsAssetGraphSearchResultEntry `json:"results,omitempty"`
+	Total int `json:"total"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphSubgraphOutput struct {
+	HierarchyEdges []GraphEdge `json:"hierarchyEdges,omitempty"`
+	LateralEdges []GraphEdge `json:"lateralEdges,omitempty"`
+	Nodes []json.RawMessage `json:"nodes,omitempty"`
+	RootNodeID string `json:"rootNodeId"`
+	TotalChildren int `json:"totalChildren"`
+	TotalChildrenByType map[string]int `json:"totalChildrenByType,omitempty"`
+	Truncated bool `json:"truncated"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetAssetGraphSummaryOutput struct {
+	AccountCount int `json:"accountCount"`
+	CombinedGraphExpiresAt *string `json:"combinedGraphExpiresAt,omitempty"`
+	CombinedGraphURL *string `json:"combinedGraphUrl,omitempty"`
+	FailedAccounts []string `json:"failedAccounts,omitempty"`
+	FindingNodeCount *int `json:"findingNodeCount,omitempty"`
+	GraphInfo *EndpointsInfrastructureGraphInfo `json:"graphInfo,omitempty"`
+	InfrastructureGraphs []EndpointsAssetGraphComponent `json:"infrastructureGraphs,omitempty"`
+	InternetFacingNodeCount *int `json:"internetFacingNodeCount,omitempty"`
+	LastUpdated string `json:"lastUpdated"`
+	MergedGraphEdgeCount *int `json:"mergedGraphEdgeCount,omitempty"`
+	MergedGraphExpiresAt *string `json:"mergedGraphExpiresAt,omitempty"`
+	MergedGraphNodeCount *int `json:"mergedGraphNodeCount,omitempty"`
+	MergedGraphURL *string `json:"mergedGraphUrl,omitempty"`
+	RepoContextGraphs []EndpointsAssetGraphComponent `json:"repoContextGraphs,omitempty"`
+	TotalInfraEdges int `json:"totalInfraEdges"`
+	TotalInfraNodes int `json:"totalInfraNodes"`
+	TotalRepoGraphs int `json:"totalRepoGraphs"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetCDNAndDNSAssetOutput struct {
+	Asset EndpointsCDNAndDNSAssetView `json:"asset"`
+	Details EndpointsCDNAndDNSAssetDetailsView `json:"details"`
 	Version string `json:"version"`
+}
+
+type EndpointsGetCiCdAssetOutput struct {
+	Asset EndpointsCiCdAssetView `json:"asset"`
+	Details EndpointsCiCdAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetCloudReconAccountOverviewOutput struct {
+	Overview *EndpointsCloudReconAccountOverviewDTO `json:"overview,omitempty"`
+}
+
+type EndpointsGetCloudReconAccountSynthesisOutput struct {
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	PresignedURL *string `json:"presignedUrl,omitempty"`
+	SizeBytes *int64 `json:"sizeBytes,omitempty"`
+	Synthesis *json.RawMessage `json:"synthesis,omitempty"`
+}
+
+type EndpointsGetCloudReconCrossAccountRelationshipsOutput struct {
+	CrossAccountRelationships []EndpointsCloudReconCrossAccountRelationshipDTO `json:"crossAccountRelationships,omitempty"`
 }
 
 type EndpointsGetCloudReconDiscoveredNodesOutput struct {
 	Nodes []EndpointsCloudReconDiscoveredNodeDTO `json:"nodes,omitempty"`
 }
 
+type EndpointsGetCloudReconGraphGapsOutput struct {
+	GraphGaps []EndpointsCloudReconGraphGapDTO `json:"graphGaps,omitempty"`
+}
+
 type EndpointsGetCloudReconHotspotsOutput struct {
 	Hotspots []EndpointsCloudReconHotspotDTO `json:"hotspots,omitempty"`
 }
 
+type EndpointsGetCloudReconIamPostureOutput struct {
+	IamPosture *EndpointsCloudReconIamPostureDTO `json:"iamPosture,omitempty"`
+}
+
+type EndpointsGetCloudReconNetworkExposuresOutput struct {
+	NetworkExposures []EndpointsCloudReconNetworkExposureDTO `json:"networkExposures,omitempty"`
+}
+
+type EndpointsGetCloudReconOrgSynthesisOutput struct {
+	Synthesis *EndpointsCloudReconOrgSynthesisDTO `json:"synthesis,omitempty"`
+}
+
+type EndpointsGetCloudReconSecurityBoundariesOutput struct {
+	SecurityBoundaries []EndpointsCloudReconSecurityBoundaryDTO `json:"securityBoundaries,omitempty"`
+}
+
 type EndpointsGetCloudReconTenantTrustsOutput struct {
 	Trusts []EndpointsCloudReconTenantTrustDTO `json:"trusts,omitempty"`
+}
+
+type EndpointsGetCloudReconTopologyOutput struct {
+	Topology *EndpointsCloudReconTopologyDTO `json:"topology,omitempty"`
+}
+
+type EndpointsGetCloudReconTrafficFlowsOutput struct {
+	TrafficFlows []EndpointsCloudReconTrafficFlowDTO `json:"trafficFlows,omitempty"`
+}
+
+type EndpointsGetCloudReconTrustedServicesOutput struct {
+	TrustedServices []EndpointsCloudReconTrustedServiceDTO `json:"trustedServices,omitempty"`
+}
+
+type EndpointsGetClusterAssetOutput struct {
+	Asset EndpointsClusterAssetView `json:"asset"`
+	Details EndpointsClusterAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetComputeAssetOutput struct {
+	Asset EndpointsComputeAssetView `json:"asset"`
+	Details EndpointsComputeAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetConnectivityAssetOutput struct {
+	Asset EndpointsConnectivityAssetView `json:"asset"`
+	Details EndpointsConnectivityAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetContainerAssetOutput struct {
+	Asset EndpointsContainerAssetView `json:"asset"`
+	Details EndpointsContainerAssetDetailsView `json:"details"`
+	Version string `json:"version"`
 }
 
 type EndpointsGetContextApplicationOutput struct {
@@ -283,7 +2198,21 @@ type EndpointsGetContextApplicationOutput struct {
 
 type EndpointsGetContextApplicationsOutput struct {
 	Applications []ModelsApplication `json:"applications,omitempty"`
+	Snapshot *string `json:"snapshot,omitempty"`
+	TotalCount int `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetDataPipelineAssetOutput struct {
+	Asset EndpointsDataPipelineAssetView `json:"asset"`
+	Details EndpointsDataPipelineAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetDatabaseAssetOutput struct {
+	Asset EndpointsDatabaseAssetView `json:"asset"`
+	Details EndpointsDatabaseAssetDetailsView `json:"details"`
+	Version string `json:"version"`
 }
 
 type EndpointsGetDepsAtCommitOutput struct {
@@ -332,6 +2261,11 @@ type EndpointsGetDepsWithoutLockfileOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetEndpointsAssetOutput struct {
+	Endpoint EndpointsEndpointsAssetView `json:"endpoint"`
+	Version string `json:"version"`
+}
+
 type EndpointsGetEntrypointOutput struct {
 	Entrypoint EndpointsEntrypointSummary `json:"entrypoint"`
 	Version *string `json:"version,omitempty"`
@@ -343,6 +2277,44 @@ type EndpointsGetExposureOutput struct {
 	Windows []ModelsDependencyWindow `json:"windows,omitempty"`
 }
 
+type EndpointsGetIdentityAssetOutput struct {
+	Asset EndpointsIdentityAssetView `json:"asset"`
+	Details EndpointsIdentityAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetInfrastructureGraphDownloadOutput struct {
+	AccountID string `json:"accountId"`
+	DownloadURL string `json:"downloadUrl"`
+	ExpiresAt string `json:"expiresAt"`
+	GraphVersion *string `json:"graphVersion,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetInfrastructureGraphOutput struct {
+	Graph *GraphGraph `json:"graph,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetInfrastructureGraphSummaryOutput struct {
+	AccountCount int `json:"accountCount"`
+	CombinedGraphExpiresAt string `json:"combinedGraphExpiresAt"`
+	CombinedGraphURL *string `json:"combinedGraphUrl,omitempty"`
+	FailedAccounts []string `json:"failedAccounts,omitempty"`
+	GraphInfo *EndpointsInfrastructureGraphInfo `json:"graphInfo,omitempty"`
+	Graphs []EndpointsInfrastructureGraphDownloadInfo `json:"graphs,omitempty"`
+	IntegrationStatus EndpointsIntegrationStatus `json:"integrationStatus"`
+	LastUpdated string `json:"lastUpdated"`
+	TotalEdgeCount int `json:"totalEdgeCount"`
+	TotalNodeCount int `json:"totalNodeCount"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetInfrastructureGraphVersionOutput struct {
+	Graph *GraphGraph `json:"graph,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsGetLatestCloudReconScanOutput struct {
 	Scan *EndpointsCloudReconScanMetadataDTO `json:"scan,omitempty"`
 }
@@ -352,10 +2324,31 @@ type EndpointsGetLatestSBOMsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetLoadBalancerAssetOutput struct {
+	Asset EndpointsLoadBalancerAssetView `json:"asset"`
+	Details EndpointsLoadBalancerAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetMemoriesByDocumentAndTypeOutput struct {
+	Count int32 `json:"count"`
+	Memories []ModelsMemory `json:"memories,omitempty"`
+	PaginationToken *string `json:"paginationToken,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetMemoriesByDocumentOutput struct {
+	Count int32 `json:"count"`
+	Memories []ModelsMemory `json:"memories,omitempty"`
+	PaginationToken *string `json:"paginationToken,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsGetMemoriesByTypeOutput struct {
 	Count int32 `json:"count"`
 	Memories []ModelsMemory `json:"memories,omitempty"`
 	PaginationToken *string `json:"paginationToken,omitempty"`
+	TotalCount int32 `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -363,6 +2356,13 @@ type EndpointsGetMemoriesOutput struct {
 	Count int `json:"count"`
 	Memories []ModelsMemory `json:"memories,omitempty"`
 	NextToken *string `json:"nextToken,omitempty"`
+	TotalCount int `json:"totalCount"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetMemoryFindingsOutput struct {
+	Findings []EndpointsMemoryFinding `json:"findings,omitempty"`
+	TotalCount int `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -374,10 +2374,37 @@ type EndpointsGetMemoryOutput struct {
 type EndpointsGetMemoryVersionsOutput struct {
 	Count int32 `json:"count"`
 	Version *string `json:"version,omitempty"`
-	Versions []ModelsMemory `json:"versions,omitempty"`
+	Versions []EndpointsMemoryVersion `json:"versions,omitempty"`
+}
+
+type EndpointsGetMessagingAssetOutput struct {
+	Asset EndpointsMessagingAssetView `json:"asset"`
+	Details EndpointsMessagingAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetNetworkAssetOutput struct {
+	Asset EndpointsNetworkAssetView `json:"asset"`
+	Details EndpointsNetworkAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetObservabilityAssetOutput struct {
+	Asset EndpointsObservabilityAssetView `json:"asset"`
+	Details EndpointsObservabilityAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetOrgContextRunOutput struct {
+	Message *string `json:"message,omitempty"`
+	Organization *ModelsOrgContext `json:"organization,omitempty"`
+	RunID string `json:"runId"`
+	State EndpointsRunState `json:"state"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetOrganizationOutput struct {
+	AssessmentContext *EndpointsAssessmentContextReadiness `json:"assessmentContext,omitempty"`
 	Organization *ModelsOrgContext `json:"organization,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
@@ -387,10 +2414,20 @@ type EndpointsGetPipelineOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetPipelinesAssetOutput struct {
+	Asset EndpointsPipelinesAssetView `json:"asset"`
+	Details EndpointsPipelinesAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
 type EndpointsGetProjectActiveDepsOutput struct {
 	Dependencies []ModelsDependencyOccurrence `json:"dependencies,omitempty"`
 	NumItems int `json:"numItems"`
 	Version string `json:"version"`
+}
+
+type EndpointsGetProjectExecutionRecipeOutput struct {
+	Resolution ModelsExecutionRecipeResolution `json:"resolution"`
 }
 
 type EndpointsGetProjectExposureOutput struct {
@@ -408,6 +2445,7 @@ type EndpointsGetProjectSchemaMetadataOutput struct {
 	DownloadURL string `json:"downloadUrl"`
 	Format ModelsSchemaFormat `json:"format"`
 	NumEndpoints int `json:"numEndpoints"`
+	Provenance *EndpointsSchemaProvenance `json:"provenance,omitempty"`
 	Size int `json:"size"`
 	Type ModelsSchemaType `json:"type"`
 	Version *string `json:"version,omitempty"`
@@ -426,13 +2464,24 @@ type EndpointsGetProjectSchemaRawOutput struct {
 	FileName *string `json:"fileName,omitempty"`
 }
 
-type EndpointsGetPublicFacingAssetsOutput struct {
-	Assets []EndpointsPublicAsset `json:"assets,omitempty"`
-	NextToken *string `json:"nextToken,omitempty"`
+type EndpointsGetProjectsAssetOutput struct {
+	Asset EndpointsProjectsAssetView `json:"asset"`
+	Details EndpointsProjectsAssetDetailsView `json:"details"`
+	Version string `json:"version"`
 }
 
 type EndpointsGetRepoScanOutput struct {
+	Run *EndpointsRunStatus `json:"run,omitempty"`
 	Scan EndpointsRepoScanSummary `json:"scan"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetRepoScopeScanOutput struct {
+	GeneratedAt *string `json:"generatedAt,omitempty"`
+	RecommendedCount *int `json:"recommendedCount,omitempty"`
+	Run EndpointsRunStatus `json:"run"`
+	SupersededBy *string `json:"supersededBy,omitempty"`
+	Uncovered []string `json:"uncovered,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -443,15 +2492,23 @@ type EndpointsGetReportStatusOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetReposAssetOutput struct {
+	Asset EndpointsReposAssetView `json:"asset"`
+	Details EndpointsReposAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
 type EndpointsGetRepositoriesOutput struct {
 	NextToken string `json:"nextToken"`
 	NumItems int `json:"numItems"`
 	Repositories []RepocontextRepoContext `json:"repositories,omitempty"`
+	RepositoryIds map[string]string `json:"repositoryIds,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetRepositoryOutput struct {
 	Repository RepocontextRepoContext `json:"repository"`
+	URL *string `json:"url,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -464,6 +2521,39 @@ type EndpointsGetSBOMTreeOutput struct {
 	Repositories []ModelsSBOMRepository `json:"repositories,omitempty"`
 	TenantID string `json:"tenantId"`
 	TenantName *string `json:"tenantName,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetSecurityAssetOutput struct {
+	Asset EndpointsSecurityAssetView `json:"asset"`
+	Details EndpointsSecurityAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetServerlessAssetOutput struct {
+	Asset EndpointsServerlessAssetView `json:"asset"`
+	Details EndpointsServerlessAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetStorageAndBackupAssetOutput struct {
+	Asset EndpointsStorageAndBackupAssetView `json:"asset"`
+	Details EndpointsStorageAndBackupAssetDetailsView `json:"details"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetVaultDocumentTextOutput struct {
+	Description *string `json:"description,omitempty"`
+	DocType *string `json:"docType,omitempty"`
+	DocumentID string `json:"documentId"`
+	EndPage *int `json:"endPage,omitempty"`
+	FileName string `json:"fileName"`
+	NextToken *string `json:"nextToken,omitempty"`
+	StartPage *int `json:"startPage,omitempty"`
+	Text string `json:"text"`
+	TotalChars int `json:"totalChars"`
+	TotalChunks int `json:"totalChunks"`
+	Truncated bool `json:"truncated"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -485,7 +2575,318 @@ type EndpointsGetVaultFilesListOutput struct {
 
 type EndpointsGetVaultFilesOutput struct {
 	Files []EndpointsVaultFile `json:"files,omitempty"`
+	TotalCount int `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGitHubActionsDetailsView struct {
+}
+
+type EndpointsGitHubRepoDetailsView struct {
+}
+
+type EndpointsGitLabCIDetailsView struct {
+}
+
+type EndpointsGitLabRepoDetailsView struct {
+}
+
+type EndpointsGrepMemoriesInput struct {
+	Limit *int `json:"limit,omitempty"`
+	MemoryClass *ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+	MemoryTypes []ModelsMemoryMemoryType `json:"memoryTypes,omitempty"`
+	MinTrustTier *int `json:"minTrustTier,omitempty"`
+	Pattern string `json:"pattern"`
+	ResourceType *ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	Scope *ModelsMemoryScope `json:"scope,omitempty"`
+}
+
+type EndpointsGrepMemoriesOutput struct {
+	Count int `json:"count"`
+	Memories []ModelsMemory `json:"memories,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsIdentityAssetDetailsView struct {
+	AwsCognitoUserPool *EndpointsAWSCognitoUserPoolDetailsView `json:"awsCognitoUserPool,omitempty"`
+	AwsIamGroup *EndpointsAWSIAMGroupDetailsView `json:"awsIamGroup,omitempty"`
+	AwsIamPolicy *EndpointsAWSIAMPolicyDetailsView `json:"awsIamPolicy,omitempty"`
+	AwsIamRole *EndpointsAWSIAMRoleDetailsView `json:"awsIamRole,omitempty"`
+	AwsIamUser *EndpointsAWSIAMUserDetailsView `json:"awsIamUser,omitempty"`
+	AzureAdGroup *EndpointsAzureADGroupDetailsView `json:"azureAdGroup,omitempty"`
+	AzureAdUser *EndpointsAzureADUserDetailsView `json:"azureAdUser,omitempty"`
+	AzureApplication *EndpointsAzureApplicationDetailsView `json:"azureApplication,omitempty"`
+	AzureEntraID *EndpointsAzureEntraIDDetailsView `json:"azureEntraId,omitempty"`
+	AzureManagedIdentity *EndpointsAzureManagedIdentityDetailsView `json:"azureManagedIdentity,omitempty"`
+	AzureRoleAssignment *EndpointsAzureRoleAssignmentDetailsView `json:"azureRoleAssignment,omitempty"`
+	AzureServicePrincipal *EndpointsAzureServicePrincipalDetailsView `json:"azureServicePrincipal,omitempty"`
+	GcpRole *EndpointsGCPRoleDetailsView `json:"gcpRole,omitempty"`
+	GcpServiceAccount *EndpointsGCPServiceAccountDetailsView `json:"gcpServiceAccount,omitempty"`
+	K8sRole *EndpointsK8SRoleDetailsView `json:"k8sRole,omitempty"`
+	K8sRoleBinding *EndpointsK8SRoleBindingDetailsView `json:"k8sRoleBinding,omitempty"`
+	K8sServiceAccount *EndpointsK8SServiceAccountDetailsView `json:"k8sServiceAccount,omitempty"`
+	SubType ModelsIdentitySubType `json:"subType"`
+}
+
+type EndpointsIdentityAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	AttachedPolicyCount *int `json:"attachedPolicyCount,omitempty"`
+	ConsoleAccess *bool `json:"consoleAccess,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	Federated *bool `json:"federated,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	HasAdmin *bool `json:"hasAdmin,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	LastUsedAt *string `json:"lastUsedAt,omitempty"`
+	MfaEnabled *bool `json:"mfaEnabled,omitempty"`
+	Name string `json:"name"`
+	PrincipalType *string `json:"principalType,omitempty"`
+	PrivilegeScore *int `json:"privilegeScore,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsIdentitySubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsInfrastructureAccountInfo struct {
+	AccountID string `json:"accountId"`
+	AccountName *string `json:"accountName,omitempty"`
+	AccountType string `json:"accountType"`
+	CloudProvider *string `json:"cloudProvider,omitempty"`
+	EdgeCount int `json:"edgeCount"`
+	GraphFilePath *string `json:"graphFilePath,omitempty"`
+	HasApiGateway bool `json:"hasApiGateway"`
+	HasCloudFrontCdn bool `json:"hasCloudFrontCdn"`
+	HasCloudFunctions *bool `json:"hasCloudFunctions,omitempty"`
+	HasCloudRunServices *bool `json:"hasCloudRunServices,omitempty"`
+	HasCrossAccountRefs bool `json:"hasCrossAccountRefs"`
+	HasDatabases bool `json:"hasDatabases"`
+	HasEcsServices bool `json:"hasEcsServices"`
+	HasEksClusters bool `json:"hasEksClusters"`
+	HasGceInstances *bool `json:"hasGceInstances,omitempty"`
+	HasGkeClusters *bool `json:"hasGkeClusters,omitempty"`
+	HasK8sClusters *bool `json:"hasK8sClusters,omitempty"`
+	HasLambdaFunctions bool `json:"hasLambdaFunctions"`
+	HasPublicAlb bool `json:"hasPublicAlb"`
+	HasPublicNlb bool `json:"hasPublicNlb"`
+	HasRoute53Dns bool `json:"hasRoute53Dns"`
+	HasTransitGateway bool `json:"hasTransitGateway"`
+	InternalServiceCount int `json:"internalServiceCount"`
+	NodeCount int `json:"nodeCount"`
+	PublicEndpointCount int `json:"publicEndpointCount"`
+	Regions []string `json:"regions,omitempty"`
+	Services []string `json:"services,omitempty"`
+}
+
+type EndpointsInfrastructureCrossAccountConnection struct {
+	ConnectionCount int `json:"connectionCount"`
+	ConnectionType string `json:"connectionType"`
+	SourceAccountID string `json:"sourceAccountId"`
+	SourceAccountType *string `json:"sourceAccountType,omitempty"`
+	TargetAccountID string `json:"targetAccountId"`
+	TargetAccountType *string `json:"targetAccountType,omitempty"`
+}
+
+type EndpointsInfrastructureCrossAccountStatistics struct {
+	CrossAccountConnections []EndpointsInfrastructureCrossAccountConnection `json:"crossAccountConnections,omitempty"`
+	CrossAccountEdgesCreated int `json:"crossAccountEdgesCreated"`
+	HasCrossAccountReferences bool `json:"hasCrossAccountReferences"`
+	OrphanedReferences int `json:"orphanedReferences"`
+	ReferencesByType map[string]int `json:"referencesByType,omitempty"`
+	TotalReferences int `json:"totalReferences"`
+	ValidatedReferences int `json:"validatedReferences"`
+}
+
+type EndpointsInfrastructureEdgeStatistics struct {
+	BidirectionalEdges int `json:"bidirectionalEdges"`
+	EdgesByType map[string]int `json:"edgesByType,omitempty"`
+	TotalEdges int `json:"totalEdges"`
+	UnidirectionalEdges int `json:"unidirectionalEdges"`
+}
+
+type EndpointsInfrastructureGraphDownloadInfo struct {
+	AccountID string `json:"accountId"`
+	DownloadURL string `json:"downloadUrl"`
+	EdgeCount int `json:"edgeCount"`
+	ExpiresAt string `json:"expiresAt"`
+	GeneratedAt string `json:"generatedAt"`
+	GraphID *string `json:"graphId,omitempty"`
+	GraphType *string `json:"graphType,omitempty"`
+	NodeCount int `json:"nodeCount"`
+	Region *string `json:"region,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsInfrastructureGraphInfo struct {
+	AccountsInfo []EndpointsInfrastructureAccountInfo `json:"accountsInfo,omitempty"`
+	CrossAccountStatistics EndpointsInfrastructureCrossAccountStatistics `json:"crossAccountStatistics"`
+	EdgeStatistics EndpointsInfrastructureEdgeStatistics `json:"edgeStatistics"`
+	Metadata EndpointsInfrastructureGraphInfoMetadata `json:"metadata"`
+	NodeStatistics EndpointsInfrastructureNodeStatistics `json:"nodeStatistics"`
+	ValidationResults EndpointsInfrastructureValidationResults `json:"validationResults"`
+}
+
+type EndpointsInfrastructureGraphInfoMetadata struct {
+	DestinationBucket *string `json:"destinationBucket,omitempty"`
+	GeneratedAt string `json:"generatedAt"`
+	GeneratedBy string `json:"generatedBy"`
+	GraphType string `json:"graphType"`
+	ID string `json:"id"`
+	IsCombinedGraph bool `json:"isCombinedGraph"`
+	ProcessingDuration string `json:"processingDuration"`
+	SourceBucket string `json:"sourceBucket"`
+	Version string `json:"version"`
+}
+
+type EndpointsInfrastructureGraphSummary struct {
+	AccountID string `json:"accountId"`
+	EdgeCount int `json:"edgeCount"`
+	GeneratedAt string `json:"generatedAt"`
+	GeneratedBy string `json:"generatedBy"`
+	GraphID string `json:"graphId"`
+	GraphType string `json:"graphType"`
+	LastModified string `json:"lastModified"`
+	NodeCount int `json:"nodeCount"`
+	Region *string `json:"region,omitempty"`
+	S3Key *string `json:"s3Key,omitempty"`
+	Tags map[string]string `json:"tags,omitempty"`
+	Version string `json:"version"`
+}
+
+type EndpointsInfrastructureNodeStatistics struct {
+	NodesByAccount map[string]int `json:"nodesByAccount,omitempty"`
+	NodesByObjectType map[string]int `json:"nodesByObjectType,omitempty"`
+	NodesByRegion map[string]int `json:"nodesByRegion,omitempty"`
+	NodesBySubType map[string]int `json:"nodesBySubType,omitempty"`
+	NodesByType map[string]int `json:"nodesByType,omitempty"`
+	TotalNodes int `json:"totalNodes"`
+}
+
+type EndpointsInfrastructureValidationCheck struct {
+	Details *string `json:"details,omitempty"`
+	Name string `json:"name"`
+	Passed bool `json:"passed"`
+}
+
+type EndpointsInfrastructureValidationResults struct {
+	Checks []EndpointsInfrastructureValidationCheck `json:"checks,omitempty"`
+	ErrorCount int `json:"errorCount"`
+	Errors []string `json:"errors,omitempty"`
+	IsValid bool `json:"isValid"`
+	WarningCount int `json:"warningCount"`
+	Warnings []string `json:"warnings,omitempty"`
+}
+
+type EndpointsIntegrationStatus string
+
+const (
+	EndpointsIntegrationStatusPending EndpointsIntegrationStatus = "pending"
+	EndpointsIntegrationStatusReady EndpointsIntegrationStatus = "ready"
+)
+
+type EndpointsJARDetailsView struct {
+}
+
+type EndpointsJenkinsDetailsView struct {
+}
+
+type EndpointsK8SClusterDetailsView struct {
+}
+
+type EndpointsK8SCollectorClusterView struct {
+	ClusterName *string `json:"clusterName,omitempty"`
+	LastCompletedAt string `json:"lastCompletedAt"`
+	LastScanID string `json:"lastScanId"`
+	RecordCounts map[string]int `json:"recordCounts,omitempty"`
+	ScanIdentity string `json:"scanIdentity"`
+}
+
+type EndpointsK8SDaemonSetDetailsView struct {
+}
+
+type EndpointsK8SDeploymentDetailsView struct {
+	AvailableReplicas *int `json:"availableReplicas,omitempty"`
+	ClusterID *string `json:"clusterId,omitempty"`
+	Images []string `json:"images,omitempty"`
+	Namespace *string `json:"namespace,omitempty"`
+	ReadyReplicas *int `json:"readyReplicas,omitempty"`
+	Selector map[string]string `json:"selector,omitempty"`
+}
+
+type EndpointsK8SIngressDetailsView struct {
+	BackendServices []string `json:"backendServices,omitempty"`
+	ClusterID *string `json:"clusterId,omitempty"`
+	Hosts []string `json:"hosts,omitempty"`
+	IngressClass *string `json:"ingressClass,omitempty"`
+	Namespace *string `json:"namespace,omitempty"`
+	TlsHosts []string `json:"tlsHosts,omitempty"`
+}
+
+type EndpointsK8SNamespaceDetailsView struct {
+	ClusterID *string `json:"clusterId,omitempty"`
+	Finalizers []string `json:"finalizers,omitempty"`
+	Phase *string `json:"phase,omitempty"`
+}
+
+type EndpointsK8SNodeDetailsView struct {
+	Allocatable map[string]string `json:"allocatable,omitempty"`
+	Capacity map[string]string `json:"capacity,omitempty"`
+	ClusterName *string `json:"clusterName,omitempty"`
+	ContainerRuntime *string `json:"containerRuntime,omitempty"`
+	KernelVersion *string `json:"kernelVersion,omitempty"`
+	KubeletVersion *string `json:"kubeletVersion,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
+	NodeName *string `json:"nodeName,omitempty"`
+	Taints []string `json:"taints,omitempty"`
+}
+
+type EndpointsK8SPodDetailsView struct {
+}
+
+type EndpointsK8SRoleBindingDetailsView struct {
+}
+
+type EndpointsK8SRoleDetailsView struct {
+}
+
+type EndpointsK8SServiceAccountDetailsView struct {
+}
+
+type EndpointsK8SServiceDetailsView struct {
+	ClusterID *string `json:"clusterId,omitempty"`
+	ClusterIps []string `json:"clusterIps,omitempty"`
+	ExternalIps []string `json:"externalIps,omitempty"`
+	ExternalName *string `json:"externalName,omitempty"`
+	Namespace *string `json:"namespace,omitempty"`
+	Ports []EndpointsK8SServicePortDetailsView `json:"ports,omitempty"`
+	Selector map[string]string `json:"selector,omitempty"`
+}
+
+type EndpointsK8SServicePortDetailsView struct {
+	Name *string `json:"name,omitempty"`
+	NodePort *int `json:"nodePort,omitempty"`
+	Port *int `json:"port,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
+	TargetPort *string `json:"targetPort,omitempty"`
+}
+
+type EndpointsK8SStatefulSetDetailsView struct {
+}
+
+type EndpointsListAiMlAssetsOutput struct {
+	Assets []EndpointsAiMlAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
 }
 
 type EndpointsListArtifactDeploymentsOutput struct {
@@ -494,10 +2895,95 @@ type EndpointsListArtifactDeploymentsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsListArtifactRepositoriesAssetsOutput struct {
+	Assets []EndpointsArtifactRepositoriesAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListArtifactsAssetsOutput struct {
+	Assets []EndpointsArtifactsAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
 type EndpointsListArtifactsOutput struct {
 	Artifacts []EndpointsArtifactSummary `json:"artifacts,omitempty"`
 	NextToken *string `json:"nextToken,omitempty"`
+	TotalCount int64 `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsListAssetInventoryOutput struct {
+	Assets []EndpointsUnifiedAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListCDNAndDNSAssetsOutput struct {
+	Assets []EndpointsCDNAndDNSAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListCiCdAssetsOutput struct {
+	Assets []EndpointsCiCdAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListClusterAssetsOutput struct {
+	Assets []EndpointsClusterAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListComputeAssetsOutput struct {
+	Assets []EndpointsComputeAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListConnectivityAssetsOutput struct {
+	Assets []EndpointsConnectivityAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListContainerAssetsOutput struct {
+	Assets []EndpointsContainerAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListDataPipelineAssetsOutput struct {
+	Assets []EndpointsDataPipelineAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListDatabaseAssetsOutput struct {
+	Assets []EndpointsDatabaseAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListEndpointsAssetsOutput struct {
+	Endpoints []EndpointsEndpointsAssetView `json:"endpoints,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
 }
 
 type EndpointsListEntrypointsOutput struct {
@@ -506,10 +2992,89 @@ type EndpointsListEntrypointsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsListIdentityAssetsOutput struct {
+	Assets []EndpointsIdentityAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListInfrastructureGraphVersionsOutput struct {
+	AccountID string `json:"accountId"`
+	Count int `json:"count"`
+	Version *string `json:"version,omitempty"`
+	Versions []string `json:"versions,omitempty"`
+}
+
+type EndpointsListInfrastructureGraphsOutput struct {
+	Count int `json:"count"`
+	Graphs []EndpointsInfrastructureGraphSummary `json:"graphs,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsListK8SCollectorClustersOutput struct {
+	Clusters []EndpointsK8SCollectorClusterView `json:"clusters,omitempty"`
+	Version string `json:"version"`
+}
+
+type EndpointsListLoadBalancerAssetsOutput struct {
+	Assets []EndpointsLoadBalancerAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListMessagingAssetsOutput struct {
+	Assets []EndpointsMessagingAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListNetworkAssetsOutput struct {
+	Assets []EndpointsNetworkAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListObservabilityAssetsOutput struct {
+	Assets []EndpointsObservabilityAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListPipelinesAssetsOutput struct {
+	Assets []EndpointsPipelinesAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
 type EndpointsListPipelinesOutput struct {
 	NextToken *string `json:"nextToken,omitempty"`
 	Pipelines []EndpointsPipelineSummary `json:"pipelines,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsListProjectExecutionRecipeValidationsOutput struct {
+	Limit int `json:"limit"`
+	Offset int `json:"offset"`
+	Validations []ModelsExecutionRecipeValidation `json:"validations,omitempty"`
+}
+
+type EndpointsListProjectExecutionRecipeVersionsOutput struct {
+	Limit int `json:"limit"`
+	Offset int `json:"offset"`
+	Versions []ModelsExecutionRecipe `json:"versions,omitempty"`
+}
+
+type EndpointsListProjectsAssetsOutput struct {
+	Assets []EndpointsProjectsAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
 }
 
 type EndpointsListRepoScansOutput struct {
@@ -518,6 +3083,13 @@ type EndpointsListRepoScansOutput struct {
 	Scans []EndpointsRepoScanSummary `json:"scans,omitempty"`
 	Total int `json:"total"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsListReposAssetsOutput struct {
+	Assets []EndpointsReposAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
 }
 
 type EndpointsListRepositoryProjectsOutput struct {
@@ -531,14 +3103,259 @@ type EndpointsListSchemasOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsListSecurityAssetsOutput struct {
+	Assets []EndpointsSecurityAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListServerlessAssetsOutput struct {
+	Assets []EndpointsServerlessAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsListStorageAndBackupAssetsOutput struct {
+	Assets []EndpointsStorageAndBackupAssetView `json:"assets,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
+	Total int `json:"total"`
+	Version string `json:"version"`
+}
+
+type EndpointsLoadBalancerAssetDetailsView struct {
+	AwsAlb *EndpointsAWSALBDetailsView `json:"awsAlb,omitempty"`
+	AwsClb *EndpointsAWSCLBDetailsView `json:"awsClb,omitempty"`
+	AwsNlb *EndpointsAWSNLBDetailsView `json:"awsNlb,omitempty"`
+	AwsTargetGroup *EndpointsAWSTargetGroupDetailsView `json:"awsTargetGroup,omitempty"`
+	AzureAppGateway *EndpointsAzureAppGatewayDetailsView `json:"azureAppGateway,omitempty"`
+	GcpLb *EndpointsGCPLBDetailsView `json:"gcpLb,omitempty"`
+	K8sIngress *EndpointsK8SIngressDetailsView `json:"k8sIngress,omitempty"`
+	K8sService *EndpointsK8SServiceDetailsView `json:"k8sService,omitempty"`
+	SubType ModelsLoadBalancerSubType `json:"subType"`
+}
+
+type EndpointsLoadBalancerAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	DnsName *string `json:"dnsName,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	HealthyTargetCount *int `json:"healthyTargetCount,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	LbType *string `json:"lbType,omitempty"`
+	ListenerCount *int `json:"listenerCount,omitempty"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	Scheme *string `json:"scheme,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsLoadBalancerSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+	TargetCount *int `json:"targetCount,omitempty"`
+	TlsPolicy *string `json:"tlsPolicy,omitempty"`
+	WafAttached *bool `json:"wafAttached,omitempty"`
+}
+
+type EndpointsMavenDetailsView struct {
+}
+
+type EndpointsMemoryFinding struct {
+	Cited bool `json:"cited"`
+	FindingType string `json:"findingType"`
+	ID string `json:"id"`
+	Repository *string `json:"repository,omitempty"`
+	Severity string `json:"severity"`
+	Status string `json:"status"`
+	Title string `json:"title"`
+}
+
+type EndpointsMemoryVersion struct {
+	ChangeReason string `json:"changeReason"`
+	ChangedBy *string `json:"changedBy,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	Memory ModelsMemory `json:"memory"`
+	Status ModelsMemoryStatus `json:"status"`
+	Version int `json:"version"`
+}
+
+type EndpointsMessagingAssetDetailsView struct {
+	AwsEventBridge *EndpointsAWSEventBridgeDetailsView `json:"awsEventBridge,omitempty"`
+	AwsKinesis *EndpointsAWSKinesisDetailsView `json:"awsKinesis,omitempty"`
+	AwsMq *EndpointsAWSMQDetailsView `json:"awsMq,omitempty"`
+	AwsMsk *EndpointsAWSMSKDetailsView `json:"awsMsk,omitempty"`
+	AwsSes *EndpointsAWSSESDetailsView `json:"awsSes,omitempty"`
+	AwsSns *EndpointsAWSSNSDetailsView `json:"awsSns,omitempty"`
+	AwsSqs *EndpointsAWSSQSDetailsView `json:"awsSqs,omitempty"`
+	AzureEventGrid *EndpointsAzureEventGridDetailsView `json:"azureEventGrid,omitempty"`
+	AzureEventHub *EndpointsAzureEventHubDetailsView `json:"azureEventHub,omitempty"`
+	AzureIotHub *EndpointsAzureIotHubDetailsView `json:"azureIotHub,omitempty"`
+	AzureServiceBus *EndpointsAzureServiceBusDetailsView `json:"azureServiceBus,omitempty"`
+	GcpPubSub *EndpointsGCPPubSubDetailsView `json:"gcpPubSub,omitempty"`
+	SubType ModelsMessagingSubType `json:"subType"`
+}
+
+type EndpointsMessagingAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	DlqConfigured *bool `json:"dlqConfigured,omitempty"`
+	EncryptionKmsKeyID *string `json:"encryptionKmsKeyId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	Kind *string `json:"kind,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	MessageRetentionS *int `json:"messageRetentionS,omitempty"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	PubliclyAccessible *bool `json:"publiclyAccessible,omitempty"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsMessagingSubType `json:"subType"`
+	SubscriberCount *int `json:"subscriberCount,omitempty"`
+	Tags map[string]string `json:"tags,omitempty"`
+	ThroughputOrShardCount *int `json:"throughputOrShardCount,omitempty"`
+}
+
+type EndpointsNPMPackageDetailsView struct {
+}
+
+type EndpointsNPMRegistryDetailsView struct {
+}
+
+type EndpointsNetworkAssetDetailsView struct {
+	AwsEip *EndpointsAWSEIPDetailsView `json:"awsEip,omitempty"`
+	AwsInternetGateway *EndpointsAWSInternetGatewayDetailsView `json:"awsInternetGateway,omitempty"`
+	AwsNatGateway *EndpointsAWSNATGatewayDetailsView `json:"awsNatGateway,omitempty"`
+	AwsRouteTable *EndpointsAWSRouteTableDetailsView `json:"awsRouteTable,omitempty"`
+	AwsSubnet *EndpointsAWSSubnetDetailsView `json:"awsSubnet,omitempty"`
+	AwsVpc *EndpointsAWSVPCDetailsView `json:"awsVpc,omitempty"`
+	AwsVpcEndpoint *EndpointsAWSVPCEndpointDetailsView `json:"awsVpcEndpoint,omitempty"`
+	AzureSubnet *EndpointsAzureSubnetDetailsView `json:"azureSubnet,omitempty"`
+	AzureVnet *EndpointsAzureVNetDetailsView `json:"azureVnet,omitempty"`
+	GcpCloudNat *EndpointsGCPCloudNATDetailsView `json:"gcpCloudNat,omitempty"`
+	GcpVpc *EndpointsGCPVPCDetailsView `json:"gcpVpc,omitempty"`
+	SubType ModelsNetworkSubType `json:"subType"`
+}
+
+type EndpointsNetworkAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	AttachedGatewayIds []string `json:"attachedGatewayIds,omitempty"`
+	CidrBlock *string `json:"cidrBlock,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	DnsHostnamesEnabled *bool `json:"dnsHostnamesEnabled,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	FlowLogsEnabled *bool `json:"flowLogsEnabled,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsDefault *bool `json:"isDefault,omitempty"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	IsPublicSubnet *bool `json:"isPublicSubnet,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	PeeringCount *int `json:"peeringCount,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	RouteTableID *string `json:"routeTableId,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsNetworkSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsNuGetDetailsView struct {
+}
+
+type EndpointsObservabilityAssetDetailsView struct {
+	AwsCloudWatchAlarm *EndpointsAWSCloudWatchAlarmDetailsView `json:"awsCloudWatchAlarm,omitempty"`
+	AwsCloudWatchDashboard *EndpointsAWSCloudWatchDashboardDetailsView `json:"awsCloudWatchDashboard,omitempty"`
+	AwsCloudWatchLogGroup *EndpointsAWSCloudWatchLogGroupDetailsView `json:"awsCloudWatchLogGroup,omitempty"`
+	AwsXRay *EndpointsAWSXRayDetailsView `json:"awsXRay,omitempty"`
+	AzureAutomation *EndpointsAzureAutomationDetailsView `json:"azureAutomation,omitempty"`
+	AzureMonitor *EndpointsAzureMonitorDetailsView `json:"azureMonitor,omitempty"`
+	GcpLogging *EndpointsGCPLoggingDetailsView `json:"gcpLogging,omitempty"`
+	GcpStackdriver *EndpointsGCPStackdriverDetailsView `json:"gcpStackdriver,omitempty"`
+	SubType ModelsObservabilitySubType `json:"subType"`
+}
+
+type EndpointsObservabilityAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	AlarmState *string `json:"alarmState,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	Destination *string `json:"destination,omitempty"`
+	EncryptionKmsKeyID *string `json:"encryptionKmsKeyId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IngestionBytes30d *int64 `json:"ingestionBytes30d,omitempty"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	Kind *string `json:"kind,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	RetentionDays *int `json:"retentionDays,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsObservabilitySubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsOtherArtifactDetailsView struct {
+}
+
+type EndpointsOtherRegistryDetailsView struct {
+}
+
 type EndpointsPackageFilter struct {
 	Ecosystem string `json:"ecosystem"`
 	Package string `json:"package"`
 	Version string `json:"version"`
 }
 
+type EndpointsPatchAssetFlagsInput struct {
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+}
+
+type EndpointsPatchAssetFlagsOutput struct {
+	Success bool `json:"success"`
+	Version string `json:"version"`
+}
+
+type EndpointsPatchAssetTagsInput struct {
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsPatchAssetTagsOutput struct {
+	Success bool `json:"success"`
+	Version string `json:"version"`
+}
+
 type EndpointsPatchContextApplicationInput struct {
-	Application ModelsAppContextSeed `json:"application"`
+	Application ModelsAgentAppContextSeed `json:"application"`
 }
 
 type EndpointsPatchContextApplicationOutput struct {
@@ -551,11 +3368,11 @@ type EndpointsPatchMemoryInput struct {
 	Citations []ModelsMemoryCitationsElem `json:"citations,omitempty"`
 	Confidence *float64 `json:"confidence,omitempty"`
 	Content *string `json:"content,omitempty"`
-	CreateNewVersion *bool `json:"createNewVersion,omitempty"`
 	CrossReferences []ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
 	Metadata *ModelsMemoryMetadata `json:"metadata,omitempty"`
 	ParentNoteID *string `json:"parentNoteId,omitempty"`
 	Priority *ModelsMemoryPriority `json:"priority,omitempty"`
+	SupersedesMemoryID *string `json:"supersedesMemoryId,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 	Title *string `json:"title,omitempty"`
 }
@@ -629,6 +3446,42 @@ type EndpointsPipelineTriggerSummary struct {
 	Type *string `json:"type,omitempty"`
 }
 
+type EndpointsPipelinesAssetDetailsView struct {
+	AzurePipelines *EndpointsAzurePipelinesDetailsView `json:"azurePipelines,omitempty"`
+	Buildkite *EndpointsBuildkiteDetailsView `json:"buildkite,omitempty"`
+	Circleci *EndpointsCircleCIDetailsView `json:"circleci,omitempty"`
+	GithubActions *EndpointsGitHubActionsDetailsView `json:"githubActions,omitempty"`
+	GitlabCi *EndpointsGitLabCIDetailsView `json:"gitlabCi,omitempty"`
+	Jenkins *EndpointsJenkinsDetailsView `json:"jenkins,omitempty"`
+	SubType ModelsPipelinesSubType `json:"subType"`
+}
+
+type EndpointsPipelinesAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FilePath *string `json:"filePath,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	Platform *string `json:"platform,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	RepoID *string `json:"repoId,omitempty"`
+	RunsOnPr *bool `json:"runsOnPr,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsPipelinesSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
 type EndpointsPostCloudReconScanInput struct {
 	AccountID string `json:"accountId"`
 	CompletedAt *string `json:"completedAt,omitempty"`
@@ -659,20 +3512,30 @@ type EndpointsPostContextApplicationOutput struct {
 }
 
 type EndpointsPostMemoryInput struct {
+	Anchors []string `json:"anchors,omitempty"`
 	Citations []ModelsMemoryCitationsElem `json:"citations,omitempty"`
+	CommentIds []string `json:"commentIds,omitempty"`
 	Confidence *float64 `json:"confidence,omitempty"`
 	Content string `json:"content"`
 	CreatedBy *string `json:"createdBy,omitempty"`
 	CrossReferences []ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+	EventTime *string `json:"eventTime,omitempty"`
 	IsUserCreated *bool `json:"isUserCreated,omitempty"`
+	MemoryClass *ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+	MemoryID *string `json:"memoryId,omitempty"`
 	MemoryType ModelsMemoryMemoryType `json:"memoryType"`
 	Metadata *ModelsMemoryMetadata `json:"metadata,omitempty"`
 	ParentNoteID *string `json:"parentNoteId,omitempty"`
 	Priority *ModelsMemoryPriority `json:"priority,omitempty"`
+	PromptVersion *string `json:"promptVersion,omitempty"`
 	ResourceID *string `json:"resourceId,omitempty"`
 	ResourceType *ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	Scope *ModelsMemoryScope `json:"scope,omitempty"`
+	SourceEvent *string `json:"sourceEvent,omitempty"`
+	SupersedesMemoryID *string `json:"supersedesMemoryId,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 	Title *string `json:"title,omitempty"`
+	TrustTier *int `json:"trustTier,omitempty"`
 }
 
 type EndpointsPostMemoryOutput struct {
@@ -689,6 +3552,10 @@ type EndpointsPostProjectSchemaInput struct {
 type EndpointsPostProjectSchemaOutput struct {
 	Message string `json:"message"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostRAGResyncInput struct {
+	ConfluenceOnly *bool `json:"confluenceOnly,omitempty"`
 }
 
 type EndpointsPostRAGResyncOutput struct {
@@ -714,18 +3581,22 @@ type EndpointsPostSBOMGenerateInput struct {
 }
 
 type EndpointsPostSBOMGenerateOutput struct {
+	CommitSha *string `json:"commitSha,omitempty"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
 	Status *string `json:"status,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsPostSBOMResolveInput struct {
+	BaselineOnly *bool `json:"baselineOnly,omitempty"`
 	Branch *string `json:"branch,omitempty"`
 	CdxgenMajor *int `json:"cdxgenMajor,omitempty"`
 	CloneURL *string `json:"cloneURL,omitempty"`
 	CommitSHA *string `json:"commitSHA,omitempty"`
 	IsDefaultBranchPush *bool `json:"isDefaultBranchPush,omitempty"`
 	LockfileSetHash *string `json:"lockfileSetHash,omitempty"`
+	ManifestOnly *bool `json:"manifestOnly,omitempty"`
 	OwnerProvider *ModelsOwnerProvider `json:"ownerProvider,omitempty"`
 	RepositoryID *string `json:"repositoryID,omitempty"`
 	RepositoryProvider *ModelsGitRepositoryProvider `json:"repositoryProvider,omitempty"`
@@ -736,8 +3607,35 @@ type EndpointsPostSBOMResolveInput struct {
 
 type EndpointsPostSBOMResolveOutput struct {
 	Components *int `json:"components,omitempty"`
+	CoverageRegression *bool `json:"coverageRegression,omitempty"`
+	Exclusions []ModelsSBOMScope `json:"exclusions,omitempty"`
+	FailedEcosystems []string `json:"failedEcosystems,omitempty"`
+	FailureClass *string `json:"failureClass,omitempty"`
+	FailureReason *string `json:"failureReason,omitempty"`
+	Incomplete *bool `json:"incomplete,omitempty"`
+	IncompleteScopes []ModelsSBOMScope `json:"incompleteScopes,omitempty"`
+	PackageAuth []ModelsSBOMPackageAuth `json:"packageAuth,omitempty"`
 	SbomS3Key *string `json:"sbomS3Key,omitempty"`
+	SbomSha256 *string `json:"sbomSha256,omitempty"`
+	SbomSizeBytes *int64 `json:"sbomSizeBytes,omitempty"`
+	SbomURL *string `json:"sbomUrl,omitempty"`
+	ScanScope *ModelsPathScope `json:"scanScope,omitempty"`
 	Source *string `json:"source,omitempty"`
+}
+
+type EndpointsPostSBOMRunInput struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitSha *string `json:"commitSha,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsPostSBOMRunOutput struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitSha string `json:"commitSha"`
+	ExecutionArn string `json:"executionArn"`
+	RepositoryID string `json:"repositoryId"`
+	RunID string `json:"runId"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsPostSBOMScanInput struct {
@@ -757,6 +3655,7 @@ type EndpointsPostSBOMScanOutput struct {
 type EndpointsPostVaultFileInput struct {
 	Description *string `json:"description,omitempty"`
 	FileName string `json:"fileName"`
+	Size *int64 `json:"size,omitempty"`
 }
 
 type EndpointsPostVaultFileOutput struct {
@@ -768,12 +3667,23 @@ type EndpointsPostVaultFileOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostVaultIndexInput struct {
+	FileIDs []string `json:"fileIDs,omitempty"`
+}
+
+type EndpointsPostVaultIndexOutput struct {
+	Message string `json:"message"`
+	Success bool `json:"success"`
+}
+
 type EndpointsPostVaultOnboardInput struct {
 	FileIDs []string `json:"fileIDs,omitempty"`
+	RunID *string `json:"runId,omitempty"`
 }
 
 type EndpointsPostVaultOnboardOutput struct {
 	Message string `json:"message"`
+	RunID *string `json:"runId,omitempty"`
 	Success bool `json:"success"`
 }
 
@@ -785,6 +3695,38 @@ type EndpointsProjectWithoutLockfile struct {
 	RepositoryName *string `json:"repositoryName,omitempty"`
 }
 
+type EndpointsProjectsAssetDetailsView struct {
+	RepoContextProject *EndpointsRepoContextProjectDetailsView `json:"repoContextProject,omitempty"`
+	SubType ModelsProjectsSubType `json:"subType"`
+}
+
+type EndpointsProjectsAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	Framework *string `json:"framework,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	Languages []string `json:"languages,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	OwnerTeam *string `json:"ownerTeam,omitempty"`
+	PathPrefix *string `json:"pathPrefix,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	RepoID *string `json:"repoId,omitempty"`
+	SecurityImportance *RepocontextProjectContextSecurityImportance `json:"securityImportance,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsProjectsSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
 type EndpointsProviderScanStatus struct {
 	CompletedAt *string `json:"completedAt,omitempty"`
 	ErrorMessage *string `json:"errorMessage,omitempty"`
@@ -793,19 +3735,12 @@ type EndpointsProviderScanStatus struct {
 	Status string `json:"status"`
 }
 
-type EndpointsPublicAsset struct {
-	AccountID string `json:"accountId"`
-	AssetID string `json:"assetId"`
-	CloudProvider string `json:"cloudProvider"`
-	DnsNames []string `json:"dnsNames,omitempty"`
-	IsPublicFacing bool `json:"isPublicFacing"`
-	LastSeenAt *string `json:"lastSeenAt,omitempty"`
-	PublicIps []string `json:"publicIps,omitempty"`
-	Region *string `json:"region,omitempty"`
-	ResourceID string `json:"resourceId"`
-	ResourceType string `json:"resourceType"`
-	Tags map[string]string `json:"tags,omitempty"`
-	TenantID string `json:"tenantId"`
+type EndpointsPyPIDetailsView struct {
+}
+
+type EndpointsReachabilityPathDTO struct {
+	Depth int32 `json:"depth"`
+	NodeIds []string `json:"nodeIds,omitempty"`
 }
 
 type EndpointsRebuildApplicationsInput struct {
@@ -814,8 +3749,12 @@ type EndpointsRebuildApplicationsInput struct {
 }
 
 type EndpointsRebuildApplicationsOutput struct {
+	RunID *string `json:"runId,omitempty"`
 	Status string `json:"status"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsRepoContextProjectDetailsView struct {
 }
 
 type EndpointsRepoScanProjectTouched struct {
@@ -834,23 +3773,63 @@ type EndpointsRepoScanSubagent struct {
 	DurationMs *int `json:"durationMs,omitempty"`
 	Error *string `json:"error,omitempty"`
 	Ran *bool `json:"ran,omitempty"`
+	Reused *bool `json:"reused,omitempty"`
+	SkipReason *string `json:"skipReason,omitempty"`
 	StartedAt *string `json:"startedAt,omitempty"`
 	Status *string `json:"status,omitempty"`
 }
 
 type EndpointsRepoScanSummary struct {
+	BaseContextVersion *string `json:"baseContextVersion,omitempty"`
 	Branch *string `json:"branch,omitempty"`
 	CommitSha string `json:"commitSha"`
 	CompletedAt *string `json:"completedAt,omitempty"`
+	ContextVersion *string `json:"contextVersion,omitempty"`
 	ErrorMessage *string `json:"errorMessage,omitempty"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
 	ID string `json:"id"`
 	ProjectsTouched []EndpointsRepoScanProjectTouched `json:"projectsTouched,omitempty"`
+	PublishedAsLatest *bool `json:"publishedAsLatest,omitempty"`
 	RepositoryID string `json:"repositoryId"`
 	SbomsGenerated []EndpointsRepoScanSBOMGenerated `json:"sbomsGenerated,omitempty"`
+	ScopePathPrefixes []string `json:"scopePathPrefixes,omitempty"`
+	Source *string `json:"source,omitempty"`
 	StartedAt string `json:"startedAt"`
 	Status string `json:"status"`
+	SubagentAllowlist []string `json:"subagentAllowlist,omitempty"`
 	SubagentsRun map[string]EndpointsRepoScanSubagent `json:"subagentsRun,omitempty"`
 	UpdatedAt string `json:"updatedAt"`
+}
+
+type EndpointsReposAssetDetailsView struct {
+	AzureRepo *EndpointsAzureRepoDetailsView `json:"azureRepo,omitempty"`
+	BitbucketRepo *EndpointsBitbucketRepoDetailsView `json:"bitbucketRepo,omitempty"`
+	GithubRepo *EndpointsGitHubRepoDetailsView `json:"githubRepo,omitempty"`
+	GitlabRepo *EndpointsGitLabRepoDetailsView `json:"gitlabRepo,omitempty"`
+	SubType ModelsReposSubType `json:"subType"`
+}
+
+type EndpointsReposAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	HeadSha *string `json:"headSha,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublic *bool `json:"isPublic,omitempty"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsReposSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 type EndpointsRepositoryWithoutLockfile struct {
@@ -859,6 +3838,28 @@ type EndpointsRepositoryWithoutLockfile struct {
 	ProjectCount *int64 `json:"projectCount,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
 	RepositoryName *string `json:"repositoryName,omitempty"`
+}
+
+type EndpointsRetractMemoryInput struct {
+	Reason string `json:"reason"`
+	RetractedBy *string `json:"retractedBy,omitempty"`
+}
+
+type EndpointsRetractMemoryOutput struct {
+	Memory *ModelsMemory `json:"memory,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsRubyGemsDetailsView struct {
+}
+
+type EndpointsRunStatus struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	Error *string `json:"error,omitempty"`
+	RunID string `json:"runId"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	State EndpointsRunState `json:"state"`
+	Terminal *bool `json:"terminal,omitempty"`
 }
 
 type EndpointsSBOMIngestReplayInput struct {
@@ -872,14 +3873,341 @@ type EndpointsSBOMIngestReplayOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsSchemaProvenance struct {
+	ExecutionMode *string `json:"executionMode,omitempty"`
+	MethodUnknownOperations *int `json:"methodUnknownOperations,omitempty"`
+	Partial *bool `json:"partial,omitempty"`
+	Unconfirmed *bool `json:"unconfirmed,omitempty"`
+	UnverifiedOperations *int `json:"unverifiedOperations,omitempty"`
+	VerifiedAgainstCode *bool `json:"verifiedAgainstCode,omitempty"`
+}
+
 type EndpointsSchemaSummary struct {
 	DownloadURL *string `json:"downloadUrl,omitempty"`
 	ProjectID *string `json:"projectId,omitempty"`
 	ProjectName *string `json:"projectName,omitempty"`
+	Provenance *EndpointsSchemaProvenance `json:"provenance,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
-	SchemaFormat *string `json:"schemaFormat,omitempty"`
-	SchemaType *string `json:"schemaType,omitempty"`
+	SchemaFormat *ModelsSchemaFormat `json:"schemaFormat,omitempty"`
+	SchemaType *ModelsSchemaType `json:"schemaType,omitempty"`
 	Size *int `json:"size,omitempty"`
+}
+
+type EndpointsSearchMemoriesInput struct {
+	Anchors []string `json:"anchors,omitempty"`
+	IncludeOrgWide *bool `json:"includeOrgWide,omitempty"`
+	Limit *int `json:"limit,omitempty"`
+	MemoryClass *ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
+	MemoryTypes []ModelsMemoryMemoryType `json:"memoryTypes,omitempty"`
+	MinTrustTier *int `json:"minTrustTier,omitempty"`
+	Query string `json:"query"`
+	ResourceType *ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	Scope *ModelsMemoryScope `json:"scope,omitempty"`
+}
+
+type EndpointsSearchMemoriesOutput struct {
+	Count int `json:"count"`
+	Results []EndpointsSearchMemoryResult `json:"results,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsSearchMemoryResult struct {
+	Memory ModelsMemory `json:"memory"`
+	Score float64 `json:"score"`
+}
+
+type EndpointsSearchVaultInput struct {
+	DocTypes []string `json:"docTypes,omitempty"`
+	DocumentIds []string `json:"documentIds,omitempty"`
+	Limit *int `json:"limit,omitempty"`
+	Query string `json:"query"`
+}
+
+type EndpointsSearchVaultOutput struct {
+	Count int `json:"count"`
+	Results []EndpointsVaultSearchResult `json:"results,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsSecurityAssetDetailsView struct {
+	AwsAcm *EndpointsAWSACMDetailsView `json:"awsAcm,omitempty"`
+	AwsCloudTrail *EndpointsAWSCloudTrailDetailsView `json:"awsCloudTrail,omitempty"`
+	AwsConfig *EndpointsAWSConfigDetailsView `json:"awsConfig,omitempty"`
+	AwsGuardDuty *EndpointsAWSGuardDutyDetailsView `json:"awsGuardDuty,omitempty"`
+	AwsKms *EndpointsAWSKMSDetailsView `json:"awsKms,omitempty"`
+	AwsNacl *EndpointsAWSNACLDetailsView `json:"awsNacl,omitempty"`
+	AwsSecretsManager *EndpointsAWSSecretsManagerDetailsView `json:"awsSecretsManager,omitempty"`
+	AwsSecurityGroup *EndpointsAWSSecurityGroupDetailsView `json:"awsSecurityGroup,omitempty"`
+	AwsSsm *EndpointsAWSSSMDetailsView `json:"awsSsm,omitempty"`
+	AwsWaf *EndpointsAWSWAFDetailsView `json:"awsWaf,omitempty"`
+	AzureDefender *EndpointsAzureDefenderDetailsView `json:"azureDefender,omitempty"`
+	AzureKeyVault *EndpointsAzureKeyVaultDetailsView `json:"azureKeyVault,omitempty"`
+	AzureNsg *EndpointsAzureNSGDetailsView `json:"azureNsg,omitempty"`
+	AzurePolicy *EndpointsAzurePolicyDetailsView `json:"azurePolicy,omitempty"`
+	GcpKms *EndpointsGCPKMSDetailsView `json:"gcpKms,omitempty"`
+	GcpOrgPolicy *EndpointsGCPOrgPolicyDetailsView `json:"gcpOrgPolicy,omitempty"`
+	GcpPolicyAnalyzer *EndpointsGCPPolicyAnalyzerDetailsView `json:"gcpPolicyAnalyzer,omitempty"`
+	GcpSecretManager *EndpointsGCPSecretManagerDetailsView `json:"gcpSecretManager,omitempty"`
+	GcpSecurityCommandCtr *EndpointsGCPSecurityCommandCtrDetailsView `json:"gcpSecurityCommandCtr,omitempty"`
+	SubType ModelsSecuritySubType `json:"subType"`
+}
+
+type EndpointsSecurityAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	AllowsWorldIngress *bool `json:"allowsWorldIngress,omitempty"`
+	ControlKind *string `json:"controlKind,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FindingsCountOpen *int `json:"findingsCountOpen,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	RotationEnabled *bool `json:"rotationEnabled,omitempty"`
+	RuleCount *int `json:"ruleCount,omitempty"`
+	ScopeRef *string `json:"scopeRef,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsSecuritySubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+}
+
+type EndpointsServerlessAssetDetailsView struct {
+	AwsAppRunner *EndpointsAWSAppRunnerDetailsView `json:"awsAppRunner,omitempty"`
+	AwsLambda *EndpointsAWSLambdaDetailsView `json:"awsLambda,omitempty"`
+	AwsStepFunction *EndpointsAWSStepFunctionDetailsView `json:"awsStepFunction,omitempty"`
+	AzureFunction *EndpointsAzureFunctionDetailsView `json:"azureFunction,omitempty"`
+	AzureLogicApps *EndpointsAzureLogicAppsDetailsView `json:"azureLogicApps,omitempty"`
+	GcpAppEngine *EndpointsGCPAppEngineDetailsView `json:"gcpAppEngine,omitempty"`
+	GcpCloudFunction *EndpointsGCPCloudFunctionDetailsView `json:"gcpCloudFunction,omitempty"`
+	GcpCloudRun *EndpointsGCPCloudRunDetailsView `json:"gcpCloudRun,omitempty"`
+	SubType ModelsServerlessSubType `json:"subType"`
+}
+
+type EndpointsServerlessAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	CodeSigningEnabled *bool `json:"codeSigningEnabled,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	Handler *string `json:"handler,omitempty"`
+	IamRoleArn *string `json:"iamRoleArn,omitempty"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastInvocationAt *string `json:"lastInvocationAt,omitempty"`
+	LastSeenAt string `json:"lastSeenAt"`
+	MemoryMb *int `json:"memoryMb,omitempty"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	Runtime *string `json:"runtime,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsServerlessSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+	TimeoutS *int `json:"timeoutS,omitempty"`
+	TriggerSources []string `json:"triggerSources,omitempty"`
+	UrlEnabled *bool `json:"urlEnabled,omitempty"`
+	VpcAttached *bool `json:"vpcAttached,omitempty"`
+}
+
+type EndpointsSetupAssessmentBlocker struct {
+	Code string `json:"code"`
+	Message string `json:"message"`
+}
+
+type EndpointsSetupAssessmentTarget struct {
+	AppliedTargetID *string `json:"appliedTargetId,omitempty"`
+	Confidence string `json:"confidence"`
+	Environment string `json:"environment"`
+	Evidence []EndpointsSetupRecommendationEvidence `json:"evidence,omitempty"`
+	Hostname string `json:"hostname"`
+	RecommendationID string `json:"recommendationId"`
+	RepositoryIds []string `json:"repositoryIds,omitempty"`
+	Status string `json:"status"`
+}
+
+type EndpointsSetupAssessmentWebService struct {
+	ComponentName string `json:"componentName"`
+	ComponentType *string `json:"componentType,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	RepoPath *string `json:"repoPath,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	RepositoryName string `json:"repositoryName"`
+}
+
+type EndpointsSetupPentestAssessmentRecommendation struct {
+	ApplicationName string `json:"applicationName"`
+	AppliedApplicationID *string `json:"appliedApplicationId,omitempty"`
+	Blockers []EndpointsSetupAssessmentBlocker `json:"blockers,omitempty"`
+	Confidence string `json:"confidence"`
+	ContextApplicationID string `json:"contextApplicationId"`
+	CreatedAt string `json:"createdAt"`
+	DecidedAt *string `json:"decidedAt,omitempty"`
+	DecidedBy *string `json:"decidedBy,omitempty"`
+	ID string `json:"id"`
+	Status string `json:"status"`
+	Targets []EndpointsSetupAssessmentTarget `json:"targets,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+	WebServices []EndpointsSetupAssessmentWebService `json:"webServices,omitempty"`
+}
+
+type EndpointsSetupPentestAssessmentRecommendationsOutput struct {
+	Recommendations []EndpointsSetupPentestAssessmentRecommendation `json:"recommendations,omitempty"`
+}
+
+type EndpointsSetupPentestTargetRecommendation struct {
+	AppliedTargetID *string `json:"appliedTargetId,omitempty"`
+	Confidence string `json:"confidence"`
+	CreatedAt string `json:"createdAt"`
+	DecidedAt *string `json:"decidedAt,omitempty"`
+	DecidedBy *string `json:"decidedBy,omitempty"`
+	Environment string `json:"environment"`
+	Evidence []EndpointsSetupRecommendationEvidence `json:"evidence,omitempty"`
+	Hostname string `json:"hostname"`
+	ID string `json:"id"`
+	Status string `json:"status"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type EndpointsSetupPentestTargetRecommendationsOutput struct {
+	Recommendations []EndpointsSetupPentestTargetRecommendation `json:"recommendations,omitempty"`
+}
+
+type EndpointsSetupRecommendationEvidence struct {
+	AccountID string `json:"accountId"`
+	Detail string `json:"detail"`
+	Reference string `json:"reference"`
+	Signal string `json:"signal"`
+	Source string `json:"source"`
+}
+
+type EndpointsStartRepositoryExecutionRecipeDiscoveryInput struct {
+	Branch *string `json:"branch,omitempty"`
+	ProjectIds []string `json:"projectIds,omitempty"`
+}
+
+type EndpointsStartRepositoryExecutionRecipeDiscoveryOutput struct {
+	AlreadyStarted *bool `json:"alreadyStarted,omitempty"`
+	Branch *string `json:"branch,omitempty"`
+	CommitSha string `json:"commitSha"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	ExecutionName *string `json:"executionName,omitempty"`
+	Mode string `json:"mode"`
+	Queued []ModelsExecutionRecipeValidation `json:"queued,omitempty"`
+	Refused []ModelsExecutionRecipeDiscoveryRefusal `json:"refused,omitempty"`
+	RunID string `json:"runId"`
+}
+
+type EndpointsStorageAndBackupAssetDetailsView struct {
+	AwsBackupVault *EndpointsAWSBackupVaultDetailsView `json:"awsBackupVault,omitempty"`
+	AwsEbsVolume *EndpointsAWSEBSVolumeDetailsView `json:"awsEbsVolume,omitempty"`
+	AwsEfs *EndpointsAWSEFSDetailsView `json:"awsEfs,omitempty"`
+	AwsS3Bucket *EndpointsAWSS3BucketDetailsView `json:"awsS3Bucket,omitempty"`
+	AwsStorageGateway *EndpointsAWSStorageGatewayDetailsView `json:"awsStorageGateway,omitempty"`
+	AzureBlob *EndpointsAzureBlobDetailsView `json:"azureBlob,omitempty"`
+	AzureDisk *EndpointsAzureDiskDetailsView `json:"azureDisk,omitempty"`
+	AzureFiles *EndpointsAzureFilesDetailsView `json:"azureFiles,omitempty"`
+	AzureStorageAccount *EndpointsAzureStorageAccountDetailsView `json:"azureStorageAccount,omitempty"`
+	GcpFilestore *EndpointsGCPFilestoreDetailsView `json:"gcpFilestore,omitempty"`
+	GcpGcsBucket *EndpointsGCPGCSBucketDetailsView `json:"gcpGcsBucket,omitempty"`
+	GcpPd *EndpointsGCPPDDetailsView `json:"gcpPd,omitempty"`
+	SubType ModelsStorageAndBackupSubType `json:"subType"`
+}
+
+type EndpointsStorageAndBackupAssetView struct {
+	AccountID *string `json:"accountId,omitempty"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	EncryptionKmsKeyID *string `json:"encryptionKmsKeyId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	LifecyclePolicyPresent *bool `json:"lifecyclePolicyPresent,omitempty"`
+	Name string `json:"name"`
+	ObjectLockEnabled *bool `json:"objectLockEnabled,omitempty"`
+	Provider ModelsCloudProvider `json:"provider"`
+	PublicAccessBlockState *string `json:"publicAccessBlockState,omitempty"`
+	Region *string `json:"region,omitempty"`
+	ReplicationEnabled *bool `json:"replicationEnabled,omitempty"`
+	RetentionDays *int `json:"retentionDays,omitempty"`
+	Role *string `json:"role,omitempty"`
+	SizeBytes *int64 `json:"sizeBytes,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType ModelsStorageAndBackupSubType `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
+	VersioningEnabled *bool `json:"versioningEnabled,omitempty"`
+}
+
+type EndpointsTriggerProjectSchemaInput struct {
+	Branch *string `json:"branch,omitempty"`
+}
+
+type EndpointsTriggerProjectSchemaOutput struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitSha string `json:"commitSha"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	ProjectID string `json:"projectId"`
+	RepositoryID string `json:"repositoryId"`
+	RunID string `json:"runId"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsTriggerRepoContextInput struct {
+	Branch *string `json:"branch,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	PathPrefixes []string `json:"pathPrefixes,omitempty"`
+	Subagents []string `json:"subagents,omitempty"`
+}
+
+type EndpointsTriggerRepoContextOutput struct {
+	Branch *string `json:"branch,omitempty"`
+	CommitSha string `json:"commitSha"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	RunID string `json:"runId"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsUnifiedAssetView struct {
+	Links *EndpointsAssetLinks `json:"_links,omitempty"`
+	AccountID *string `json:"accountId,omitempty"`
+	Category ModelsAssetInventoryCategory `json:"category"`
+	DeletedAtScanID *string `json:"deletedAtScanId,omitempty"`
+	ExternalID *string `json:"externalId,omitempty"`
+	FirstFoundScanID string `json:"firstFoundScanId"`
+	FirstSeenAt string `json:"firstSeenAt"`
+	ID string `json:"id"`
+	IsActive bool `json:"isActive"`
+	IsInternetReachable bool `json:"isInternetReachable"`
+	IsPublicFacing bool `json:"isPublicFacing"`
+	LastSeenAt string `json:"lastSeenAt"`
+	Name string `json:"name"`
+	Provider ModelsCloudProvider `json:"provider"`
+	Region *string `json:"region,omitempty"`
+	SourceScanID string `json:"sourceScanId"`
+	SourceType ModelsEndpointSourceType `json:"sourceType"`
+	State *string `json:"state,omitempty"`
+	SubType string `json:"subType"`
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 type EndpointsUpdateOrganizationInput struct {
@@ -911,6 +4239,7 @@ type EndpointsVaultFile struct {
 	FileID string `json:"fileId"`
 	FileName string `json:"fileName"`
 	FilePresignedURL string `json:"filePresignedUrl"`
+	Indexed *bool `json:"indexed,omitempty"`
 	UploaderID string `json:"uploaderId"`
 	UploaderUsername string `json:"uploaderUsername"`
 }
@@ -919,6 +4248,23 @@ type EndpointsVaultFileSimple struct {
 	Description *string `json:"description,omitempty"`
 	DocumentID *string `json:"documentId,omitempty"`
 	FileName string `json:"fileName"`
+}
+
+type EndpointsVaultSearchResult struct {
+	Description *string `json:"description,omitempty"`
+	DocType *string `json:"docType,omitempty"`
+	DocumentID string `json:"documentId"`
+	EndLine *int `json:"endLine,omitempty"`
+	EndPage *int `json:"endPage,omitempty"`
+	FileName string `json:"fileName"`
+	NodeID string `json:"nodeId"`
+	Score float64 `json:"score"`
+	StartLine *int `json:"startLine,omitempty"`
+	StartPage *int `json:"startPage,omitempty"`
+	Text string `json:"text"`
+}
+
+type EndpointsWheelDetailsView struct {
 }
 
 type GraphBuildArtifactRepositoryType string
@@ -969,6 +4315,7 @@ const (
 	GraphCodeArtifactTypeGraphqlApi GraphCodeArtifactType = "GRAPHQL_API"
 	GraphCodeArtifactTypeIotFirmware GraphCodeArtifactType = "IOT_FIRMWARE"
 	GraphCodeArtifactTypeMobileApp GraphCodeArtifactType = "MOBILE_APP"
+	GraphCodeArtifactTypeMvc GraphCodeArtifactType = "MVC"
 	GraphCodeArtifactTypeOther GraphCodeArtifactType = "OTHER"
 	GraphCodeArtifactTypePipelineNode GraphCodeArtifactType = "PIPELINE_NODE"
 	GraphCodeArtifactTypePlugin GraphCodeArtifactType = "PLUGIN"
@@ -979,6 +4326,133 @@ const (
 	GraphCodeArtifactTypeSpaBrowserApp GraphCodeArtifactType = "SPA_BROWSER_APP"
 	GraphCodeArtifactTypeTestSuite GraphCodeArtifactType = "TEST_SUITE"
 	GraphCodeArtifactTypeWebServer GraphCodeArtifactType = "WEB_SERVER"
+)
+
+type GraphEdge struct {
+	Confidence *float64 `json:"confidence,omitempty"`
+	Explanation *string `json:"explanation,omitempty"`
+	Properties map[string]json.RawMessage `json:"properties,omitempty"`
+	SourceID *string `json:"sourceId,omitempty"`
+	TargetID *string `json:"targetId,omitempty"`
+	Type *GraphEdgeType `json:"type,omitempty"`
+}
+
+type GraphEdgeType string
+
+const (
+	GraphEdgeTypeAbout GraphEdgeType = "ABOUT"
+	GraphEdgeTypeAccessedBy GraphEdgeType = "ACCESSED_BY"
+	GraphEdgeTypeAllowedBy GraphEdgeType = "ALLOWED_BY"
+	GraphEdgeTypeAllowsEgressTo GraphEdgeType = "ALLOWS_EGRESS_TO"
+	GraphEdgeTypeAllowsIngressFrom GraphEdgeType = "ALLOWS_INGRESS_FROM"
+	GraphEdgeTypeAppliesTo GraphEdgeType = "APPLIES_TO"
+	GraphEdgeTypeAssumes GraphEdgeType = "ASSUMES"
+	GraphEdgeTypeAssumesRole GraphEdgeType = "ASSUMES_ROLE"
+	GraphEdgeTypeAttachedTo GraphEdgeType = "ATTACHED_TO"
+	GraphEdgeTypeAuthenticates GraphEdgeType = "AUTHENTICATES"
+	GraphEdgeTypeBasedOnContainerfile GraphEdgeType = "BASED_ON_CONTAINERFILE"
+	GraphEdgeTypeBelongsTo GraphEdgeType = "BELONGS_TO"
+	GraphEdgeTypeBuilds GraphEdgeType = "BUILDS"
+	GraphEdgeTypeBuiltFrom GraphEdgeType = "BUILT_FROM"
+	GraphEdgeTypeCalls GraphEdgeType = "CALLS"
+	GraphEdgeTypeCanReach GraphEdgeType = "CAN_REACH"
+	GraphEdgeTypeClaims GraphEdgeType = "CLAIMS"
+	GraphEdgeTypeContains GraphEdgeType = "CONTAINS"
+	GraphEdgeTypeContributesTo GraphEdgeType = "CONTRIBUTES_TO"
+	GraphEdgeTypeContributesToProject GraphEdgeType = "CONTRIBUTES_TO_PROJECT"
+	GraphEdgeTypeControls GraphEdgeType = "CONTROLS"
+	GraphEdgeTypeDataFlowsTo GraphEdgeType = "DATA_FLOWS_TO"
+	GraphEdgeTypeDeployedBy GraphEdgeType = "DEPLOYED_BY"
+	GraphEdgeTypeDeployedIn GraphEdgeType = "DEPLOYED_IN"
+	GraphEdgeTypeDeployedTo GraphEdgeType = "DEPLOYED_TO"
+	GraphEdgeTypeDerivedFrom GraphEdgeType = "DERIVED_FROM"
+	GraphEdgeTypeEncrypts GraphEdgeType = "ENCRYPTS"
+	GraphEdgeTypeEnforcedBy GraphEdgeType = "ENFORCED_BY"
+	GraphEdgeTypeEnforces GraphEdgeType = "ENFORCES"
+	GraphEdgeTypeEntryPoints GraphEdgeType = "ENTRY_POINTS"
+	GraphEdgeTypeExecutes GraphEdgeType = "EXECUTES"
+	GraphEdgeTypeExists GraphEdgeType = "EXISTS"
+	GraphEdgeTypeExistsIn GraphEdgeType = "EXISTS_IN"
+	GraphEdgeTypeExposedAt GraphEdgeType = "EXPOSED_AT"
+	GraphEdgeTypeExposedBy GraphEdgeType = "EXPOSED_BY"
+	GraphEdgeTypeExposedOn GraphEdgeType = "EXPOSED_ON"
+	GraphEdgeTypeExposes GraphEdgeType = "EXPOSES"
+	GraphEdgeTypeFilteredBy GraphEdgeType = "FILTERED_BY"
+	GraphEdgeTypeForwardsTo GraphEdgeType = "FORWARDS_TO"
+	GraphEdgeTypeGrantsAccess GraphEdgeType = "GRANTS_ACCESS"
+	GraphEdgeTypeHasAuth GraphEdgeType = "HAS_AUTH"
+	GraphEdgeTypeHasContributor GraphEdgeType = "HAS_CONTRIBUTOR"
+	GraphEdgeTypeHasEndpoint GraphEdgeType = "HAS_ENDPOINT"
+	GraphEdgeTypeHasEntrypoint GraphEdgeType = "HAS_ENTRYPOINT"
+	GraphEdgeTypeHasFinding GraphEdgeType = "HAS_FINDING"
+	GraphEdgeTypeHasHost GraphEdgeType = "HAS_HOST"
+	GraphEdgeTypeHasMember GraphEdgeType = "HAS_MEMBER"
+	GraphEdgeTypeHasNote GraphEdgeType = "HAS_NOTE"
+	GraphEdgeTypeHasRole GraphEdgeType = "HAS_ROLE"
+	GraphEdgeTypeHasRule GraphEdgeType = "HAS_RULE"
+	GraphEdgeTypeHasSecurityGroup GraphEdgeType = "HAS_SECURITY_GROUP"
+	GraphEdgeTypeHosts GraphEdgeType = "HOSTS"
+	GraphEdgeTypeInProject GraphEdgeType = "IN_PROJECT"
+	GraphEdgeTypeInRepository GraphEdgeType = "IN_REPOSITORY"
+	GraphEdgeTypeInSubnet GraphEdgeType = "IN_SUBNET"
+	GraphEdgeTypeInvokesCallback GraphEdgeType = "INVOKES_CALLBACK"
+	GraphEdgeTypeInVpc GraphEdgeType = "IN_VPC"
+	GraphEdgeTypeIssuedTo GraphEdgeType = "ISSUED_TO"
+	GraphEdgeTypeMemberOf GraphEdgeType = "MEMBER_OF"
+	GraphEdgeTypeMonitors GraphEdgeType = "MONITORS"
+	GraphEdgeTypeMountedBy GraphEdgeType = "MOUNTED_BY"
+	GraphEdgeTypeOpenOn GraphEdgeType = "OPEN_ON"
+	GraphEdgeTypeOrigin GraphEdgeType = "ORIGIN"
+	GraphEdgeTypePeeredWith GraphEdgeType = "PEERED_WITH"
+	GraphEdgeTypeProducedBy GraphEdgeType = "PRODUCED_BY"
+	GraphEdgeTypeProtectedBy GraphEdgeType = "PROTECTED_BY"
+	GraphEdgeTypeProvidedBy GraphEdgeType = "PROVIDED_BY"
+	GraphEdgeTypeProvides GraphEdgeType = "PROVIDES"
+	GraphEdgeTypePublishesTo GraphEdgeType = "PUBLISHES_TO"
+	GraphEdgeTypeQueriedBy GraphEdgeType = "QUERIED_BY"
+	GraphEdgeTypeQueries GraphEdgeType = "QUERIES"
+	GraphEdgeTypeReferences GraphEdgeType = "REFERENCES"
+	GraphEdgeTypeRegistersCallback GraphEdgeType = "REGISTERS_CALLBACK"
+	GraphEdgeTypeRemediates GraphEdgeType = "REMEDIATES"
+	GraphEdgeTypeResolvesTo GraphEdgeType = "RESOLVES_TO"
+	GraphEdgeTypeRoutedBy GraphEdgeType = "ROUTED_BY"
+	GraphEdgeTypeRoutesTo GraphEdgeType = "ROUTES_TO"
+	GraphEdgeTypeRunsImage GraphEdgeType = "RUNS_IMAGE"
+	GraphEdgeTypeScales GraphEdgeType = "SCALES"
+	GraphEdgeTypeSecuredBy GraphEdgeType = "SECURED_BY"
+	GraphEdgeTypeServes GraphEdgeType = "SERVES"
+	GraphEdgeTypeSourcedFrom GraphEdgeType = "SOURCED_FROM"
+	GraphEdgeTypeStoredIn GraphEdgeType = "STORED_IN"
+	GraphEdgeTypeSubscribesTo GraphEdgeType = "SUBSCRIBES_TO"
+	GraphEdgeTypeSupersedes GraphEdgeType = "SUPERSEDES"
+	GraphEdgeTypeTargets GraphEdgeType = "TARGETS"
+	GraphEdgeTypeTargetWorkload GraphEdgeType = "TARGET_WORKLOAD"
+	GraphEdgeTypeTracks GraphEdgeType = "TRACKS"
+	GraphEdgeTypeTriggeredBy GraphEdgeType = "TRIGGERED_BY"
+	GraphEdgeTypeTriggers GraphEdgeType = "TRIGGERS"
+	GraphEdgeTypeUploadedTo GraphEdgeType = "UPLOADED_TO"
+	GraphEdgeTypeUsedBy GraphEdgeType = "USED_BY"
+	GraphEdgeTypeUses GraphEdgeType = "USES"
+	GraphEdgeTypeUsesContainer GraphEdgeType = "USES_CONTAINER"
+	GraphEdgeTypeUsesPod GraphEdgeType = "USES_POD"
+	GraphEdgeTypeUsesSecurityGroup GraphEdgeType = "USES_SECURITY_GROUP"
+	GraphEdgeTypeUsesTaskDefinition GraphEdgeType = "USES_TASK_DEFINITION"
+)
+
+type GraphPathAssessment struct {
+	Explanation *string `json:"explanation,omitempty"`
+	FindingID *string `json:"findingId,omitempty"`
+	SourceIds []string `json:"sourceIds,omitempty"`
+	Status *GraphPathAssessmentStatus `json:"status,omitempty"`
+	Unknowns []string `json:"unknowns,omitempty"`
+}
+
+type GraphPathAssessmentStatus string
+
+const (
+	GraphPathAssessmentStatusBlocked GraphPathAssessmentStatus = "BLOCKED"
+	GraphPathAssessmentStatusConfirmed GraphPathAssessmentStatus = "CONFIRMED"
+	GraphPathAssessmentStatusUnresolved GraphPathAssessmentStatus = "UNRESOLVED"
 )
 
 type ModelsAPISpecMetadata struct {
@@ -999,32 +4473,10 @@ type ModelsAPISpecRef struct {
 }
 
 type ModelsAPISurface struct {
-	AuthenticatedEndpoints int `json:"authenticatedEndpoints"`
-	Coverage float64 `json:"coverage"`
-	PublicEndpoints int `json:"publicEndpoints"`
-	TotalEndpoints int `json:"totalEndpoints"`
-}
-
-type ModelsAWSAccountType string
-
-const (
-	ModelsAWSAccountTypeProduction ModelsAWSAccountType = "Production"
-	ModelsAWSAccountTypeDevelopment ModelsAWSAccountType = "Development"
-	ModelsAWSAccountTypeStaging ModelsAWSAccountType = "Staging"
-	ModelsAWSAccountTypeSandbox ModelsAWSAccountType = "Sandbox"
-	ModelsAWSAccountTypePreprod ModelsAWSAccountType = "PreProd"
-	ModelsAWSAccountTypeOther ModelsAWSAccountType = "Other"
-)
-
-type ModelsAWSIntegrationAssetInventoryHost struct {
-	AccountID string `json:"accountId"`
-	AccountName string `json:"accountName"`
-	AccountType ModelsAWSAccountType `json:"accountType"`
-	Aliases []string `json:"aliases,omitempty"`
-	Protocol string `json:"protocol"`
-	Region string `json:"region"`
-	ResourceID string `json:"resourceId"`
-	Service string `json:"service"`
+	AuthenticatedEndpoints *int `json:"authenticatedEndpoints,omitempty"`
+	Coverage *float64 `json:"coverage,omitempty"`
+	PublicEndpoints *int `json:"publicEndpoints,omitempty"`
+	TotalEndpoints *int `json:"totalEndpoints,omitempty"`
 }
 
 type ModelsAgentAppContextSeed struct {
@@ -1037,29 +4489,46 @@ type ModelsAgentAppContextSeed struct {
 	Tags []string `json:"tags,omitempty"`
 }
 
-type ModelsAppContextSeed struct {
-	Description *string `json:"description,omitempty"`
-	Name *string `json:"name,omitempty"`
-}
+type ModelsAiMlSubType string
+
+const (
+	ModelsAiMlSubTypeAwsSagemakerEndpoint ModelsAiMlSubType = "AWS_SAGEMAKER_ENDPOINT"
+	ModelsAiMlSubTypeAwsBedrockModel ModelsAiMlSubType = "AWS_BEDROCK_MODEL"
+	ModelsAiMlSubTypeGcpVertexEndpoint ModelsAiMlSubType = "GCP_VERTEX_ENDPOINT"
+	ModelsAiMlSubTypeAzureOpenaiDeployment ModelsAiMlSubType = "AZURE_OPENAI_DEPLOYMENT"
+	ModelsAiMlSubTypeAzureMlWorkspace ModelsAiMlSubType = "AZURE_ML_WORKSPACE"
+	ModelsAiMlSubTypeAzureMachineLearning ModelsAiMlSubType = "AZURE_MACHINE_LEARNING"
+)
 
 type ModelsApplication struct {
 	Components []ModelsApplicationComponent `json:"components,omitempty"`
 	CreatedAt string `json:"createdAt"`
 	Description string `json:"description"`
 	Discovery ModelsApplicationDiscovery `json:"discovery"`
+	GenerationID *string `json:"generationId,omitempty"`
 	ID string `json:"id"`
 	Metadata ModelsApplicationMetadata `json:"metadata"`
 	Name string `json:"name"`
+	Origin *ModelsApplicationOrigin `json:"origin,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 	TenantID string `json:"tenantId"`
 	UpdatedAt string `json:"updatedAt"`
+	UserDescription *string `json:"userDescription,omitempty"`
+	UserName *string `json:"userName,omitempty"`
+	UserTags []string `json:"userTags,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type ModelsApplicationAuthModel struct {
+	Notes *string `json:"notes,omitempty"`
+	Source string `json:"source"`
 }
 
 type ModelsApplicationComponent struct {
 	Discovery ModelsComponentDiscovery `json:"discovery"`
 	ID string `json:"id"`
 	Name string `json:"name"`
+	Relationships []ModelsComponentRelationship `json:"relationships,omitempty"`
 	Source ModelsComponentSource `json:"source"`
 	Type *string `json:"type,omitempty"`
 }
@@ -1067,99 +4536,107 @@ type ModelsApplicationComponent struct {
 type ModelsApplicationDiscovery struct {
 	ApiSpecs []ModelsAPISpecRef `json:"apiSpecs,omitempty"`
 	ApiSurface ModelsAPISurface `json:"apiSurface"`
+	AuthModel *ModelsApplicationAuthModel `json:"authModel,omitempty"`
 	SecurityProfile ModelsSecurityProfile `json:"securityProfile"`
+	SharedInfrastructure []ModelsSharedInfrastructureRef `json:"sharedInfrastructure,omitempty"`
 	Technologies []string `json:"technologies,omitempty"`
 }
 
 type ModelsApplicationMetadata struct {
 	AgentExecutionID *string `json:"agentExecutionId,omitempty"`
 	CacheKey *string `json:"cacheKey,omitempty"`
+	CliAppContext *json.RawMessage `json:"cliAppContext,omitempty"`
+	CliAppContextUpdatedAt *string `json:"cliAppContextUpdatedAt,omitempty"`
+	CliAppContextVersion *string `json:"cliAppContextVersion,omitempty"`
 	CustomFields map[string]string `json:"customFields,omitempty"`
 	GeneratedByAgentVersion *string `json:"generatedByAgentVersion,omitempty"`
+	LastAttemptTime *string `json:"lastAttemptTime,omitempty"`
 	LastRebuildTime string `json:"lastRebuildTime"`
 	SourceRepositories []string `json:"sourceRepositories,omitempty"`
 	SourceRepositoryCount *int `json:"sourceRepositoryCount,omitempty"`
 	Status *string `json:"status,omitempty"`
 }
 
-type ModelsAssetInventoryCloudAccountRecord struct {
-	AccountID string `json:"accountId"`
-	AccountName string `json:"accountName"`
-	Active bool `json:"active"`
-	CloudProvider string `json:"cloudProvider"`
-	CreatedAt string `json:"createdAt"`
-	DeletedAt *string `json:"deletedAt,omitempty"`
-	ID string `json:"id"`
-	LastScanAt *string `json:"lastScanAt,omitempty"`
-	LastScanID *string `json:"lastScanId,omitempty"`
-	UpdatedAt string `json:"updatedAt"`
-}
+type ModelsApplicationOrigin string
 
-type ModelsAssetInventoryHost struct {
-	Active bool `json:"active"`
-	AwsIntegration ModelsAWSIntegrationAssetInventoryHost `json:"awsIntegration"`
-	CodeLocation ModelsAssetInventoryHostCodeLocation `json:"codeLocation"`
-	CreatedAt string `json:"createdAt"`
-	DnsNames []string `json:"dnsNames,omitempty"`
-	FirstScanAt string `json:"firstScanAt"`
-	Host string `json:"host"`
-	ID string `json:"id"`
-	IpAddresses []string `json:"ipAddresses,omitempty"`
-	IsAuthenticated *bool `json:"isAuthenticated,omitempty"`
-	IsLatest bool `json:"isLatest"`
-	LastScanAt string `json:"lastScanAt"`
-	Ports []ModelsAssetInventoryPort `json:"ports,omitempty"`
-	ResourceCategory string `json:"resourceCategory"`
-	ResourceType string `json:"resourceType"`
-	SourceType ModelsHostSourceType `json:"sourceType"`
-	UpdatedAt string `json:"updatedAt"`
-}
+const (
+	ModelsApplicationOriginAi ModelsApplicationOrigin = "ai"
+	ModelsApplicationOriginUser ModelsApplicationOrigin = "user"
+)
 
-type ModelsAssetInventoryHostCodeLocation struct {
-	Description string `json:"description"`
-	OwnerID string `json:"ownerId"`
-	OwnerName string `json:"ownerName"`
-	Platform *string `json:"platform,omitempty"`
-	ProjectName string `json:"projectName"`
-	RepositoryID string `json:"repositoryId"`
-	RepositoryName string `json:"repositoryName"`
-}
+type ModelsArtifactRepositoriesSubType string
 
-type ModelsAssetInventoryPort struct {
-	Active bool `json:"active"`
-	CreatedAt *string `json:"createdAt,omitempty"`
-	Port int `json:"port"`
-	Protocol *string `json:"protocol,omitempty"`
-	TransportProtocol string `json:"transportProtocol"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
-}
+const (
+	ModelsArtifactRepositoriesSubTypeAwsEcr ModelsArtifactRepositoriesSubType = "AWS_ECR"
+	ModelsArtifactRepositoriesSubTypeAwsCodeartifact ModelsArtifactRepositoriesSubType = "AWS_CODEARTIFACT"
+	ModelsArtifactRepositoriesSubTypeAzureAcr ModelsArtifactRepositoriesSubType = "AZURE_ACR"
+	ModelsArtifactRepositoriesSubTypeGcpArtifactRegistry ModelsArtifactRepositoriesSubType = "GCP_ARTIFACT_REGISTRY"
+	ModelsArtifactRepositoriesSubTypeDockerhub ModelsArtifactRepositoriesSubType = "DOCKERHUB"
+	ModelsArtifactRepositoriesSubTypeGhcr ModelsArtifactRepositoriesSubType = "GHCR"
+	ModelsArtifactRepositoriesSubTypeNpm ModelsArtifactRepositoriesSubType = "NPM"
+	ModelsArtifactRepositoriesSubTypePypi ModelsArtifactRepositoriesSubType = "PYPI"
+	ModelsArtifactRepositoriesSubTypeMaven ModelsArtifactRepositoriesSubType = "MAVEN"
+	ModelsArtifactRepositoriesSubTypeNuget ModelsArtifactRepositoriesSubType = "NUGET"
+	ModelsArtifactRepositoriesSubTypeRubygems ModelsArtifactRepositoriesSubType = "RUBYGEMS"
+	ModelsArtifactRepositoriesSubTypeCrates ModelsArtifactRepositoriesSubType = "CRATES"
+	ModelsArtifactRepositoriesSubTypeOther ModelsArtifactRepositoriesSubType = "OTHER"
+)
 
-type ModelsAssetInventoryResource struct {
-	AccountID string `json:"accountId"`
-	Active bool `json:"active"`
-	CloudProvider string `json:"cloudProvider"`
-	CreatedAt string `json:"createdAt"`
-	DeletedAt *string `json:"deletedAt,omitempty"`
-	DnsNames []string `json:"dnsNames,omitempty"`
-	FirstSeenAt *string `json:"firstSeenAt,omitempty"`
-	ID string `json:"id"`
-	IsPublicFacing *bool `json:"isPublicFacing,omitempty"`
-	LastSeenAt *string `json:"lastSeenAt,omitempty"`
-	LastSeenScanID *string `json:"lastSeenScanId,omitempty"`
-	Name string `json:"name"`
-	PrivateIPs []string `json:"privateIPs,omitempty"`
-	Properties map[string]json.RawMessage `json:"properties,omitempty"`
-	ProviderType string `json:"providerType"`
-	PublicIPs []string `json:"publicIPs,omitempty"`
-	Region *string `json:"region,omitempty"`
-	ResourceCategory string `json:"resourceCategory"`
-	ResourceID string `json:"resourceId"`
-	ResourceType string `json:"resourceType"`
-	Subnet *string `json:"subnet,omitempty"`
-	Tags map[string]string `json:"tags,omitempty"`
-	UpdatedAt string `json:"updatedAt"`
-	Vpc *string `json:"vpc,omitempty"`
-}
+type ModelsArtifactsSubType string
+
+const (
+	ModelsArtifactsSubTypeDockerImage ModelsArtifactsSubType = "DOCKER_IMAGE"
+	ModelsArtifactsSubTypeJar ModelsArtifactsSubType = "JAR"
+	ModelsArtifactsSubTypeWheel ModelsArtifactsSubType = "WHEEL"
+	ModelsArtifactsSubTypeNpmPackage ModelsArtifactsSubType = "NPM_PACKAGE"
+	ModelsArtifactsSubTypeExecutable ModelsArtifactsSubType = "EXECUTABLE"
+	ModelsArtifactsSubTypeOther ModelsArtifactsSubType = "OTHER"
+)
+
+type ModelsAssetInventoryCategory string
+
+const (
+	ModelsAssetInventoryCategoryCompute ModelsAssetInventoryCategory = "compute"
+	ModelsAssetInventoryCategoryContainer ModelsAssetInventoryCategory = "container"
+	ModelsAssetInventoryCategoryCluster ModelsAssetInventoryCategory = "cluster"
+	ModelsAssetInventoryCategoryServerless ModelsAssetInventoryCategory = "serverless"
+	ModelsAssetInventoryCategoryNetwork ModelsAssetInventoryCategory = "network"
+	ModelsAssetInventoryCategoryConnectivity ModelsAssetInventoryCategory = "connectivity"
+	ModelsAssetInventoryCategoryLoadBalancer ModelsAssetInventoryCategory = "load_balancer"
+	ModelsAssetInventoryCategoryCdnAndDns ModelsAssetInventoryCategory = "cdn_and_dns"
+	ModelsAssetInventoryCategoryStorageAndBackup ModelsAssetInventoryCategory = "storage_and_backup"
+	ModelsAssetInventoryCategoryDatabase ModelsAssetInventoryCategory = "database"
+	ModelsAssetInventoryCategoryMessaging ModelsAssetInventoryCategory = "messaging"
+	ModelsAssetInventoryCategoryDataPipeline ModelsAssetInventoryCategory = "data_pipeline"
+	ModelsAssetInventoryCategoryIdentity ModelsAssetInventoryCategory = "identity"
+	ModelsAssetInventoryCategorySecurity ModelsAssetInventoryCategory = "security"
+	ModelsAssetInventoryCategoryObservability ModelsAssetInventoryCategory = "observability"
+	ModelsAssetInventoryCategoryCiCd ModelsAssetInventoryCategory = "ci_cd"
+	ModelsAssetInventoryCategoryAiMl ModelsAssetInventoryCategory = "ai_ml"
+	ModelsAssetInventoryCategoryRepos ModelsAssetInventoryCategory = "repos"
+	ModelsAssetInventoryCategoryProjects ModelsAssetInventoryCategory = "projects"
+	ModelsAssetInventoryCategoryArtifacts ModelsAssetInventoryCategory = "artifacts"
+	ModelsAssetInventoryCategoryPipelines ModelsAssetInventoryCategory = "pipelines"
+	ModelsAssetInventoryCategoryArtifactRepositories ModelsAssetInventoryCategory = "artifact_repositories"
+)
+
+type ModelsCDNAndDNSSubType string
+
+const (
+	ModelsCDNAndDNSSubTypeAwsCloudfront ModelsCDNAndDNSSubType = "AWS_CLOUDFRONT"
+	ModelsCDNAndDNSSubTypeAwsRoute53HostedZone ModelsCDNAndDNSSubType = "AWS_ROUTE53_HOSTED_ZONE"
+	ModelsCDNAndDNSSubTypeAwsApiGateway ModelsCDNAndDNSSubType = "AWS_API_GATEWAY"
+	ModelsCDNAndDNSSubTypeAwsAppsync ModelsCDNAndDNSSubType = "AWS_APPSYNC"
+	ModelsCDNAndDNSSubTypeGcpCloudCdn ModelsCDNAndDNSSubType = "GCP_CLOUD_CDN"
+	ModelsCDNAndDNSSubTypeGcpCloudDnsZone ModelsCDNAndDNSSubType = "GCP_CLOUD_DNS_ZONE"
+	ModelsCDNAndDNSSubTypeGcpCloudDnsRecord ModelsCDNAndDNSSubType = "GCP_CLOUD_DNS_RECORD"
+	ModelsCDNAndDNSSubTypeAzureCdnProfile ModelsCDNAndDNSSubType = "AZURE_CDN_PROFILE"
+	ModelsCDNAndDNSSubTypeAzureDnsZone ModelsCDNAndDNSSubType = "AZURE_DNS_ZONE"
+	ModelsCDNAndDNSSubTypeAzureFrontDoor ModelsCDNAndDNSSubType = "AZURE_FRONT_DOOR"
+	ModelsCDNAndDNSSubTypeAzureApiManagement ModelsCDNAndDNSSubType = "AZURE_API_MANAGEMENT"
+	ModelsCDNAndDNSSubTypeGcpApiGateway ModelsCDNAndDNSSubType = "GCP_API_GATEWAY"
+	ModelsCDNAndDNSSubTypeCodeDeclaredHost ModelsCDNAndDNSSubType = "CODE_DECLARED_HOST"
+)
 
 type ModelsCDXAuthors struct {
 	Email string `json:"email"`
@@ -1188,16 +4665,47 @@ type ModelsCDXDeps struct {
 	Ref string `json:"ref"`
 }
 
+type ModelsCDXGen struct {
+	BomFormat string `json:"bomFormat"`
+	Components []ModelsCDXComponents `json:"components,omitempty"`
+	Dependencies []ModelsCDXDeps `json:"dependencies,omitempty"`
+	Metadata ModelsCDXMetaData `json:"metadata"`
+	SerialNumber string `json:"serialNumber"`
+	Services []ModelsCDXService `json:"services,omitempty"`
+	SpecVersion string `json:"specVersion"`
+	Version int `json:"version"`
+}
+
 type ModelsCDXGenAtCommit struct {
+	Authoritative *bool `json:"authoritative,omitempty"`
+	AuthorityRevision *int64 `json:"authorityRevision,omitempty"`
+	CarryCount *int `json:"carryCount,omitempty"`
 	CdxGen *ModelsCDXGen `json:"cdxGen,omitempty"`
 	CommitSha string `json:"commitSha"`
 	CommitTimestamp string `json:"commitTimestamp"`
+	CompletenessRecorded *bool `json:"completenessRecorded,omitempty"`
 	DetectedEcosystems []string `json:"detectedEcosystems,omitempty"`
 	DetectedLockfiles []string `json:"detectedLockfiles,omitempty"`
 	DetectedManifests []string `json:"detectedManifests,omitempty"`
+	Empty *bool `json:"empty,omitempty"`
+	Exclusions []ModelsSBOMScope `json:"exclusions,omitempty"`
+	FailedEcosystems []string `json:"failedEcosystems,omitempty"`
+	FailureClass *string `json:"failureClass,omitempty"`
+	FailureReason *string `json:"failureReason,omitempty"`
+	GeneratedAt *string `json:"generatedAt,omitempty"`
+	Incomplete *bool `json:"incomplete,omitempty"`
+	IncompleteScopes []ModelsSBOMScope `json:"incompleteScopes,omitempty"`
 	LockfileClassification *string `json:"lockfileClassification,omitempty"`
+	LockfileSetHash *string `json:"lockfileSetHash,omitempty"`
 	ManifestRangeSources map[string]ModelsManifestRangeSource `json:"manifestRangeSources,omitempty"`
 	ManifestRanges map[string]string `json:"manifestRanges,omitempty"`
+	PackageAuth []ModelsSBOMPackageAuth `json:"packageAuth,omitempty"`
+	Provenance *ModelsSBOMProvenance `json:"provenance,omitempty"`
+	RepoContextCommitSha *string `json:"repoContextCommitSha,omitempty"`
+	RepoContextStaleReason *string `json:"repoContextStaleReason,omitempty"`
+	RepoContextVersion *string `json:"repoContextVersion,omitempty"`
+	ScanScope *ModelsPathScope `json:"scanScope,omitempty"`
+	ScannerVersion *string `json:"scannerVersion,omitempty"`
 }
 
 type ModelsCDXHashes struct {
@@ -1247,11 +4755,39 @@ type ModelsCDXTool struct {
 	Version string `json:"version"`
 }
 
+type ModelsCiCdSubType string
+
+const (
+	ModelsCiCdSubTypeAwsCodebuild ModelsCiCdSubType = "AWS_CODEBUILD"
+	ModelsCiCdSubTypeAwsCodepipeline ModelsCiCdSubType = "AWS_CODEPIPELINE"
+	ModelsCiCdSubTypeAwsCodecommit ModelsCiCdSubType = "AWS_CODECOMMIT"
+	ModelsCiCdSubTypeAwsCodedeploy ModelsCiCdSubType = "AWS_CODEDEPLOY"
+	ModelsCiCdSubTypeGcpCloudBuild ModelsCiCdSubType = "GCP_CLOUD_BUILD"
+	ModelsCiCdSubTypeAzureDevopsPipelines ModelsCiCdSubType = "AZURE_DEVOPS_PIPELINES"
+)
+
+type ModelsClusterSubType string
+
+const (
+	ModelsClusterSubTypeAwsEksCluster ModelsClusterSubType = "AWS_EKS_CLUSTER"
+	ModelsClusterSubTypeAwsEcsCluster ModelsClusterSubType = "AWS_ECS_CLUSTER"
+	ModelsClusterSubTypeGcpGke ModelsClusterSubType = "GCP_GKE"
+	ModelsClusterSubTypeAzureAks ModelsClusterSubType = "AZURE_AKS"
+	ModelsClusterSubTypeK8sCluster ModelsClusterSubType = "K8S_CLUSTER"
+)
+
 type ModelsComponentDiscovery struct {
 	ApiSpecs []ModelsAPISpecRef `json:"apiSpecs,omitempty"`
 	Endpoints []string `json:"endpoints,omitempty"`
 	FrontendAssets *ModelsFrontendAssets `json:"frontendAssets,omitempty"`
 	Technologies []string `json:"technologies,omitempty"`
+}
+
+type ModelsComponentRelationship struct {
+	Confidence *float64 `json:"confidence,omitempty"`
+	Evidence *string `json:"evidence,omitempty"`
+	TargetComponentID string `json:"targetComponentId"`
+	Type string `json:"type"`
 }
 
 type ModelsComponentSource struct {
@@ -1260,6 +4796,63 @@ type ModelsComponentSource struct {
 	RepositoryID *string `json:"repositoryId,omitempty"`
 	Type *string `json:"type,omitempty"`
 }
+
+type ModelsComputeSubType string
+
+const (
+	ModelsComputeSubTypeAwsEc2 ModelsComputeSubType = "AWS_EC2"
+	ModelsComputeSubTypeAwsAutoscalingGroup ModelsComputeSubType = "AWS_AUTOSCALING_GROUP"
+	ModelsComputeSubTypeAwsWorkspace ModelsComputeSubType = "AWS_WORKSPACE"
+	ModelsComputeSubTypeGcpGce ModelsComputeSubType = "GCP_GCE"
+	ModelsComputeSubTypeGcpMig ModelsComputeSubType = "GCP_MIG"
+	ModelsComputeSubTypeAzureVm ModelsComputeSubType = "AZURE_VM"
+	ModelsComputeSubTypeAzureVmss ModelsComputeSubType = "AZURE_VMSS"
+	ModelsComputeSubTypeAzureVirtualDesktop ModelsComputeSubType = "AZURE_VIRTUAL_DESKTOP"
+	ModelsComputeSubTypeK8sNode ModelsComputeSubType = "K8S_NODE"
+)
+
+type ModelsComputeWorkloadType string
+
+const (
+	ModelsComputeWorkloadTypeServer ModelsComputeWorkloadType = "server"
+	ModelsComputeWorkloadTypeDesktop ModelsComputeWorkloadType = "desktop"
+	ModelsComputeWorkloadTypeStreaming ModelsComputeWorkloadType = "streaming"
+	ModelsComputeWorkloadTypeEdge ModelsComputeWorkloadType = "edge"
+)
+
+type ModelsConnectivitySubType string
+
+const (
+	ModelsConnectivitySubTypeAwsVpnConnection ModelsConnectivitySubType = "AWS_VPN_CONNECTION"
+	ModelsConnectivitySubTypeAwsDirectConnect ModelsConnectivitySubType = "AWS_DIRECT_CONNECT"
+	ModelsConnectivitySubTypeAwsPrivateLink ModelsConnectivitySubType = "AWS_PRIVATE_LINK"
+	ModelsConnectivitySubTypeAwsTgwAttachment ModelsConnectivitySubType = "AWS_TGW_ATTACHMENT"
+	ModelsConnectivitySubTypeAwsGlobalAccelerator ModelsConnectivitySubType = "AWS_GLOBAL_ACCELERATOR"
+	ModelsConnectivitySubTypeAwsNetworkFirewall ModelsConnectivitySubType = "AWS_NETWORK_FIREWALL"
+	ModelsConnectivitySubTypeAzureExpressRoute ModelsConnectivitySubType = "AZURE_EXPRESS_ROUTE"
+	ModelsConnectivitySubTypeAzureVpn ModelsConnectivitySubType = "AZURE_VPN"
+	ModelsConnectivitySubTypeAzureFirewall ModelsConnectivitySubType = "AZURE_FIREWALL"
+	ModelsConnectivitySubTypeGcpVpnTunnel ModelsConnectivitySubType = "GCP_VPN_TUNNEL"
+	ModelsConnectivitySubTypeGcpCloudArmor ModelsConnectivitySubType = "GCP_CLOUD_ARMOR"
+	ModelsConnectivitySubTypeGcpVpcServiceControls ModelsConnectivitySubType = "GCP_VPC_SERVICE_CONTROLS"
+	ModelsConnectivitySubTypeGcpFirewallRule ModelsConnectivitySubType = "GCP_FIREWALL_RULE"
+)
+
+type ModelsContainerSubType string
+
+const (
+	ModelsContainerSubTypeAwsEcsService ModelsContainerSubType = "AWS_ECS_SERVICE"
+	ModelsContainerSubTypeAwsEcsTask ModelsContainerSubType = "AWS_ECS_TASK"
+	ModelsContainerSubTypeAwsEcsTaskDefinition ModelsContainerSubType = "AWS_ECS_TASK_DEFINITION"
+	ModelsContainerSubTypeK8sDeployment ModelsContainerSubType = "K8S_DEPLOYMENT"
+	ModelsContainerSubTypeK8sNamespace ModelsContainerSubType = "K8S_NAMESPACE"
+	ModelsContainerSubTypeK8sPod ModelsContainerSubType = "K8S_POD"
+	ModelsContainerSubTypeK8sStatefulset ModelsContainerSubType = "K8S_STATEFULSET"
+	ModelsContainerSubTypeK8sDaemonset ModelsContainerSubType = "K8S_DAEMONSET"
+	ModelsContainerSubTypeGcpCloudRun ModelsContainerSubType = "GCP_CLOUD_RUN"
+	ModelsContainerSubTypeAzureAci ModelsContainerSubType = "AZURE_ACI"
+	ModelsContainerSubTypeAzureAppService ModelsContainerSubType = "AZURE_APP_SERVICE"
+)
 
 type ModelsContentReference struct {
 	Hash string `json:"hash"`
@@ -1271,12 +4864,9 @@ type ModelsContentReference struct {
 type ModelsContextProject struct {
 	CreatedAt string `json:"createdAt"`
 	DeletedAt *string `json:"deletedAt,omitempty"`
-	Dependencies []string `json:"dependencies,omitempty"`
 	Description string `json:"description"`
-	Framework *string `json:"framework,omitempty"`
 	ID string `json:"id"`
 	IsDeleted bool `json:"isDeleted"`
-	Language *string `json:"language,omitempty"`
 	Metadata map[string]json.RawMessage `json:"metadata,omitempty"`
 	Name string `json:"name"`
 	Path string `json:"path"`
@@ -1285,8 +4875,49 @@ type ModelsContextProject struct {
 	UpdatedAt string `json:"updatedAt"`
 }
 
+type ModelsDataPipelineSubType string
+
+const (
+	ModelsDataPipelineSubTypeAwsGlue ModelsDataPipelineSubType = "AWS_GLUE"
+	ModelsDataPipelineSubTypeAwsEmr ModelsDataPipelineSubType = "AWS_EMR"
+	ModelsDataPipelineSubTypeAwsAthena ModelsDataPipelineSubType = "AWS_ATHENA"
+	ModelsDataPipelineSubTypeGcpDataflow ModelsDataPipelineSubType = "GCP_DATAFLOW"
+	ModelsDataPipelineSubTypeGcpDataproc ModelsDataPipelineSubType = "GCP_DATAPROC"
+	ModelsDataPipelineSubTypeAzureDataFactory ModelsDataPipelineSubType = "AZURE_DATA_FACTORY"
+	ModelsDataPipelineSubTypeAzureDatabricks ModelsDataPipelineSubType = "AZURE_DATABRICKS"
+	ModelsDataPipelineSubTypeAzureSynapse ModelsDataPipelineSubType = "AZURE_SYNAPSE"
+	ModelsDataPipelineSubTypeAzureHdinsight ModelsDataPipelineSubType = "AZURE_HDINSIGHT"
+	ModelsDataPipelineSubTypeAzureBatch ModelsDataPipelineSubType = "AZURE_BATCH"
+	ModelsDataPipelineSubTypeGcpCloudBatch ModelsDataPipelineSubType = "GCP_CLOUD_BATCH"
+	ModelsDataPipelineSubTypeGcpWorkflows ModelsDataPipelineSubType = "GCP_WORKFLOWS"
+)
+
+type ModelsDatabaseSubType string
+
+const (
+	ModelsDatabaseSubTypeAwsRds ModelsDatabaseSubType = "AWS_RDS"
+	ModelsDatabaseSubTypeAwsDynamodb ModelsDatabaseSubType = "AWS_DYNAMODB"
+	ModelsDatabaseSubTypeAwsRedshift ModelsDatabaseSubType = "AWS_REDSHIFT"
+	ModelsDatabaseSubTypeAwsNeptune ModelsDatabaseSubType = "AWS_NEPTUNE"
+	ModelsDatabaseSubTypeAwsElasticache ModelsDatabaseSubType = "AWS_ELASTICACHE"
+	ModelsDatabaseSubTypeAwsMemorydb ModelsDatabaseSubType = "AWS_MEMORYDB"
+	ModelsDatabaseSubTypeAwsOpensearch ModelsDatabaseSubType = "AWS_OPENSEARCH"
+	ModelsDatabaseSubTypeGcpSpanner ModelsDatabaseSubType = "GCP_SPANNER"
+	ModelsDatabaseSubTypeGcpBigquery ModelsDatabaseSubType = "GCP_BIGQUERY"
+	ModelsDatabaseSubTypeGcpFirestore ModelsDatabaseSubType = "GCP_FIRESTORE"
+	ModelsDatabaseSubTypeGcpAlloydb ModelsDatabaseSubType = "GCP_ALLOYDB"
+	ModelsDatabaseSubTypeGcpCloudSql ModelsDatabaseSubType = "GCP_CLOUD_SQL"
+	ModelsDatabaseSubTypeGcpMemorystore ModelsDatabaseSubType = "GCP_MEMORYSTORE"
+	ModelsDatabaseSubTypeAzureSql ModelsDatabaseSubType = "AZURE_SQL"
+	ModelsDatabaseSubTypeAzureCosmos ModelsDatabaseSubType = "AZURE_COSMOS"
+	ModelsDatabaseSubTypeAzureMysql ModelsDatabaseSubType = "AZURE_MYSQL"
+	ModelsDatabaseSubTypeAzurePostgres ModelsDatabaseSubType = "AZURE_POSTGRES"
+	ModelsDatabaseSubTypeAzureRedis ModelsDatabaseSubType = "AZURE_REDIS"
+)
+
 type ModelsDependencyDiff struct {
 	Added []ModelsDependencyOccurrence `json:"added,omitempty"`
+	Downgraded []ModelsDependencyUpgrade `json:"downgraded,omitempty"`
 	Removed []ModelsDependencyOccurrence `json:"removed,omitempty"`
 	Upgraded []ModelsDependencyUpgrade `json:"upgraded,omitempty"`
 }
@@ -1303,6 +4934,7 @@ type ModelsDependencyOccurrence struct {
 	ProjectID string `json:"projectId"`
 	ProjectName *string `json:"projectName,omitempty"`
 	Purl *string `json:"purl,omitempty"`
+	RangeUnverified *bool `json:"rangeUnverified,omitempty"`
 	RemovedAt *string `json:"removedAt,omitempty"`
 	RemovedByCommit *string `json:"removedByCommit,omitempty"`
 	RepoID string `json:"repoId"`
@@ -1340,6 +4972,18 @@ type ModelsDependencyWindow struct {
 	ToTime *string `json:"toTime,omitempty"`
 	Version string `json:"version"`
 }
+
+type ModelsEndpointSourceType string
+
+const (
+	ModelsEndpointSourceTypeUserupload ModelsEndpointSourceType = "UserUpload"
+	ModelsEndpointSourceTypeCodescan ModelsEndpointSourceType = "CodeScan"
+	ModelsEndpointSourceTypeAwsintegration ModelsEndpointSourceType = "AWSIntegration"
+	ModelsEndpointSourceTypeBughunt ModelsEndpointSourceType = "BugHunt"
+	ModelsEndpointSourceTypeManual ModelsEndpointSourceType = "Manual"
+	ModelsEndpointSourceTypePentest ModelsEndpointSourceType = "Pentest"
+	ModelsEndpointSourceTypeDast ModelsEndpointSourceType = "Dast"
+)
 
 type ModelsEscalationPolicy struct {
 	Citations []ModelsEscalationPolicyCitationsElem `json:"citations,omitempty"`
@@ -1388,20 +5032,173 @@ const (
 	ModelsEscalationPolicySeveritySLAsElemSeverityMedium ModelsEscalationPolicySeveritySLAsElemSeverity = "MEDIUM"
 )
 
+type ModelsExecutionRecipe struct {
+	ApplicationID *string `json:"applicationId,omitempty"`
+	Capabilities map[string]ModelsExecutionRecipeCapability `json:"capabilities,omitempty"`
+	Components []ModelsExecutionRecipeComponent `json:"components,omitempty"`
+	ComposePath *string `json:"composePath,omitempty"`
+	Confidence *float64 `json:"confidence,omitempty"`
+	CpuMillicores *int `json:"cpuMillicores,omitempty"`
+	DiscoveredAt string `json:"discoveredAt"`
+	DiskMib *int `json:"diskMib,omitempty"`
+	DotnetSetup *DotnetsetupSelection `json:"dotnetSetup,omitempty"`
+	Ecosystem *string `json:"ecosystem,omitempty"`
+	Edits []ModelsExecutionRecipeFileEdit `json:"edits,omitempty"`
+	EnvNames []string `json:"envNames,omitempty"`
+	FailureCode *string `json:"failureCode,omitempty"`
+	ID string `json:"id"`
+	InputHash string `json:"inputHash"`
+	Kind string `json:"kind"`
+	MemoryMib *int `json:"memoryMib,omitempty"`
+	PackageManager *string `json:"packageManager,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	ProjectPath *string `json:"projectPath,omitempty"`
+	Proof string `json:"proof"`
+	Readiness *ModelsExecutionRecipeReadiness `json:"readiness,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	Requirements []string `json:"requirements,omitempty"`
+	RunOutcome *string `json:"runOutcome,omitempty"`
+	SandboxImage *string `json:"sandboxImage,omitempty"`
+	SandboxImageVersion *string `json:"sandboxImageVersion,omitempty"`
+	SourceCommit string `json:"sourceCommit"`
+	StaleAt *string `json:"staleAt,omitempty"`
+	StaleReason *string `json:"staleReason,omitempty"`
+	Status string `json:"status"`
+	Steps []ModelsExecutionRecipeStep `json:"steps,omitempty"`
+	TestOutcome *string `json:"testOutcome,omitempty"`
+	ToolchainImageDigest *string `json:"toolchainImageDigest,omitempty"`
+	ValidatedAt string `json:"validatedAt"`
+	ValidationID string `json:"validationId"`
+	Version int `json:"version"`
+}
+
+type ModelsExecutionRecipeCapability struct {
+	Reason *string `json:"reason,omitempty"`
+	Status string `json:"status"`
+	TestOutcome *string `json:"testOutcome,omitempty"`
+}
+
+type ModelsExecutionRecipeComponent struct {
+	ComponentRecipeID string `json:"componentRecipeId"`
+	ProjectID *string `json:"projectId,omitempty"`
+	Proof *string `json:"proof,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	ServiceName string `json:"serviceName"`
+	Status *string `json:"status,omitempty"`
+	Version int `json:"version"`
+}
+
+type ModelsExecutionRecipeDiscoveryRefusal struct {
+	ApplicationID *string `json:"applicationId,omitempty"`
+	Kind string `json:"kind"`
+	ProjectID *string `json:"projectId,omitempty"`
+	Reason string `json:"reason"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type ModelsExecutionRecipeFileEdit struct {
+	Content *string `json:"content,omitempty"`
+	Operation string `json:"operation"`
+	Ordinal int `json:"ordinal"`
+	OriginalSha256 *string `json:"originalSha256,omitempty"`
+	Path string `json:"path"`
+	Phase string `json:"phase"`
+	ReviewReason *string `json:"reviewReason,omitempty"`
+	ReviewVerdict string `json:"reviewVerdict"`
+}
+
+type ModelsExecutionRecipeReadiness struct {
+	Path *string `json:"path,omitempty"`
+	Port int `json:"port"`
+	TimeoutSeconds int `json:"timeoutSeconds"`
+}
+
+type ModelsExecutionRecipeResolution struct {
+	CommitSha *string `json:"commitSha,omitempty"`
+	Compatibility string `json:"compatibility"`
+	ObservedInputHash *string `json:"observedInputHash,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Recipe *ModelsExecutionRecipe `json:"recipe,omitempty"`
+	Status string `json:"status"`
+	Trust string `json:"trust"`
+	UnmetRequirements []string `json:"unmetRequirements,omitempty"`
+}
+
+type ModelsExecutionRecipeStep struct {
+	Background *bool `json:"background,omitempty"`
+	Command string `json:"command"`
+	EnvNames []string `json:"envNames,omitempty"`
+	ExpectedExitCode *int `json:"expectedExitCode,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Ordinal int `json:"ordinal"`
+	Phase string `json:"phase"`
+	ReadinessProven *bool `json:"readinessProven,omitempty"`
+	Requirements []string `json:"requirements,omitempty"`
+	TimeoutSeconds int `json:"timeoutSeconds"`
+	WorkingDir *string `json:"workingDir,omitempty"`
+}
+
+type ModelsExecutionRecipeValidation struct {
+	ApplicationID *string `json:"applicationId,omitempty"`
+	AttemptCount int `json:"attemptCount"`
+	AuthorityRevision *int64 `json:"authorityRevision,omitempty"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	DueAt string `json:"dueAt"`
+	DurationMs *int64 `json:"durationMs,omitempty"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	FailureCode *string `json:"failureCode,omitempty"`
+	ID string `json:"id"`
+	InputHash *string `json:"inputHash,omitempty"`
+	Kind string `json:"kind"`
+	LastError *string `json:"lastError,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	SourceCommit *string `json:"sourceCommit,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status string `json:"status"`
+	Trigger string `json:"trigger"`
+}
+
 type ModelsFrontendAssets struct {
 	ApiEndpoints []string `json:"apiEndpoints,omitempty"`
 	ExposedValues *int `json:"exposedValues,omitempty"`
 	Routes []string `json:"routes,omitempty"`
 }
 
-type ModelsHostSourceType string
+type ModelsIdentitySubType string
 
 const (
-	ModelsHostSourceTypeUseruploadhost ModelsHostSourceType = "UserUploadHost"
-	ModelsHostSourceTypeCodescanhost ModelsHostSourceType = "CodeScanHost"
-	ModelsHostSourceTypeAwsintegrationhost ModelsHostSourceType = "AWSIntegrationHost"
-	ModelsHostSourceTypeBughunthost ModelsHostSourceType = "BugHuntHost"
-	ModelsHostSourceTypeManualhost ModelsHostSourceType = "ManualHost"
+	ModelsIdentitySubTypeAwsIamUser ModelsIdentitySubType = "AWS_IAM_USER"
+	ModelsIdentitySubTypeAwsIamRole ModelsIdentitySubType = "AWS_IAM_ROLE"
+	ModelsIdentitySubTypeAwsIamGroup ModelsIdentitySubType = "AWS_IAM_GROUP"
+	ModelsIdentitySubTypeAwsIamPolicy ModelsIdentitySubType = "AWS_IAM_POLICY"
+	ModelsIdentitySubTypeAwsCognitoUserPool ModelsIdentitySubType = "AWS_COGNITO_USER_POOL"
+	ModelsIdentitySubTypeK8sServiceAccount ModelsIdentitySubType = "K8S_SERVICE_ACCOUNT"
+	ModelsIdentitySubTypeK8sRole ModelsIdentitySubType = "K8S_ROLE"
+	ModelsIdentitySubTypeK8sRoleBinding ModelsIdentitySubType = "K8S_ROLE_BINDING"
+	ModelsIdentitySubTypeAzureEntraId ModelsIdentitySubType = "AZURE_ENTRA_ID"
+	ModelsIdentitySubTypeAzureRoleAssignment ModelsIdentitySubType = "AZURE_ROLE_ASSIGNMENT"
+	ModelsIdentitySubTypeAzureManagedIdentity ModelsIdentitySubType = "AZURE_MANAGED_IDENTITY"
+	ModelsIdentitySubTypeAzureServicePrincipal ModelsIdentitySubType = "AZURE_SERVICE_PRINCIPAL"
+	ModelsIdentitySubTypeAzureApplication ModelsIdentitySubType = "AZURE_APPLICATION"
+	ModelsIdentitySubTypeAzureAdUser ModelsIdentitySubType = "AZURE_AD_USER"
+	ModelsIdentitySubTypeAzureAdGroup ModelsIdentitySubType = "AZURE_AD_GROUP"
+	ModelsIdentitySubTypeGcpServiceAccount ModelsIdentitySubType = "GCP_SERVICE_ACCOUNT"
+	ModelsIdentitySubTypeGcpRole ModelsIdentitySubType = "GCP_ROLE"
+)
+
+type ModelsLoadBalancerSubType string
+
+const (
+	ModelsLoadBalancerSubTypeAwsAlb ModelsLoadBalancerSubType = "AWS_ALB"
+	ModelsLoadBalancerSubTypeAwsNlb ModelsLoadBalancerSubType = "AWS_NLB"
+	ModelsLoadBalancerSubTypeAwsClb ModelsLoadBalancerSubType = "AWS_CLB"
+	ModelsLoadBalancerSubTypeAwsTargetGroup ModelsLoadBalancerSubType = "AWS_TARGET_GROUP"
+	ModelsLoadBalancerSubTypeK8sService ModelsLoadBalancerSubType = "K8S_SERVICE"
+	ModelsLoadBalancerSubTypeK8sIngress ModelsLoadBalancerSubType = "K8S_INGRESS"
+	ModelsLoadBalancerSubTypeAzureAppGateway ModelsLoadBalancerSubType = "AZURE_APP_GATEWAY"
+	ModelsLoadBalancerSubTypeGcpLb ModelsLoadBalancerSubType = "GCP_LB"
 )
 
 type ModelsManifestRangeSource struct {
@@ -1410,6 +5207,7 @@ type ModelsManifestRangeSource struct {
 }
 
 type ModelsMemory struct {
+	Anchors []string `json:"anchors,omitempty"`
 	Citations []ModelsMemoryCitationsElem `json:"citations,omitempty"`
 	Classification *ModelsMemoryClassification `json:"classification,omitempty"`
 	CommentIds []string `json:"commentIds,omitempty"`
@@ -1418,20 +5216,32 @@ type ModelsMemory struct {
 	CreatedAt *string `json:"createdAt,omitempty"`
 	CreatedBy *string `json:"createdBy,omitempty"`
 	CrossReferences []ModelsMemoryCrossReferencesElem `json:"crossReferences,omitempty"`
+	EventTime *string `json:"eventTime,omitempty"`
 	ID *string `json:"id,omitempty"`
+	InvalidateWhen *ModelsMemoryInvalidateWhen `json:"invalidateWhen,omitempty"`
 	IsUserCreated *bool `json:"isUserCreated,omitempty"`
+	MemoryClass *ModelsMemoryMemoryClass `json:"memoryClass,omitempty"`
 	MemoryLineage *ModelsMemoryMemoryLineage `json:"memoryLineage,omitempty"`
 	MemoryType *ModelsMemoryMemoryType `json:"memoryType,omitempty"`
 	Metadata *ModelsMemoryMetadata `json:"metadata,omitempty"`
 	Priority *ModelsMemoryPriority `json:"priority,omitempty"`
+	PromptVersion *string `json:"promptVersion,omitempty"`
 	QuestionID *string `json:"questionId,omitempty"`
 	ResourceID *string `json:"resourceId,omitempty"`
 	ResourceType *ModelsMemoryResourceType `json:"resourceType,omitempty"`
+	RetractedAt *string `json:"retractedAt,omitempty"`
+	RetractionReason *string `json:"retractionReason,omitempty"`
 	Scope *ModelsMemoryScope `json:"scope,omitempty"`
 	ScopeResourceID *string `json:"scopeResourceId,omitempty"`
+	Searchability *ModelsMemorySearchability `json:"searchability,omitempty"`
+	SourceEvent *string `json:"sourceEvent,omitempty"`
+	Status *ModelsMemoryStatus `json:"status,omitempty"`
+	Support *int `json:"support,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 	Title *string `json:"title,omitempty"`
+	TrustTier *int `json:"trustTier,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Version *int `json:"version,omitempty"`
 }
 
 type ModelsMemoryCitationsElem struct {
@@ -1572,6 +5382,27 @@ type ModelsMemoryCrossReferencesElem struct {
 	ID *string `json:"id,omitempty"`
 }
 
+type ModelsMemoryInvalidateWhen struct {
+	Anchor *string `json:"anchor,omitempty"`
+	Kind *ModelsMemoryInvalidateWhenKind `json:"kind,omitempty"`
+}
+
+type ModelsMemoryInvalidateWhenKind string
+
+const (
+	ModelsMemoryInvalidateWhenKindAnchorChanged ModelsMemoryInvalidateWhenKind = "anchor_changed"
+)
+
+type ModelsMemoryMemoryClass string
+
+const (
+	ModelsMemoryMemoryClassEpisodic ModelsMemoryMemoryClass = "episodic"
+	ModelsMemoryMemoryClassProcedural ModelsMemoryMemoryClass = "procedural"
+	ModelsMemoryMemoryClassProspective ModelsMemoryMemoryClass = "prospective"
+	ModelsMemoryMemoryClassRetrieval ModelsMemoryMemoryClass = "retrieval"
+	ModelsMemoryMemoryClassSemantic ModelsMemoryMemoryClass = "semantic"
+)
+
 type ModelsMemoryMemoryLineage struct {
 	AgentVersion *string `json:"agentVersion,omitempty"`
 	GenerationReason *ModelsMemoryMemoryLineageGenerationReason `json:"generationReason,omitempty"`
@@ -1579,6 +5410,7 @@ type ModelsMemoryMemoryLineage struct {
 	ParentMemoryID *string `json:"parentMemoryId,omitempty"`
 	ParentSessionID *string `json:"parentSessionId,omitempty"`
 	SessionID *string `json:"sessionId,omitempty"`
+	SupersededBy *string `json:"supersededBy,omitempty"`
 	Timestamp *string `json:"timestamp,omitempty"`
 }
 
@@ -1596,6 +5428,7 @@ type ModelsMemoryMemoryType string
 const (
 	ModelsMemoryMemoryTypeAnalysis ModelsMemoryMemoryType = "ANALYSIS"
 	ModelsMemoryMemoryTypeAutofix ModelsMemoryMemoryType = "AUTOFIX"
+	ModelsMemoryMemoryTypeBranchNamingConvention ModelsMemoryMemoryType = "BRANCH_NAMING_CONVENTION"
 	ModelsMemoryMemoryTypeDiscovery ModelsMemoryMemoryType = "DISCOVERY"
 	ModelsMemoryMemoryTypeEscalation ModelsMemoryMemoryType = "ESCALATION"
 	ModelsMemoryMemoryTypeFollowUp ModelsMemoryMemoryType = "FOLLOW_UP"
@@ -1689,6 +5522,7 @@ const (
 	ModelsMemoryResourceTypeRepoContext ModelsMemoryResourceType = "REPO_CONTEXT"
 	ModelsMemoryResourceTypeSchemaReversing ModelsMemoryResourceType = "SCHEMA_REVERSING"
 	ModelsMemoryResourceTypeSecretsTriage ModelsMemoryResourceType = "SECRETS_TRIAGE"
+	ModelsMemoryResourceTypeSelfHostedIntegration ModelsMemoryResourceType = "SELF_HOSTED_INTEGRATION"
 	ModelsMemoryResourceTypeStandoutAssessment ModelsMemoryResourceType = "STANDOUT_ASSESSMENT"
 	ModelsMemoryResourceTypeTeam ModelsMemoryResourceType = "TEAM"
 	ModelsMemoryResourceTypeUser ModelsMemoryResourceType = "USER"
@@ -1704,7 +5538,72 @@ const (
 	ModelsMemoryScopeRepository ModelsMemoryScope = "REPOSITORY"
 )
 
+type ModelsMemorySearchability string
+
+const (
+	ModelsMemorySearchabilityEmbeddingFailed ModelsMemorySearchability = "EMBEDDING_FAILED"
+	ModelsMemorySearchabilityLexicalOnly ModelsMemorySearchability = "LEXICAL_ONLY"
+	ModelsMemorySearchabilitySearchable ModelsMemorySearchability = "SEARCHABLE"
+)
+
+type ModelsMemoryStatus string
+
+const (
+	ModelsMemoryStatusActive ModelsMemoryStatus = "active"
+	ModelsMemoryStatusCancelled ModelsMemoryStatus = "cancelled"
+	ModelsMemoryStatusCandidate ModelsMemoryStatus = "candidate"
+	ModelsMemoryStatusCompleted ModelsMemoryStatus = "completed"
+	ModelsMemoryStatusQuarantined ModelsMemoryStatus = "quarantined"
+)
+
+type ModelsMessagingSubType string
+
+const (
+	ModelsMessagingSubTypeAwsSqs ModelsMessagingSubType = "AWS_SQS"
+	ModelsMessagingSubTypeAwsSns ModelsMessagingSubType = "AWS_SNS"
+	ModelsMessagingSubTypeAwsKinesis ModelsMessagingSubType = "AWS_KINESIS"
+	ModelsMessagingSubTypeAwsEventbridge ModelsMessagingSubType = "AWS_EVENTBRIDGE"
+	ModelsMessagingSubTypeAwsSes ModelsMessagingSubType = "AWS_SES"
+	ModelsMessagingSubTypeAwsMsk ModelsMessagingSubType = "AWS_MSK"
+	ModelsMessagingSubTypeAwsMq ModelsMessagingSubType = "AWS_MQ"
+	ModelsMessagingSubTypeGcpPubsub ModelsMessagingSubType = "GCP_PUBSUB"
+	ModelsMessagingSubTypeAzureServiceBus ModelsMessagingSubType = "AZURE_SERVICE_BUS"
+	ModelsMessagingSubTypeAzureEventHub ModelsMessagingSubType = "AZURE_EVENT_HUB"
+	ModelsMessagingSubTypeAzureEventGrid ModelsMessagingSubType = "AZURE_EVENT_GRID"
+	ModelsMessagingSubTypeAzureIotHub ModelsMessagingSubType = "AZURE_IOT_HUB"
+)
+
+type ModelsNetworkSubType string
+
+const (
+	ModelsNetworkSubTypeAwsVpc ModelsNetworkSubType = "AWS_VPC"
+	ModelsNetworkSubTypeAwsSubnet ModelsNetworkSubType = "AWS_SUBNET"
+	ModelsNetworkSubTypeAwsNatGateway ModelsNetworkSubType = "AWS_NAT_GATEWAY"
+	ModelsNetworkSubTypeAwsInternetGateway ModelsNetworkSubType = "AWS_INTERNET_GATEWAY"
+	ModelsNetworkSubTypeAwsVpcEndpoint ModelsNetworkSubType = "AWS_VPC_ENDPOINT"
+	ModelsNetworkSubTypeAwsRouteTable ModelsNetworkSubType = "AWS_ROUTE_TABLE"
+	ModelsNetworkSubTypeAwsEip ModelsNetworkSubType = "AWS_EIP"
+	ModelsNetworkSubTypeGcpVpc ModelsNetworkSubType = "GCP_VPC"
+	ModelsNetworkSubTypeGcpCloudNat ModelsNetworkSubType = "GCP_CLOUD_NAT"
+	ModelsNetworkSubTypeAzureVnet ModelsNetworkSubType = "AZURE_VNET"
+	ModelsNetworkSubTypeAzureSubnet ModelsNetworkSubType = "AZURE_SUBNET"
+)
+
+type ModelsObservabilitySubType string
+
+const (
+	ModelsObservabilitySubTypeAwsCloudwatchLogGroup ModelsObservabilitySubType = "AWS_CLOUDWATCH_LOG_GROUP"
+	ModelsObservabilitySubTypeAwsCloudwatchAlarm ModelsObservabilitySubType = "AWS_CLOUDWATCH_ALARM"
+	ModelsObservabilitySubTypeAwsCloudwatchDashboard ModelsObservabilitySubType = "AWS_CLOUDWATCH_DASHBOARD"
+	ModelsObservabilitySubTypeAwsXRay ModelsObservabilitySubType = "AWS_X_RAY"
+	ModelsObservabilitySubTypeGcpStackdriver ModelsObservabilitySubType = "GCP_STACKDRIVER"
+	ModelsObservabilitySubTypeGcpLogging ModelsObservabilitySubType = "GCP_LOGGING"
+	ModelsObservabilitySubTypeAzureMonitor ModelsObservabilitySubType = "AZURE_MONITOR"
+	ModelsObservabilitySubTypeAzureAutomation ModelsObservabilitySubType = "AZURE_AUTOMATION"
+)
+
 type ModelsOrgContext struct {
+	BugBountyProgram *ModelsOrgContextBugBountyProgram `json:"bugBountyProgram,omitempty"`
 	CacheKey *string `json:"cacheKey,omitempty"`
 	ComplianceRequirements []string `json:"complianceRequirements,omitempty"`
 	Description *string `json:"description,omitempty"`
@@ -1721,6 +5620,21 @@ type ModelsOrgContext struct {
 	TimeZone *string `json:"timeZone,omitempty"`
 	VaultFiles []ModelsOrgContextVaultFilesElem `json:"vaultFiles,omitempty"`
 }
+
+type ModelsOrgContextBugBountyProgram struct {
+	Type *ModelsOrgContextBugBountyProgramType `json:"type,omitempty"`
+	URL *string `json:"url,omitempty"`
+}
+
+type ModelsOrgContextBugBountyProgramType string
+
+const (
+	ModelsOrgContextBugBountyProgramTypeBugcrowd ModelsOrgContextBugBountyProgramType = "bugcrowd"
+	ModelsOrgContextBugBountyProgramTypeDocument ModelsOrgContextBugBountyProgramType = "document"
+	ModelsOrgContextBugBountyProgramTypeHackerone ModelsOrgContextBugBountyProgramType = "hackerone"
+	ModelsOrgContextBugBountyProgramTypeNone ModelsOrgContextBugBountyProgramType = "none"
+	ModelsOrgContextBugBountyProgramTypeWebsite ModelsOrgContextBugBountyProgramType = "website"
+)
 
 type ModelsOrgContextDocumentCitationsElem struct {
 	CitationID *string `json:"citation_id,omitempty"`
@@ -1789,16 +5703,41 @@ type ModelsOrgContextVaultFilesElem struct {
 	FileName *string `json:"fileName,omitempty"`
 }
 
+type ModelsPipelinesSubType string
+
+const (
+	ModelsPipelinesSubTypeGithubActions ModelsPipelinesSubType = "GITHUB_ACTIONS"
+	ModelsPipelinesSubTypeGitlabCi ModelsPipelinesSubType = "GITLAB_CI"
+	ModelsPipelinesSubTypeJenkins ModelsPipelinesSubType = "JENKINS"
+	ModelsPipelinesSubTypeCircleci ModelsPipelinesSubType = "CIRCLECI"
+	ModelsPipelinesSubTypeBuildkite ModelsPipelinesSubType = "BUILDKITE"
+	ModelsPipelinesSubTypeAzurePipelines ModelsPipelinesSubType = "AZURE_PIPELINES"
+)
+
 type ModelsProjectSummary struct {
 	Description string `json:"description"`
-	Framework *string `json:"framework,omitempty"`
 	ID string `json:"id"`
 	IsDeleted bool `json:"isDeleted"`
-	Language *string `json:"language,omitempty"`
 	Name string `json:"name"`
 	Path string `json:"path"`
+	PathPrefix string `json:"pathPrefix"`
 	RepositoryID string `json:"repositoryId"`
 }
+
+type ModelsProjectsSubType string
+
+const (
+	ModelsProjectsSubTypeRepoContextProject ModelsProjectsSubType = "REPO_CONTEXT_PROJECT"
+)
+
+type ModelsReposSubType string
+
+const (
+	ModelsReposSubTypeGithubRepo ModelsReposSubType = "GITHUB_REPO"
+	ModelsReposSubTypeGitlabRepo ModelsReposSubType = "GITLAB_REPO"
+	ModelsReposSubTypeBitbucketRepo ModelsReposSubType = "BITBUCKET_REPO"
+	ModelsReposSubTypeAzureRepo ModelsReposSubType = "AZURE_REPO"
+)
 
 type ModelsSBOMProject struct {
 	Commits []string `json:"commits,omitempty"`
@@ -1806,10 +5745,24 @@ type ModelsSBOMProject struct {
 	ProjectName *string `json:"projectName,omitempty"`
 }
 
+type ModelsSBOMProvenance struct {
+	Backend *string `json:"backend,omitempty"`
+	CdxgenVersion *string `json:"cdxgenVersion,omitempty"`
+	ImageDigest *string `json:"imageDigest,omitempty"`
+	SandboxJobID *string `json:"sandboxJobId,omitempty"`
+}
+
 type ModelsSBOMRepository struct {
 	Projects []ModelsSBOMProject `json:"projects,omitempty"`
 	RepositoryID string `json:"repositoryId"`
 	RepositoryName *string `json:"repositoryName,omitempty"`
+}
+
+type ModelsSBOMScope struct {
+	Dir *string `json:"dir,omitempty"`
+	Ecosystems []string `json:"ecosystems,omitempty"`
+	Path *string `json:"path,omitempty"`
+	Reason *string `json:"reason,omitempty"`
 }
 
 type ModelsSchemaFormat string
@@ -1850,10 +5803,71 @@ type ModelsSecurityOnboardingAnswersFilesElem struct {
 }
 
 type ModelsSecurityProfile struct {
-	ExposedSecrets int `json:"exposedSecrets"`
+	ExposedSecrets *int `json:"exposedSecrets,omitempty"`
 	Recommendations []string `json:"recommendations,omitempty"`
-	RiskScore int `json:"riskScore"`
+	RiskScore *int `json:"riskScore,omitempty"`
 }
+
+type ModelsSecuritySubType string
+
+const (
+	ModelsSecuritySubTypeAwsSecurityGroup ModelsSecuritySubType = "AWS_SECURITY_GROUP"
+	ModelsSecuritySubTypeAwsNacl ModelsSecuritySubType = "AWS_NACL"
+	ModelsSecuritySubTypeAwsWaf ModelsSecuritySubType = "AWS_WAF"
+	ModelsSecuritySubTypeAwsKms ModelsSecuritySubType = "AWS_KMS"
+	ModelsSecuritySubTypeAwsSecretsManager ModelsSecuritySubType = "AWS_SECRETS_MANAGER"
+	ModelsSecuritySubTypeAwsAcm ModelsSecuritySubType = "AWS_ACM"
+	ModelsSecuritySubTypeAwsGuardDuty ModelsSecuritySubType = "AWS_GUARD_DUTY"
+	ModelsSecuritySubTypeAwsConfig ModelsSecuritySubType = "AWS_CONFIG"
+	ModelsSecuritySubTypeAwsCloudtrail ModelsSecuritySubType = "AWS_CLOUDTRAIL"
+	ModelsSecuritySubTypeAwsSsm ModelsSecuritySubType = "AWS_SSM"
+	ModelsSecuritySubTypeAzureKeyVault ModelsSecuritySubType = "AZURE_KEY_VAULT"
+	ModelsSecuritySubTypeAzureDefender ModelsSecuritySubType = "AZURE_DEFENDER"
+	ModelsSecuritySubTypeAzureNsg ModelsSecuritySubType = "AZURE_NSG"
+	ModelsSecuritySubTypeAzurePolicy ModelsSecuritySubType = "AZURE_POLICY"
+	ModelsSecuritySubTypeGcpKms ModelsSecuritySubType = "GCP_KMS"
+	ModelsSecuritySubTypeGcpSecretManager ModelsSecuritySubType = "GCP_SECRET_MANAGER"
+	ModelsSecuritySubTypeGcpScc ModelsSecuritySubType = "GCP_SCC"
+	ModelsSecuritySubTypeGcpOrgPolicy ModelsSecuritySubType = "GCP_ORG_POLICY"
+	ModelsSecuritySubTypeGcpPolicyAnalyzer ModelsSecuritySubType = "GCP_POLICY_ANALYZER"
+)
+
+type ModelsServerlessSubType string
+
+const (
+	ModelsServerlessSubTypeAwsLambda ModelsServerlessSubType = "AWS_LAMBDA"
+	ModelsServerlessSubTypeAwsStepFunction ModelsServerlessSubType = "AWS_STEP_FUNCTION"
+	ModelsServerlessSubTypeAwsAppRunner ModelsServerlessSubType = "AWS_APP_RUNNER"
+	ModelsServerlessSubTypeGcpCloudFunction ModelsServerlessSubType = "GCP_CLOUD_FUNCTION"
+	ModelsServerlessSubTypeGcpCloudRun ModelsServerlessSubType = "GCP_CLOUD_RUN"
+	ModelsServerlessSubTypeAzureFunction ModelsServerlessSubType = "AZURE_FUNCTION"
+	ModelsServerlessSubTypeAzureLogicApps ModelsServerlessSubType = "AZURE_LOGIC_APPS"
+	ModelsServerlessSubTypeGcpAppEngine ModelsServerlessSubType = "GCP_APP_ENGINE"
+)
+
+type ModelsSharedInfrastructureRef struct {
+	ComponentID string `json:"componentId"`
+	Name string `json:"name"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	Type string `json:"type"`
+}
+
+type ModelsStorageAndBackupSubType string
+
+const (
+	ModelsStorageAndBackupSubTypeAwsS3Bucket ModelsStorageAndBackupSubType = "AWS_S3_BUCKET"
+	ModelsStorageAndBackupSubTypeAwsEbsVolume ModelsStorageAndBackupSubType = "AWS_EBS_VOLUME"
+	ModelsStorageAndBackupSubTypeAwsEfs ModelsStorageAndBackupSubType = "AWS_EFS"
+	ModelsStorageAndBackupSubTypeAwsBackupVault ModelsStorageAndBackupSubType = "AWS_BACKUP_VAULT"
+	ModelsStorageAndBackupSubTypeAwsStorageGateway ModelsStorageAndBackupSubType = "AWS_STORAGE_GATEWAY"
+	ModelsStorageAndBackupSubTypeGcpGcsBucket ModelsStorageAndBackupSubType = "GCP_GCS_BUCKET"
+	ModelsStorageAndBackupSubTypeGcpPd ModelsStorageAndBackupSubType = "GCP_PD"
+	ModelsStorageAndBackupSubTypeGcpFilestore ModelsStorageAndBackupSubType = "GCP_FILESTORE"
+	ModelsStorageAndBackupSubTypeAzureBlob ModelsStorageAndBackupSubType = "AZURE_BLOB"
+	ModelsStorageAndBackupSubTypeAzureDisk ModelsStorageAndBackupSubType = "AZURE_DISK"
+	ModelsStorageAndBackupSubTypeAzureFiles ModelsStorageAndBackupSubType = "AZURE_FILES"
+	ModelsStorageAndBackupSubTypeAzureStorageAccount ModelsStorageAndBackupSubType = "AZURE_STORAGE_ACCOUNT"
+)
 
 type RepocontextAPISchema struct {
 	Content *string `json:"content,omitempty"`
@@ -1956,9 +5970,16 @@ type RepocontextArtifactLink struct {
 	EvidencePaths []string `json:"evidencePaths,omitempty"`
 	MatchMethod *RepocontextArtifactLinkMatchMethod `json:"matchMethod,omitempty"`
 	ProjectID *string `json:"projectId,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 	TargetKind *RepocontextArtifactLinkTargetKind `json:"targetKind,omitempty"`
 	TargetNodeID *string `json:"targetNodeId,omitempty"`
 	TargetRef *string `json:"targetRef,omitempty"`
+	WorkloadFamily *string `json:"workloadFamily,omitempty"`
+}
+
+type RepocontextArtifactLinkCoverage struct {
+	Projects []RepocontextProjectArtifactLinkCoverage `json:"projects,omitempty"`
+	UnreadInputs []string `json:"unreadInputs,omitempty"`
 }
 
 type RepocontextArtifactLinkMatchMethod string
@@ -1984,11 +6005,85 @@ const (
 	RepocontextArtifactLinkTargetKindWorkload RepocontextArtifactLinkTargetKind = "workload"
 )
 
+type RepocontextAuthenticationGrounding struct {
+	Coverage *RepocontextAuthenticationGroundingCoverage `json:"coverage,omitempty"`
+	HeldMethods []string `json:"heldMethods,omitempty"`
+	Scope *RepocontextAuthenticationGroundingScope `json:"scope,omitempty"`
+}
+
+type RepocontextAuthenticationGroundingCoverage string
+
+const (
+	RepocontextAuthenticationGroundingCoveragePartial RepocontextAuthenticationGroundingCoverage = "partial"
+	RepocontextAuthenticationGroundingCoverageUnavailable RepocontextAuthenticationGroundingCoverage = "unavailable"
+	RepocontextAuthenticationGroundingCoverageUnknown RepocontextAuthenticationGroundingCoverage = "unknown"
+)
+
+type RepocontextAuthenticationGroundingScope string
+
+const (
+	RepocontextAuthenticationGroundingScopeDeclaredSource RepocontextAuthenticationGroundingScope = "declared-source"
+)
+
+type RepocontextBuildAssessment struct {
+	Completion *RepocontextBuildAssessmentCompletion `json:"completion,omitempty"`
+	Gaps []RepocontextBuildCoverageGap `json:"gaps,omitempty"`
+}
+
+type RepocontextBuildAssessmentCompletion string
+
+const (
+	RepocontextBuildAssessmentCompletionComplete RepocontextBuildAssessmentCompletion = "complete"
+	RepocontextBuildAssessmentCompletionIncomplete RepocontextBuildAssessmentCompletion = "incomplete"
+	RepocontextBuildAssessmentCompletionUnknown RepocontextBuildAssessmentCompletion = "unknown"
+)
+
+type RepocontextBuildCoverage struct {
+	FormatVersion *int `json:"formatVersion,omitempty"`
+	Projects []RepocontextProjectBuildCoverage `json:"projects,omitempty"`
+	Repository *RepocontextBuildAssessment `json:"repository,omitempty"`
+	SourceCommit *string `json:"sourceCommit,omitempty"`
+}
+
+type RepocontextBuildCoverageGap struct {
+	Path *string `json:"path,omitempty"`
+	Reason *RepocontextBuildCoverageGapReason `json:"reason,omitempty"`
+}
+
+type RepocontextBuildCoverageGapReason string
+
+const (
+	RepocontextBuildCoverageGapReasonAmbiguousOwner RepocontextBuildCoverageGapReason = "ambiguous_owner"
+	RepocontextBuildCoverageGapReasonIdentityChanged RepocontextBuildCoverageGapReason = "identity_changed"
+	RepocontextBuildCoverageGapReasonInvalidSource RepocontextBuildCoverageGapReason = "invalid_source"
+	RepocontextBuildCoverageGapReasonLimitExceeded RepocontextBuildCoverageGapReason = "limit_exceeded"
+	RepocontextBuildCoverageGapReasonMissingPublish RepocontextBuildCoverageGapReason = "missing_publish"
+	RepocontextBuildCoverageGapReasonUnknownPredicate RepocontextBuildCoverageGapReason = "unknown_predicate"
+	RepocontextBuildCoverageGapReasonUnreadableSource RepocontextBuildCoverageGapReason = "unreadable_source"
+	RepocontextBuildCoverageGapReasonUnresolvedInput RepocontextBuildCoverageGapReason = "unresolved_input"
+	RepocontextBuildCoverageGapReasonUnsupportedRoute RepocontextBuildCoverageGapReason = "unsupported_route"
+)
+
+type RepocontextBuildOwnership struct {
+	BaseImages *RepocontextContainerBaseImages `json:"baseImages,omitempty"`
+	BuildContext *string `json:"buildContext,omitempty"`
+	Dockerfile *string `json:"dockerfile,omitempty"`
+	EvidencePaths []string `json:"evidencePaths,omitempty"`
+	Image *string `json:"image,omitempty"`
+	SourcePaths []string `json:"sourcePaths,omitempty"`
+	SourceRepository *string `json:"sourceRepository,omitempty"`
+	SupportingContexts []string `json:"supportingContexts,omitempty"`
+	Target *string `json:"target,omitempty"`
+	Variant *string `json:"variant,omitempty"`
+}
+
 type RepocontextBusinessFunction struct {
+	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
 	Description *string `json:"description,omitempty"`
 	ID *string `json:"id,omitempty"`
 	Name *string `json:"name,omitempty"`
 	OwnedPaths []string `json:"ownedPaths,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 }
 
 type RepocontextCallEdge struct {
@@ -2085,17 +6180,26 @@ const (
 type RepocontextComplianceFramework string
 
 const (
+	RepocontextComplianceFrameworkApraCps234 RepocontextComplianceFramework = "APRA-CPS-234"
 	RepocontextComplianceFrameworkCcpa RepocontextComplianceFramework = "CCPA"
 	RepocontextComplianceFrameworkCis RepocontextComplianceFramework = "CIS"
 	RepocontextComplianceFrameworkFedramp RepocontextComplianceFramework = "FEDRAMP"
 	RepocontextComplianceFrameworkGdpr RepocontextComplianceFramework = "GDPR"
 	RepocontextComplianceFrameworkGlba RepocontextComplianceFramework = "GLBA"
 	RepocontextComplianceFrameworkHipaa RepocontextComplianceFramework = "HIPAA"
+	RepocontextComplianceFrameworkHitrust RepocontextComplianceFramework = "HITRUST"
 	RepocontextComplianceFrameworkIso27001 RepocontextComplianceFramework = "ISO27001"
+	RepocontextComplianceFrameworkIso27017 RepocontextComplianceFramework = "ISO27017"
+	RepocontextComplianceFrameworkIso27018 RepocontextComplianceFramework = "ISO27018"
+	RepocontextComplianceFrameworkLgpd RepocontextComplianceFramework = "LGPD"
 	RepocontextComplianceFrameworkNist RepocontextComplianceFramework = "NIST"
+	RepocontextComplianceFrameworkNist80053 RepocontextComplianceFramework = "NIST-800-53"
+	RepocontextComplianceFrameworkNistCsf RepocontextComplianceFramework = "NIST-CSF"
 	RepocontextComplianceFrameworkOther RepocontextComplianceFramework = "OTHER"
 	RepocontextComplianceFrameworkPciDss RepocontextComplianceFramework = "PCI-DSS"
+	RepocontextComplianceFrameworkPipeda RepocontextComplianceFramework = "PIPEDA"
 	RepocontextComplianceFrameworkSoc2 RepocontextComplianceFramework = "SOC2"
+	RepocontextComplianceFrameworkSox RepocontextComplianceFramework = "SOX"
 )
 
 type RepocontextConfidence string
@@ -2106,6 +6210,43 @@ const (
 	RepocontextConfidenceLow RepocontextConfidence = "low"
 	RepocontextConfidenceMedium RepocontextConfidence = "medium"
 	RepocontextConfidenceSpeculative RepocontextConfidence = "speculative"
+)
+
+type RepocontextContainerBaseImages struct {
+	DockerfileSha256 *string `json:"dockerfileSha256,omitempty"`
+	Images []string `json:"images,omitempty"`
+}
+
+type RepocontextCoverageGap struct {
+	AccountIds []string `json:"accountIds,omitempty"`
+	Action *string `json:"action,omitempty"`
+	Effect *RepocontextCoverageGapEffect `json:"effect,omitempty"`
+	Image *string `json:"image,omitempty"`
+	Kind *RepocontextCoverageGapKind `json:"kind,omitempty"`
+	Missing *string `json:"missing,omitempty"`
+	PathNodeIds []string `json:"pathNodeIds,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Region *string `json:"region,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	ResourceType *string `json:"resourceType,omitempty"`
+}
+
+type RepocontextCoverageGapEffect string
+
+const (
+	RepocontextCoverageGapEffectInformational RepocontextCoverageGapEffect = "informational"
+	RepocontextCoverageGapEffectLowersConfidence RepocontextCoverageGapEffect = "lowers_confidence"
+)
+
+type RepocontextCoverageGapKind string
+
+const (
+	RepocontextCoverageGapKindTransitGateway RepocontextCoverageGapKind = "transit_gateway"
+	RepocontextCoverageGapKindUncollectedResource RepocontextCoverageGapKind = "uncollected_resource"
+	RepocontextCoverageGapKindUnscannedAccount RepocontextCoverageGapKind = "unscanned_account"
+	RepocontextCoverageGapKindUnverifiedProxy RepocontextCoverageGapKind = "unverified_proxy"
+	RepocontextCoverageGapKindVpcPeering RepocontextCoverageGapKind = "vpc_peering"
+	RepocontextCoverageGapKindVpnOrDirectConnect RepocontextCoverageGapKind = "vpn_or_direct_connect"
 )
 
 type RepocontextDataClassification string
@@ -2121,12 +6262,15 @@ const (
 type RepocontextDataDomain struct {
 	AvailabilityRequirement *RepocontextImpactLevel `json:"availabilityRequirement,omitempty"`
 	ComplianceFrameworks []RepocontextComplianceFramework `json:"complianceFrameworks,omitempty"`
+	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
 	Description *string `json:"description,omitempty"`
+	Evidence []RepocontextRepoContextEvidence `json:"evidence,omitempty"`
 	ExamplePaths []string `json:"examplePaths,omitempty"`
 	ID *string `json:"id,omitempty"`
 	IntegrityRequirement *RepocontextImpactLevel `json:"integrityRequirement,omitempty"`
 	Name *string `json:"name,omitempty"`
 	PiiCategories []RepocontextDataDomainPiiCategoriesElem `json:"piiCategories,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 	Sensitivity *RepocontextDataDomainSensitivity `json:"sensitivity,omitempty"`
 }
 
@@ -2273,6 +6417,7 @@ const (
 
 type RepocontextDataflowHop struct {
 	BoundaryID *string `json:"boundaryId,omitempty"`
+	BoundaryName *string `json:"boundaryName,omitempty"`
 	CallEdgeID *string `json:"callEdgeId,omitempty"`
 	FilePath *string `json:"filePath,omitempty"`
 	Index *int `json:"index,omitempty"`
@@ -2294,20 +6439,44 @@ const (
 	RepocontextDataflowHopRoleTransform RepocontextDataflowHopRole = "transform"
 )
 
+type RepocontextDeploymentTargetDetail struct {
+	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
+	Evidence []RepocontextRepoContextEvidence `json:"evidence,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
+	Source *RepocontextDeploymentTargetDetailSource `json:"source,omitempty"`
+	Target *string `json:"target,omitempty"`
+}
+
+type RepocontextDeploymentTargetDetailSource string
+
+const (
+	RepocontextDeploymentTargetDetailSourceCi RepocontextDeploymentTargetDetailSource = "ci"
+	RepocontextDeploymentTargetDetailSourceCloudGraph RepocontextDeploymentTargetDetailSource = "cloud_graph"
+	RepocontextDeploymentTargetDetailSourceIacResource RepocontextDeploymentTargetDetailSource = "iac_resource"
+	RepocontextDeploymentTargetDetailSourceManifest RepocontextDeploymentTargetDetailSource = "manifest"
+)
+
 type RepocontextEntrypointRoute struct {
 	AuthMethods []RepocontextEntrypointRouteAuthMethodsElem `json:"authMethods,omitempty"`
+	AuthStatus *RepocontextEntrypointRouteAuthStatus `json:"authStatus,omitempty"`
 	DataDomainIds []string `json:"dataDomainIds,omitempty"`
 	DataFlowIds []string `json:"dataFlowIds,omitempty"`
 	FilePath *string `json:"filePath,omitempty"`
+	FrameworkName *string `json:"frameworkName,omitempty"`
+	Handler *string `json:"handler,omitempty"`
 	HandlerSymbolID *string `json:"handlerSymbolId,omitempty"`
 	IsAuthenticated *bool `json:"isAuthenticated,omitempty"`
 	IsInternal *bool `json:"isInternal,omitempty"`
+	Language *string `json:"language,omitempty"`
 	LineNumber *int `json:"lineNumber,omitempty"`
 	Method *RepocontextEntrypointRouteMethod `json:"method,omitempty"`
 	OperationID *string `json:"operationId,omitempty"`
 	Parameters []RepocontextRouteParameter `json:"parameters,omitempty"`
 	Path *string `json:"path,omitempty"`
+	PathUnresolved *bool `json:"pathUnresolved,omitempty"`
+	ProjectPathPrefix *string `json:"projectPathPrefix,omitempty"`
 	RateLimit *bool `json:"rateLimit,omitempty"`
+	RegistrationCondition *string `json:"registrationCondition,omitempty"`
 	RequestBodyFields []string `json:"requestBodyFields,omitempty"`
 	RequiresPrivilegedAccess *bool `json:"requiresPrivilegedAccess,omitempty"`
 	ResponseStatuses []int `json:"responseStatuses,omitempty"`
@@ -2331,6 +6500,14 @@ const (
 	RepocontextEntrypointRouteAuthMethodsElemPassword RepocontextEntrypointRouteAuthMethodsElem = "PASSWORD"
 	RepocontextEntrypointRouteAuthMethodsElemSaml RepocontextEntrypointRouteAuthMethodsElem = "SAML"
 	RepocontextEntrypointRouteAuthMethodsElemSessionCookie RepocontextEntrypointRouteAuthMethodsElem = "SESSION_COOKIE"
+)
+
+type RepocontextEntrypointRouteAuthStatus string
+
+const (
+	RepocontextEntrypointRouteAuthStatusAuthenticated RepocontextEntrypointRouteAuthStatus = "authenticated"
+	RepocontextEntrypointRouteAuthStatusUnauthenticated RepocontextEntrypointRouteAuthStatus = "unauthenticated"
+	RepocontextEntrypointRouteAuthStatusUnknown RepocontextEntrypointRouteAuthStatus = "unknown"
 )
 
 type RepocontextEntrypointRouteMethod string
@@ -2382,6 +6559,55 @@ type RepocontextFileSummary struct {
 	Summary *string `json:"summary,omitempty"`
 }
 
+type RepocontextIaCCloudLink struct {
+	AccountID *string `json:"accountId,omitempty"`
+	Address *string `json:"address,omitempty"`
+	CandidateCount *int `json:"candidateCount,omitempty"`
+	CloudNodeID *string `json:"cloudNodeId,omitempty"`
+	CloudSubType *string `json:"cloudSubType,omitempty"`
+	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
+	DeclarationID *string `json:"declarationId,omitempty"`
+	Evidence []RepocontextRepoContextEvidence `json:"evidence,omitempty"`
+	File *string `json:"file,omitempty"`
+	Line *int `json:"line,omitempty"`
+	MatchMethod *RepocontextIaCCloudLinkMatchMethod `json:"matchMethod,omitempty"`
+	ModuleDir *string `json:"moduleDir,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
+	Region *string `json:"region,omitempty"`
+	ResourceType *string `json:"resourceType,omitempty"`
+	RootDir *string `json:"rootDir,omitempty"`
+	Source *RepocontextIaCCloudLinkSource `json:"source,omitempty"`
+	Status *RepocontextIaCCloudLinkStatus `json:"status,omitempty"`
+}
+
+type RepocontextIaCCloudLinkMatchMethod string
+
+const (
+	RepocontextIaCCloudLinkMatchMethodIacIdentifierExact RepocontextIaCCloudLinkMatchMethod = "iac_identifier_exact"
+	RepocontextIaCCloudLinkMatchMethodIacNameAcrossAccounts RepocontextIaCCloudLinkMatchMethod = "iac_name_across_accounts"
+	RepocontextIaCCloudLinkMatchMethodIacNameGlobal RepocontextIaCCloudLinkMatchMethod = "iac_name_global"
+	RepocontextIaCCloudLinkMatchMethodIacNameInAccount RepocontextIaCCloudLinkMatchMethod = "iac_name_in_account"
+)
+
+type RepocontextIaCCloudLinkSource string
+
+const (
+	RepocontextIaCCloudLinkSourceCloudformation RepocontextIaCCloudLinkSource = "cloudformation"
+	RepocontextIaCCloudLinkSourceTerraform RepocontextIaCCloudLinkSource = "terraform"
+)
+
+type RepocontextIaCCloudLinkStatus string
+
+const (
+	RepocontextIaCCloudLinkStatusAmbiguous RepocontextIaCCloudLinkStatus = "ambiguous"
+	RepocontextIaCCloudLinkStatusCandidate RepocontextIaCCloudLinkStatus = "candidate"
+	RepocontextIaCCloudLinkStatusMatched RepocontextIaCCloudLinkStatus = "matched"
+	RepocontextIaCCloudLinkStatusNotFound RepocontextIaCCloudLinkStatus = "not_found"
+	RepocontextIaCCloudLinkStatusNotInInventory RepocontextIaCCloudLinkStatus = "not_in_inventory"
+	RepocontextIaCCloudLinkStatusUnresolved RepocontextIaCCloudLinkStatus = "unresolved"
+	RepocontextIaCCloudLinkStatusUnscannedAccount RepocontextIaCCloudLinkStatus = "unscanned_account"
+)
+
 type RepocontextImpactLevel string
 
 const (
@@ -2408,11 +6634,13 @@ type RepocontextInfrastructureMatch struct {
 	AccountType *RepocontextInfrastructureMatchAccountType `json:"accountType,omitempty"`
 	ArtifactName *string `json:"artifactName,omitempty"`
 	ComputeType *RepocontextInfrastructureMatchComputeType `json:"computeType,omitempty"`
+	Evidence []RepocontextRepoContextEvidence `json:"evidence,omitempty"`
 	IsInternetFacing *bool `json:"isInternetFacing,omitempty"`
 	MatchConfidence *RepocontextConfidence `json:"matchConfidence,omitempty"`
 	MatchDetail *string `json:"matchDetail,omitempty"`
 	MatchMethod *RepocontextInfrastructureMatchMatchMethod `json:"matchMethod,omitempty"`
 	NodeID *string `json:"nodeId,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 	Region *string `json:"region,omitempty"`
 	ServiceName *string `json:"serviceName,omitempty"`
 }
@@ -2441,13 +6669,18 @@ type RepocontextInfrastructureMatchMatchMethod string
 const (
 	RepocontextInfrastructureMatchMatchMethodAffinityHint RepocontextInfrastructureMatchMatchMethod = "affinity_hint"
 	RepocontextInfrastructureMatchMatchMethodAwsTag RepocontextInfrastructureMatchMatchMethod = "aws_tag"
+	RepocontextInfrastructureMatchMatchMethodBuildConfig RepocontextInfrastructureMatchMatchMethod = "build_config"
+	RepocontextInfrastructureMatchMatchMethodCiPipeline RepocontextInfrastructureMatchMatchMethod = "ci_pipeline"
 	RepocontextInfrastructureMatchMatchMethodContainerImageName RepocontextInfrastructureMatchMatchMethod = "container_image_name"
 	RepocontextInfrastructureMatchMatchMethodContainerImageUri RepocontextInfrastructureMatchMatchMethod = "container_image_uri"
 	RepocontextInfrastructureMatchMatchMethodK8sLabel RepocontextInfrastructureMatchMatchMethod = "k8s_label"
+	RepocontextInfrastructureMatchMatchMethodManualLabel RepocontextInfrastructureMatchMatchMethod = "manual_label"
+	RepocontextInfrastructureMatchMatchMethodRegistryReference RepocontextInfrastructureMatchMatchMethod = "registry_reference"
 	RepocontextInfrastructureMatchMatchMethodServiceNameMatch RepocontextInfrastructureMatchMatchMethod = "service_name_match"
 )
 
 type RepocontextMetadata struct {
+	AuthenticationGrounding *RepocontextAuthenticationGrounding `json:"authenticationGrounding,omitempty"`
 	GeneratedAt *string `json:"generatedAt,omitempty"`
 	GeneratorModel *string `json:"generatorModel,omitempty"`
 	GeneratorPromptVersion *string `json:"generatorPromptVersion,omitempty"`
@@ -2472,6 +6705,14 @@ type RepocontextProjectArtifact struct {
 
 type RepocontextProjectArtifactDeploymentContext struct {
 	IsDeployed *bool `json:"isDeployed,omitempty"`
+}
+
+type RepocontextProjectArtifactLinkCoverage struct {
+	FailedProvider *int `json:"failedProvider,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+	SkippedBudget *int `json:"skippedBudget,omitempty"`
+	SkippedTimeout *int `json:"skippedTimeout,omitempty"`
+	Undecided *int `json:"undecided,omitempty"`
 }
 
 type RepocontextProjectArtifactRegistriesElem struct {
@@ -2520,11 +6761,21 @@ const (
 	RepocontextProjectArtifactStoryElemTypeRunScript RepocontextProjectArtifactStoryElemType = "RUN_SCRIPT"
 )
 
+type RepocontextProjectBuildCoverage struct {
+	Assessment *RepocontextBuildAssessment `json:"assessment,omitempty"`
+	Ownership []RepocontextBuildOwnership `json:"ownership,omitempty"`
+	PathPrefix *string `json:"pathPrefix,omitempty"`
+	ProjectID *string `json:"projectId,omitempty"`
+}
+
 type RepocontextProjectContext struct {
 	Artifacts []RepocontextProjectContextArtifactsElem `json:"artifacts,omitempty"`
 	BoundaryIds []string `json:"boundaryIds,omitempty"`
+	BuildArtifacts []map[string]json.RawMessage `json:"buildArtifacts,omitempty"`
 	BusinessFunctionIds []RepocontextProjectContextBusinessFunctionIdsElem `json:"businessFunctionIds,omitempty"`
 	CacheKey *string `json:"cacheKey,omitempty"`
+	ClassificationConfidence *RepocontextConfidence `json:"classificationConfidence,omitempty"`
+	ClassificationReasoning *string `json:"classificationReasoning,omitempty"`
 	CodeSymbols []RepocontextCodeSymbol `json:"codeSymbols,omitempty"`
 	DataDomainIds []string `json:"dataDomainIds,omitempty"`
 	DataHandled []RepocontextProjectContextDataHandledElem `json:"dataHandled,omitempty"`
@@ -2536,6 +6787,8 @@ type RepocontextProjectContext struct {
 	Entrypoints []RepocontextProjectEntrypoint `json:"entrypoints,omitempty"`
 	FileSummaries []RepocontextFileSummary `json:"fileSummaries,omitempty"`
 	Frameworks []RepocontextProjectContextFrameworksElem `json:"frameworks,omitempty"`
+	Iac *RepocontextProjectContextIac `json:"iac,omitempty"`
+	IacPrograms []RepocontextProjectContextIacProgramsElem `json:"iacPrograms,omitempty"`
 	ID *string `json:"id,omitempty"`
 	ImportanceReasoning *string `json:"importanceReasoning,omitempty"`
 	InternalDependencyIds []string `json:"internalDependencyIds,omitempty"`
@@ -2551,6 +6804,7 @@ type RepocontextProjectContext struct {
 	RepositoryReferences []RepocontextProjectContextRepositoryReferencesElem `json:"repositoryReferences,omitempty"`
 	Role *RepocontextProjectContextRole `json:"role,omitempty"`
 	SecurityImportance *RepocontextProjectContextSecurityImportance `json:"securityImportance,omitempty"`
+	ShippedArtifact *RepocontextProjectContextShippedArtifact `json:"shippedArtifact,omitempty"`
 	TestCoverage *RepocontextProjectContextTestCoverage `json:"testCoverage,omitempty"`
 	TrustedServiceIds []string `json:"trustedServiceIds,omitempty"`
 }
@@ -2646,6 +6900,32 @@ type RepocontextProjectContextFrameworksElem struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type RepocontextProjectContextIac struct {
+	Backend *string `json:"backend,omitempty"`
+	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
+	ConsumedBy []string `json:"consumedBy,omitempty"`
+	Kind *RepocontextProjectContextIacKind `json:"kind,omitempty"`
+	Modules []string `json:"modules,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
+	Roots []string `json:"roots,omitempty"`
+	Units []string `json:"units,omitempty"`
+	Uses []string `json:"uses,omitempty"`
+}
+
+type RepocontextProjectContextIacKind string
+
+const (
+	RepocontextProjectContextIacKindEmbedded RepocontextProjectContextIacKind = "embedded"
+	RepocontextProjectContextIacKindModule RepocontextProjectContextIacKind = "module"
+	RepocontextProjectContextIacKindRoot RepocontextProjectContextIacKind = "root"
+	RepocontextProjectContextIacKindStack RepocontextProjectContextIacKind = "stack"
+)
+
+type RepocontextProjectContextIacProgramsElem struct {
+	Path *string `json:"path,omitempty"`
+	ShippedArtifact *RepocontextProjectContextShippedArtifact `json:"shippedArtifact,omitempty"`
+}
+
 type RepocontextProjectContextOwnersElem struct {
 	Name *string `json:"name,omitempty"`
 	Source *string `json:"source,omitempty"`
@@ -2703,6 +6983,24 @@ const (
 	RepocontextProjectContextSecurityImportanceMedium RepocontextProjectContextSecurityImportance = "MEDIUM"
 )
 
+type RepocontextProjectContextShippedArtifact struct {
+	DependenciesShipped *bool `json:"dependenciesShipped,omitempty"`
+	DevDependenciesShipped *bool `json:"devDependenciesShipped,omitempty"`
+	Evidence []string `json:"evidence,omitempty"`
+	Kind *RepocontextProjectContextShippedArtifactKind `json:"kind,omitempty"`
+}
+
+type RepocontextProjectContextShippedArtifactKind string
+
+const (
+	RepocontextProjectContextShippedArtifactKindContainerImage RepocontextProjectContextShippedArtifactKind = "container_image"
+	RepocontextProjectContextShippedArtifactKindFunctionPackage RepocontextProjectContextShippedArtifactKind = "function_package"
+	RepocontextProjectContextShippedArtifactKindIacTemplate RepocontextProjectContextShippedArtifactKind = "iac_template"
+	RepocontextProjectContextShippedArtifactKindLibrary RepocontextProjectContextShippedArtifactKind = "library"
+	RepocontextProjectContextShippedArtifactKindNone RepocontextProjectContextShippedArtifactKind = "none"
+	RepocontextProjectContextShippedArtifactKindUnknown RepocontextProjectContextShippedArtifactKind = "unknown"
+)
+
 type RepocontextProjectContextTestCoverage struct {
 	HasIntegrationTests *bool `json:"hasIntegrationTests,omitempty"`
 	HasTests *bool `json:"hasTests,omitempty"`
@@ -2717,7 +7015,13 @@ type RepocontextProjectEntrypoint struct {
 	Artifacts []RepocontextProjectArtifact `json:"artifacts,omitempty"`
 	AuthMethods []RepocontextProjectEntrypointAuthMethodsElem `json:"authMethods,omitempty"`
 	BoundaryIds []string `json:"boundaryIds,omitempty"`
+	BuildArtifacts []map[string]json.RawMessage `json:"buildArtifacts,omitempty"`
+	CloudInternetFacing *bool `json:"cloudInternetFacing,omitempty"`
+	CloudInternetFacingConfidence *RepocontextConfidence `json:"cloudInternetFacingConfidence,omitempty"`
+	CloudInternetFacingConfidenceReason *string `json:"cloudInternetFacingConfidenceReason,omitempty"`
+	Confidence *float64 `json:"confidence,omitempty"`
 	DataFlowIds []string `json:"dataFlowIds,omitempty"`
+	DeploymentTargets []string `json:"deploymentTargets,omitempty"`
 	Description *string `json:"description,omitempty"`
 	DetectionConfidence *RepocontextConfidence `json:"detectionConfidence,omitempty"`
 	FrameworkName *string `json:"frameworkName,omitempty"`
@@ -2728,8 +7032,10 @@ type RepocontextProjectEntrypoint struct {
 	NodeID *string `json:"nodeId,omitempty"`
 	Path *string `json:"path,omitempty"`
 	Ports []int `json:"ports,omitempty"`
+	ProjectPath *string `json:"projectPath,omitempty"`
 	Protocols []RepocontextProjectEntrypointProtocolsElem `json:"protocols,omitempty"`
 	Routes []RepocontextEntrypointRoute `json:"routes,omitempty"`
+	ServedHostnames []RepocontextProjectEntrypointServedHostnamesElem `json:"servedHostnames,omitempty"`
 	SessionMechanism *RepocontextProjectEntrypointSessionMechanism `json:"sessionMechanism,omitempty"`
 	SymbolID *string `json:"symbolId,omitempty"`
 	TrustedServiceIds []string `json:"trustedServiceIds,omitempty"`
@@ -2777,6 +7083,12 @@ const (
 	RepocontextProjectEntrypointProtocolsElemWebsocket RepocontextProjectEntrypointProtocolsElem = "WEBSOCKET"
 )
 
+type RepocontextProjectEntrypointServedHostnamesElem struct {
+	Evidence *string `json:"evidence,omitempty"`
+	Hostname *string `json:"hostname,omitempty"`
+	PathPrefix *string `json:"pathPrefix,omitempty"`
+}
+
 type RepocontextProjectEntrypointSessionMechanism string
 
 const (
@@ -2789,6 +7101,8 @@ const (
 type RepocontextReachabilityPath struct {
 	ArtifactLinkID *string `json:"artifactLinkId,omitempty"`
 	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
+	ConfidenceReason *string `json:"confidenceReason,omitempty"`
+	CoverageGaps []RepocontextCoverageGap `json:"coverageGaps,omitempty"`
 	EntrypointIds []string `json:"entrypointIds,omitempty"`
 	ExposureRoot *RepocontextReachabilityPathExposureRoot `json:"exposureRoot,omitempty"`
 	ExposureSummary *string `json:"exposureSummary,omitempty"`
@@ -2834,8 +7148,10 @@ const (
 )
 
 type RepocontextRepoContext struct {
+	ArtifactLinkCoverage *RepocontextArtifactLinkCoverage `json:"artifactLinkCoverage,omitempty"`
 	ArtifactLinks []RepocontextArtifactLink `json:"artifactLinks,omitempty"`
 	AuthenticationMethods []string `json:"authenticationMethods,omitempty"`
+	BuildCoverage *RepocontextBuildCoverage `json:"buildCoverage,omitempty"`
 	BusinessFunctions []RepocontextBusinessFunction `json:"businessFunctions,omitempty"`
 	CacheKey *string `json:"cacheKey,omitempty"`
 	CallEdges []RepocontextCallEdge `json:"callEdges,omitempty"`
@@ -2848,10 +7164,14 @@ type RepocontextRepoContext struct {
 	DataDomains []RepocontextDataDomain `json:"dataDomains,omitempty"`
 	DataFlows []RepocontextDataFlow `json:"dataFlows,omitempty"`
 	Databases []RepocontextRepoContextDatabasesElem `json:"databases,omitempty"`
+	DeploymentTargetDetails []RepocontextDeploymentTargetDetail `json:"deploymentTargetDetails,omitempty"`
 	DeploymentTargets []string `json:"deploymentTargets,omitempty"`
 	Description *string `json:"description,omitempty"`
 	DevelopmentGuidelines *RepocontextRepoContextDevelopmentGuidelines `json:"developmentGuidelines,omitempty"`
 	Graph *GraphGraph `json:"graph,omitempty"`
+	IacCloudLinkCoverage *RepocontextRepoContextIacCloudLinkCoverage `json:"iacCloudLinkCoverage,omitempty"`
+	IacCloudLinks []RepocontextIaCCloudLink `json:"iacCloudLinks,omitempty"`
+	IacCoverageGaps []RepocontextCoverageGap `json:"iacCoverageGaps,omitempty"`
 	ID *string `json:"id,omitempty"`
 	InfrastructureMatches []RepocontextInfrastructureMatch `json:"infrastructureMatches,omitempty"`
 	InputValidationFrameworks []string `json:"inputValidationFrameworks,omitempty"`
@@ -2860,10 +7180,12 @@ type RepocontextRepoContext struct {
 	IsMonorepo *bool `json:"isMonorepo,omitempty"`
 	IsOpenAPISpecAvailable *bool `json:"isOpenAPISpecAvailable,omitempty"`
 	IsTruncatedAnalysis *bool `json:"isTruncatedAnalysis,omitempty"`
+	MermaidDiagram *string `json:"mermaidDiagram,omitempty"`
 	Metadata *RepocontextMetadata `json:"metadata,omitempty"`
 	MonitoringTooling []string `json:"monitoringTooling,omitempty"`
 	Name *string `json:"name,omitempty"`
 	NetworkExposure *RepocontextRepoContextNetworkExposure `json:"networkExposure,omitempty"`
+	NonSecurityImportantPaths []RepocontextRepoContextNonSecurityImportantPathsElem `json:"nonSecurityImportantPaths,omitempty"`
 	OpenAPISpecPath []string `json:"openAPISpecPath,omitempty"`
 	Projects []RepocontextProjectContext `json:"projects,omitempty"`
 	Public *bool `json:"public,omitempty"`
@@ -2928,14 +7250,18 @@ type RepocontextRepoContextContextSummary struct {
 	ComplianceDrivers []string `json:"complianceDrivers,omitempty"`
 	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
 	ExecutiveSummary *string `json:"executiveSummary,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 	RecommendedFollowups []string `json:"recommendedFollowups,omitempty"`
 	TechnicalSummary *string `json:"technicalSummary,omitempty"`
 	TopRisks []string `json:"topRisks,omitempty"`
 }
 
 type RepocontextRepoContextDatabasesElem struct {
+	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
 	DatabaseType *RepocontextRepoContextDatabasesElemDatabaseType `json:"databaseType,omitempty"`
+	Evidence []RepocontextRepoContextEvidence `json:"evidence,omitempty"`
 	Name *string `json:"name,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 }
 
 type RepocontextRepoContextDatabasesElemDatabaseType string
@@ -3000,12 +7326,53 @@ const (
 	RepocontextRepoContextDirectorySummaryKindTests RepocontextRepoContextDirectorySummaryKind = "tests"
 )
 
+type RepocontextRepoContextEvidence struct {
+	Line *int `json:"line,omitempty"`
+	NodeID *string `json:"nodeId,omitempty"`
+	Path *string `json:"path,omitempty"`
+	Quote *string `json:"quote,omitempty"`
+}
+
+type RepocontextRepoContextIacCloudLinkCoverage struct {
+	Capped *bool `json:"capped,omitempty"`
+	IndexFailed *bool `json:"indexFailed,omitempty"`
+	InventoryUnread *bool `json:"inventoryUnread,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	UnreadAccounts []string `json:"unreadAccounts,omitempty"`
+}
+
 type RepocontextRepoContextNetworkExposure string
 
 const (
 	RepocontextRepoContextNetworkExposureInternal RepocontextRepoContextNetworkExposure = "internal"
 	RepocontextRepoContextNetworkExposureInternetFacing RepocontextRepoContextNetworkExposure = "internet_facing"
 	RepocontextRepoContextNetworkExposureLibrary RepocontextRepoContextNetworkExposure = "library"
+)
+
+type RepocontextRepoContextNonSecurityImportantPathsElem struct {
+	Confidence *RepocontextRepoContextNonSecurityImportantPathsElemConfidence `json:"confidence,omitempty"`
+	Evidence []string `json:"evidence,omitempty"`
+	Path *string `json:"path,omitempty"`
+	ProjectIds []string `json:"projectIds,omitempty"`
+	Reason *RepocontextRepoContextNonSecurityImportantPathsElemReason `json:"reason,omitempty"`
+}
+
+type RepocontextRepoContextNonSecurityImportantPathsElemConfidence string
+
+const (
+	RepocontextRepoContextNonSecurityImportantPathsElemConfidenceHigh RepocontextRepoContextNonSecurityImportantPathsElemConfidence = "high"
+)
+
+type RepocontextRepoContextNonSecurityImportantPathsElemReason string
+
+const (
+	RepocontextRepoContextNonSecurityImportantPathsElemReasonDocs RepocontextRepoContextNonSecurityImportantPathsElemReason = "docs"
+	RepocontextRepoContextNonSecurityImportantPathsElemReasonEval RepocontextRepoContextNonSecurityImportantPathsElemReason = "eval"
+	RepocontextRepoContextNonSecurityImportantPathsElemReasonFixture RepocontextRepoContextNonSecurityImportantPathsElemReason = "fixture"
+	RepocontextRepoContextNonSecurityImportantPathsElemReasonGenerated RepocontextRepoContextNonSecurityImportantPathsElemReason = "generated"
+	RepocontextRepoContextNonSecurityImportantPathsElemReasonSample RepocontextRepoContextNonSecurityImportantPathsElemReason = "sample"
+	RepocontextRepoContextNonSecurityImportantPathsElemReasonTest RepocontextRepoContextNonSecurityImportantPathsElemReason = "test"
+	RepocontextRepoContextNonSecurityImportantPathsElemReasonVendored RepocontextRepoContextNonSecurityImportantPathsElemReason = "vendored"
 )
 
 type RepocontextRepoContextProjectImportance string
@@ -3021,7 +7388,10 @@ type RepocontextRepoContextProjectRole string
 const (
 	RepocontextRepoContextProjectRoleAdminSurface RepocontextRepoContextProjectRole = "admin_surface"
 	RepocontextRepoContextProjectRoleBatchJob RepocontextRepoContextProjectRole = "batch_job"
+	RepocontextRepoContextProjectRoleCiPlugin RepocontextRepoContextProjectRole = "ci_plugin"
 	RepocontextRepoContextProjectRoleCliTool RepocontextRepoContextProjectRole = "cli_tool"
+	RepocontextRepoContextProjectRoleDataPipeline RepocontextRepoContextProjectRole = "data_pipeline"
+	RepocontextRepoContextProjectRoleEditorExtension RepocontextRepoContextProjectRole = "editor_extension"
 	RepocontextRepoContextProjectRoleFrontendApp RepocontextRepoContextProjectRole = "frontend_app"
 	RepocontextRepoContextProjectRoleInfrastructure RepocontextRepoContextProjectRole = "infrastructure"
 	RepocontextRepoContextProjectRoleInternalApi RepocontextRepoContextProjectRole = "internal_api"
@@ -3206,6 +7576,7 @@ type RepocontextSecurityBoundary struct {
 	MechanismTypes []RepocontextSecurityBoundaryMechanismTypesElem `json:"mechanismTypes,omitempty"`
 	Name *string `json:"name,omitempty"`
 	NodeIds []string `json:"nodeIds,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 	RelatedDataDomainIds []string `json:"relatedDataDomainIds,omitempty"`
 	RelatedEntrypointIds []string `json:"relatedEntrypointIds,omitempty"`
 	RelatedProjectIds []string `json:"relatedProjectIds,omitempty"`
@@ -3287,6 +7658,7 @@ type RepocontextSourceSink struct {
 	Language *LanguageCodeLanguage `json:"language,omitempty"`
 	ProjectID *string `json:"projectId,omitempty"`
 	QualifiedName *string `json:"qualifiedName,omitempty"`
+	ResolvedUrls []RepocontextSourceSinkResolvedUrlsElem `json:"resolvedUrls,omitempty"`
 	StartLine *int `json:"startLine,omitempty"`
 	Symbol *string `json:"symbol,omitempty"`
 	SymbolID *string `json:"symbolId,omitempty"`
@@ -3334,6 +7706,13 @@ const (
 	RepocontextSourceSinkKindSink RepocontextSourceSinkKind = "sink"
 	RepocontextSourceSinkKindSource RepocontextSourceSinkKind = "source"
 )
+
+type RepocontextSourceSinkResolvedUrlsElem struct {
+	ConfigKey *string `json:"configKey,omitempty"`
+	FilePath *string `json:"filePath,omitempty"`
+	Line *int `json:"line,omitempty"`
+	URL *string `json:"url,omitempty"`
+}
 
 type RepocontextToxicCombination struct {
 	ComponentFindings *RepocontextToxicCombinationComponentFindings `json:"componentFindings,omitempty"`
@@ -3400,6 +7779,7 @@ type RepocontextTrustedService struct {
 	ID *string `json:"id,omitempty"`
 	Name *string `json:"name,omitempty"`
 	NodeIds []string `json:"nodeIds,omitempty"`
+	Reasoning *string `json:"reasoning,omitempty"`
 	RelatedDataDomainIds []string `json:"relatedDataDomainIds,omitempty"`
 	RelatedEntrypointIds []string `json:"relatedEntrypointIds,omitempty"`
 	RelatedProjectIds []string `json:"relatedProjectIds,omitempty"`

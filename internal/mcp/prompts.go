@@ -190,7 +190,7 @@ func registerPrompts(s *server.MCPServer) {
 			return promptResult(
 				"Fix critical findings",
 				"Search for all critical severity findings using nullify_search_findings with severity=critical. "+
-					"For each finding that supports autofix (e.g. sast, sca_dependencies), call nullify_fix_finding to generate a fix. "+
+					"For each finding that supports autofix (e.g. sast, sca_dependencies), call nullify_fix_finding to start a fix, then follow it with nullify_get_fix_status until it has ended. "+
 					"Report the results: which findings were fixed, which PRs were created, and which findings need manual attention.",
 			), nil
 		},

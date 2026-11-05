@@ -96,27 +96,61 @@ nullify findings
 nullify auth login
 ```
 
-Opens your browser to sign in through nullify.ai with your identity provider (for example Microsoft Entra ID or GitLab). After sign-in, the CLI selects the installation that holds your data: it uses the only one automatically, asks you to pick one in a terminal, or takes `--installation <name>` in scripts. Tokens are stored locally and refreshed automatically.
+Opens your browser to sign in with your identity provider (for example Microsoft Entra ID or GitLab). Tokens are stored locally and refreshed automatically.
 
-If you sign in through nullify.ai, do not set `--host` or `NULLIFY_HOST` to your instance; run `nullify auth login` and the CLI routes data requests to the selected installation. An explicit instance host uses only the credentials stored for that host.
-
-To sign in to your own Nullify instance instead, pass its host:
+With no host saved, the CLI signs in through nullify.ai, the Nullify router. With a host saved or passed, it first asks that instance where its login runs (`GET /auth/cli/config`): an instance on the router hands the login to the router, and an instance that signs in itself keeps its own login. The CLI only follows an answer naming your instance or a Nullify router, and fails otherwise.
 
 ```sh
+# Through the router, or wherever your saved instance says
+nullify auth login
+
+# Name your instance; on the router this still signs in at the router
 nullify auth login --host acme.nullify.ai
+
+# Choose the organization to start with
+nullify auth login --org acme-web
 ```
 
-Switch to another installation after signing in through nullify.ai:
+One router login covers every instance the router lists for you, so `--host <instance>` works afterwards without another login, and an older login an instance ran itself is replaced. After signing in, the CLI selects the organization commands run as: the one you pass with `--org`, the one you used last, the only one, or the one you pick in a terminal.
+
+### Organizations
+
+One login can cover several organizations, on one instance or several. Each command runs as the first of these that applies:
+
+1. `--org <name|id>`
+2. `NULLIFY_ORG` (name or id)
+3. `NULLIFY_GITHUB_OWNER_ID`
+4. The owner of the current directory's git remote, if it names exactly one of your organizations on the instance (worktrees and submodules included)
+5. Your default, set by `nullify org use` or the last login
+6. Your only organization on the instance
+
+If your default is no longer available, the command stops and says so rather than running as another organization; in a terminal it asks. When nothing applies and you have several organizations, the CLI asks in a terminal and remembers the answer; elsewhere it fails and lists the choices. `nullify org list` shows your organizations and which rule picked the one in use.
+
+Signed in through the router, `nullify org use` can name an organization on another instance: plain commands then run on that instance. `--org` does the same for one command when the command's host is the router (`nullify.ai`, the default after a router login).
 
 ```sh
-nullify auth switch --installation other-org
+# See your organizations on this instance and which one is in use
+nullify org list
+
+# Make one your default
+nullify org use acme-web
+
+# Run one command as another
+nullify findings --org acme-payments
 ```
+
+An API token (`NULLIFY_TOKEN`) belongs to one organization, and the server uses it when the command names none. With a token, only `--org`, `NULLIFY_ORG` and `NULLIFY_GITHUB_OWNER_ID` apply (the first two are looked up on the instance itself); `nullify org use`, the git remote and the prompt are for browser logins. An API token always needs your instance as the host (`--host` or `NULLIFY_HOST`), never `nullify.ai`. When `NULLIFY_TOKEN` is set it wins over your browser login, and `nullify auth status` says so.
+
+### Upgrading from an earlier version
+
+Your login and your selected organization carry over. If you used an API token as a workaround for the router login, remove `NULLIFY_TOKEN` and `NULLIFY_GITHUB_OWNER_ID` from your shell and your MCP configuration, run `nullify auth login`, and restart your MCP servers. Upgrade every copy of the CLI your tools run: an older copy running alongside can overwrite the login file.
 
 ### Environment Variables
 
 ```sh
 export NULLIFY_HOST=api.acme.nullify.ai
 export NULLIFY_TOKEN=your-token-here
+export NULLIFY_ORG=acme-web   # optional: organization to run as, by name or id
 ```
 
 ### Multiple Instances
@@ -140,17 +174,26 @@ nullify auth switch
 |---------|-------------|
 | `nullify init` | Interactive setup wizard (instance, auth, MCP config) |
 | `nullify status` | Security posture overview with finding counts by scanner |
-| `nullify findings` | List findings across all scanner types with filters |
+| `nullify findings` | List findings across all scanner types with filters (same as `nullify findings list`) |
+| `nullify findings allowlist` | Suppress a finding, with a required reason and allowlist type |
+| `nullify findings unallowlist` | Re-open an allowlisted finding, with a required reason |
+| `nullify findings archive` / `unarchive` | Archive or restore a finding (CSPM) |
+| `nullify findings mark-false-positive` / `unmark-false-positive` | Set or clear the false positive mark |
+| `nullify findings get` / `triage` | Read a finding or its AI triage |
+| `nullify findings create-ticket` / `delete-ticket` | Manage the ticket of a finding |
+| `nullify findings feedback` / `get-feedback` | Record or read feedback on a finding of any type |
 ### Authentication
 
 | Command | Description |
 |---------|-------------|
 | `nullify auth login` | Authenticate via browser SSO |
 | `nullify auth logout` | Clear stored credentials for a host |
-| `nullify auth status` | Show auth state, host, and token expiry |
+| `nullify auth status` | Show auth state, host, auth host, organization, and token expiry |
 | `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
-| `nullify auth switch` | Switch active instance or installation, or list configured instances |
-| `nullify auth config` | Print current CLI config as JSON |
+| `nullify auth switch` | Switch active instance or list configured instances |
+| `nullify auth config` | Print the effective host, auth host, data host, and organization as JSON |
+| `nullify org list` | List the organizations you can use, and which one commands run as and why |
+| `nullify org use <name\|id>` | Remember the organization commands run as (and, through the Nullify router, its instance) |
 
 ### Scanning
 
@@ -158,6 +201,7 @@ nullify auth switch
 |---------|-------------|
 | `nullify pentest` | Run DAST pentest scans (cloud or local via Docker) |
 | `nullify bughunt` | Cloud-based automated bug hunting |
+| `nullify secrets scan-file` | Local secret scan of a single file or stdin buffer; no API call or network access |
 
 ### CI/CD
 
@@ -187,7 +231,39 @@ nullify findings --repo my-repo --status open
 
 # Limit results
 nullify findings --limit 50
+
+# List CSPM or SCPM findings in one UTC window
+nullify findings list --type cspm --from 2026-11-01T00:00:00Z --to 2026-11-02T00:00:00Z
+nullify findings list --type scpm
 ```
+
+`--type` accepts `sast`, `sca_dependencies`, `sca_containers`, `secrets`, `secrets_sensitive_data`, `pentest`, `bughunt`, `cspm` and `scpm`. An unknown type is an error.
+
+`--type secrets` lists credentials and sensitive data together. To act on a listed finding, pass the `type` value of its row, for example `nullify findings get abc123 --type SecretsSensitiveData`. In a verb, `secrets` means credentials only.
+
+The output reports `total`, `returned` and `truncated`:
+
+| Result | Meaning |
+|--------|---------|
+| `total` 0, exit 0 | No finding matches the filters |
+| `truncated` true, exit 0 | More findings exist; raise `--limit` |
+| Exit 3 | An API or network failure, including no access (401 or 403) |
+
+Act on a finding. Allowlisting needs a reason and an explicit type: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise. The server may not record the type for `bughunt`, `sca_dependencies`, `sca_containers` and `secrets_sensitive_data` yet. For these types the command writes a warning to stderr and adds a `warning` field to the result. The reason is recorded. For a CSPM false positive, use `findings mark-false-positive`: allowlisting with `UserFalsePositive` does not set `is_false_positive` on a CSPM finding.
+
+```sh
+nullify findings mark-false-positive abc123 --type cspm --reason "Bucket is public by design"
+nullify findings allowlist abc123 --type sast --allowlist-type UserFalsePositive --reason "Test fixture"
+nullify findings unallowlist abc123 --type cspm --reason "Bucket is no longer public"
+nullify findings archive abc123 --type cspm
+nullify findings feedback abc123 --verdict wrong --comment "Not reachable from the internet"
+```
+
+Raw API commands follow the API spec: `nullify api cspm create-allowlist-by-id`, `create-unallowlist-by-id`, `create-archive-by-id`, `create-unarchive-by-id`, `create-mark-false-positive-by-id`, `create-unmark-false-positive-by-id`, `patch-findings`, `get-triage` and `delete-ticket`.
+
+## Command stability
+
+`spec/command-names.lock` fixes the name of each API command, and `spec/command-surface.tsv` lists every command and flag. CI fails if a command or flag disappears unless `internal/commands/surface_decisions.go` records the decision. A moved command keeps working as a deprecated alias that calls the new route. See [CHANGELOG.md](CHANGELOG.md) for the moves.
 
 ## Pentest Scans
 
@@ -263,9 +339,11 @@ Add a security report to your pull request:
 The CLI includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server with 50+ tools, giving AI coding assistants full access to your security data. Capabilities include:
 
 - **Query** — findings, repositories, SBOMs, cloud accounts, metrics, trends
-- **Triage** — mark findings as false positive, accepted risk, or reopen
-- **Remediate** — generate AI-powered fix diffs and open PRs, end-to-end
-- **Track** — campaigns, escalations, SLA policies, code reviews
+- **Triage** — allowlist, archive or mark false positive across every finding type, including CSPM, reopen, and record feedback
+- **Remediate** — start AI-powered fixes, then follow them with `nullify_get_fix_status` and `nullify_get_fix_diff`
+- **Track** — campaigns, action items, SLA policies, code reviews
+
+`nullify mcp serve --tools findings-write` adds the tools that the default set leaves out: archive, unarchive, mark and unmark false positive, and delete ticket. `--tools all` also has them. Every tool that changes state carries the destructive annotation, so a client can ask a person first. `spec/mcp-tools.tsv` lists every tool, its access and its tool sets.
 
 ### Setup
 
@@ -288,6 +366,29 @@ Add the following to your MCP config file:
 }
 ```
 
+One server serves one instance. When your login covers several organizations there, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them; every result says which organization it ran as. Without the argument a call uses the default the server settled when it started (`--org`, then the same order as the CLI); `nullify org use` in a terminal does not change a running server. If that leaves several organizations, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization:
+
+```json
+{
+  "mcpServers": {
+    "nullify-acme-web": {
+      "command": "nullify",
+      "args": ["mcp", "serve", "--org", "acme-web"]
+    },
+    "nullify-acme-payments": {
+      "command": "nullify",
+      "args": ["mcp", "serve", "--org", "acme-payments"]
+    }
+  }
+}
+```
+
+With Claude Code:
+
+```sh
+claude mcp add nullify-acme-web -- nullify mcp serve --org acme-web
+```
+
 Scope findings to a specific repository with `--repo`:
 
 ```json
@@ -303,19 +404,28 @@ Scope findings to a specific repository with `--repo`:
 
 ## Configuration
 
-The CLI stores configuration at `~/.nullify/config.json`. Host resolution priority:
+The CLI stores configuration in `~/.nullify/`:
+
+| File | Holds |
+|------|-------|
+| `config.json` | The active instance |
+| `credentials.json` | Login tokens, one entry per login host (the router's login is shared by the instances that use it) |
+| `hosts.json` | Per instance: the host its login runs on, and the organization picked with `nullify org use` |
+
+Host resolution priority:
 
 1. `--host` flag
 2. `NULLIFY_HOST` environment variable
 3. Config file (`~/.nullify/config.json`)
 
-When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.ai and sends data requests to the selected installation's instance. GitHub Actions token exchange (`--github-token`) needs your instance host, not `nullify.ai`.
+When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.ai and sends data requests to the selected organization's instance. GitHub Actions token exchange (`--github-token`) needs your instance host, not `nullify.ai`.
 
 ### Global Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--host` | Nullify instance (e.g., `acme.nullify.ai`), or `nullify.ai` to sign in through the Nullify router | From config |
+| `--org` | Organization to run as, by name or id (see [Organizations](#organizations)) | |
 | `--output, -o` | Output format (`json`, `table`, `yaml`) | `json` |
 | `--verbose, -v` | Enable verbose logging | `false` |
 | `--debug, -d` | Enable debug logging | `false` |

@@ -5,9 +5,7 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/nullify-platform/cli/internal/apierror"
 	"github.com/nullify-platform/cli/internal/client"
@@ -16,24 +14,11 @@ import (
 // Version is set at build time via ldflags.
 var Version = "dev"
 
-// defaultTimeout is the request timeout used when NULLIFY_HTTP_TIMEOUT is unset
-// or invalid. 30s is too short for long-running calls (scan-start, autofix), so
-// callers can raise it via the env var (e.g. "120s").
-const defaultTimeout = 30 * time.Second
-
-// httpTimeout returns the request timeout, overridable via the
-// NULLIFY_HTTP_TIMEOUT env var (a Go duration string such as "120s").
-func httpTimeout() time.Duration {
-	if v := os.Getenv("NULLIFY_HTTP_TIMEOUT"); v != "" {
-		if d, err := time.ParseDuration(v); err == nil && d > 0 {
-			return d
-		}
-	}
-	return defaultTimeout
-}
-
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
+	// host is the API host the client was built for, the only one its token
+	// is sent to.
+	host          string
 	BaseURL       string
 	Token         string
 	DefaultParams map[string]string
@@ -57,12 +42,14 @@ func NewClient(host string, token string, defaultParams map[string]string, opts 
 		apiHost = "api." + host
 	}
 	c := &Client{
+		host:          apiHost,
 		BaseURL:       "https://" + apiHost,
 		Token:         token,
 		DefaultParams: defaultParams,
 		HTTPClient: &http.Client{
-			Timeout:   httpTimeout(),
-			Transport: client.NewRetryTransport(http.DefaultTransport),
+			Timeout:       client.HTTPTimeout(),
+			Transport:     client.NewRetryTransport(http.DefaultTransport),
+			CheckRedirect: client.StripBearerOnRedirect,
 		},
 	}
 	for _, opt := range opts {
@@ -77,7 +64,11 @@ func (c *Client) do(ctx context.Context, method, url string, body io.Reader) ([]
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+c.Token)
+	// The token goes only to the API host this client was built for, over
+	// https; a URL anywhere else is requested without it.
+	if client.BearerAllowed(c.host, req) {
+		req.Header.Set("Authorization", "Bearer "+c.Token)
+	}
 	req.Header.Set("User-Agent", "Nullify-CLI/"+Version)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")

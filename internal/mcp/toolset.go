@@ -9,6 +9,9 @@ const (
 	ToolSetMinimal  ToolSet = "minimal"
 	ToolSetFindings ToolSet = "findings"
 	ToolSetAdmin    ToolSet = "admin"
+	// ToolSetFindingsWrite adds the finding tools that are kept out of the default
+	// set: archive, unarchive, mark and unmark false positive, and delete ticket.
+	ToolSetFindingsWrite ToolSet = "findings-write"
 )
 
 // ValidToolSets returns all valid tool set names for flag validation.
@@ -19,5 +22,6 @@ func ValidToolSets() []string {
 		string(ToolSetMinimal),
 		string(ToolSetFindings),
 		string(ToolSetAdmin),
+		string(ToolSetFindingsWrite),
 	}
 }

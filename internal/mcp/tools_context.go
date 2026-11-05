@@ -15,7 +15,7 @@ import (
 // commit SHA) and are intentionally left to `nullify api context`.
 func registerContextTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("list_repositories",
+		readOnlyTool("list_repositories",
 			mcp.WithDescription("List repositories Nullify monitors for the authenticated installation."),
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
@@ -29,7 +29,7 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_repository",
+		readOnlyTool("get_repository",
 			mcp.WithDescription("Get a repository by its internal repository ID."),
 			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
 		),
@@ -41,7 +41,7 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("list_applications",
+		readOnlyTool("list_applications",
 			mcp.WithDescription("List applications (logical groupings of repositories) in the org."),
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
@@ -55,7 +55,7 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_application",
+		readOnlyTool("get_application",
 			mcp.WithDescription("Get an application by its ID."),
 			mcp.WithString("application_id", mcp.Required(), mcp.Description("Application ID")),
 		),
@@ -67,7 +67,7 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_latest_sbom",
+		readOnlyTool("get_latest_sbom",
 			mcp.WithDescription("Get the latest CycloneDX SBOM for a repository."),
 			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
 		),
@@ -79,7 +79,7 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_sbom",
+		readOnlyTool("get_sbom",
 			mcp.WithDescription("Get the SBOM for a specific repository project."),
 			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),
 			mcp.WithString("project_id", mcp.Required(), mcp.Description("Project ID within the repository")),
@@ -94,7 +94,7 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("list_dependencies",
+		readOnlyTool("list_dependencies",
 			mcp.WithDescription("List third-party dependencies across all monitored repositories. Useful for understanding the supply chain. Paginated via cursor."),
 			mcp.WithNumber("pageSize", mcp.Description("Max results per page")),
 			mcp.WithString("cursor", mcp.Description("Pagination cursor from a previous response")),
@@ -114,7 +114,7 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_dependency_exposure",
+		readOnlyTool("get_dependency_exposure",
 			mcp.WithDescription("Get exposure analysis for a specific dependency: which repositories use it and how (internet-facing vs internal)."),
 			mcp.WithString("ecosystem", mcp.Required(), mcp.Description("Package ecosystem (e.g. npm, pypi, maven, go, nuget)")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Dependency name to check exposure for")),

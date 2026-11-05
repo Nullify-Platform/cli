@@ -5,10 +5,11 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
-	"time"
 
 	"github.com/nullify-platform/cli/internal/apierror"
+	"github.com/nullify-platform/cli/internal/client"
 )
 
 func TestClientDo_Success(t *testing.T) {
@@ -21,13 +22,12 @@ func TestClientDo_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &Client{
-		BaseURL:    server.URL,
-		Token:      "test-token",
-		HTTPClient: server.Client(),
-	}
+	// The token goes only to the client's own API host, so the request is
+	// made there and delivered to the test server underneath.
+	client := NewClient("acme.nullify.ai", "test-token", nil)
+	client.HTTPClient = &http.Client{Transport: deliverTo(server)}
 
-	result, err := client.do(context.Background(), "GET", server.URL+"/test", nil)
+	result, err := client.do(context.Background(), "GET", client.BaseURL+"/test", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -98,36 +98,6 @@ func TestClientDo_5xxError(t *testing.T) {
 	}
 }
 
-func TestHTTPTimeout(t *testing.T) {
-	t.Run("default when unset", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "")
-		if got := httpTimeout(); got != defaultTimeout {
-			t.Errorf("httpTimeout() = %v, want %v", got, defaultTimeout)
-		}
-	})
-
-	t.Run("overrides from env", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "120s")
-		if got := httpTimeout(); got != 120*time.Second {
-			t.Errorf("httpTimeout() = %v, want %v", got, 120*time.Second)
-		}
-	})
-
-	t.Run("falls back to default on invalid", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "not-a-duration")
-		if got := httpTimeout(); got != defaultTimeout {
-			t.Errorf("httpTimeout() = %v, want %v", got, defaultTimeout)
-		}
-	})
-
-	t.Run("falls back to default on non-positive", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "0s")
-		if got := httpTimeout(); got != defaultTimeout {
-			t.Errorf("httpTimeout() = %v, want %v", got, defaultTimeout)
-		}
-	})
-}
-
 func TestNewClient_DefaultsToRetryingClient(t *testing.T) {
 	c := NewClient("example.com", "tok", nil)
 	if c.HTTPClient == nil {
@@ -136,8 +106,8 @@ func TestNewClient_DefaultsToRetryingClient(t *testing.T) {
 	if c.HTTPClient.Transport == nil {
 		t.Fatal("expected default HTTPClient.Transport to be non-nil (retry transport)")
 	}
-	if c.HTTPClient.Timeout != defaultTimeout {
-		t.Errorf("Timeout = %v, want %v", c.HTTPClient.Timeout, defaultTimeout)
+	if c.HTTPClient.Timeout != client.DefaultHTTPTimeout {
+		t.Errorf("Timeout = %v, want %v", c.HTTPClient.Timeout, client.DefaultHTTPTimeout)
 	}
 	if c.BaseURL != "https://api.example.com" {
 		t.Errorf("BaseURL = %q, want %q", c.BaseURL, "https://api.example.com")
@@ -151,3 +121,17 @@ func TestNewClient_WithHTTPClientOverride(t *testing.T) {
 		t.Error("expected WithHTTPClient to override the default client")
 	}
 }
+
+// deliverTo sends every request to server, whatever host it names.
+func deliverTo(server *httptest.Server) http.RoundTripper {
+	return roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		out := r.Clone(r.Context())
+		target, _ := url.Parse(server.URL)
+		out.URL.Scheme, out.URL.Host, out.Host = target.Scheme, target.Host, ""
+		return http.DefaultTransport.RoundTrip(out)
+	})
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }

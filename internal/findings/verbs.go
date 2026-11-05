@@ -1,0 +1,307 @@
+package findings
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"slices"
+	"strings"
+
+	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/api/models"
+)
+
+// Errors that a verb returns before it calls the API.
+var (
+	ErrUnsupported          = errors.New("operation is not supported for this finding type")
+	ErrFindingIDRequired    = errors.New("a finding ID is required")
+	ErrReasonRequired       = errors.New("a reason is required")
+	ErrInvalidAllowlistType = errors.New("invalid allowlist type")
+	ErrInvalidVerdict       = errors.New("invalid feedback verdict")
+)
+
+// AllowlistTypeWarning is the warning for a type with AllowlistTypeUnrecorded.
+const AllowlistTypeWarning = "The server may not record the allowlist type for this finding type yet. The reason is recorded."
+
+// UnallowlistReasonWarning is the warning for a type with UnallowlistReasonUnrecorded.
+const UnallowlistReasonWarning = "The server does not record the reason for this finding type. The finding is re-opened."
+
+// AllowlistTypes are the allowlist types that a user can submit. Friendly commands
+// and MCP tools require one for every finding type, so that the interface is the
+// same for all of them. Type.AllowlistTypeUnrecorded marks the types for which the
+// server may not record it.
+var AllowlistTypes = []string{
+	string(models.ModelsAllowlistTypeUserfixed),
+	string(models.ModelsAllowlistTypeUserassumerisk),
+	string(models.ModelsAllowlistTypeUserfalsepositive),
+	string(models.ModelsAllowlistTypeUserother),
+}
+
+// FeedbackVerdicts are the verdicts that POST /findings/{id}/feedback accepts.
+var FeedbackVerdicts = []string{
+	string(models.EndpointsFindingFeedbackVerdictUp),
+	string(models.EndpointsFindingFeedbackVerdictDown),
+	string(models.EndpointsFindingFeedbackVerdictHelpful),
+	string(models.EndpointsFindingFeedbackVerdictWrong),
+	string(models.EndpointsFindingFeedbackVerdictNoisy),
+	string(models.EndpointsFindingFeedbackVerdictFixGood),
+	string(models.EndpointsFindingFeedbackVerdictFixBad),
+	string(models.EndpointsFindingFeedbackVerdictWorthFixing),
+	string(models.EndpointsFindingFeedbackVerdictExplanationClear),
+	string(models.EndpointsFindingFeedbackVerdictExplanationUnclear),
+	string(models.EndpointsFindingFeedbackVerdictSeverityRight),
+	string(models.EndpointsFindingFeedbackVerdictSeverityWrong),
+}
+
+// Params are the inputs that a verb can take in addition to the finding.
+type Params struct {
+	Reason        string
+	AllowlistType string
+}
+
+// Verb is one finding operation, exposed as a `nullify findings` subcommand and
+// as an MCP tool.
+type Verb struct {
+	Name        string
+	Tool        string
+	Description string
+	// NeedsReason makes Params.Reason mandatory.
+	NeedsReason bool
+	// NeedsAllowlistType makes Params.AllowlistType mandatory.
+	NeedsAllowlistType bool
+	// Write marks a verb that changes the finding or its ticket.
+	Write bool
+	// OptIn keeps the MCP tool out of the default tool set.
+	OptIn  bool
+	method func(Type) Action
+	body   func(Type, Params) ([]byte, error)
+}
+
+// Verbs lists the finding operations in the order that help shows them.
+var Verbs = []Verb{
+	{
+		Name:        "get",
+		Tool:        "nullify_get_finding",
+		Description: "Get details of a specific finding by type and ID.",
+		method:      func(t Type) Action { return t.Get },
+	},
+	{
+		Name:        "triage",
+		Tool:        "nullify_get_finding_triage",
+		Description: "Get the AI-triage analysis for a finding: the model's assessment of exploitability, severity, and recommended disposition.",
+		method:      func(t Type) Action { return t.Triage },
+	},
+	{
+		Name:        "fix-status",
+		Tool:        "nullify_get_fix_status",
+		Description: "Get the state of the autofix run of a finding: its state, whether it has ended, and its pull requests.",
+		method:      func(t Type) Action { return t.AutofixStatus },
+	},
+	{
+		Name:        "fix-diff",
+		Tool:        "nullify_get_fix_diff",
+		Description: "Get the proposed change of a finished autofix run.",
+		method:      func(t Type) Action { return t.AutofixDiff },
+	},
+	{
+		Name:               "allowlist",
+		Write:              true,
+		Tool:               "nullify_allowlist_finding",
+		Description:        "Allowlist a finding: suppress it as fixed, accepted risk, false positive, or other. This is how a finding is triaged out of the open queue.",
+		NeedsReason:        true,
+		NeedsAllowlistType: true,
+		method:             func(t Type) Action { return t.Allowlist },
+		body:               allowlistBody,
+	},
+	{
+		Name:        "unallowlist",
+		Write:       true,
+		Tool:        "nullify_unallowlist_finding",
+		Description: "Remove a finding from the allowlist, re-opening it.",
+		NeedsReason: true,
+		method:      func(t Type) Action { return t.Unallowlist },
+		body:        unallowlistBody,
+	},
+	{
+		Name:        "archive",
+		Write:       true,
+		OptIn:       true,
+		Tool:        "nullify_archive_finding",
+		Description: "Archive a finding, removing it from the open queue without recording a verdict.",
+		method:      func(t Type) Action { return t.Archive },
+	},
+	{
+		Name:        "unarchive",
+		Write:       true,
+		OptIn:       true,
+		Tool:        "nullify_unarchive_finding",
+		Description: "Restore an archived finding to the open queue.",
+		method:      func(t Type) Action { return t.Unarchive },
+	},
+	{
+		Name:        "mark-false-positive",
+		Write:       true,
+		OptIn:       true,
+		Tool:        "nullify_mark_false_positive",
+		Description: "Mark a finding as a false positive.",
+		NeedsReason: true,
+		method:      func(t Type) Action { return t.MarkFalsePositive },
+		body:        falsePositiveBody,
+	},
+	{
+		Name:        "unmark-false-positive",
+		Write:       true,
+		OptIn:       true,
+		Tool:        "nullify_unmark_false_positive",
+		Description: "Remove the false positive mark from a finding.",
+		method:      func(t Type) Action { return t.UnmarkFalsePositive },
+	},
+	{
+		Name:        "create-ticket",
+		Write:       true,
+		Tool:        "nullify_create_ticket",
+		Description: "Create a ticket (e.g. Jira, GitHub issue) for a finding.",
+		method:      func(t Type) Action { return t.CreateTicket },
+	},
+	{
+		Name:        "delete-ticket",
+		Write:       true,
+		OptIn:       true,
+		Tool:        "nullify_delete_ticket",
+		Description: "Close the ticket of a finding on its integration and clear the link to it. The API does not record a reason for this.",
+		method:      func(t Type) Action { return t.DeleteTicket },
+	},
+}
+
+// Run calls the verb for one finding after it validates the inputs.
+func (v Verb) Run(ctx context.Context, c *api.Client, typeName, findingID string, params Params) (json.RawMessage, error) {
+	t, err := Lookup(typeName)
+	if err != nil {
+		return nil, err
+	}
+
+	action := v.method(t)
+	if action == nil {
+		return nil, fmt.Errorf("%s of type %q: %w, supported types: %s", v.Name, typeName, ErrUnsupported, strings.Join(v.Types(), ", "))
+	}
+	if findingID == "" {
+		return nil, ErrFindingIDRequired
+	}
+	if v.NeedsReason && strings.TrimSpace(params.Reason) == "" {
+		return nil, ErrReasonRequired
+	}
+	if v.NeedsAllowlistType && !slices.Contains(AllowlistTypes, params.AllowlistType) {
+		return nil, fmt.Errorf("%w %q, valid types: %s", ErrInvalidAllowlistType, params.AllowlistType, strings.Join(AllowlistTypes, ", "))
+	}
+
+	var body []byte
+	if v.body != nil {
+		body, err = v.body(t, params)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	data, err := action(ctx, c, findingID, body)
+	if err != nil {
+		return nil, err
+	}
+	if warning := v.Warning(typeName); warning != "" {
+		return addWarning(data, warning)
+	}
+	return data, nil
+}
+
+// Warning returns what a successful run of the verb for the type must tell the
+// caller, or an empty string.
+func (v Verb) Warning(typeName string) string {
+	t, err := Lookup(typeName)
+	switch {
+	case err != nil:
+		return ""
+	case v.NeedsAllowlistType && t.AllowlistTypeUnrecorded:
+		return AllowlistTypeWarning
+	case v.Name == "unallowlist" && t.UnallowlistReasonUnrecorded:
+		return UnallowlistReasonWarning
+	}
+	return ""
+}
+
+// addWarning adds a warning field to a response. The write has already happened,
+// so a response that is not a JSON object is kept as a string in a response field.
+func addWarning(data json.RawMessage, warning string) (json.RawMessage, error) {
+	fields := map[string]any{}
+	if err := json.Unmarshal(data, &fields); err != nil {
+		fields = map[string]any{"response": string(data)}
+	}
+	fields["warning"] = warning
+	return json.Marshal(fields)
+}
+
+// Types returns the finding types that support the verb.
+func (v Verb) Types() []string {
+	return NamesWith(func(t Type) bool { return v.method(t) != nil })
+}
+
+// TypeValues returns the values that the verb accepts for a type: the slugs, the
+// aliases and the type values of listed findings.
+func (v Verb) TypeValues() []string {
+	return AcceptedNames(func(t Type) bool { return v.method(t) != nil })
+}
+
+func allowlistBody(t Type, p Params) ([]byte, error) {
+	if t.AllowOnPatch {
+		return json.Marshal(map[string]any{"allow": true, "reason": p.Reason})
+	}
+	return json.Marshal(map[string]string{"allowlistReason": p.Reason, "allowlistType": p.AllowlistType})
+}
+
+// unallowlistBody always names the type UserOther, as the dashboard does. The
+// secrets routes require the field and the input of every other type drops it.
+func unallowlistBody(t Type, p Params) ([]byte, error) {
+	if t.AllowOnPatch {
+		return json.Marshal(map[string]any{"allow": false, "reason": p.Reason})
+	}
+	return json.Marshal(map[string]string{"unallowlistReason": p.Reason, "unallowlistType": string(models.ModelsAllowlistTypeUserother)})
+}
+
+func falsePositiveBody(_ Type, p Params) ([]byte, error) {
+	return json.Marshal(map[string]string{"falsePositiveReason": p.Reason})
+}
+
+// SubmitFeedback records a verdict on a finding of any type. It never changes
+// the finding.
+func SubmitFeedback(ctx context.Context, c *api.Client, findingID, verdict, comment string) (json.RawMessage, error) {
+	if findingID == "" {
+		return nil, ErrFindingIDRequired
+	}
+	if !slices.Contains(FeedbackVerdicts, verdict) {
+		return nil, fmt.Errorf("%w %q, valid verdicts: %s", ErrInvalidVerdict, verdict, strings.Join(FeedbackVerdicts, ", "))
+	}
+
+	in := api.CreateFindingsFindingIdFeedbackInput{
+		FindingID: findingID,
+		Verdict:   models.EndpointsFindingFeedbackVerdict(verdict),
+	}
+	if comment != "" {
+		in.CommentText = &comment
+	}
+	out, err := c.CreateFindingsFindingIdFeedback(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(out)
+}
+
+// ListFeedback returns the feedback recorded on a finding.
+func ListFeedback(ctx context.Context, c *api.Client, findingID string) (json.RawMessage, error) {
+	if findingID == "" {
+		return nil, ErrFindingIDRequired
+	}
+	out, err := c.ListFindingsFindingIdFeedback(ctx, api.ListFindingsFindingIdFeedbackInput{FindingID: findingID})
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(out)
+}

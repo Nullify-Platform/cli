@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -13,8 +14,27 @@ import (
 	"github.com/nullify-platform/cli/internal/logger"
 )
 
+// DefaultHTTPTimeout is the request timeout used when NULLIFY_HTTP_TIMEOUT is
+// unset or invalid. 30s is too short for long-running calls (scan-start, autofix),
+// so callers can raise it via the env var (e.g. "120s").
+const DefaultHTTPTimeout = 30 * time.Second
+
+// HTTPTimeout returns the request timeout, overridable via the
+// NULLIFY_HTTP_TIMEOUT env var (a Go duration string such as "120s").
+func HTTPTimeout() time.Duration {
+	if v := os.Getenv("NULLIFY_HTTP_TIMEOUT"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil && d > 0 {
+			return d
+		}
+	}
+	return DefaultHTTPTimeout
+}
+
 // TokenProvider is a function that returns a valid token.
 type TokenProvider func() (string, error)
+
+// ContextTokenProvider returns a token within the caller's context.
+type ContextTokenProvider func(context.Context) (string, error)
 
 // ErrTokenNotRefreshable reports that the active token source yields a fixed
 // string, so retrying after a 401 cannot produce a different token.
@@ -23,11 +43,11 @@ var ErrTokenNotRefreshable = errors.New("token source cannot be refreshed")
 // refreshingAuthTransport wraps authTransport and refreshes the token proactively.
 type refreshingAuthTransport struct {
 	nullifyHost   string
-	tokenProvider TokenProvider
+	tokenProvider ContextTokenProvider
 	// refreshProvider mints a genuinely new token, ignoring any cached expiry.
 	// Distinct from tokenProvider, which returns the stored token untouched
 	// while it still looks valid.
-	refreshProvider TokenProvider
+	refreshProvider ContextTokenProvider
 	transport       http.RoundTripper
 
 	mu          sync.RWMutex
@@ -49,8 +69,15 @@ type refreshingAuthTransport struct {
 // refreshProvider is used to recover from a 401 and must bypass any cached
 // expiry; passing tokenProvider for both makes the 401 retry a no-op.
 func NewRefreshingHTTPClient(nullifyHost string, tokenProvider, refreshProvider TokenProvider) (*http.Client, error) {
-	// Fetch an initial token so startup fails fast on auth problems.
-	token, err := tokenProvider()
+	return NewRefreshingHTTPClientWithContext(context.Background(), nullifyHost,
+		func(context.Context) (string, error) { return tokenProvider() },
+		func(context.Context) (string, error) { return refreshProvider() })
+}
+
+// NewRefreshingHTTPClientWithContext uses ctx for the initial token and each
+// request's context for later token reads and refreshes.
+func NewRefreshingHTTPClientWithContext(ctx context.Context, nullifyHost string, tokenProvider, refreshProvider ContextTokenProvider) (*http.Client, error) {
+	token, err := tokenProvider(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +94,7 @@ func NewRefreshingHTTPClient(nullifyHost string, tokenProvider, refreshProvider 
 	}
 
 	return &http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   HTTPTimeout(),
 		Transport: NewRetryTransport(t),
 	}, nil
 }
@@ -116,8 +143,11 @@ func (t *refreshingAuthTransport) getToken(ctx context.Context) string {
 		return t.cachedToken
 	}
 
-	newToken, err := t.tokenProvider()
+	newToken, err := t.tokenProvider(ctx)
 	if err != nil {
+		if ctx.Err() != nil {
+			return t.cachedToken
+		}
 		// Fall back to cached token; log so the user can diagnose 401s. Hold
 		// off on the next attempt so a persistently failing provider does not
 		// put a blocking refresh in front of every single request.
@@ -149,8 +179,11 @@ func (t *refreshingAuthTransport) forceRefresh(ctx context.Context, staleToken s
 		return ""
 	}
 
-	newToken, err := t.refreshProvider()
+	newToken, err := t.refreshProvider(ctx)
 	if err != nil {
+		if ctx.Err() != nil {
+			return ""
+		}
 		t.refreshRetryAfter = time.Now().Add(t.failureBackoff)
 		// A fixed token source has nothing to re-fetch, so the 401 is final
 		// rather than a failure worth warning about.
@@ -195,12 +228,25 @@ func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, 
 			r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 			r.ContentLength = int64(len(bodyBytes))
 		}
-		r.Header.Set("Authorization", "Bearer "+token)
 		r.Header.Set("User-Agent", "Nullify-CLI/mcp")
+		if token == "" {
+			r.Header.Del("Authorization")
+		} else {
+			r.Header.Set("Authorization", "Bearer "+token)
+		}
 		return t.transport.RoundTrip(r)
 	}
 
+	// Off the API host, or on a redirect hop, the request goes out bare and a
+	// 401 there is not ours to refresh.
+	if !bearerAllowed(t.nullifyHost, req) {
+		return attempt("")
+	}
+
 	token := t.getToken(req.Context())
+	if err := req.Context().Err(); err != nil {
+		return nil, err
+	}
 	resp, err := attempt(token)
 	if err != nil {
 		return nil, err
@@ -214,6 +260,10 @@ func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, 
 			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4<<10))
 			resp.Body.Close()
 			return attempt(newToken)
+		}
+		if err := req.Context().Err(); err != nil {
+			resp.Body.Close()
+			return nil, err
 		}
 	}
 

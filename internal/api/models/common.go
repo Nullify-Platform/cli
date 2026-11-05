@@ -3,14 +3,20 @@ package models
 
 import "encoding/json"
 
+type AgentsAgentLogs = []json.RawMessage
+
 type EndpointsAutofixStatusOutput struct {
+	AutofixID *string `json:"autofixId,omitempty"`
 	AutofixVerdictExplanation *string `json:"autofixVerdictExplanation,omitempty"`
 	AutofixVerdictReason *ModelsAutofixFailureReason `json:"autofixVerdictReason,omitempty"`
+	AvailableActions []EndpointsAvailableAction `json:"availableActions,omitempty"`
+	Coordination *EndpointsAutofixCoordination `json:"coordination,omitempty"`
 	CurrentActivity *string `json:"currentActivity,omitempty"`
 	CurrentPhase *ModelsAutofixPhase `json:"currentPhase,omitempty"`
 	IsAutoFixable *bool `json:"isAutoFixable,omitempty"`
 	Iterations *EndpointsIterationSummary `json:"iterations,omitempty"`
 	LastActivityAt *string `json:"lastActivityAt,omitempty"`
+	Outcome *EndpointsAutofixOutcome `json:"outcome,omitempty"`
 	PullRequestState *ModelsPullRequestState `json:"pullRequestState,omitempty"`
 	PullRequestURL *string `json:"pullRequestUrl,omitempty"`
 	PullRequests []EndpointsPullRequestSummary `json:"pullRequests,omitempty"`
@@ -19,6 +25,15 @@ type EndpointsAutofixStatusOutput struct {
 	Terminal bool `json:"terminal"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
+
+type EndpointsFindingTriageStatus string
+
+const (
+	EndpointsFindingTriageStatusPending EndpointsFindingTriageStatus = "pending"
+	EndpointsFindingTriageStatusCompleted EndpointsFindingTriageStatus = "completed"
+	EndpointsFindingTriageStatusIncomplete EndpointsFindingTriageStatus = "incomplete"
+	EndpointsFindingTriageStatusFailed EndpointsFindingTriageStatus = "failed"
+)
 
 type EndpointsGetAutofixActivityLogOutput struct {
 	Entries []EndpointsAutofixActivityLogEntry `json:"entries,omitempty"`
@@ -30,21 +45,21 @@ type EndpointsGetScanRunsOutput struct {
 	TotalCount *int `json:"totalCount,omitempty"`
 }
 
-type EndpointsInfrastructureGraphInfo struct {
-	AccountsInfo []EndpointsInfrastructureAccountInfo `json:"accountsInfo,omitempty"`
-	CrossAccountStatistics EndpointsInfrastructureCrossAccountStatistics `json:"crossAccountStatistics"`
-	EdgeStatistics EndpointsInfrastructureEdgeStatistics `json:"edgeStatistics"`
-	Metadata EndpointsInfrastructureGraphInfoMetadata `json:"metadata"`
-	NodeStatistics EndpointsInfrastructureNodeStatistics `json:"nodeStatistics"`
-	ValidationResults EndpointsInfrastructureValidationResults `json:"validationResults"`
-}
+type EndpointsRunState string
+
+const (
+	EndpointsRunStatePending EndpointsRunState = "PENDING"
+	EndpointsRunStateRunning EndpointsRunState = "RUNNING"
+	EndpointsRunStateSucceeded EndpointsRunState = "SUCCEEDED"
+	EndpointsRunStateFailed EndpointsRunState = "FAILED"
+	EndpointsRunStateSkipped EndpointsRunState = "SKIPPED"
+	EndpointsRunStateTimedOut EndpointsRunState = "TIMED_OUT"
+	EndpointsRunStateAborted EndpointsRunState = "ABORTED"
+)
 
 type EventsEventType string
 
 const (
-	EventsEventTypeOrgContextAgentStarted EventsEventType = "org_context_agent_started"
-	EventsEventTypeOrgContextAgentFinished EventsEventType = "org_context_agent_finished"
-	EventsEventTypeOrgContextAgentFailed EventsEventType = "org_context_agent_failed"
 	EventsEventTypeRepoContextAgentStarted EventsEventType = "repo_context_agent_started"
 	EventsEventTypeRepoContextAgentFinished EventsEventType = "repo_context_agent_finished"
 	EventsEventTypeRepoContextAgentFailed EventsEventType = "repo_context_agent_failed"
@@ -53,9 +68,10 @@ const (
 	EventsEventTypeTriageAgentFailed EventsEventType = "triage_agent_failed"
 	EventsEventTypeTriageAgentSkipped EventsEventType = "triage_agent_skipped"
 	EventsEventTypeTriageAgentQualityDegraded EventsEventType = "triage_agent_quality_degraded"
-	EventsEventTypeAutoFixAgentStarted EventsEventType = "auto_fix_agent_started"
 	EventsEventTypeAutoFixAgentFinished EventsEventType = "auto_fix_agent_finished"
-	EventsEventTypeAutoFixAgentFailed EventsEventType = "auto_fix_agent_failed"
+	EventsEventTypeAutoFixRunStarted EventsEventType = "auto-fix-run-started"
+	EventsEventTypeAutoFixRunFinished EventsEventType = "auto-fix-run-finished"
+	EventsEventTypeAutoFixRunFailed EventsEventType = "auto-fix-run-failed"
 	EventsEventTypeSchemaReversingAgentStarted EventsEventType = "schema_reversing_agent_started"
 	EventsEventTypeSchemaReversingAgentFinished EventsEventType = "schema_reversing_agent_finished"
 	EventsEventTypeSchemaReversingAgentFailed EventsEventType = "schema_reversing_agent_failed"
@@ -73,13 +89,19 @@ const (
 	EventsEventTypeBillingLeaseEnded EventsEventType = "billing-lease-ended"
 	EventsEventTypeBillingLeaseExtended EventsEventType = "billing-lease-extended"
 	EventsEventTypeBillingUsageRecorded EventsEventType = "billing-usage-recorded"
+	EventsEventTypeRepositoryContextPublished EventsEventType = "repository-context-published"
 	EventsEventTypeAccountScanCompleted EventsEventType = "account-scan-completed"
 	EventsEventTypeCloudIntegrationScanCompleted EventsEventType = "cloud-integration-scan-completed"
 	EventsEventTypeCspmNewFinding EventsEventType = "cspm-new-finding"
 	EventsEventTypeCspmNewFindings EventsEventType = "cspm-new-findings"
 	EventsEventTypeCspmFindingTriaged EventsEventType = "cspm-finding-triaged"
 	EventsEventTypeCspmFindingsTriaged EventsEventType = "cspm-findings-triaged"
+	EventsEventTypeCspmFindingRetriaged EventsEventType = "cspm-finding-retriaged"
 	EventsEventTypeCspmNewAllowlistedFinding EventsEventType = "cspm-new-allowlisted-finding"
+	EventsEventTypeCspmFindingResolved EventsEventType = "cspm-finding-resolved"
+	EventsEventTypeCspmFindingReintroduced EventsEventType = "cspm-finding-reintroduced"
+	EventsEventTypeCspmFindingsDigest EventsEventType = "cspm-findings-digest"
+	EventsEventTypeCspmFindingOverridden EventsEventType = "cspm-finding-overridden"
 	EventsEventTypeCspmTicketCreated EventsEventType = "cspm-ticket-created"
 	EventsEventTypeCspmTicketUpdated EventsEventType = "cspm-ticket-updated"
 	EventsEventTypeCspmTicketAssigned EventsEventType = "cspm-ticket-assigned"
@@ -87,14 +109,11 @@ const (
 	EventsEventTypeCspmTicketReopened EventsEventType = "cspm-ticket-reopened"
 	EventsEventTypeAccountScanStarted EventsEventType = "account-scan-started"
 	EventsEventTypeAccountScanFailed EventsEventType = "account-scan-failed"
-	EventsEventTypeCloudIntegrationScanStarted EventsEventType = "cloud-integration-scan-started"
-	EventsEventTypeCloudIntegrationScanFailed EventsEventType = "cloud-integration-scan-failed"
 	EventsEventTypeCspmScanStarted EventsEventType = "cspm-scan-started"
 	EventsEventTypeCspmScanCompleted EventsEventType = "cspm-scan-completed"
 	EventsEventTypeCspmScanFailed EventsEventType = "cspm-scan-failed"
 	EventsEventTypeDastNewFindings EventsEventType = "dast-new-findings"
 	EventsEventTypeDastNewFixes EventsEventType = "dast-new-fixes"
-	EventsEventTypeDastUpdateEndpoints EventsEventType = "dast-update-endpoints"
 	EventsEventTypeDastBughuntNewFinding EventsEventType = "dast-bughunt-new-finding"
 	EventsEventTypeDastBughuntFindingFixed EventsEventType = "dast-bughunt-finding-fixed"
 	EventsEventTypeDastBughuntFindingUnfixed EventsEventType = "dast-bughunt-finding-unfixed"
@@ -119,18 +138,25 @@ const (
 	EventsEventTypeDastPentestScanAbortedConfigError EventsEventType = "dast-pentest-scan-aborted-config-error"
 	EventsEventTypeDastPentestScanHumanFallback EventsEventType = "dast-pentest-scan-human-fallback"
 	EventsEventTypeDastPentestScanFailsafeInvoked EventsEventType = "dast-pentest-scan-failsafe-invoked"
+	EventsEventTypeDastBughuntTicketUpdated EventsEventType = "dast-bughunt-ticket-updated"
+	EventsEventTypeDastBughuntTicketAssigned EventsEventType = "dast-bughunt-ticket-assigned"
+	EventsEventTypeDastBughuntTicketClosed EventsEventType = "dast-bughunt-ticket-closed"
+	EventsEventTypeDastBughuntTicketReopened EventsEventType = "dast-bughunt-ticket-reopened"
+	EventsEventTypeDastPentestTicketUpdated EventsEventType = "dast-pentest-ticket-updated"
+	EventsEventTypeDastPentestTicketAssigned EventsEventType = "dast-pentest-ticket-assigned"
+	EventsEventTypeDastPentestTicketClosed EventsEventType = "dast-pentest-ticket-closed"
+	EventsEventTypeDastPentestTicketReopened EventsEventType = "dast-pentest-ticket-reopened"
 	EventsEventTypeDastBughuntScanStarted EventsEventType = "dast-bughunt-scan-started"
 	EventsEventTypeDastBughuntScanCompleted EventsEventType = "dast-bughunt-scan-completed"
 	EventsEventTypeDastPentestScanStarted EventsEventType = "dast-pentest-scan-started"
 	EventsEventTypeDastPentestScanCompleted EventsEventType = "dast-pentest-scan-completed"
 	EventsEventTypeDastPentestScanFailed EventsEventType = "dast-pentest-scan-failed"
+	EventsEventTypeDastPentestStageTransition EventsEventType = "dast-pentest-stage-transition"
 	EventsEventTypeBotInteraction EventsEventType = "bot-interaction"
 	EventsEventTypeBotInteractionIssueDashboardReply EventsEventType = "bot-interaction-issue-dashboard-reply"
-	EventsEventTypeBotInteractionPullRequestCommentReply EventsEventType = "bot-interaction-pull-request-comment-reply"
 	EventsEventTypeBotInteractionPullRequestDiscussionReply EventsEventType = "bot-interaction-pull-request-discussion-reply"
 	EventsEventTypeBotInteractionPullRequestReviewDiffThreadReply EventsEventType = "bot-interaction-pull-request-review-diff-thread-reply"
 	EventsEventTypeBotInteractionPullRequestReviewDiscussionReply EventsEventType = "bot-interaction-pull-request-review-discussion-reply"
-	EventsEventTypeBotInteractionPullRequestReview EventsEventType = "bot-interaction-pull-request-review"
 	EventsEventTypeAutoFixPullRequestCreated EventsEventType = "auto-fix-pull-request-created"
 	EventsEventTypeAutoFixPullRequestAccepted EventsEventType = "auto-fix-pull-request-accepted"
 	EventsEventTypeAutoFixPullRequestClosed EventsEventType = "auto-fix-pull-request-closed"
@@ -138,11 +164,11 @@ const (
 	EventsEventTypeAutoFixSuggestionAccepted EventsEventType = "auto-fix-suggestion-accepted"
 	EventsEventTypeScpmNewBranchSummary EventsEventType = "scpm-new-branch-summary"
 	EventsEventTypeScpmNewFinding EventsEventType = "scpm-new-finding"
+	EventsEventTypeScpmNewFindings EventsEventType = "scpm-new-findings"
+	EventsEventTypeScpmReintroducedFinding EventsEventType = "scpm-reintroduced-finding"
 	EventsEventTypeScpmNewAllowlistedFinding EventsEventType = "scpm-new-allowlisted-finding"
 	EventsEventTypeScpmNewUnallowlistedFinding EventsEventType = "scpm-new-unallowlisted-finding"
-	EventsEventTypeScpmNewVulnerabilityMerged EventsEventType = "scpm-new-vulnerability-merged"
 	EventsEventTypeScpmNewFix EventsEventType = "scpm-new-fix"
-	EventsEventTypeScpmNewPullRequestFinding EventsEventType = "scpm-new-pull-request-finding"
 	EventsEventTypeScpmNewPullRequestFix EventsEventType = "scpm-new-pull-request-fix"
 	EventsEventTypeScpmTicketCreated EventsEventType = "scpm-ticket-created"
 	EventsEventTypeScpmTicketUpdated EventsEventType = "scpm-ticket-updated"
@@ -153,12 +179,18 @@ const (
 	EventsEventTypeScpmScanCompleted EventsEventType = "scpm-scan-completed"
 	EventsEventTypeScpmScanFailed EventsEventType = "scpm-scan-failed"
 	EventsEventTypeScpmFindingRetriaged EventsEventType = "scpm-finding-retriaged"
-	EventsEventTypeScpmArchivedFinding EventsEventType = "scpm-archived-finding"
+	EventsEventTypeScpmFindingResolved EventsEventType = "scpm-finding-resolved"
+	EventsEventTypeScpmFindingOverridden EventsEventType = "scpm-finding-overridden"
 	EventsEventTypeManagerCampaignCreated EventsEventType = "manager-campaign-created"
 	EventsEventTypeManagerCampaignUpdated EventsEventType = "manager-campaign-updated"
 	EventsEventTypeManagerCampaignDeleted EventsEventType = "manager-campaign-deleted"
 	EventsEventTypeManagerScheduledPlanCompleted EventsEventType = "manager-scheduled-plan-completed"
 	EventsEventTypeManagerPlanCreated EventsEventType = "manager-plan-created"
+	EventsEventTypeManagerActionItemCreated EventsEventType = "manager-action-item-created"
+	EventsEventTypeManagerActionItemResolved EventsEventType = "manager-action-item-resolved"
+	EventsEventTypeManagerActionItemReopened EventsEventType = "manager-action-item-reopened"
+	EventsEventTypeManagerActionItemSnoozed EventsEventType = "manager-action-item-snoozed"
+	EventsEventTypeManagerActionItemUpdated EventsEventType = "manager-action-item-updated"
 	EventsEventTypeManagerActionAllowlist EventsEventType = "manager-action-allowlist"
 	EventsEventTypeManagerActionEscalate EventsEventType = "manager-action-escalate"
 	EventsEventTypeManagerActionTicketCreate EventsEventType = "manager-action-ticket-create"
@@ -169,6 +201,7 @@ const (
 	EventsEventTypeManagerActionPrComment EventsEventType = "manager-action-pr-comment"
 	EventsEventTypeManagerActionPrClose EventsEventType = "manager-action-pr-close"
 	EventsEventTypeManagerActionPrReassign EventsEventType = "manager-action-pr-reassign"
+	EventsEventTypeManagerActionPrRebase EventsEventType = "manager-action-pr-rebase"
 	EventsEventTypeManagerActionMessageUser EventsEventType = "manager-action-message-user"
 	EventsEventTypeManagerActionMessageChannel EventsEventType = "manager-action-message-channel"
 	EventsEventTypeManagerActionAssignUserTask EventsEventType = "manager-action-assign-user-task"
@@ -186,31 +219,33 @@ const (
 	EventsEventTypeOrchestratorOnboardingStarted EventsEventType = "orchestrator-onboarding-started"
 	EventsEventTypeOrchestratorOnboardingPhaseAdvanced EventsEventType = "orchestrator-onboarding-phase-advanced"
 	EventsEventTypeOrchestratorOnboardingCompleted EventsEventType = "orchestrator-onboarding-completed"
+	EventsEventTypeOrchestratorOnboardingPartialCompleted EventsEventType = "orchestrator-onboarding-partial-completed"
 	EventsEventTypeOrchestratorOnboardingFailed EventsEventType = "orchestrator-onboarding-failed"
 	EventsEventTypeOrchestratorRetriageRequested EventsEventType = "orchestrator-retriage-requested"
 	EventsEventTypeOrchestratorRetriageQueued EventsEventType = "orchestrator-retriage-queued"
+	EventsEventTypeOrchestratorCheckRunOverridden EventsEventType = "orchestrator-check-run-overridden"
 	EventsEventTypePipelineTriggered EventsEventType = "pipeline-triggered"
 	EventsEventTypePipelineFinished EventsEventType = "pipeline-finished"
 	EventsEventTypePipelineFailed EventsEventType = "pipeline-failed"
+	EventsEventTypeRunStarted EventsEventType = "run-started"
+	EventsEventTypeRunStage EventsEventType = "run-stage"
+	EventsEventTypeRunFinished EventsEventType = "run-finished"
 	EventsEventTypeSastNewBranchSummary EventsEventType = "sast-new-branch-summary"
 	EventsEventTypeSastNewFinding EventsEventType = "sast-new-finding"
 	EventsEventTypeSastNewFindings EventsEventType = "sast-new-findings"
 	EventsEventTypeSastNewFix EventsEventType = "sast-new-fix"
 	EventsEventTypeSastNewFixes EventsEventType = "sast-new-fixes"
 	EventsEventTypeSastNewAllowlistedFinding EventsEventType = "sast-new-allowlisted-finding"
-	EventsEventTypeSastNewAllowlistedFindings EventsEventType = "sast-new-allowlisted-findings"
 	EventsEventTypeSastNewUnallowlistedFinding EventsEventType = "sast-new-unallowlisted-finding"
-	EventsEventTypeSastNewUnallowlistedFindings EventsEventType = "sast-new-unallowlisted-findings"
 	EventsEventTypeSastNewPullRequestFinding EventsEventType = "sast-new-pull-request-finding"
-	EventsEventTypeSastNewPullRequestFindings EventsEventType = "sast-new-pull-request-findings"
 	EventsEventTypeSastNewPullRequestFix EventsEventType = "sast-new-pull-request-fix"
 	EventsEventTypeSastNewPullRequestFixes EventsEventType = "sast-new-pull-request-fixes"
-	EventsEventTypeSastNewPullRequestAllowlistedFinding EventsEventType = "sast-new-pull-request-allowlisted-finding"
-	EventsEventTypeSastNewPullRequestUnallowlistedFinding EventsEventType = "sast-new-pull-request-unallowlisted-finding"
 	EventsEventTypeSastNewVulnerabilityMerged EventsEventType = "sast-new-vulnerability-merged"
 	EventsEventTypeSastReintroducedFinding EventsEventType = "sast-reintroduced-finding"
 	EventsEventTypeSastReintroducedPullRequestFinding EventsEventType = "sast-reintroduced-pull-request-finding"
 	EventsEventTypeSastFindingRetriaged EventsEventType = "sast-finding-retriaged"
+	EventsEventTypeSastFindingTriaged EventsEventType = "sast-finding-triaged"
+	EventsEventTypeSastFindingOverridden EventsEventType = "sast-finding-overridden"
 	EventsEventTypeSastArchivedFinding EventsEventType = "sast-archived-finding"
 	EventsEventTypeSastTicketCreated EventsEventType = "sast-ticket-created"
 	EventsEventTypeSastTicketUpdated EventsEventType = "sast-ticket-updated"
@@ -228,17 +263,15 @@ const (
 	EventsEventTypeScaNewFix EventsEventType = "sca-new-fix"
 	EventsEventTypeScaNewFixes EventsEventType = "sca-new-fixes"
 	EventsEventTypeScaNewAllowlistedFinding EventsEventType = "sca-new-allowlisted-finding"
-	EventsEventTypeScaNewAllowlistedFindings EventsEventType = "sca-new-allowlisted-findings"
 	EventsEventTypeScaNewUnallowlistedFinding EventsEventType = "sca-new-unallowlisted-finding"
 	EventsEventTypeScaNewPullRequestFinding EventsEventType = "sca-new-pull-request-finding"
-	EventsEventTypeScaNewPullRequestFindings EventsEventType = "sca-new-pull-request-findings"
 	EventsEventTypeScaNewPullRequestFix EventsEventType = "sca-new-pull-request-fix"
 	EventsEventTypeScaNewPullRequestFixes EventsEventType = "sca-new-pull-request-fixes"
 	EventsEventTypeScaDependencyReintroducedFinding EventsEventType = "sca-dependency-reintroduced-finding"
 	EventsEventTypeScaContainerReintroducedFinding EventsEventType = "sca-container-reintroduced-finding"
-	EventsEventTypeScaDependencyArchivedFinding EventsEventType = "sca-dependency-archived-finding"
-	EventsEventTypeScaContainerArchivedFinding EventsEventType = "sca-container-archived-finding"
 	EventsEventTypeScaFindingRetriaged EventsEventType = "sca-finding-retriaged"
+	EventsEventTypeScaFindingTriaged EventsEventType = "sca-finding-triaged"
+	EventsEventTypeScaFindingOverridden EventsEventType = "sca-finding-overridden"
 	EventsEventTypeScaTicketCreated EventsEventType = "sca-ticket-created"
 	EventsEventTypeScaTicketUpdated EventsEventType = "sca-ticket-updated"
 	EventsEventTypeScaTicketAssigned EventsEventType = "sca-ticket-assigned"
@@ -252,19 +285,18 @@ const (
 	EventsEventTypeSecretsNewFinding EventsEventType = "secrets-new-finding"
 	EventsEventTypeSecretsNewFindings EventsEventType = "secrets-new-findings"
 	EventsEventTypeSecretsNewAllowlistedFinding EventsEventType = "secrets-new-allowlisted-finding"
-	EventsEventTypeSecretsNewAllowlistedFindings EventsEventType = "secrets-new-allowlisted-findings"
 	EventsEventTypeSecretsNewUnallowlistedFinding EventsEventType = "secrets-new-unallowlisted-finding"
 	EventsEventTypeSecretsArchivedFinding EventsEventType = "secrets-archived-finding"
 	EventsEventTypeSecretsCredentialTriageCompleted EventsEventType = "secrets-credential-triage-completed"
 	EventsEventTypeSecretsSensitivedataTriageCompleted EventsEventType = "secrets-sensitivedata-triage-completed"
 	EventsEventTypeSecretsFindingRetriaged EventsEventType = "secrets-finding-retriaged"
+	EventsEventTypeSecretsFindingOverridden EventsEventType = "secrets-finding-overridden"
 	EventsEventTypeSecretsTicketCreated EventsEventType = "secrets-ticket-created"
 	EventsEventTypeSecretsTicketUpdated EventsEventType = "secrets-ticket-updated"
 	EventsEventTypeSecretsTicketAssigned EventsEventType = "secrets-ticket-assigned"
 	EventsEventTypeSecretsTicketClosed EventsEventType = "secrets-ticket-closed"
 	EventsEventTypeSecretsTicketReopened EventsEventType = "secrets-ticket-reopened"
 	EventsEventTypeSensitivedataNewFinding EventsEventType = "sensitivedata-new-finding"
-	EventsEventTypeSensitivedataNewFindings EventsEventType = "sensitivedata-new-findings"
 	EventsEventTypeSensitivedataAllowlisted EventsEventType = "sensitivedata-allowlisted"
 	EventsEventTypeSensitivedataUnallowlisted EventsEventType = "sensitivedata-unallowlisted"
 	EventsEventTypeSensitivedataTicketCreated EventsEventType = "sensitivedata-ticket-created"
@@ -272,7 +304,6 @@ const (
 	EventsEventTypeSensitivedataTicketAssigned EventsEventType = "sensitivedata-ticket-assigned"
 	EventsEventTypeSensitivedataTicketClosed EventsEventType = "sensitivedata-ticket-closed"
 	EventsEventTypeSensitivedataTicketReopened EventsEventType = "sensitivedata-ticket-reopened"
-	EventsEventTypeSensitivedataArchivedFinding EventsEventType = "sensitivedata-archived-finding"
 	EventsEventTypeSecretsScanStarted EventsEventType = "secrets-scan-started"
 	EventsEventTypeSecretsScanCompleted EventsEventType = "secrets-scan-completed"
 	EventsEventTypeSecretsScanFailed EventsEventType = "secrets-scan-failed"
@@ -289,110 +320,14 @@ const (
 	EventsEventTypeWebhookPushReceived EventsEventType = "webhook-push-received"
 )
 
-type GraphEdge struct {
-	Explanation *string `json:"explanation,omitempty"`
-	SourceID *string `json:"sourceId,omitempty"`
-	TargetID *string `json:"targetId,omitempty"`
-	Type *GraphEdgeType `json:"type,omitempty"`
+type FrameworksVulnManagementFrameworks struct {
+	Results []FrameworksResult `json:"results,omitempty"`
 }
-
-type GraphEdgeType string
-
-const (
-	GraphEdgeTypeAccessedBy GraphEdgeType = "ACCESSED_BY"
-	GraphEdgeTypeAllowedBy GraphEdgeType = "ALLOWED_BY"
-	GraphEdgeTypeAllowsEgressTo GraphEdgeType = "ALLOWS_EGRESS_TO"
-	GraphEdgeTypeAllowsIngressFrom GraphEdgeType = "ALLOWS_INGRESS_FROM"
-	GraphEdgeTypeAppliesTo GraphEdgeType = "APPLIES_TO"
-	GraphEdgeTypeAssumes GraphEdgeType = "ASSUMES"
-	GraphEdgeTypeAssumesRole GraphEdgeType = "ASSUMES_ROLE"
-	GraphEdgeTypeAttachedTo GraphEdgeType = "ATTACHED_TO"
-	GraphEdgeTypeAuthenticates GraphEdgeType = "AUTHENTICATES"
-	GraphEdgeTypeBasedOnContainerfile GraphEdgeType = "BASED_ON_CONTAINERFILE"
-	GraphEdgeTypeBelongsTo GraphEdgeType = "BELONGS_TO"
-	GraphEdgeTypeBuilds GraphEdgeType = "BUILDS"
-	GraphEdgeTypeBuiltFrom GraphEdgeType = "BUILT_FROM"
-	GraphEdgeTypeCalls GraphEdgeType = "CALLS"
-	GraphEdgeTypeCanReach GraphEdgeType = "CAN_REACH"
-	GraphEdgeTypeClaims GraphEdgeType = "CLAIMS"
-	GraphEdgeTypeContains GraphEdgeType = "CONTAINS"
-	GraphEdgeTypeContributesTo GraphEdgeType = "CONTRIBUTES_TO"
-	GraphEdgeTypeContributesToProject GraphEdgeType = "CONTRIBUTES_TO_PROJECT"
-	GraphEdgeTypeControls GraphEdgeType = "CONTROLS"
-	GraphEdgeTypeDeployedBy GraphEdgeType = "DEPLOYED_BY"
-	GraphEdgeTypeDeployedIn GraphEdgeType = "DEPLOYED_IN"
-	GraphEdgeTypeDeployedTo GraphEdgeType = "DEPLOYED_TO"
-	GraphEdgeTypeEncrypts GraphEdgeType = "ENCRYPTS"
-	GraphEdgeTypeEnforcedBy GraphEdgeType = "ENFORCED_BY"
-	GraphEdgeTypeEnforces GraphEdgeType = "ENFORCES"
-	GraphEdgeTypeEntryPoints GraphEdgeType = "ENTRY_POINTS"
-	GraphEdgeTypeExecutes GraphEdgeType = "EXECUTES"
-	GraphEdgeTypeExists GraphEdgeType = "EXISTS"
-	GraphEdgeTypeExistsIn GraphEdgeType = "EXISTS_IN"
-	GraphEdgeTypeExposedAt GraphEdgeType = "EXPOSED_AT"
-	GraphEdgeTypeExposedBy GraphEdgeType = "EXPOSED_BY"
-	GraphEdgeTypeExposedOn GraphEdgeType = "EXPOSED_ON"
-	GraphEdgeTypeExposes GraphEdgeType = "EXPOSES"
-	GraphEdgeTypeFilteredBy GraphEdgeType = "FILTERED_BY"
-	GraphEdgeTypeForwardsTo GraphEdgeType = "FORWARDS_TO"
-	GraphEdgeTypeGrantsAccess GraphEdgeType = "GRANTS_ACCESS"
-	GraphEdgeTypeHasAuth GraphEdgeType = "HAS_AUTH"
-	GraphEdgeTypeHasContributor GraphEdgeType = "HAS_CONTRIBUTOR"
-	GraphEdgeTypeHasEndpoint GraphEdgeType = "HAS_ENDPOINT"
-	GraphEdgeTypeHasEntrypoint GraphEdgeType = "HAS_ENTRYPOINT"
-	GraphEdgeTypeHasFinding GraphEdgeType = "HAS_FINDING"
-	GraphEdgeTypeHasHost GraphEdgeType = "HAS_HOST"
-	GraphEdgeTypeHasMember GraphEdgeType = "HAS_MEMBER"
-	GraphEdgeTypeHasNote GraphEdgeType = "HAS_NOTE"
-	GraphEdgeTypeHasRole GraphEdgeType = "HAS_ROLE"
-	GraphEdgeTypeHasRule GraphEdgeType = "HAS_RULE"
-	GraphEdgeTypeHasSecurityGroup GraphEdgeType = "HAS_SECURITY_GROUP"
-	GraphEdgeTypeHosts GraphEdgeType = "HOSTS"
-	GraphEdgeTypeInProject GraphEdgeType = "IN_PROJECT"
-	GraphEdgeTypeInRepository GraphEdgeType = "IN_REPOSITORY"
-	GraphEdgeTypeInSubnet GraphEdgeType = "IN_SUBNET"
-	GraphEdgeTypeInVpc GraphEdgeType = "IN_VPC"
-	GraphEdgeTypeIssuedTo GraphEdgeType = "ISSUED_TO"
-	GraphEdgeTypeMemberOf GraphEdgeType = "MEMBER_OF"
-	GraphEdgeTypeMonitors GraphEdgeType = "MONITORS"
-	GraphEdgeTypeMountedBy GraphEdgeType = "MOUNTED_BY"
-	GraphEdgeTypeOpenOn GraphEdgeType = "OPEN_ON"
-	GraphEdgeTypeOrigin GraphEdgeType = "ORIGIN"
-	GraphEdgeTypePeeredWith GraphEdgeType = "PEERED_WITH"
-	GraphEdgeTypeProducedBy GraphEdgeType = "PRODUCED_BY"
-	GraphEdgeTypeProtectedBy GraphEdgeType = "PROTECTED_BY"
-	GraphEdgeTypeProvidedBy GraphEdgeType = "PROVIDED_BY"
-	GraphEdgeTypeProvides GraphEdgeType = "PROVIDES"
-	GraphEdgeTypePublishesTo GraphEdgeType = "PUBLISHES_TO"
-	GraphEdgeTypeQueriedBy GraphEdgeType = "QUERIED_BY"
-	GraphEdgeTypeQueries GraphEdgeType = "QUERIES"
-	GraphEdgeTypeReferences GraphEdgeType = "REFERENCES"
-	GraphEdgeTypeResolvesTo GraphEdgeType = "RESOLVES_TO"
-	GraphEdgeTypeRoutedBy GraphEdgeType = "ROUTED_BY"
-	GraphEdgeTypeRoutesTo GraphEdgeType = "ROUTES_TO"
-	GraphEdgeTypeRunsImage GraphEdgeType = "RUNS_IMAGE"
-	GraphEdgeTypeScales GraphEdgeType = "SCALES"
-	GraphEdgeTypeSecuredBy GraphEdgeType = "SECURED_BY"
-	GraphEdgeTypeServes GraphEdgeType = "SERVES"
-	GraphEdgeTypeSourcedFrom GraphEdgeType = "SOURCED_FROM"
-	GraphEdgeTypeStoredIn GraphEdgeType = "STORED_IN"
-	GraphEdgeTypeSubscribesTo GraphEdgeType = "SUBSCRIBES_TO"
-	GraphEdgeTypeTargets GraphEdgeType = "TARGETS"
-	GraphEdgeTypeTargetWorkload GraphEdgeType = "TARGET_WORKLOAD"
-	GraphEdgeTypeTriggeredBy GraphEdgeType = "TRIGGERED_BY"
-	GraphEdgeTypeTriggers GraphEdgeType = "TRIGGERS"
-	GraphEdgeTypeUploadedTo GraphEdgeType = "UPLOADED_TO"
-	GraphEdgeTypeUsedBy GraphEdgeType = "USED_BY"
-	GraphEdgeTypeUses GraphEdgeType = "USES"
-	GraphEdgeTypeUsesContainer GraphEdgeType = "USES_CONTAINER"
-	GraphEdgeTypeUsesPod GraphEdgeType = "USES_POD"
-	GraphEdgeTypeUsesSecurityGroup GraphEdgeType = "USES_SECURITY_GROUP"
-	GraphEdgeTypeUsesTaskDefinition GraphEdgeType = "USES_TASK_DEFINITION"
-)
 
 type GraphGraph struct {
 	Edges []GraphEdge `json:"edges,omitempty"`
 	Nodes []json.RawMessage `json:"nodes,omitempty"`
+	PathAssessment *GraphPathAssessment `json:"pathAssessment,omitempty"`
 }
 
 type LanguageCodeLanguage string
@@ -406,12 +341,16 @@ const (
 	LanguageCodeLanguageCloudformation LanguageCodeLanguage = "CloudFormation"
 	LanguageCodeLanguageContainerfile LanguageCodeLanguage = "Containerfile"
 	LanguageCodeLanguageDockerfile LanguageCodeLanguage = "Dockerfile"
+	LanguageCodeLanguageElixir LanguageCodeLanguage = "Elixir"
+	LanguageCodeLanguageErlang LanguageCodeLanguage = "Erlang"
 	LanguageCodeLanguageFsharp LanguageCodeLanguage = "FSharp"
 	LanguageCodeLanguageGo LanguageCodeLanguage = "Go"
 	LanguageCodeLanguageHcl LanguageCodeLanguage = "HCL"
+	LanguageCodeLanguageHaskell LanguageCodeLanguage = "Haskell"
 	LanguageCodeLanguageJson LanguageCodeLanguage = "JSON"
 	LanguageCodeLanguageJava LanguageCodeLanguage = "Java"
 	LanguageCodeLanguageJavascript LanguageCodeLanguage = "JavaScript"
+	LanguageCodeLanguageJulia LanguageCodeLanguage = "Julia"
 	LanguageCodeLanguageKotlin LanguageCodeLanguage = "Kotlin"
 	LanguageCodeLanguageKubernetes LanguageCodeLanguage = "Kubernetes"
 	LanguageCodeLanguageObjectiveC LanguageCodeLanguage = "Objective-C"
@@ -432,6 +371,13 @@ const (
 	LanguageCodeLanguageYaml LanguageCodeLanguage = "YAML"
 )
 
+type MetricdefsRatio struct {
+	Available bool `json:"available"`
+	Denominator int64 `json:"denominator"`
+	Numerator int64 `json:"numerator"`
+	Percent *float64 `json:"percent,omitempty"`
+}
+
 type ModelsAllowlistState string
 
 const (
@@ -451,6 +397,8 @@ const (
 	ModelsAllowlistTypeUserassumerisk ModelsAllowlistType = "UserAssumeRisk"
 	ModelsAllowlistTypeUserfalsepositive ModelsAllowlistType = "UserFalsePositive"
 	ModelsAllowlistTypeUserother ModelsAllowlistType = "UserOther"
+	ModelsAllowlistTypeRuleexception ModelsAllowlistType = "RuleException"
+	ModelsAllowlistTypeUserunallowlisted ModelsAllowlistType = "UserUnallowlisted"
 )
 
 type ModelsAssessmentFactor struct {
@@ -475,6 +423,7 @@ const (
 	ModelsAutoFixStatePrMerged ModelsAutoFixState = "pr_merged"
 	ModelsAutoFixStatePrClosed ModelsAutoFixState = "pr_closed"
 	ModelsAutoFixStateFailedPrCreation ModelsAutoFixState = "failed_pr_creation"
+	ModelsAutoFixStateFailedIteration ModelsAutoFixState = "failed_iteration"
 )
 
 type ModelsAutofixFailureReason string
@@ -483,30 +432,28 @@ const (
 	ModelsAutofixFailureReasonAgentError ModelsAutofixFailureReason = "AGENT_ERROR"
 	ModelsAutofixFailureReasonAgentSurrendered ModelsAutofixFailureReason = "AGENT_SURRENDERED"
 	ModelsAutofixFailureReasonCodeNotFound ModelsAutofixFailureReason = "CODE_NOT_FOUND"
-	ModelsAutofixFailureReasonDependabotNoOp ModelsAutofixFailureReason = "DEPENDABOT_NO_OP"
 	ModelsAutofixFailureReasonEcosystemNotSupported ModelsAutofixFailureReason = "ECOSYSTEM_NOT_SUPPORTED"
-	ModelsAutofixFailureReasonFixGenerationFailed ModelsAutofixFailureReason = "FIX_GENERATION_FAILED"
-	ModelsAutofixFailureReasonFixReviewRejected ModelsAutofixFailureReason = "FIX_REVIEW_REJECTED"
-	ModelsAutofixFailureReasonNoFixVersionAvailable ModelsAutofixFailureReason = "NO_FIX_VERSION_AVAILABLE"
-	ModelsAutofixFailureReasonTimeout ModelsAutofixFailureReason = "TIMEOUT"
-	ModelsAutofixFailureReasonTransitiveNoParentBumpPath ModelsAutofixFailureReason = "TRANSITIVE_NO_PARENT_BUMP_PATH"
+	ModelsAutofixFailureReasonFixRejected ModelsAutofixFailureReason = "FIX_REJECTED"
+	ModelsAutofixFailureReasonMultipleSourceFiles ModelsAutofixFailureReason = "MULTIPLE_SOURCE_FILES"
+	ModelsAutofixFailureReasonNoFixAvailable ModelsAutofixFailureReason = "NO_FIX_AVAILABLE"
+	ModelsAutofixFailureReasonNoPatchedVersion ModelsAutofixFailureReason = "NO_PATCHED_VERSION"
+	ModelsAutofixFailureReasonPrCreateFailed ModelsAutofixFailureReason = "PR_CREATE_FAILED"
 )
-
-type ModelsCDXGen struct {
-	BomFormat string `json:"bomFormat"`
-	Components []ModelsCDXComponents `json:"components,omitempty"`
-	Dependencies []ModelsCDXDeps `json:"dependencies,omitempty"`
-	Metadata ModelsCDXMetaData `json:"metadata"`
-	SerialNumber string `json:"serialNumber"`
-	Services []ModelsCDXService `json:"services,omitempty"`
-	SpecVersion string `json:"specVersion"`
-	Version int `json:"version"`
-}
 
 type ModelsCandidate struct {
 	Reason string `json:"reason"`
 	User ModelsUser `json:"user"`
 }
+
+type ModelsCloudProvider string
+
+const (
+	ModelsCloudProviderAws ModelsCloudProvider = "AWS"
+	ModelsCloudProviderAzure ModelsCloudProvider = "AZURE"
+	ModelsCloudProviderGcp ModelsCloudProvider = "GCP"
+	ModelsCloudProviderK8s ModelsCloudProvider = "K8S"
+	ModelsCloudProviderOther ModelsCloudProvider = "OTHER"
+)
 
 type ModelsCodeContext struct {
 	CodeBlocks []ModelsCodeBlock `json:"codeBlocks,omitempty"`
@@ -526,20 +473,29 @@ type ModelsCodeFindingPriority struct {
 	Severity *ModelsCodeFindingPrioritySeverity `json:"severity,omitempty"`
 }
 
-type ModelsCustomerQuestion struct {
-	Answer *json.RawMessage `json:"answer,omitempty"`
-	AnswerMemoryID *string `json:"answerMemoryId,omitempty"`
-	AnsweredAt *string `json:"answeredAt,omitempty"`
-	CustomMessage *string `json:"customMessage,omitempty"`
-	FindingIds []string `json:"findingIds,omitempty"`
+type ModelsComment struct {
+	Body string `json:"body"`
+	CommentProvider *ModelsCommentProvider `json:"commentProvider,omitempty"`
+	CreatedAt string `json:"createdAt"`
 	ID *string `json:"id,omitempty"`
-	Options []ModelsCustomerQuestionOptionsElem `json:"options,omitempty"`
-	QuestionText *string `json:"questionText,omitempty"`
-	QuestionType *ModelsCustomerQuestionQuestionType `json:"questionType,omitempty"`
-	RelatedMemoryIds []string `json:"relatedMemoryIds,omitempty"`
-	Scope *ModelsCustomerQuestionScope `json:"scope,omitempty"`
-	ScopeResourceID *string `json:"scopeResourceId,omitempty"`
-	UnknownIds []string `json:"unknownIds,omitempty"`
+	IsBot *bool `json:"isBot,omitempty"`
+	IsNullify bool `json:"isNullify"`
+	UpdatedAt string `json:"updatedAt"`
+	UserID string `json:"userId"`
+	UserName string `json:"userName"`
+}
+
+type ModelsCommentProvider struct {
+	Asana *ModelsAsanaCommentProvider `json:"asana,omitempty"`
+	Azure *ModelsAzureCommentProvider `json:"azure,omitempty"`
+	Bitbucket *ModelsBitbucketCommentProvider `json:"bitbucket,omitempty"`
+	Github *ModelsGitHubCommentProvider `json:"github,omitempty"`
+	Gitlab *ModelsGitLabCommentProvider `json:"gitlab,omitempty"`
+	ID *ModelsProviderID `json:"id,omitempty"`
+	Jira *ModelsJiraCommentProvider `json:"jira,omitempty"`
+	Linear *ModelsLinearCommentProvider `json:"linear,omitempty"`
+	Slack *ModelsSlackCommentProvider `json:"slack,omitempty"`
+	Teams *ModelsTeamsCommentProvider `json:"teams,omitempty"`
 }
 
 type ModelsDiffFile struct {
@@ -550,9 +506,41 @@ type ModelsDiffFile struct {
 	OrigName string `json:"origName"`
 }
 
+type ModelsDurationStats struct {
+	MeanMs *int `json:"meanMs,omitempty"`
+	MedianMs *int `json:"medianMs,omitempty"`
+	Sample int64 `json:"sample"`
+}
+
+type ModelsExploitEvidenceAttachment struct {
+	ContentType string `json:"contentType"`
+	ID string `json:"id"`
+	Kind string `json:"kind"`
+}
+
 type ModelsFileOwner struct {
 	Name string `json:"name"`
 	Type ModelsOwnerType `json:"type"`
+}
+
+type ModelsFindingProgress struct {
+	AutofixDuration *int `json:"autofixDuration,omitempty"`
+	AutofixedAt *string `json:"autofixedAt,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	DetectionDuration *int `json:"detectionDuration,omitempty"`
+	DiscoveredAt *string `json:"discoveredAt,omitempty"`
+	FindingID string `json:"findingId"`
+	FindingType ModelsFindingType `json:"findingType"`
+	HasOpenAutoFixPR *bool `json:"hasOpenAutoFixPR,omitempty"`
+	HasOpenTicket *bool `json:"hasOpenTicket,omitempty"`
+	InProgressAt *string `json:"inProgressAt,omitempty"`
+	ResolvedAt *string `json:"resolvedAt,omitempty"`
+	Status ModelsFindingStatus `json:"status"`
+	TimeSaved *int `json:"timeSaved,omitempty"`
+	TotalRemediationDuration *int `json:"totalRemediationDuration,omitempty"`
+	TriageDuration *int `json:"triageDuration,omitempty"`
+	TriagedAt *string `json:"triagedAt,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
 }
 
 type ModelsFindingType string
@@ -567,7 +555,8 @@ const (
 	ModelsFindingTypePentest ModelsFindingType = "Pentest"
 	ModelsFindingTypeBughunt ModelsFindingType = "BugHunt"
 	ModelsFindingTypeCloud ModelsFindingType = "Cloud"
-	ModelsFindingTypePlatform ModelsFindingType = "Platform"
+	ModelsFindingTypeSupplychain ModelsFindingType = "SupplyChain"
+	ModelsFindingTypeAiReview ModelsFindingType = "AI Review"
 )
 
 type ModelsFindingsMetrics struct {
@@ -576,23 +565,47 @@ type ModelsFindingsMetrics struct {
 	EstimatedBacklogStoryPoints *int `json:"estimatedBacklogStoryPoints,omitempty"`
 	FindingsAllowlistedCount *int `json:"findingsAllowlistedCount,omitempty"`
 	FindingsCount int `json:"findingsCount"`
+	FindingsFixPendingVerificationCount *int `json:"findingsFixPendingVerificationCount,omitempty"`
+	FindingsFixedCount *int `json:"findingsFixedCount,omitempty"`
 	FindingsInBacklogCount int `json:"findingsInBacklogCount"`
 	FindingsInProgressCount *int `json:"findingsInProgressCount,omitempty"`
+	FindingsNoLongerDetectedCount *int `json:"findingsNoLongerDetectedCount,omitempty"`
 	FindingsResolvedCount int `json:"findingsResolvedCount"`
 	FindingsWithOpenAutoFixPRCount int `json:"findingsWithOpenAutoFixPRCount"`
 	FindingsWithOpenTicketCount int `json:"findingsWithOpenTicketCount"`
+	FixedTimeToResolve *ModelsDurationStats `json:"fixedTimeToResolve,omitempty"`
+	Funnel *ModelsRemediationFunnel `json:"funnel,omitempty"`
+	MeanTimeToAutofix *int `json:"meanTimeToAutofix,omitempty"`
 	MeanTimeToDetectAndTriage *int `json:"meanTimeToDetectAndTriage,omitempty"`
 	MeanTimeToMerge *int `json:"meanTimeToMerge,omitempty"`
 	MeanTimeToPullRequestCreation *int `json:"meanTimeToPullRequestCreation,omitempty"`
-	MeanTimeToResolve *int `json:"meanTimeToResolve,omitempty"`
 	MeanTimeToReview *int `json:"meanTimeToReview,omitempty"`
+	MeanTimeToTriage *int `json:"meanTimeToTriage,omitempty"`
+	MedianTimeToAutofix *int `json:"medianTimeToAutofix,omitempty"`
 	MedianTimeToDetectAndTriage *int `json:"medianTimeToDetectAndTriage,omitempty"`
 	MedianTimeToMerge *int `json:"medianTimeToMerge,omitempty"`
 	MedianTimeToPullRequestCreation *int `json:"medianTimeToPullRequestCreation,omitempty"`
-	MedianTimeToResolve *int `json:"medianTimeToResolve,omitempty"`
 	MedianTimeToReview *int `json:"medianTimeToReview,omitempty"`
-	TimeSaved *int `json:"timeSaved,omitempty"`
+	MedianTimeToTriage *int `json:"medianTimeToTriage,omitempty"`
+	StageSamples *ModelsStageSampleSizes `json:"stageSamples,omitempty"`
 	TriageTimeTotal *int `json:"triageTimeTotal,omitempty"`
+}
+
+type ModelsFixEvidence string
+
+const (
+	ModelsFixEvidenceMergedFixPr ModelsFixEvidence = "merged_fix_pr"
+	ModelsFixEvidenceVulnerableLinesChanged ModelsFixEvidence = "vulnerable_lines_changed"
+	ModelsFixEvidenceFileRemoved ModelsFixEvidence = "file_removed"
+	ModelsFixEvidenceDependencyVersionChanged ModelsFixEvidence = "dependency_version_changed"
+	ModelsFixEvidenceDependencyRemoved ModelsFixEvidence = "dependency_removed"
+	ModelsFixEvidenceBaseImageChanged ModelsFixEvidence = "base_image_changed"
+)
+
+type ModelsGitHubExecutionIdentity struct {
+	AppID *int64 `json:"appID,omitempty"`
+	Proof *string `json:"proof,omitempty"`
+	Source *ModelsGitHubCredentialSource `json:"source,omitempty"`
 }
 
 type ModelsGitPullRequestProvider struct {
@@ -617,6 +630,7 @@ type ModelsInvestigationStep struct {
 }
 
 type ModelsOwnerProvider struct {
+	Asana *ModelsAsanaOwnerProvider `json:"asana,omitempty"`
 	Azure *ModelsAzureOwnerProvider `json:"azure,omitempty"`
 	AzureEntra *ModelsAzureEntraOwnerProvider `json:"azureEntra,omitempty"`
 	Bitbucket *ModelsBitbucketOwnerProvider `json:"bitbucket,omitempty"`
@@ -632,6 +646,24 @@ type ModelsOwnerProvider struct {
 	Teams *ModelsTeamsOwnerProvider `json:"teams,omitempty"`
 }
 
+type ModelsPathScope struct {
+	Exclude []string `json:"exclude,omitempty"`
+	Include []string `json:"include,omitempty"`
+}
+
+type ModelsPriorityEnum string
+
+const (
+	ModelsPriorityEnumFalsePositive ModelsPriorityEnum = "FALSE_POSITIVE"
+	ModelsPriorityEnumImportant ModelsPriorityEnum = "IMPORTANT"
+	ModelsPriorityEnumInformational ModelsPriorityEnum = "INFORMATIONAL"
+	ModelsPriorityEnumLow ModelsPriorityEnum = "LOW"
+	ModelsPriorityEnumMedium ModelsPriorityEnum = "MEDIUM"
+	ModelsPriorityEnumNegligible ModelsPriorityEnum = "NEGLIGIBLE"
+	ModelsPriorityEnumUnknown ModelsPriorityEnum = "UNKNOWN"
+	ModelsPriorityEnumUrgent ModelsPriorityEnum = "URGENT"
+)
+
 type ModelsPriorityLabel string
 
 const (
@@ -645,9 +677,17 @@ const (
 	ModelsPriorityLabelUnknown ModelsPriorityLabel = "UNKNOWN"
 )
 
+type ModelsPrioritySource string
+
+const (
+	ModelsPrioritySourceTriage ModelsPrioritySource = "TRIAGE"
+	ModelsPrioritySourceScanner ModelsPrioritySource = "SCANNER"
+)
+
 type ModelsProviderID string
 
 const (
+	ModelsProviderIDDx ModelsProviderID = "DX"
 	ModelsProviderIDNullify ModelsProviderID = "Nullify"
 	ModelsProviderIDGithub ModelsProviderID = "GitHub"
 	ModelsProviderIDBitbucket ModelsProviderID = "Bitbucket"
@@ -659,10 +699,11 @@ const (
 	ModelsProviderIDGithubnullify ModelsProviderID = "GitHubNullify"
 	ModelsProviderIDJira ModelsProviderID = "Jira"
 	ModelsProviderIDLinear ModelsProviderID = "Linear"
+	ModelsProviderIDAsana ModelsProviderID = "Asana"
 	ModelsProviderIDSlack ModelsProviderID = "Slack"
 	ModelsProviderIDTeams ModelsProviderID = "Teams"
 	ModelsProviderIDAws ModelsProviderID = "AWS"
-	// (duplicate "Azure" collides with "Azure" → ModelsProviderIDAzure)
+	ModelsProviderIDAzurecloud ModelsProviderID = "AzureCloud"
 	ModelsProviderIDGcp ModelsProviderID = "GCP"
 	ModelsProviderIDAlibaba ModelsProviderID = "Alibaba"
 	ModelsProviderIDOracle ModelsProviderID = "Oracle"
@@ -686,11 +727,60 @@ const (
 	ModelsProviderIDSemaphore ModelsProviderID = "Semaphore"
 	ModelsProviderIDTeamcity ModelsProviderID = "TeamCity"
 	ModelsProviderIDAzurepipelines ModelsProviderID = "AzurePipelines"
+	ModelsProviderIDCodefresh ModelsProviderID = "Codefresh"
+	ModelsProviderIDMicrosoftsentinel ModelsProviderID = "MicrosoftSentinel"
+	ModelsProviderIDGenericsiem ModelsProviderID = "GenericSIEM"
+	ModelsProviderIDVanta ModelsProviderID = "Vanta"
+	ModelsProviderIDDrata ModelsProviderID = "Drata"
+	ModelsProviderIDSecureframe ModelsProviderID = "Secureframe"
+	ModelsProviderIDScrut ModelsProviderID = "Scrut"
+	ModelsProviderIDDelve ModelsProviderID = "Delve"
+	ModelsProviderIDServicenowvr ModelsProviderID = "ServiceNowVR"
+	ModelsProviderIDTenable ModelsProviderID = "Tenable"
+	ModelsProviderIDKenna ModelsProviderID = "Kenna"
+	ModelsProviderIDArmorcode ModelsProviderID = "ArmorCode"
+	ModelsProviderIDBrinqa ModelsProviderID = "Brinqa"
+	ModelsProviderIDNucleus ModelsProviderID = "Nucleus"
+	ModelsProviderIDPhoenix ModelsProviderID = "Phoenix"
+	ModelsProviderIDWiz ModelsProviderID = "Wiz"
+	ModelsProviderIDEmail ModelsProviderID = "Email"
+	ModelsProviderIDWebhook ModelsProviderID = "Webhook"
+	ModelsProviderIDPagerduty ModelsProviderID = "PagerDuty"
+	ModelsProviderIDOpsgenie ModelsProviderID = "Opsgenie"
+	ModelsProviderIDEcr ModelsProviderID = "ECR"
+	ModelsProviderIDAcr ModelsProviderID = "ACR"
+	ModelsProviderIDGcr ModelsProviderID = "GCR"
+	ModelsProviderIDDockerhub ModelsProviderID = "DockerHub"
+	ModelsProviderIDArtifactory ModelsProviderID = "Artifactory"
+	ModelsProviderIDHarbor ModelsProviderID = "Harbor"
+	ModelsProviderIDQuay ModelsProviderID = "Quay"
+	ModelsProviderIDGhcr ModelsProviderID = "GHCR"
+	ModelsProviderIDGitlabregistry ModelsProviderID = "GitLabRegistry"
+	ModelsProviderIDPrivatenpm ModelsProviderID = "PrivateNpm"
+	ModelsProviderIDPrivatemaven ModelsProviderID = "PrivateMaven"
+	ModelsProviderIDPrivatepypi ModelsProviderID = "PrivatePyPI"
+	ModelsProviderIDPrivategoproxy ModelsProviderID = "PrivateGoProxy"
+	ModelsProviderIDArtifactorypackages ModelsProviderID = "ArtifactoryPackages"
+	ModelsProviderIDNexuspackages ModelsProviderID = "NexusPackages"
+	ModelsProviderIDAwscodeartifact ModelsProviderID = "AWSCodeArtifact"
+	ModelsProviderIDGithubpackages ModelsProviderID = "GitHubPackages"
+	ModelsProviderIDGoogleartifactregistry ModelsProviderID = "GoogleArtifactRegistry"
 	ModelsProviderIDExternal ModelsProviderID = "External"
 	ModelsProviderIDRepositoryproperty ModelsProviderID = "RepositoryProperty"
 )
 
+type ModelsPullRequestCIState string
+
+const (
+	ModelsPullRequestCIStatePending ModelsPullRequestCIState = "pending"
+	ModelsPullRequestCIStateSuccess ModelsPullRequestCIState = "success"
+	ModelsPullRequestCIStateFailure ModelsPullRequestCIState = "failure"
+)
+
 type ModelsPullRequestInfo struct {
+	CiCheckedAt *string `json:"ciCheckedAt,omitempty"`
+	CiDetailURL *string `json:"ciDetailUrl,omitempty"`
+	CiState *ModelsPullRequestCIState `json:"ciState,omitempty"`
 	CreatedAt string `json:"createdAt"`
 	Explanation string `json:"explanation"`
 	FirstReviewedAt *string `json:"firstReviewedAt,omitempty"`
@@ -701,6 +791,7 @@ type ModelsPullRequestInfo struct {
 	Link string `json:"link"`
 	MergedAt *string `json:"mergedAt,omitempty"`
 	PullRequestProvider ModelsGitPullRequestProvider `json:"pullRequestProvider"`
+	RecordID *string `json:"recordId,omitempty"`
 	Status ModelsPullRequestState `json:"status"`
 	Title *string `json:"title,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
@@ -716,25 +807,64 @@ const (
 )
 
 type ModelsRepositoryPublic struct {
+	CodePaths *ModelsPathScope `json:"codePaths,omitempty"`
 	CountsBySeverity map[string]int `json:"countsBySeverity,omitempty"`
 	CountsByType map[string]int `json:"countsByType,omitempty"`
 	DefaultBranch *string `json:"defaultBranch,omitempty"`
 	DefaultBranchCommittedAt *string `json:"defaultBranchCommittedAt,omitempty"`
 	DefaultBranchSha *string `json:"defaultBranchSha,omitempty"`
+	Excluded *bool `json:"excluded,omitempty"`
 	ID string `json:"id"`
 	IsArchived bool `json:"isArchived"`
 	IsDefaultBranch bool `json:"isDefaultBranch"`
-	NullifyConfigFile *ModelsConfiguration `json:"nullifyConfigFile,omitempty"`
+	IsEnrolled bool `json:"isEnrolled"`
+	Language *string `json:"language,omitempty"`
+	Languages []string `json:"languages,omitempty"`
 	Owner string `json:"owner"`
 	OwnerType string `json:"ownerType"`
 	Pii *ModelsPII `json:"pii,omitempty"`
 	Platform string `json:"platform"`
+	RepoSizeBytes *int `json:"repoSizeBytes,omitempty"`
 	Repository string `json:"repository"`
 	RepositoryID string `json:"repositoryId"`
 	Sbom string `json:"sbom"`
+	ScanScope *ModelsScanScopeExplanation `json:"scanScope,omitempty"`
+	ScopeUpdatedAt *string `json:"scopeUpdatedAt,omitempty"`
+	SecretsEnrolled *bool `json:"secretsEnrolled,omitempty"`
+	SecretsExcludes []string `json:"secretsExcludes,omitempty"`
 	TenantID string `json:"tenantId"`
 	Timestamp string `json:"timestamp"`
 	TimestampUnix int64 `json:"timestampUnix"`
+}
+
+type ModelsSBOMPackageAuth struct {
+	Credential *string `json:"credential,omitempty"`
+	Dir *string `json:"dir,omitempty"`
+	Ecosystem *string `json:"ecosystem,omitempty"`
+	Evidence *string `json:"evidence,omitempty"`
+	Registry *string `json:"registry,omitempty"`
+	Tool *string `json:"tool,omitempty"`
+	Version *int `json:"version,omitempty"`
+}
+
+type ModelsSCPMEnforcement struct {
+	Mode ModelsSCPMRuleMode `json:"mode"`
+	Severity ModelsSeverity `json:"severity"`
+	Source *ModelsSCPMEnforcementSource `json:"source,omitempty"`
+	Suppressed bool `json:"suppressed"`
+	SuppressedBy *ModelsSCPMRuleSuppression `json:"suppressedBy,omitempty"`
+}
+
+type ModelsSCPMFindingMovement struct {
+	CommitHash string `json:"commitHash"`
+	CommitTime *string `json:"commitTime,omitempty"`
+	EndLine *int `json:"endLine,omitempty"`
+	FilePath string `json:"filePath"`
+	PackageVersion *string `json:"packageVersion,omitempty"`
+	PreviousCommitHash *string `json:"previousCommitHash,omitempty"`
+	PreviousFilePath *string `json:"previousFilePath,omitempty"`
+	Reason string `json:"reason"`
+	StartLine *int `json:"startLine,omitempty"`
 }
 
 type ModelsScanStatus string
@@ -748,6 +878,16 @@ const (
 	ModelsScanStatusFailed ModelsScanStatus = "failed"
 	ModelsScanStatusAbortedConfigError ModelsScanStatus = "aborted_config_error"
 	ModelsScanStatusHumanFallback ModelsScanStatus = "human_fallback"
+	ModelsScanStatusAwaitingManual ModelsScanStatus = "awaiting_manual"
+	ModelsScanStatusSkipped ModelsScanStatus = "skipped"
+)
+
+type ModelsSecretsValidationResult string
+
+const (
+	ModelsSecretsValidationResultInvalid ModelsSecretsValidationResult = "INVALID"
+	ModelsSecretsValidationResultUnknown ModelsSecretsValidationResult = "UNKNOWN"
+	ModelsSecretsValidationResultValid ModelsSecretsValidationResult = "VALID"
 )
 
 type ModelsSeverity string
@@ -762,7 +902,18 @@ const (
 	ModelsSeverityUnknown ModelsSeverity = "UNKNOWN"
 )
 
+type ModelsSeverityEnum string
+
+const (
+	ModelsSeverityEnumCritical ModelsSeverityEnum = "CRITICAL"
+	ModelsSeverityEnumHigh ModelsSeverityEnum = "HIGH"
+	ModelsSeverityEnumInformational ModelsSeverityEnum = "INFORMATIONAL"
+	ModelsSeverityEnumLow ModelsSeverityEnum = "LOW"
+	ModelsSeverityEnumMedium ModelsSeverityEnum = "MEDIUM"
+)
+
 type ModelsTicketProvider struct {
+	Asana *ModelsAsanaTicketProvider `json:"asana,omitempty"`
 	Azure *ModelsAzureTicketProvider `json:"azure,omitempty"`
 	Github *ModelsGitHubTicketProvider `json:"github,omitempty"`
 	Gitlab *ModelsGitLabTicketProvider `json:"gitlab,omitempty"`
@@ -772,13 +923,19 @@ type ModelsTicketProvider struct {
 }
 
 type ModelsTriage struct {
+	AgentConfidence *ModelsTriageAgentConfidence `json:"agentConfidence,omitempty"`
 	BudgetExhausted *bool `json:"budgetExhausted,omitempty"`
 	CampaignMetadata *ModelsTriageCampaignMetadata `json:"campaignMetadata,omitempty"`
 	CloudContext *ModelsTriageCloudContext `json:"cloudContext,omitempty"`
+	ComplianceImpact *ModelsTriageComplianceImpact `json:"complianceImpact,omitempty"`
+	ContainerAssessment *ModelsTriageContainerAssessment `json:"containerAssessment,omitempty"`
 	CustomerQuestions *ModelsCustomerQuestionSet `json:"customerQuestions,omitempty"`
 	Description *string `json:"description,omitempty"`
+	DescriptionSummary *string `json:"descriptionSummary,omitempty"`
 	DevDescription *string `json:"devDescription,omitempty"`
 	DevTitle *string `json:"devTitle,omitempty"`
+	DismissalBasis *string `json:"dismissalBasis,omitempty"`
+	DismissalEvidence *string `json:"dismissalEvidence,omitempty"`
 	Evidence *GraphGraph `json:"evidence,omitempty"`
 	ExploitHypothesis *GraphGraph `json:"exploitHypothesis,omitempty"`
 	Exploitability *ModelsTriageExploitability `json:"exploitability,omitempty"`
@@ -786,38 +943,69 @@ type ModelsTriage struct {
 	FixEffort *ModelsTriageFixEffort `json:"fixEffort,omitempty"`
 	ID *string `json:"id,omitempty"`
 	Impact *ModelsTriageImpact `json:"impact,omitempty"`
+	InvestigationConfidence *ModelsTriageInvestigationConfidence `json:"investigationConfidence,omitempty"`
+	InvestigationID *string `json:"investigationId,omitempty"`
+	InvestigationUnknowns []string `json:"investigationUnknowns,omitempty"`
 	LastTriagedAt *string `json:"lastTriagedAt,omitempty"`
 	MemoriesGenerated []string `json:"memoriesGenerated,omitempty"`
 	MemoriesUsed []string `json:"memoriesUsed,omitempty"`
 	ParentTriageID *string `json:"parentTriageId,omitempty"`
 	Pentest *ModelsTriagePentest `json:"pentest,omitempty"`
 	Priority *ModelsPriorityEnum `json:"priority,omitempty"`
+	References []ModelsTriageReference `json:"references,omitempty"`
+	RetriageComparison *ModelsTriageRetriageComparison `json:"retriageComparison,omitempty"`
 	RetriageMetadata *ModelsTriageRetriageMetadata `json:"retriageMetadata,omitempty"`
 	RetriageStatus *ModelsTriageRetriageStatus `json:"retriageStatus,omitempty"`
 	Severity *ModelsTriageSeverity `json:"severity,omitempty"`
+	StopReason *ModelsTriageStopReason `json:"stopReason,omitempty"`
 	Thoughts *string `json:"thoughts,omitempty"`
 	Title *string `json:"title,omitempty"`
+	VerdictHoldReason *string `json:"verdictHoldReason,omitempty"`
 	Version *int `json:"version,omitempty"`
 }
 
+type ModelsTriageContainerAssessment struct {
+	AssessedCVEs *int `json:"assessedCVEs,omitempty"`
+	Batches []ModelsTriageContainerAssessmentBatchesElem `json:"batches,omitempty"`
+	FailureReasons []string `json:"failureReasons,omitempty"`
+	InputHash *string `json:"inputHash,omitempty"`
+	Status *ModelsTriageContainerAssessmentStatus `json:"status,omitempty"`
+	TotalCVEs *int `json:"totalCVEs,omitempty"`
+	UnassessedCVEs []string `json:"unassessedCVEs,omitempty"`
+	UnassessedCount *int `json:"unassessedCount,omitempty"`
+}
+
+type ModelsTriageSeverityConfidence string
+
+const (
+	ModelsTriageSeverityConfidenceHigh ModelsTriageSeverityConfidence = "HIGH"
+	ModelsTriageSeverityConfidenceLow ModelsTriageSeverityConfidence = "LOW"
+	ModelsTriageSeverityConfidenceMedium ModelsTriageSeverityConfidence = "MEDIUM"
+)
+
 type ModelsUser struct {
+	Asana *ModelsAsanaUserProvider `json:"asana,omitempty"`
 	Azure *ModelsAzureUserProvider `json:"azure,omitempty"`
 	AzureEntra *ModelsAzureEntraUserProvider `json:"azureEntra,omitempty"`
 	Bitbucket *ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
 	CreatedBy *string `json:"createdBy,omitempty"`
+	Deleted *bool `json:"deleted,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
 	Email *string `json:"email,omitempty"`
 	Github *ModelsGitHubUserProvider `json:"github,omitempty"`
 	Gitlab *ModelsGitLabUserProvider `json:"gitlab,omitempty"`
 	GoogleWorkspace *ModelsGoogleWorkspaceUserProvider `json:"googleWorkspace,omitempty"`
 	ID string `json:"id"`
 	IsBot bool `json:"isBot"`
+	IsRestricted *bool `json:"isRestricted,omitempty"`
 	Jira *ModelsJiraUserProvider `json:"jira,omitempty"`
 	LastUpdatedBy *string `json:"lastUpdatedBy,omitempty"`
 	Linear *ModelsLinearUserProvider `json:"linear,omitempty"`
 	Name string `json:"name"`
 	Okta *ModelsOktaUserProvider `json:"okta,omitempty"`
 	Provider ModelsUserProvider `json:"provider"`
+	RealName *string `json:"realName,omitempty"`
 	Slack *ModelsSlackUserProvider `json:"slack,omitempty"`
 	Slug string `json:"slug"`
 	Teams *ModelsTeamsUserProvider `json:"teams,omitempty"`
