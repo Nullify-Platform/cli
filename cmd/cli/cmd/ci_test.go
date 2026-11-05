@@ -1,7 +1,14 @@
 package cmd
 
 import (
+	"context"
+	"io"
+	"net/http"
+	"strings"
+	"sync/atomic"
 	"testing"
+
+	"github.com/spf13/cobra"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,10 +33,6 @@ func TestSeveritiesAboveThreshold(t *testing.T) {
 	}
 }
 
-// TestScannerQueryParamsMatchEndpointFilters pins the gate's query parameters to
-// the filters each endpoint actually implements. Severity must go out
-// upper-case: /cspm/findings casts it into the Postgres severity_level enum,
-// whose labels are upper-case, so "critical" is a 500 and not a filter.
 func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
 	byName := map[string]scannerEndpoint{}
 	for _, ep := range allScannerEndpoints() {
@@ -46,7 +49,7 @@ func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
 		},
 		{
 			scanner:  "cspm",
-			expected: []string{"limit", "1", "severity", "CRITICAL", "repository", "org/repo"},
+			expected: []string{"limit", "1", "severity", "CRITICAL", "status", "open", "repository", "org/repo"},
 		},
 		{
 			scanner:  "sca_dependencies",
@@ -78,7 +81,6 @@ func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
 			severities := scannerSeverities(ep, []string{"critical", "high"})
 			params := scannerQueryParams(ep, severities[0], "org/repo", "1")
 			require.Equal(t, tt.expected, params)
-			require.NotContains(t, params, "status")
 		})
 	}
 }
@@ -172,6 +174,11 @@ func TestCountFindingsRejectsUnknownEnvelopes(t *testing.T) {
 		{name: "total envelope", body: `{"total":42}`},
 		{name: "findings is not an array", body: `{"findings":{"id":"f1"}}`},
 		{name: "empty body", body: ``},
+		{name: "object with zero count", body: `{"findings":{},"numItems":0}`},
+		{name: "boolean with zero count", body: `{"findings":false,"numItems":0}`},
+		{name: "negative count", body: `{"findings":[],"numItems":-1}`},
+		{name: "understated count", body: `{"findings":[{"id":"f1"}],"numItems":0}`},
+		{name: "overstated count", body: `{"findings":[],"numItems":1}`},
 	}
 
 	for _, tt := range tests {
@@ -179,6 +186,66 @@ func TestCountFindingsRejectsUnknownEnvelopes(t *testing.T) {
 			count, err := countFindings(tt.body)
 			require.ErrorIs(t, err, errUnreadableFindings)
 			require.Zero(t, count)
+		})
+	}
+}
+
+func TestCIGateResponseValidation(t *testing.T) {
+	t.Setenv("NULLIFY_HOST", "review.nullify.ai")
+	t.Setenv("NULLIFY_TOKEN", "synthetic-token")
+	originalHost, originalToken, originalGithub := host, nullifyToken, githubToken
+	host, nullifyToken, githubToken = "review.nullify.ai", "synthetic-token", ""
+	t.Cleanup(func() {
+		host, nullifyToken, githubToken = originalHost, originalToken, originalGithub
+	})
+
+	tests := []struct {
+		name     string
+		scanner  string
+		body     string
+		wantExit int
+	}{
+		{"missing findings", "sast", `{}`, ExitNetworkError},
+		{"malformed findings", "sast", `{"findings":{},"numItems":0}`, ExitNetworkError},
+		{"hidden finding", "sast", `{"findings":[{"id":"f1"}],"numItems":0}`, ExitNetworkError},
+		{"negative count", "sast", `{"findings":[],"numItems":-1}`, ExitNetworkError},
+		{"finding", "sast", `{"findings":[{"id":"f1"}],"numItems":1}`, ExitFindings},
+		{"clean", "sast", `{"findings":[],"numItems":0}`, ExitSuccess},
+		{"nil page", "sast", `{"findings":null,"numItems":0}`, ExitSuccess},
+		{"no count", "bughunt", `{"findings":[{"id":"f1"}]}`, ExitFindings},
+		{"cspm open filter", "cspm", `{"findings":[],"numItems":0}`, ExitSuccess},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			originalTransport := http.DefaultTransport
+			t.Cleanup(func() { http.DefaultTransport = originalTransport })
+			var calls atomic.Int64
+			http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+				calls.Add(1)
+				if tt.scanner == "cspm" {
+					query := req.URL.Query()
+					if query.Get("status") != "open" || query.Get("severity") != "CRITICAL" {
+						t.Errorf("unexpected CSPM filters: %s", req.URL.RawQuery)
+					}
+				}
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       io.NopCloser(strings.NewReader(tt.body)),
+					Header:     make(http.Header),
+					Request:    req,
+				}, nil
+			})
+
+			cmd := &cobra.Command{}
+			cmd.SetContext(context.Background())
+			cmd.Flags().String("severity-threshold", "critical", "")
+			cmd.Flags().String("type", tt.scanner, "")
+			cmd.Flags().String("repo", "org/repo", "")
+			err := ciGateCmd.RunE(cmd, nil)
+
+			require.Equal(t, tt.wantExit, ExitCodeForError(err))
+			require.Equal(t, int64(1), calls.Load())
 		})
 	}
 }

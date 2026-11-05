@@ -302,18 +302,13 @@ func scannerSeverities(ep scannerEndpoint, severities []string) []string {
 	return severities
 }
 
-// scannerQueryParams builds the query string arguments for a findings request,
-// sending only the filters the endpoint implements.
-//
-// Severity is upper-cased because /cspm/findings binds it straight into
-// "severity_label = $N::severity_level" and the Postgres severity_level enum
-// labels are upper-case, so a lower-case value is a 500 rather than a filter.
-// /sast/findings case-folds via database.StringToNullSeverityLevel and accepts
-// either.
 func scannerQueryParams(ep scannerEndpoint, severity, repo, limit string) []string {
 	params := []string{"limit", limit}
 	if ep.supportsSeverity && severity != "" {
 		params = append(params, "severity", strings.ToUpper(severity))
+	}
+	if ep.supportsOpenStatus {
+		params = append(params, "status", "open")
 	}
 	if ep.supportsIsResolved {
 		params = append(params, "isResolved", "false")
@@ -348,11 +343,6 @@ func gateFailLine(ep scannerEndpoint, severity string) string {
 // read the response must block the build rather than declare the repo clean.
 var errUnreadableFindings = errors.New("unrecognised findings response envelope")
 
-// countFindings returns the number of findings in a scanner API response. Every
-// endpoint in allScannerEndpoints returns {"findings":[...],"numItems":N,
-// "nextToken":"..."}, except /dast/bughunt/findings which omits numItems. The
-// count is page-scoped and therefore bounded by the request's limit; the API
-// exposes no grand total.
 func countFindings(body string) (int, error) {
 	var envelope struct {
 		Findings json.RawMessage `json:"findings"`
@@ -365,13 +355,15 @@ func countFindings(body string) (int, error) {
 		return 0, fmt.Errorf("%w: no \"findings\" field", errUnreadableFindings)
 	}
 
-	if envelope.NumItems != nil {
-		return *envelope.NumItems, nil
-	}
-
 	var findings []json.RawMessage
 	if err := json.Unmarshal(envelope.Findings, &findings); err != nil {
 		return 0, fmt.Errorf("%w: \"findings\" is not an array: %w", errUnreadableFindings, err)
+	}
+	if envelope.NumItems != nil && *envelope.NumItems != len(findings) {
+		return 0, fmt.Errorf(
+			"%w: numItems %d does not match findings length %d",
+			errUnreadableFindings, *envelope.NumItems, len(findings),
+		)
 	}
 	return len(findings), nil
 }

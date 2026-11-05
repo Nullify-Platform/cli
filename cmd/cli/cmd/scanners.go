@@ -12,22 +12,14 @@ var findingTypeToAPI = map[string]string{
 	"cspm":             "Cloud",
 }
 
-// scannerEndpoint represents a scanner type, its API path, and the server-side
-// filters that endpoint implements. An unimplemented query parameter is dropped
-// without error, so a gate that sends one reports a filter it never applied.
 type scannerEndpoint struct {
 	name               string
 	path               string
 	supportsSeverity   bool
 	supportsIsResolved bool
+	supportsOpenStatus bool
 }
 
-// allScannerEndpoints returns the canonical list of all scanner endpoints.
-//
-// Only /sast/findings and /cspm/findings implement a severity filter. Every
-// endpoint except /cspm/findings and /dast/bughunt/findings implements
-// isResolved: /cspm/findings declares a status parameter its handler never
-// copies into CSPMFindingFilters, and /dast/bughunt/findings takes no filters.
 func allScannerEndpoints() []scannerEndpoint {
 	return []scannerEndpoint{
 		{name: "sast", path: "/sast/findings", supportsSeverity: true, supportsIsResolved: true},
@@ -36,7 +28,7 @@ func allScannerEndpoints() []scannerEndpoint {
 		{name: "secrets", path: "/secrets/findings", supportsIsResolved: true},
 		{name: "pentest", path: "/dast/pentest/findings", supportsIsResolved: true},
 		{name: "bughunt", path: "/dast/bughunt/findings"},
-		{name: "cspm", path: "/cspm/findings", supportsSeverity: true},
+		{name: "cspm", path: "/cspm/findings", supportsSeverity: true, supportsOpenStatus: true},
 	}
 }
 
