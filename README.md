@@ -158,7 +158,7 @@ nullify auth switch
 |---------|-------------|
 | `nullify pentest` | Run DAST pentest scans (cloud or local via Docker) |
 | `nullify bughunt` | Cloud-based automated bug hunting |
-| `nullify secrets scan-file` | Local, in-process secret scan of a single file or stdin buffer — no API call, no network. Powers the IDE extension's on-save scanning |
+| `nullify secrets scan-file` | Local secret scan of a single file or stdin buffer; no API call or network access |
 
 ### CI/CD
 

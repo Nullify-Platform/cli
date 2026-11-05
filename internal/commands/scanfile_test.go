@@ -20,9 +20,6 @@ func newTestRoot() *cobra.Command {
 	return root
 }
 
-// fakeAWSKey builds an AWS-access-key-ID-shaped fixture via concatenation so
-// the 20-character string never appears contiguous in this file's own
-// source text and can't trip a secret scanner on this repo's own commits.
 func fakeAWSKey() string {
 	return "AKIA" + "ABCDEFGHIJKLMNOP"
 }
@@ -102,4 +99,32 @@ func TestScanFileCommandCleanFileProducesEmptyArray(t *testing.T) {
 
 	require.NoError(t, root.Execute())
 	require.Equal(t, "[]\n", stdout.String())
+}
+
+func TestScanFileCommandNormalizesQuotedUTF16Credential(t *testing.T) {
+	root := newTestRoot()
+	var stdout bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetIn(strings.NewReader(`😀 {"password": "f3Kq9vXz2Lm8Wp4Rb7Nt"}`))
+	root.SetArgs([]string{
+		"scan-file", "--stdin", "--path", "config.json",
+		"--repository", "owner/repo",
+	})
+
+	require.NoError(t, root.Execute())
+
+	var findings []scanfile.NormalizedFinding
+	require.NoError(t, json.Unmarshal(stdout.Bytes(), &findings))
+	require.Equal(t, []scanfile.NormalizedFinding{{
+		DetectorClass: "Secret",
+		Severity:      "high",
+		File:          "config.json",
+		StartLine:     1,
+		EndLine:       1,
+		StartColumn:   18,
+		EndColumn:     37,
+		CWE:           "CWE-798",
+		Message:       "Hardcoded secret detected: Generic API Key",
+		Fingerprint:   "932deece382d6b098741c89aeec12a62dded75a2dfb8fe7c77b6b5849f4759dc",
+	}}, findings)
 }

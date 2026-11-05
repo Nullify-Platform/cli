@@ -2,13 +2,6 @@ package scanfile
 
 import "regexp"
 
-// baselineRules covers well-known, publicly documented credential formats
-// that nullifyRules doesn't already handle (nullifyRules is Nullify's own
-// additions layered on top of gitleaks' several-hundred-rule default set;
-// this package doesn't vendor that default set -- see scanfile.go's package
-// doc). It is not a claim of parity with gitleaks' breadth: it is a
-// deliberately small, high-confidence set for the formats most likely to
-// turn up in a file someone is actively editing.
 func baselineRules() []Rule {
 	return []Rule{
 		{
@@ -18,7 +11,7 @@ func baselineRules() []Rule {
 		},
 		{
 			ID:         "aws-secret-access-key",
-			Regex:      regexp.MustCompile(`(?i)aws[a-z0-9_.-]{0,20}?(?:secret|access)[a-z0-9_.-]{0,20}?key[a-z0-9_.-]{0,20}?\s*[:=]\s*['"]?([A-Za-z0-9/+=]{40})['"]?`),
+			Regex:      regexp.MustCompile(`(?i)aws[a-z0-9_.-]{0,20}?(?:secret|access)[a-z0-9_.-]{0,20}?key[a-z0-9_.-]{0,20}?['"]?\s*[:=]\s*['"]?([A-Za-z0-9/+=]{40})['"]?`),
 			Keywords:   []string{"aws"},
 			MinEntropy: 4.0,
 		},
@@ -59,7 +52,7 @@ func baselineRules() []Rule {
 		},
 		{
 			ID:       "pem-private-key",
-			Regex:    regexp.MustCompile(`-----BEGIN\s?((?:RSA|EC|DSA|OPENSSH|PGP)\s)?PRIVATE KEY(\sBLOCK)?-----`),
+			Regex:    regexp.MustCompile(`-----BEGIN\s?(?:(?:RSA|EC|DSA|OPENSSH|PGP)\s)?PRIVATE KEY(?:\sBLOCK)?-----`),
 			Keywords: []string{"private key"},
 		},
 		{
@@ -94,12 +87,12 @@ func baselineRules() []Rule {
 		},
 		{
 			ID:       "heroku-api-key",
-			Regex:    regexp.MustCompile(`(?i)heroku[a-z0-9_.-]{0,20}?(?:api)?[a-z0-9_.-]{0,20}?key\s*[:=]\s*['"]?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})['"]?`),
+			Regex:    regexp.MustCompile(`(?i)heroku[a-z0-9_.-]{0,20}?(?:api)?[a-z0-9_.-]{0,20}?key['"]?\s*[:=]\s*['"]?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})['"]?`),
 			Keywords: []string{"heroku"},
 		},
 		{
 			ID:         "generic-api-key",
-			Regex:      regexp.MustCompile(`(?i)(?:secret|token|api[_-]?key|apikey|password|passwd|credential)\s*[:=]\s*['"]([A-Za-z0-9+/=_.-]{16,64})['"]`),
+			Regex:      regexp.MustCompile(`(?i)(?:secret|token|api[_-]?key|apikey|password|passwd|credential)['"]?\s*[:=]\s*['"]([A-Za-z0-9+/=_.-]{16,64})['"]`),
 			Keywords:   []string{"secret", "token", "key", "password", "passwd", "credential"},
 			MinEntropy: 4.0,
 		},

@@ -7,28 +7,15 @@ import (
 	"sync"
 )
 
-// Rule is a single hand-written secret-detection rule. It has no relation to
-// gitleaks' rule shape (see the package doc for why). There is no explicit
-// secret-group field: scanfile.secretSpan takes the first capturing group
-// that participated in a match, falling back to the whole match for rules
-// with no group, so a rule opts into scoping the reported secret just by
-// wrapping it in parentheses.
+// Rule defines a secret pattern and its detection limits.
 type Rule struct {
-	// ID is a short, stable slug. It never reaches the client directly; it
-	// is only used to derive Title() and to key MinEntropy overrides.
-	ID    string
-	Regex *regexp.Regexp
-	// Keywords is a cheap case-insensitive substring prefilter: if set, the
-	// regex only runs on a line containing at least one keyword.
-	Keywords []string
-	// MinEntropy is the minimum Shannon entropy (bits/char) the matched text
-	// must have to be reported, unless it also matches
-	// highConfidenceSecretPatterns. Zero disables the check.
+	ID         string
+	Regex      *regexp.Regexp
+	Keywords   []string
 	MinEntropy float64
+	Multiline  bool
 }
 
-// acronyms upper-cases well-known abbreviations when deriving Title() from
-// ID; every other hyphen-separated word is simply capitalized.
 var acronyms = map[string]string{
 	"aws": "AWS", "api": "API", "jwt": "JWT", "iam": "IAM", "cos": "COS",
 	"hmac": "HMAC", "gcp": "GCP", "ibm": "IBM", "pat": "PAT", "id": "ID",
@@ -37,10 +24,7 @@ var acronyms = map[string]string{
 	"vixverify": "VixVerify",
 }
 
-// Title renders ID as a short, human-readable label, e.g. "aws-access-key-id"
-// -> "AWS Access Key ID". It is what reaches the client, in the finding
-// message and folded into the correlation fingerprint — never the raw ID or
-// the regex/rule internals.
+// Title returns the display name for a rule.
 func (r Rule) Title() string {
 	words := strings.Split(r.ID, "-")
 	for i, w := range words {
@@ -63,17 +47,10 @@ var rulesOnce = sync.OnceValue(func() []Rule {
 	return all
 })
 
-// rules returns the combined, compiled rule table (Nullify's own custom
-// rules plus the baseline well-known-format rules), built once.
 func rules() []Rule {
 	return rulesOnce()
 }
 
-// lockfileNames are dependency manifests that carry long hex/base64-looking
-// integrity hashes that regularly trip entropy-based heuristics. Mirrors the
-// allowlist secrets/internal/scanners/gitleaks/config.go builds for the same
-// reason, minus the vendored-directory half (a single-file/stdin scan only
-// ever sees the file currently open in the editor, not a vendored tree).
 var lockfileNames = map[string]bool{
 	"package-lock.json": true,
 	"yarn.lock":         true,
@@ -94,9 +71,6 @@ func isLockfilePath(filePath string) bool {
 	return lockfileNames[base]
 }
 
-// testPlaceholderPatterns are test, example and placeholder values filtered
-// out as false positives. Ported verbatim from
-// secrets/internal/scanners/gitleaks/rules.go.
 var testPlaceholderPatterns = []string{
 	"AKIAIOSFODNN7EXAMPLE",
 	"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
@@ -116,8 +90,6 @@ var testPlaceholderPatterns = []string{
 	"XXXXXXXX",
 	"placeholder",
 	"PLACEHOLDER",
-	// Connection-string template idioms: the basic-auth rule captures the
-	// password segment of scheme://user:pass@host.
 	"pass",
 	"passwd",
 	"user",
@@ -146,12 +118,6 @@ var testPlaceholderPatterns = []string{
 
 var templateVarPattern = regexp.MustCompile(`^<[a-z_]+>$`)
 
-// highConfidenceSecretPatterns matches formats that are always real
-// credentials and bypass entropy filtering; AWS access key IDs have low
-// entropy (~3.2) but are never benign. The IAM unique-ID prefixes
-// (AGPA/AIDA/AROA/AIPA/ANPA/ANVA) are excluded: they label non-secret
-// identifiers. Ported verbatim from
-// secrets/internal/scanners/gitleaks/rules.go.
 var highConfidenceSecretPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`^(?:A3T[A-Z0-9]|AKIA|ASIA|ABIA|ACCA)[A-Z2-7]{16}$`),
 }
@@ -191,9 +157,6 @@ func isTestOrPlaceholder(secret string) bool {
 	return templateVarPattern.MatchString(lowerSecret)
 }
 
-// shannonEntropy returns the byte-frequency Shannon entropy of s, in
-// bits/char. Same algorithm gitleaks' own entropy check and this package's
-// MinEntropy thresholds are tuned against.
 func shannonEntropy(s string) float64 {
 	if s == "" {
 		return 0

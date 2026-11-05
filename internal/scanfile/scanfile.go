@@ -1,43 +1,13 @@
-// Package scanfile implements the local, in-process secret scan behind
-// `nullify secrets scan-file`: the IDE on-save scanner
-// (ide/nullify-vscode in the Nullify monorepo) shells out to exactly this
-// command, piping the buffer on stdin and expecting a JSON array of
-// NormalizedFinding on stdout. File contents never leave the machine and no
-// Nullify API call is made.
-//
-// This is a hand-written, from-scratch detector, not a port of the
-// monorepo's internal `secrets/internal/scanners/gitleaks` engine. That
-// engine wraps github.com/zricethezav/gitleaks/v8 (MIT licensed, and
-// otherwise a clean dependency), but importing its `detect`/`sources`
-// packages unconditionally compiles in a WASM regex runtime
-// (tetratelabs/wazero + wasilibs/go-re2, present for an opt-in build tag),
-// a full archive/decompression stack for git-history and archive scanning
-// (mholt/archives: 7z/rar/brotli/lzip/xz/zstd, plus their own sub-trees),
-// and a terminal-styling/TUI toolkit (charmbracelet/lipgloss and its
-// dependents) used only by gitleaks' own CLI report rendering. None of that
-// is exercised by a single-file/stdin scan, but Go still needs the whole
-// dependency closure resolvable — on the order of 60-90 additional
-// transitive modules in this publicly distributed binary, none of them
-// internal to Nullify, all reused from this session's own dependency
-// analysis rather than blind guesses, but too large to hand-verify without
-// a networked `go mod tidy` and a real build. See the PR description for
-// the full breakdown.
-//
-// So this package reuses what is cleanly and safely reusable — Nullify's
-// own custom detection rules (nullifyRules in rules.go, ported verbatim
-// from secrets/internal/scanners/gitleaks/nullify-config.go, which has no
-// engine dependency of its own) and the same entropy/placeholder
-// false-positive filtering (rules.go) — plus a curated baseline of
-// well-known public secret formats (baselineRules in rules.go) not already
-// covered by Nullify's custom set, matched with the standard library's
-// regexp package. It adds zero new third-party dependencies.
+// Package scanfile detects secrets in local files and editor buffers.
 package scanfile
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf16"
 )
 
 const (
@@ -48,11 +18,8 @@ const (
 	maxFindingsPerFileDefault = 200
 )
 
-// NormalizedFinding is the only shape the IDE extension ever sees. Lines and
-// columns are 1-based (the platform/SARIF convention); the extension
-// converts to its own 0-based coordinates. This mirrors
-// secrets/internal/scanfile.NormalizedFinding field-for-field (including
-// JSON casing) so ide/nullify-vscode's parsing needs no changes.
+// NormalizedFinding describes a secret without its value. Lines and UTF-16
+// columns are 1-based. EndColumn includes the last character of the secret.
 type NormalizedFinding struct {
 	DetectorClass string `json:"detectorClass"`
 	Severity      string `json:"severity"`
@@ -63,40 +30,50 @@ type NormalizedFinding struct {
 	EndColumn     int    `json:"endColumn"`
 	CWE           string `json:"cwe"`
 	Message       string `json:"message"`
-	// Fingerprint is meant to correlate an on-save finding with a known
-	// platform finding, mirroring the platform's secrets dedup key: a hash
-	// over repository, file, start line and a secret-type label. The hash
-	// SCHEME matches secrets/internal/scanfile's; the secret-type VALUES do
-	// not, because this package's rule set is independently maintained from
-	// the platform's internal gitleaks rules.csv classification. Exact
-	// cross-correlation with pre-existing platform findings is therefore
-	// not guaranteed — see the PR description.
-	Fingerprint string `json:"fingerprint"`
+	Fingerprint   string `json:"fingerprint"`
 }
 
-// ScanContent scans content (a whole file, or an unsaved editor buffer that
-// may differ from what is on disk) for hardcoded secrets. filePath labels
-// each finding and drives the lockfile skip; repository is folded into the
-// correlation fingerprint and may be empty.
+// ScanContent scans a file or buffer for secrets without network access.
+// filePath labels each finding and selects path exclusions. repository is
+// part of the fingerprint. Rule names can differ from platform secret types,
+// so fingerprints do not guarantee correlation with platform findings.
 func ScanContent(content []byte, filePath string, repository string) []NormalizedFinding {
 	findings := make([]NormalizedFinding, 0)
 	if isLockfilePath(filePath) {
 		return findings
 	}
 
-	lines := strings.Split(string(content), "\n")
+	text := string(content)
+	lines := strings.Split(text, "\n")
+	lineOffsets := make([]int, len(lines))
+	lowerLines := make([]string, len(lines))
+	for i, line := range lines {
+		lowerLines[i] = strings.ToLower(line)
+		if i > 0 {
+			lineOffsets[i] = lineOffsets[i-1] + len(lines[i-1]) + 1
+		}
+	}
 
-	for lineIdx, line := range lines {
-		lower := strings.ToLower(line)
-		for _, rule := range rules() {
-			if !keywordsPresent(lower, rule.Keywords) {
+	for _, rule := range rules() {
+		segments := lines
+		lowerSegments := lowerLines
+		if rule.Multiline {
+			segments = []string{text}
+			lowerSegments = []string{strings.ToLower(text)}
+		}
+
+		ruleFindings := 0
+		for segmentIdx, segment := range segments {
+			if ruleFindings >= maxFindingsPerFileDefault {
+				break
+			}
+			if !keywordsPresent(lowerSegments[segmentIdx], rule.Keywords) {
 				continue
 			}
 
-			for _, match := range rule.Regex.FindAllStringSubmatchIndex(line, -1) {
+			for _, match := range rule.Regex.FindAllStringSubmatchIndex(segment, -1) {
 				startByte, endByte := secretSpan(match)
-				secret := line[startByte:endByte]
-
+				secret := segment[startByte:endByte]
 				if isTestOrPlaceholder(secret) {
 					continue
 				}
@@ -104,37 +81,52 @@ func ScanContent(content []byte, filePath string, repository string) []Normalize
 					continue
 				}
 
+				startByte += lineOffsets[segmentIdx]
+				endByte += lineOffsets[segmentIdx]
+				startLine := sort.Search(len(lineOffsets), func(i int) bool {
+					return lineOffsets[i] > startByte
+				}) - 1
+				endLine := sort.Search(len(lineOffsets), func(i int) bool {
+					return lineOffsets[i] >= endByte
+				}) - 1
+
 				findings = append(findings, NormalizedFinding{
 					DetectorClass: detectorClassSecret,
 					Severity:      severityHigh,
 					File:          filePath,
-					StartLine:     lineIdx + 1,
-					EndLine:       lineIdx + 1,
-					StartColumn:   startByte + 1,
-					EndColumn:     endByte + 1,
+					StartLine:     startLine + 1,
+					EndLine:       endLine + 1,
+					StartColumn:   utf16Length(text[lineOffsets[startLine]:startByte]) + 1,
+					EndColumn:     utf16Length(text[lineOffsets[endLine]:endByte]),
 					CWE:           cweHardcodedCredentials,
 					Message:       messagePrefix + rule.Title(),
-					Fingerprint:   fingerprint(repository, filePath, lineIdx+1, rule.Title()),
+					Fingerprint:   fingerprint(repository, filePath, startLine+1, rule.Title()),
 				})
-
-				if len(findings) >= maxFindingsPerFileDefault {
-					return findings
+				ruleFindings++
+				if ruleFindings >= maxFindingsPerFileDefault {
+					break
 				}
 			}
 		}
 	}
 
+	sort.SliceStable(findings, func(i, j int) bool {
+		return findings[i].StartLine < findings[j].StartLine
+	})
+	if len(findings) > maxFindingsPerFileDefault {
+		findings = findings[:maxFindingsPerFileDefault]
+	}
 	return findings
 }
 
-// secretSpan picks the byte range to treat as "the secret" out of a
-// FindAllStringSubmatchIndex match: the first capturing group that
-// participated (rules that isolate the credential in a group, e.g. a regex
-// anchored on surrounding punctuation or a `key = "..."` assignment), or the
-// whole match when the rule has no capturing group or none of them fired for
-// this particular alternation branch. This keeps entropy/placeholder checks
-// — and the reported column range — scoped to the credential itself rather
-// than including fixed keyword/punctuation text around it.
+func utf16Length(s string) int {
+	length := 0
+	for _, r := range s {
+		length += utf16.RuneLen(r)
+	}
+	return length
+}
+
 func secretSpan(match []int) (start, end int) {
 	for i := 2; i+1 < len(match); i += 2 {
 		if match[i] >= 0 && match[i+1] >= 0 {
@@ -144,22 +136,18 @@ func secretSpan(match []int) (start, end int) {
 	return match[0], match[1]
 }
 
-// keywordsPresent reports whether lowerLine contains any of the rule's
-// keywords. A rule with no keywords always runs (it has no cheap prefilter).
 func keywordsPresent(lowerLine string, keywords []string) bool {
 	if len(keywords) == 0 {
 		return true
 	}
 	for _, kw := range keywords {
-		if strings.Contains(lowerLine, kw) {
+		if strings.Contains(lowerLine, strings.ToLower(kw)) {
 			return true
 		}
 	}
 	return false
 }
 
-// fingerprint mirrors the platform's secrets dedup key: a hash over
-// repository, file, start line and a secret-type label.
 func fingerprint(repository, file string, startLine int, secretType string) string {
 	sum := sha256.Sum256([]byte(strings.Join([]string{
 		"secret",

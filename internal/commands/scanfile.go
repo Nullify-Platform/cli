@@ -1,8 +1,3 @@
-// Hand-written, not generated: scan-file has no OpenAPI operation to
-// generate a client from (it never calls the Nullify API — see
-// internal/scanfile's package doc for why, and for what engine it wraps).
-// It follows the same RegisterXxxCommand(parent, ...) shape as this
-// package's other hand-written files (context_push.go, pentest_bridge.go).
 package commands
 
 import (
@@ -16,8 +11,7 @@ import (
 	"github.com/nullify-platform/cli/internal/scanfile"
 )
 
-// RegisterScanFileCommand adds the 'scan-file' subcommand to parent (the
-// hand-written top-level 'secrets' command; see cmd/cli/cmd/secrets.go).
+// RegisterScanFileCommand adds a local secret scan command to parent.
 func RegisterScanFileCommand(parent *cobra.Command) {
 	var (
 		flagStdin      bool
@@ -32,9 +26,8 @@ func RegisterScanFileCommand(parent *cobra.Command) {
 JSON array on stdout. All matching runs in-process: no network call is made
 and file content never leaves the machine.
 
-This is the fast-local scan the IDE extension runs on save. It scans only
-the given file (or the buffer piped on stdin via --stdin), never a whole
-repo, and emits engine-agnostic findings.
+Scan a file on disk or pipe a buffer with --stdin. Results contain secret
+types and locations. Secret values are not included.
 
 Examples:
   # Scan a file on disk

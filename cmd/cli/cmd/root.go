@@ -165,8 +165,6 @@ func init() {
 	// apiCmd) so `nullify deps analyze` reads naturally in CI scripts.
 	commands.RegisterDepsAnalyzeCommand(rootCmd, getAPIClient)
 
-	// Local, in-process scanning: no API client, no network call, so it
-	// hangs off the top-level 'secrets' command rather than 'api secrets'.
 	commands.RegisterScanFileCommand(secretsCmd)
 }
 

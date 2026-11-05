@@ -7,16 +7,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// fakeAWSKey builds an AWS-access-key-ID-shaped fixture (AKIA + 16 chars
-// from [A-Z2-7], distinct from the well-known AWS docs example key that this
-// package's placeholder filter deliberately allowlists) via concatenation,
-// so the 20-character string never appears contiguous in this file's own
-// source text and can't trip a secret scanner on this repo's own commits.
 func fakeAWSKey() string {
 	return "AKIA" + "ABCDEFGHIJKLMNOP"
 }
 
-// fakeAnthropicKey builds an Anthropic-key-shaped fixture the same way.
 func fakeAnthropicKey() string {
 	return "sk-ant-api03-" + strings.Repeat("x", 93) + "AA"
 }
@@ -63,7 +57,6 @@ func TestScanContentFiltersLowEntropyGenericValues(t *testing.T) {
 }
 
 func TestScanContentSkipsLockfiles(t *testing.T) {
-	// A value that would otherwise trip the AWS access key rule.
 	content := []byte("\"" + fakeAWSKey() + "\"\n")
 	findings := ScanContent(content, "nested/dir/package-lock.json", "")
 	require.Empty(t, findings, "lockfiles must be skipped entirely")
@@ -81,9 +74,6 @@ func TestScanContentNeverLeaksTheSecretValue(t *testing.T) {
 	}
 }
 
-// The fingerprint must stay a hash over {"secret", repository, file,
-// startLine, Title} or on-save findings stop correlating across repeated
-// scans of the same file.
 func TestFingerprintScheme(t *testing.T) {
 	content := []byte("awsKey := \"" + fakeAWSKey() + "\"\n")
 	findings := ScanContent(content, "config.go", "owner/repo")
@@ -130,4 +120,201 @@ func TestFingerprintIsDeterministic(t *testing.T) {
 
 	c := fingerprint("owner/repo", "file.go", 5, "Generic API Key")
 	require.NotEqual(t, a, c)
+}
+
+func TestScanContentMixedCaseFormatKeywords(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+		want    []string
+	}{
+		{
+			name:    "google",
+			content: "AIza" + strings.Repeat("a", 35),
+			want:    []string{"Hardcoded secret detected: Google API Key"},
+		},
+		{
+			name:    "gemini",
+			content: "AIzaSy" + strings.Repeat("a", 33),
+			want: []string{
+				"Hardcoded secret detected: Google Gemini API Key",
+				"Hardcoded secret detected: Google API Key",
+			},
+		},
+		{
+			name:    "gcp-oauth",
+			content: "GOCSPX-" + strings.Repeat("a", 28),
+			want:    []string{"Hardcoded secret detected: GCP OAuth Client Secret"},
+		},
+		{
+			name:    "onepassword",
+			content: "ops_eyJ" + strings.Repeat("a", 200),
+			want:    []string{"Hardcoded secret detected: Onepassword Service Account Token"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			findings := ScanContent([]byte(tt.content), "config.txt", "")
+			got := make([]string, 0, len(findings))
+			for _, f := range findings {
+				got = append(got, f.Message)
+			}
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestScanContentQuotedCredentialKeys(t *testing.T) {
+	key := "f3Kq9vXz2Lm8Wp4Rb7Nt"
+	uuid := "7d9b6c5a-42ef-4b03-a981-6f0c3258de74"
+	tests := []struct {
+		name    string
+		content string
+		want    []string
+	}{
+		{
+			name:    "generic-assignment",
+			content: `password = "` + key + `"`,
+			want:    []string{"Hardcoded secret detected: Generic API Key"},
+		},
+		{
+			name:    "generic-json",
+			content: `{"password": "` + key + `"}`,
+			want:    []string{"Hardcoded secret detected: Generic API Key"},
+		},
+		{
+			name:    "generic-single-quotes",
+			content: `{'api_key': '` + key + `'}`,
+			want:    []string{"Hardcoded secret detected: Generic API Key"},
+		},
+		{
+			name:    "aws-json",
+			content: `{"aws_secret_access_key": "` + key + key + `"}`,
+			want:    []string{"Hardcoded secret detected: AWS Secret Access Key"},
+		},
+		{
+			name:    "heroku-json",
+			content: `{"heroku_api_key": "` + uuid + `"}`,
+			want: []string{
+				"Hardcoded secret detected: Heroku API Key",
+				"Hardcoded secret detected: Generic API Key",
+			},
+		},
+		{
+			name:    "cloudflare-json",
+			content: `{"cloudflare_api_token": "` + key + key + `"}`,
+			want: []string{
+				"Hardcoded secret detected: Cloudflare API Token",
+				"Hardcoded secret detected: Generic API Key",
+			},
+		},
+		{
+			name:    "railway-json",
+			content: `{"railway_api_token": "` + uuid + `"}`,
+			want: []string{
+				"Hardcoded secret detected: Railway API Token",
+				"Hardcoded secret detected: Generic API Key",
+			},
+		},
+		{
+			name:    "postmark-json",
+			content: `{"postmark_server_token": "` + uuid + `"}`,
+			want: []string{
+				"Hardcoded secret detected: Postmark Server Token",
+				"Hardcoded secret detected: Generic API Key",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			findings := ScanContent([]byte(tt.content), "config.txt", "")
+			got := make([]string, 0, len(findings))
+			for _, f := range findings {
+				got = append(got, f.Message)
+			}
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestScanContentUTF16InclusiveColumns(t *testing.T) {
+	tests := []struct {
+		name      string
+		prefix    string
+		wantStart int
+		wantEnd   int
+	}{
+		{name: "ascii", prefix: `value = "`, wantStart: 10, wantEnd: 29},
+		{name: "bmp", prefix: `é = "`, wantStart: 6, wantEnd: 25},
+		{name: "surrogate-pair", prefix: `😀é = "`, wantStart: 8, wantEnd: 27},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			content := "\r\n" + tt.prefix + fakeAWSKey() + "\"\r\n"
+			findings := ScanContent([]byte(content), "config.txt", "")
+			require.Len(t, findings, 1)
+			require.Equal(t, 2, findings[0].StartLine)
+			require.Equal(t, 2, findings[0].EndLine)
+			require.Equal(t, tt.wantStart, findings[0].StartColumn)
+			require.Equal(t, tt.wantEnd, findings[0].EndColumn)
+		})
+	}
+}
+
+func TestScanContentPEMHeaderSpan(t *testing.T) {
+	for _, kind := range []string{"", "RSA ", "EC ", "DSA ", "OPENSSH ", "PGP "} {
+		t.Run(kind, func(t *testing.T) {
+			header := "-----BEGIN " + kind + "PRIVATE KEY-----"
+			findings := ScanContent([]byte(header), "key.pem", "")
+			require.Len(t, findings, 1)
+			require.Equal(t, 1, findings[0].StartColumn)
+			require.Equal(t, len(header), findings[0].EndColumn)
+			require.Equal(t, "Hardcoded secret detected: PEM Private Key", findings[0].Message)
+		})
+	}
+}
+
+func TestScanContentMultilineDeepSeek(t *testing.T) {
+	secret := "sk-" + strings.Repeat("0123456789abcdef", 2)
+	tests := []struct {
+		name      string
+		content   string
+		wantLine  int
+		wantCount int
+	}{
+		{name: "same-line", content: "deepseek " + secret, wantLine: 1, wantCount: 1},
+		{name: "next-line", content: "deepseek\n" + secret, wantLine: 2, wantCount: 1},
+		{name: "crlf", content: "deepseek\r\n" + secret, wantLine: 2, wantCount: 1},
+		{name: "too-far", content: "deepseek" + strings.Repeat(" ", 41) + secret, wantCount: 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			findings := ScanContent([]byte(tt.content), "config.txt", "")
+			require.Len(t, findings, tt.wantCount)
+			if tt.wantCount == 0 {
+				return
+			}
+			require.Equal(t, "Hardcoded secret detected: Deepseek API Key", findings[0].Message)
+			require.Equal(t, tt.wantLine, findings[0].StartLine)
+			require.Equal(t, tt.wantLine, findings[0].EndLine)
+			require.Equal(t, 35, findings[0].EndColumn-findings[0].StartColumn+1)
+		})
+	}
+}
+
+func TestScanContentPreservesLineScopedKeywords(t *testing.T) {
+	content := "twilio\nSK" + strings.Repeat("a", 32)
+	findings := ScanContent([]byte(content), "config.txt", "")
+	require.Empty(t, findings)
+}
+
+func TestScanContentLimitsEarliestFindings(t *testing.T) {
+	content := fakeAWSKey() + "\n" + strings.Repeat(fakeAnthropicKey()+"\n", 201)
+	findings := ScanContent([]byte(content), "config.txt", "")
+
+	require.Len(t, findings, 200)
+	require.Equal(t, "Hardcoded secret detected: AWS Access Key ID", findings[0].Message)
+	for i, f := range findings {
+		require.Equal(t, i+1, f.StartLine)
+	}
 }
