@@ -62,6 +62,7 @@ func TestToolAccess(t *testing.T) {
 		annotation string
 		sets       []string
 	}{
+		{tool: "list_organizations", annotation: "read-only", sets: []string{"admin", "all", "default", "findings", "findings-write", "minimal"}},
 		{tool: "nullify_search_findings", annotation: "read-only", sets: []string{"all", "default", "findings", "findings-write"}},
 		{tool: "nullify_get_finding", annotation: "read-only", sets: []string{"all", "default", "findings", "findings-write"}},
 		{tool: "get_security_trends", annotation: "read-only", sets: []string{"admin", "all", "default", "findings", "findings-write", "minimal"}},

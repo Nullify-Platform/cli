@@ -158,6 +158,7 @@ func init() {
 	// apiCmd) so `nullify deps analyze` reads naturally in CI scripts.
 	commands.RegisterDepsAnalyzeCommand(rootCmd, getAPIClient)
 
+	commands.RegisterScanFileCommand(secretsCmd)
 	commands.ApplySurfaceDecisions(rootCmd, commands.Decisions)
 }
 
