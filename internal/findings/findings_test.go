@@ -17,6 +17,7 @@ import (
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/apierror"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 type request struct {
@@ -666,6 +667,8 @@ func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
 }
 
 func TestFixBoundsHTTPReadsAndPolling(t *testing.T) {
+	t.Cleanup(func() { goleak.VerifyNone(t) })
+
 	tests := []struct {
 		name      string
 		waitForPR bool
@@ -744,6 +747,8 @@ func TestFixBoundsHTTPReadsAndPolling(t *testing.T) {
 }
 
 func TestFixPreservesCallerCancellation(t *testing.T) {
+	t.Cleanup(func() { goleak.VerifyNone(t) })
+
 	for _, phase := range []string{"status", "diff", "pull request"} {
 		for _, tt := range []struct {
 			name     string
@@ -833,6 +838,8 @@ func TestFixRetainsDiffAndPollingFailures(t *testing.T) {
 }
 
 func TestFixRetainsKnownPullRequestWhenDiffTimesOut(t *testing.T) {
+	t.Cleanup(func() { goleak.VerifyNone(t) })
+
 	var statusReads atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
