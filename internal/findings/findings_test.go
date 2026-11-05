@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -662,6 +664,108 @@ func TestFixReportsStillRunningAtTheDeadline(t *testing.T) {
 			require.Nil(t, got.PullRequest)
 		})
 	}
+}
+
+func TestFixBoundsHTTPReadsAndPolling(t *testing.T) {
+	tests := []struct {
+		name      string
+		waitForPR bool
+		stall     string
+		want      error
+		state     string
+		check     string
+	}{
+		{
+			name: "status request", stall: "status",
+			want:  ErrAutofixStatusUnreadable,
+			state: "in_progress_requested",
+			check: "nullify findings fix-status f1 --type sast",
+		},
+		{
+			name: "polling sleep", want: ErrAutofixStillRunning,
+			state: "in_progress_agent",
+			check: "nullify findings fix-status f1 --type sast",
+		},
+		{
+			name: "diff request", stall: "diff",
+			want: ErrAutofixDiff, state: "cached",
+		},
+		{
+			name: "pull request polling", waitForPR: true,
+			want: ErrAutofixStillRunning, state: "cached",
+			check: "nullify findings fix-status f1 --type sast",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var statusReads atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch {
+				case strings.HasSuffix(r.URL.Path, "/fix"):
+					fmt.Fprint(w, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
+				case strings.HasSuffix(r.URL.Path, "/status"):
+					statusReads.Add(1)
+					if tt.stall == "status" {
+						<-r.Context().Done()
+						return
+					}
+					if tt.stall == "diff" || tt.waitForPR {
+						fmt.Fprint(w, `{"status":{"state":"cached","terminal":true}}`)
+					} else {
+						fmt.Fprint(w, `{"status":{"state":"in_progress_agent","terminal":false}}`)
+					}
+				case strings.HasSuffix(r.URL.Path, "/diff"):
+					if tt.stall == "diff" {
+						<-r.Context().Done()
+						return
+					}
+					fmt.Fprint(w, `{"diffs":[]}`)
+				}
+			}))
+			t.Cleanup(server.Close)
+			httpClient := server.Client()
+			httpClient.Timeout = 2 * time.Second
+			c := api.NewClient("acme.nullify.ai", "synthetic", nil,
+				api.WithHTTPClient(httpClient))
+			c.BaseURL = server.URL
+
+			started := time.Now()
+			got, err := Fix(context.Background(), c, "sast", "f1",
+				FixOptions{WaitForPR: tt.waitForPR, Timeout: 100 * time.Millisecond})
+
+			require.NoError(t, err)
+			require.Less(t, time.Since(started), time.Second)
+			require.Positive(t, statusReads.Load())
+			require.ErrorIs(t, got.Failure, tt.want)
+			require.Equal(t, tt.state, got.State)
+			require.Equal(t, "r1", got.RunID)
+			require.Equal(t, tt.check, got.CheckWith)
+		})
+	}
+}
+
+func TestFixPreservesCallerCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/status") {
+			cancel()
+			<-r.Context().Done()
+			return
+		}
+		fmt.Fprint(w, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
+	}))
+	t.Cleanup(server.Close)
+	c := api.NewClient("acme.nullify.ai", "synthetic", nil,
+		api.WithHTTPClient(server.Client()))
+	c.BaseURL = server.URL
+
+	got, err := Fix(ctx, c, "sast", "f1", FixOptions{Timeout: time.Minute})
+
+	require.ErrorIs(t, err, context.Canceled)
+	require.NotErrorIs(t, got.Failure, ErrAutofixStillRunning)
+	require.Equal(t, "r1", got.RunID)
+	require.Equal(t, "nullify findings fix-status f1 --type sast", got.CheckWith)
 }
 
 func TestFixStopsOnARescuedPullRequestStep(t *testing.T) {

@@ -146,12 +146,13 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		return FixResult{}, err
 	}
 	result := FixResult{State: start.State, RunID: start.RunID}
-	deadline := time.Now().Add(opts.Timeout)
+	waitCtx, cancel := context.WithTimeout(ctx, opts.Timeout)
+	defer cancel()
 	check := fmt.Sprintf("nullify findings fix-status %s --type %s", findingID, typeName)
 	stillRunning := fmt.Errorf("%w after %s; check it with: %s", ErrAutofixStillRunning, opts.Timeout, check)
 
 	var sawPRPhase bool
-	status, err := pollAutofix(ctx, c, t, findingID, false, earlier, deadline, &sawPRPhase)
+	status, err := pollAutofix(waitCtx, c, t, findingID, false, earlier, &sawPRPhase)
 	if status.State != "" {
 		result.State = status.State
 	}
@@ -173,7 +174,10 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 
 	var diffErr error
 	if t.AutofixDiff != nil {
-		result.Diff, err = t.AutofixDiff(ctx, c, findingID, nil)
+		result.Diff, err = t.AutofixDiff(waitCtx, c, findingID, nil)
+		if err == nil {
+			err = waitCtx.Err()
+		}
 		if err != nil {
 			diffErr = fmt.Errorf("%w: %w", ErrAutofixDiff, err)
 		}
@@ -184,7 +188,7 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		return result, nil
 	}
 
-	status, err = pollAutofix(ctx, c, t, findingID, true, earlier, deadline, &sawPRPhase)
+	status, err = pollAutofix(waitCtx, c, t, findingID, true, earlier, &sawPRPhase)
 	if status.State != "" {
 		result.State = status.State
 	}
@@ -323,16 +327,16 @@ func transientPollError(err error) bool {
 	return true
 }
 
-// pollAutofix polls the autofix status route until the watched phase ends or the
-// deadline passes. On the deadline it returns the last status it read and
-// context.DeadlineExceeded, or ErrAutofixStatusUnreadable when its latest read failed.
-// sawPRPhase records across phases that the run reached a pull-request state.
-func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, watchPR bool, earlier []string, deadline time.Time, sawPRPhase *bool) (AutofixStatus, error) {
+func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, watchPR bool, earlier []string, sawPRPhase *bool) (AutofixStatus, error) {
 	var last AutofixStatus
 	var readErr error
-	for {
+	for ctx.Err() == nil {
 		status, err := readAutofixStatus(ctx, c, t, findingID)
 		readErr = err
+		if ctx.Err() != nil {
+			break
+		}
+
 		switch {
 		case err == nil:
 			last = status
@@ -340,20 +344,20 @@ func pollAutofix(ctx context.Context, c *api.Client, t Type, findingID string, w
 			if autofixPhaseDone(status, watchPR, earlier) || (watchPR && *sawPRPhase && status.State == autoFixStateCached) {
 				return status, nil
 			}
-		case ctx.Err() != nil || !transientPollError(err):
+		case !transientPollError(err):
 			return last, err
 		}
 
-		if time.Now().After(deadline) {
-			if readErr != nil {
-				return last, fmt.Errorf("%w: %w", ErrAutofixStatusUnreadable, readErr)
-			}
-			return last, context.DeadlineExceeded
-		}
+		timer := time.NewTimer(autofixPollInterval)
 		select {
 		case <-ctx.Done():
-			return last, ctx.Err()
-		case <-time.After(autofixPollInterval):
+			timer.Stop()
+		case <-timer.C:
 		}
 	}
+
+	if readErr != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return last, fmt.Errorf("%w: %w", ErrAutofixStatusUnreadable, readErr)
+	}
+	return last, ctx.Err()
 }
