@@ -18,8 +18,8 @@ func newRefreshingTransport(initial string, tp TokenProvider, inner http.RoundTr
 func newRefreshingTransportWithRefresher(initial string, tp, rp TokenProvider, inner http.RoundTripper) *refreshingAuthTransport {
 	return &refreshingAuthTransport{
 		nullifyHost:     "acme.nullify.ai",
-		tokenProvider:   tp,
-		refreshProvider: rp,
+		tokenProvider:   func(context.Context) (string, error) { return tp() },
+		refreshProvider: func(context.Context) (string, error) { return rp() },
 		transport:       inner,
 		cachedToken:     initial,
 		cachedAt:        time.Now(),

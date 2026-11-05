@@ -2,12 +2,21 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/client"
+	"github.com/nullify-platform/cli/internal/findings"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestResolveCommandAuthUsesEnvTokenWithoutStoredCredentials(t *testing.T) {
@@ -290,18 +299,95 @@ func TestMCPClientUsesAuthHostForTokensAndDataHostForRequests(t *testing.T) {
 	require.Equal(t, "https://api.acme.nullify.ai", apiClient.BaseURL)
 	require.Equal(t, map[string]string{"repository": "r"}, apiClient.DefaultParams)
 
-	tokenProvider, refreshProvider := mcpTokenProviders(context.Background(), auth.RouterHost)
-	token, err := tokenProvider()
+	tokenProvider, refreshProvider := mcpTokenProviders(auth.RouterHost)
+	token, err := tokenProvider(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, "router-token", token)
-	_, err = refreshProvider()
+	_, err = refreshProvider(context.Background())
 	require.ErrorIs(t, err, client.ErrTokenNotRefreshable, "refresh must look up the router credentials")
 
 	authHost, err := auth.AuthHostFor("acme.nullify.ai")
 	require.NoError(t, err)
 	require.Equal(t, "api.nullify.ai", authHost, "the selected data host is bound to the router")
-	dataTokenProvider, _ := mcpTokenProviders(context.Background(), "acme.nullify.ai")
-	token, err = dataTokenProvider()
+	dataTokenProvider, _ := mcpTokenProviders("acme.nullify.ai")
+	token, err = dataTokenProvider(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, "router-token", token)
+}
+
+func TestFixDeadlineCancelsCredentialRefresh(t *testing.T) {
+	t.Cleanup(func() { goleak.VerifyNone(t) })
+
+	for _, tt := range []struct {
+		name   string
+		cancel bool
+	}{
+		{name: "wait deadline"},
+		{name: "caller cancellation", cancel: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			loginEnv(t)
+			parent, cancel := context.WithTimeout(context.Background(),
+				2*time.Second)
+			defer cancel()
+			var refreshes atomic.Int32
+			refreshCanceled := make(chan struct{})
+			server := httptest.NewServer(http.HandlerFunc(func(
+				w http.ResponseWriter, r *http.Request,
+			) {
+				switch {
+				case strings.HasSuffix(r.URL.Path, "/fix"):
+					fmt.Fprint(w, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
+				case strings.HasSuffix(r.URL.Path, "/status"):
+					w.WriteHeader(http.StatusUnauthorized)
+				case r.URL.Path == "/auth/refresh_token":
+					refreshes.Add(1)
+					if tt.cancel {
+						cancel()
+					}
+					<-r.Context().Done()
+					close(refreshCanceled)
+				}
+			}))
+			t.Cleanup(server.Close)
+			target, err := url.Parse(server.URL)
+			require.NoError(t, err)
+			previous := http.DefaultTransport
+			http.DefaultTransport = roundTripperFunc(func(
+				r *http.Request,
+			) (*http.Response, error) {
+				forwarded := r.Clone(r.Context())
+				forwarded.URL.Scheme = target.Scheme
+				forwarded.URL.Host = target.Host
+				return previous.RoundTrip(forwarded)
+			})
+			t.Cleanup(func() { http.DefaultTransport = previous })
+			ctx, err := logger.ConfigureDevelopmentLogger(parent, "error")
+			require.NoError(t, err)
+			authCtx, err := resolveCommandToken(ctx)
+			require.NoError(t, err)
+			c, err := newRefreshingAPIClient(ctx, authCtx, nil)
+			require.NoError(t, err)
+
+			started := time.Now()
+			got, err := findings.Fix(ctx, c, "sast", "f1",
+				findings.FixOptions{Timeout: 100 * time.Millisecond})
+
+			require.Less(t, time.Since(started), time.Second)
+			if tt.cancel {
+				require.ErrorIs(t, err, context.Canceled)
+			} else {
+				require.NoError(t, err)
+				require.ErrorIs(t, got.Failure,
+					findings.ErrAutofixStatusUnreadable)
+			}
+			require.Equal(t, int32(1), refreshes.Load())
+			require.Equal(t, "r1", got.RunID)
+			select {
+			case <-refreshCanceled:
+			case <-time.After(time.Second):
+				t.Fatal("credential refresh did not receive cancellation")
+			}
+		})
+	}
 }

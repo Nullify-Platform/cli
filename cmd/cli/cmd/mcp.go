@@ -133,7 +133,7 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 		return nil, "", mcp.Orgs{}, fmt.Errorf("invalid --tools value %q. Valid values: %s", toolsFlag, strings.Join(mcp.ValidToolSets(), ", "))
 	}
 
-	tokenProvider, refreshProvider := mcpTokenProviders(ctx, authCtx.AuthHost)
+	tokenProvider, refreshProvider := mcpTokenProviders(authCtx.AuthHost)
 
 	listHost := dataHost
 	if !usesMachineToken() {
@@ -142,7 +142,7 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 		}
 	}
 	cache := &mcpOrgCache{fetch: func(ctx context.Context) (auth.OrgList, error) {
-		token, err := tokenProvider()
+		token, err := tokenProvider(ctx)
 		if err != nil {
 			return auth.OrgList{}, err
 		}
@@ -154,7 +154,7 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 	// so long-running MCP sessions keep working as the token rotates; the
 	// token is refreshed wherever the login lives (the router, for a router
 	// tenant). Each call's org scope is set by ScopeTransport.
-	refreshing, err := client.NewRefreshingHTTPClient(dataHost, tokenProvider, refreshProvider)
+	refreshing, err := client.NewRefreshingHTTPClientWithContext(ctx, dataHost, tokenProvider, refreshProvider)
 	if err != nil {
 		return nil, "", mcp.Orgs{}, fmt.Errorf("failed to create client: %w", err)
 	}
@@ -181,7 +181,7 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 		var err error
 		if usesMachineToken() {
 			var token string
-			token, err = tokenProvider()
+			token, err = tokenProvider(ctx)
 			if err == nil {
 				scope, err = resolveOrgScope(ctx, dataHost, token,
 					startInputs, false)
@@ -238,7 +238,7 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 			}
 			in := auth.OrgInputs{Flag: org, FlagSource: "org argument"}
 			if usesMachineToken() {
-				token, err := tokenProvider()
+				token, err := tokenProvider(ctx)
 				if err != nil {
 					return nil, "", err
 				}
@@ -265,7 +265,7 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 			return o.Query(), o.String(), nil
 		},
 		List: func(ctx context.Context) (any, error) {
-			token, err := tokenProvider()
+			token, err := tokenProvider(ctx)
 			if err != nil {
 				return nil, err
 			}
@@ -345,8 +345,8 @@ func init() {
 }
 
 func newRefreshingAPIClient(ctx context.Context, authCtx *commandAuthContext, queryParams map[string]string) (*api.Client, error) {
-	tokenProvider, refreshProvider := mcpTokenProviders(ctx, authCtx.AuthHost)
-	httpClient, err := client.NewRefreshingHTTPClient(authCtx.DataHost, tokenProvider, refreshProvider)
+	tokenProvider, refreshProvider := mcpTokenProviders(authCtx.AuthHost)
+	httpClient, err := client.NewRefreshingHTTPClientWithContext(ctx, authCtx.DataHost, tokenProvider, refreshProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -354,11 +354,11 @@ func newRefreshingAPIClient(ctx context.Context, authCtx *commandAuthContext, qu
 	return api.NewClient(authCtx.DataHost, "", queryParams, api.WithHTTPClient(httpClient)), nil
 }
 
-func mcpTokenProviders(ctx context.Context, authHost string) (client.TokenProvider, client.TokenProvider) {
-	tokenProvider := func() (string, error) {
+func mcpTokenProviders(authHost string) (client.ContextTokenProvider, client.ContextTokenProvider) {
+	tokenProvider := func(ctx context.Context) (string, error) {
 		return lib.GetNullifyToken(ctx, authHost, nullifyToken, githubToken)
 	}
-	refreshProvider := func() (string, error) {
+	refreshProvider := func(ctx context.Context) (string, error) {
 		return lib.RefreshNullifyToken(ctx, authHost, nullifyToken, githubToken)
 	}
 	return tokenProvider, refreshProvider
