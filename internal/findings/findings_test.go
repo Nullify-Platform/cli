@@ -533,14 +533,13 @@ func TestFix(t *testing.T) {
 			state: "cached", routes: []string{sastFix, sastStatus, sastDiff}, diff: true,
 		},
 		{
-			name: "sca alias reports the pull request of this run", findType: "sca", createPR: true, statuses: []string{hasOldPR, hasNewPR, hasNewPR},
+			name: "sca alias reports the pull request of this run", findType: "sca", createPR: true, statuses: []string{hasOldPR, hasNewPR},
 			state: "pending_review",
 			routes: []string{
 				"GET /sca/dependencies/findings/f1/autofix/status",
 				"POST /sca/dependencies/findings/f1/autofix/fix",
 				"GET /sca/dependencies/findings/f1/autofix/status",
 				"GET /sca/dependencies/findings/f1/autofix/cache/diff",
-				"GET /sca/dependencies/findings/f1/autofix/status",
 			},
 			diff: true,
 			pr:   &PullRequestStatus{State: "open", URL: "http://new"},
@@ -593,9 +592,9 @@ func TestFix(t *testing.T) {
 			failure: ErrAutofixFailed, state: "failed_abort", routes: []string{sastStatus, sastFix, sastStatus},
 		},
 		{
-			name: "a failed diff read keeps the pull request", findType: "sast", createPR: true, statuses: []string{hasOldPR, hasNewPR, hasNewPR}, diffCode: 404,
+			name: "a failed diff read keeps the pull request", findType: "sast", createPR: true, statuses: []string{hasOldPR, hasNewPR}, diffCode: 404,
 			failure: ErrAutofixDiff, state: "pending_review",
-			routes: []string{sastStatus, sastFix, sastStatus, sastDiff, sastStatus},
+			routes: []string{sastStatus, sastFix, sastStatus, sastDiff},
 			pr:     &PullRequestStatus{State: "open", URL: "http://new"},
 		},
 		{name: "secrets has no autofix", findType: "secrets", want: ErrUnsupported},
@@ -745,27 +744,128 @@ func TestFixBoundsHTTPReadsAndPolling(t *testing.T) {
 }
 
 func TestFixPreservesCallerCancellation(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasSuffix(r.URL.Path, "/status") {
-			cancel()
-			<-r.Context().Done()
-			return
+	for _, phase := range []string{"status", "diff", "pull request"} {
+		for _, tt := range []struct {
+			name     string
+			deadline bool
+			want     error
+		}{
+			{name: "cancel", want: context.Canceled},
+			{name: "deadline", deadline: true, want: context.DeadlineExceeded},
+		} {
+			t.Run(phase+"/"+tt.name, func(t *testing.T) {
+				ctx, cancel := context.WithCancel(context.Background())
+				if tt.deadline {
+					cancel()
+					ctx, cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
+				}
+				defer cancel()
+				var statusReads atomic.Int32
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					stall := false
+					switch {
+					case strings.HasSuffix(r.URL.Path, "/status"):
+						read := statusReads.Add(1)
+						stall = phase == "status" || (phase == "pull request" && read == 3)
+					case strings.HasSuffix(r.URL.Path, "/diff"):
+						stall = phase == "diff"
+					}
+					if stall {
+						if !tt.deadline {
+							cancel()
+						}
+						<-r.Context().Done()
+						return
+					}
+					if strings.HasSuffix(r.URL.Path, "/fix") {
+						fmt.Fprint(w, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
+					} else {
+						fmt.Fprint(w, `{"status":{"state":"cached","terminal":true}}`)
+					}
+				}))
+				t.Cleanup(server.Close)
+				httpClient := server.Client()
+				httpClient.Timeout = 2 * time.Second
+				c := api.NewClient("acme.nullify.ai", "synthetic", nil,
+					api.WithHTTPClient(httpClient))
+				c.BaseURL = server.URL
+
+				got, err := Fix(ctx, c, "sast", "f1", FixOptions{
+					WaitForPR: phase == "pull request", Timeout: time.Minute,
+				})
+
+				require.ErrorIs(t, err, tt.want)
+				require.NoError(t, got.Failure)
+				require.Equal(t, "r1", got.RunID)
+				require.Equal(t, "nullify findings fix-status f1 --type sast", got.CheckWith)
+			})
 		}
-		fmt.Fprint(w, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
-	}))
-	t.Cleanup(server.Close)
-	c := api.NewClient("acme.nullify.ai", "synthetic", nil,
-		api.WithHTTPClient(server.Client()))
-	c.BaseURL = server.URL
+	}
+}
 
-	got, err := Fix(ctx, c, "sast", "f1", FixOptions{Timeout: time.Minute})
+func TestFixRetainsDiffAndPollingFailures(t *testing.T) {
+	statusReads := 0
+	ft := &fakeTransport{respond: func(_ int, r request) (int, string) {
+		switch {
+		case strings.HasSuffix(r.Path, "/status"):
+			statusReads++
+			if statusReads == 3 {
+				return http.StatusForbidden, `{}`
+			}
+			return http.StatusOK, `{"status":{"state":"cached","terminal":true}}`
+		case strings.HasSuffix(r.Path, "/diff"):
+			return http.StatusNotFound, `{}`
+		}
+		return http.StatusOK, `{"autoFixState":"in_progress_requested","runId":"r1"}`
+	}}
 
-	require.ErrorIs(t, err, context.Canceled)
-	require.NotErrorIs(t, got.Failure, ErrAutofixStillRunning)
+	got, err := Fix(context.Background(), clientFor(ft), "sast", "f1",
+		FixOptions{WaitForPR: true, Timeout: time.Minute})
+
+	require.ErrorIs(t, err, ErrAutofixDiff)
+	var apiErr *apierror.APIError
+	require.ErrorAs(t, err, &apiErr)
+	require.Equal(t, http.StatusForbidden, apiErr.StatusCode)
+	require.Equal(t, 3, statusReads)
+	require.Equal(t, "cached", got.State)
 	require.Equal(t, "r1", got.RunID)
 	require.Equal(t, "nullify findings fix-status f1 --type sast", got.CheckWith)
+}
+
+func TestFixRetainsKnownPullRequestWhenDiffTimesOut(t *testing.T) {
+	var statusReads atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/status"):
+			if statusReads.Add(1) == 1 {
+				fmt.Fprint(w, `{"status":{"state":"none","terminal":false}}`)
+			} else {
+				fmt.Fprint(w, `{"status":{"state":"pending_review","terminal":true,"pullRequests":[{"url":"https://example.com/pr/1","status":"open"}]}}`)
+			}
+		case strings.HasSuffix(r.URL.Path, "/diff"):
+			<-r.Context().Done()
+		case strings.HasSuffix(r.URL.Path, "/fix"):
+			fmt.Fprint(w, `{"autoFixState":"in_progress_requested","runId":"r1"}`)
+		}
+	}))
+	t.Cleanup(server.Close)
+	httpClient := server.Client()
+	httpClient.Timeout = 2 * time.Second
+	c := api.NewClient("acme.nullify.ai", "synthetic", nil,
+		api.WithHTTPClient(httpClient))
+	c.BaseURL = server.URL
+
+	got, err := Fix(context.Background(), c, "sast", "f1",
+		FixOptions{WaitForPR: true, Timeout: 100 * time.Millisecond})
+
+	require.NoError(t, err)
+	require.ErrorIs(t, got.Failure, ErrAutofixDiff)
+	require.NotErrorIs(t, got.Failure, ErrAutofixStillRunning)
+	require.Equal(t, &PullRequestStatus{
+		State: "open", URL: "https://example.com/pr/1",
+	}, got.PullRequest)
+	require.Equal(t, int32(2), statusReads.Load())
+	require.Equal(t, "pending_review", got.State)
 }
 
 func TestFixStopsOnARescuedPullRequestStep(t *testing.T) {

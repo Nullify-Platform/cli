@@ -156,6 +156,10 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	if status.State != "" {
 		result.State = status.State
 	}
+	if ctx.Err() != nil {
+		result.CheckWith = check
+		return result, ctx.Err()
+	}
 	if ended := waitEnded(err, stillRunning, check); ended != nil {
 		result.CheckWith = check
 		result.Failure = ended
@@ -172,6 +176,12 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		return result, nil
 	}
 
+	if opts.WaitForPR {
+		if pr := status.newPullRequest(earlier); pr != nil {
+			result.PullRequest = &PullRequestStatus{State: pr.Status, URL: pr.URL}
+		}
+	}
+
 	var diffErr error
 	if t.AutofixDiff != nil {
 		result.Diff, err = t.AutofixDiff(waitCtx, c, findingID, nil)
@@ -183,7 +193,12 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 		}
 	}
 
-	if !opts.WaitForPR {
+	if ctx.Err() != nil {
+		result.CheckWith = check
+		return result, errors.Join(ctx.Err(), diffErr)
+	}
+
+	if !opts.WaitForPR || result.PullRequest != nil {
 		result.Failure = diffErr
 		return result, nil
 	}
@@ -192,6 +207,10 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	if status.State != "" {
 		result.State = status.State
 	}
+	if ctx.Err() != nil {
+		result.CheckWith = check
+		return result, errors.Join(ctx.Err(), diffErr)
+	}
 	if ended := waitEnded(err, stillRunning, check); ended != nil {
 		result.CheckWith = check
 		result.Failure = errors.Join(diffErr, ended)
@@ -199,7 +218,7 @@ func Fix(ctx context.Context, c *api.Client, typeName, findingID string, opts Fi
 	}
 	if err != nil {
 		result.CheckWith = check
-		return result, fmt.Errorf("the run started but its status cannot be read; check it with: %s: %w", check, err)
+		return result, errors.Join(fmt.Errorf("the run started but its status cannot be read; check it with: %s: %w", check, err), diffErr)
 	}
 
 	if pr := status.newPullRequest(earlier); pr != nil {
