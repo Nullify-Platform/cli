@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"testing"
@@ -60,8 +61,8 @@ func clients(origin http.RoundTripper) map[string]*http.Client {
 	static := &authTransport{nullifyHost: "acme.nullify.ai", token: "secret", transport: origin}
 	refreshing := &refreshingAuthTransport{
 		nullifyHost:     "acme.nullify.ai",
-		tokenProvider:   func() (string, error) { return "secret", nil },
-		refreshProvider: func() (string, error) { return "refreshed", nil },
+		tokenProvider:   func(context.Context) (string, error) { return "secret", nil },
+		refreshProvider: func(context.Context) (string, error) { return "refreshed", nil },
 		transport:       origin,
 		cachedToken:     "secret",
 		cachedAt:        time.Now(),

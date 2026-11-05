@@ -23,11 +23,13 @@ var _ = models.RequestScope{}
 
 // CreateScpmContainersAnalyzeInput is the input for CreateScpmContainersAnalyze — Request malware analysis for an OCI container image.
 type CreateScpmContainersAnalyzeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IdempotencyKey *string `json:"idempotencyKey,omitempty"`
 	PreviousReference *string `json:"previousReference,omitempty"`
 	Reference string `json:"reference"`
 	Registry string `json:"registry"`
 	Repository string `json:"repository"`
+	models.RequestScope
 }
 
 // CreateScpmContainersAnalyze - Request malware analysis for an OCI container image
@@ -39,6 +41,10 @@ func (c *Client) CreateScpmContainersAnalyze(ctx context.Context, in CreateScpmC
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
@@ -72,59 +78,15 @@ func (c *Client) CreateScpmContainersAnalyze(ctx context.Context, in CreateScpmC
 	return &out, nil
 }
 
-// ListScpmDependenciesInput is the input for ListScpmDependencies — Get CI/CD Dependencies.
-type ListScpmDependenciesInput struct {
-	Name *string `url:"name,omitempty" json:"-"`
-	Pinned *bool `url:"pinned,omitempty" json:"-"`
-	Platform *string `url:"platform,omitempty" json:"-"`
-	Version *string `url:"version,omitempty" json:"-"`
-}
-
-// ListScpmDependencies - Get CI/CD Dependencies
-// GET /scpm/dependencies
-func (c *Client) ListScpmDependencies(ctx context.Context, in ListScpmDependenciesInput) (*models.EndpointsGetDependenciesOutput, error) {
-	path := "/scpm/dependencies"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.Name != nil {
-		query.Set("name", string(*in.Name))
-	}
-	if in.Version != nil {
-		query.Set("version", string(*in.Version))
-	}
-	if in.Platform != nil {
-		query.Set("platform", string(*in.Platform))
-	}
-	if in.Pinned != nil {
-		query.Set("pinned", strconv.FormatBool(*in.Pinned))
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsGetDependenciesOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
 // CreateScpmDependenciesAnalyzeInput is the input for CreateScpmDependenciesAnalyze — Request malware analysis for a dependency.
 type CreateScpmDependenciesAnalyzeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Ecosystem string `json:"ecosystem"`
 	IdempotencyKey *string `json:"idempotencyKey,omitempty"`
 	Name string `json:"name"`
 	PreviousVersion *string `json:"previousVersion,omitempty"`
 	Version string `json:"version"`
+	models.RequestScope
 }
 
 // CreateScpmDependenciesAnalyze - Request malware analysis for a dependency
@@ -136,6 +98,10 @@ func (c *Client) CreateScpmDependenciesAnalyze(ctx context.Context, in CreateScp
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
@@ -171,7 +137,9 @@ func (c *Client) CreateScpmDependenciesAnalyze(ctx context.Context, in CreateScp
 
 // CreateScpmDependenciesQueryBatchInput is the input for CreateScpmDependenciesQueryBatch — Batch query vulnerabilities + malware verdict for dependencies.
 type CreateScpmDependenciesQueryBatchInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Packages []models.EndpointsBatchQueryDependencyPackage `json:"packages,omitempty"`
+	models.RequestScope
 }
 
 // CreateScpmDependenciesQueryBatch - Batch query vulnerabilities + malware verdict for dependencies
@@ -183,6 +151,10 @@ func (c *Client) CreateScpmDependenciesQueryBatch(ctx context.Context, in Create
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
 	if len(query) > 0 {
@@ -210,6 +182,13 @@ func (c *Client) CreateScpmDependenciesQueryBatch(ctx context.Context, in Create
 
 // ListScpmEventsInput is the input for ListScpmEvents — Get SCPM Events.
 type ListScpmEventsInput struct {
+	EventType []string `url:"eventType,omitempty" json:"-"`
+	FindingID *string `url:"findingId,omitempty" json:"-"`
+	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -221,6 +200,27 @@ func (c *Client) ListScpmEvents(ctx context.Context, in ListScpmEventsInput) (*m
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.FromTime != nil {
+		query.Set("fromTime", string(*in.FromTime))
+	}
+	for _, v := range in.EventType {
+		query.Add("eventType", string(v))
+	}
+	if in.FindingID != nil {
+		query.Set("findingId", string(*in.FindingID))
+	}
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -244,16 +244,20 @@ func (c *Client) ListScpmEvents(ctx context.Context, in ListScpmEventsInput) (*m
 type ListScpmFindingsInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FindingType []string `url:"findingType,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Language []string `url:"language,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
 	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
+	RuleID *string `url:"ruleId,omitempty" json:"-"`
 	Severity *string `url:"severity,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
@@ -297,6 +301,15 @@ func (c *Client) ListScpmFindings(ctx context.Context, in ListScpmFindingsInput)
 	for _, v := range in.RepositoryIds {
 		query.Add("repositoryIds", string(v))
 	}
+	if in.RuleID != nil {
+		query.Set("ruleId", string(*in.RuleID))
+	}
+	for _, v := range in.FindingType {
+		query.Add("findingType", string(v))
+	}
+	for _, v := range in.Language {
+		query.Add("language", string(v))
+	}
 	if in.IsResolved != nil {
 		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
@@ -318,6 +331,9 @@ func (c *Client) ListScpmFindings(ctx context.Context, in ListScpmFindingsInput)
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -338,6 +354,7 @@ func (c *Client) ListScpmFindings(ctx context.Context, in ListScpmFindingsInput)
 
 // CreateScpmFindingsAllowlistInput is the input for CreateScpmFindingsAllowlist — Allowlist Batch of SCPM Findings.
 type CreateScpmFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	FindingIds []string `json:"findingIds,omitempty"`
@@ -352,6 +369,9 @@ func (c *Client) CreateScpmFindingsAllowlist(ctx context.Context, in CreateScpmF
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -380,15 +400,21 @@ func (c *Client) CreateScpmFindingsAllowlist(ctx context.Context, in CreateScpmF
 type ListScpmFindingsDetailedInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FindingType []string `url:"findingType,omitempty" json:"-"`
+	GateBase *bool `url:"gateBase,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Language []string `url:"language,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	RuleID *string `url:"ruleId,omitempty" json:"-"`
 	Severity *string `url:"severity,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
@@ -414,6 +440,9 @@ func (c *Client) ListScpmFindingsDetailed(ctx context.Context, in ListScpmFindin
 	if in.PriorityLabel != nil {
 		query.Set("priorityLabel", string(*in.PriorityLabel))
 	}
+	if in.RuleID != nil {
+		query.Set("ruleId", string(*in.RuleID))
+	}
 	if in.Severity != nil {
 		query.Set("severity", string(*in.Severity))
 	}
@@ -423,11 +452,20 @@ func (c *Client) ListScpmFindingsDetailed(ctx context.Context, in ListScpmFindin
 	if in.HasPullRequest != nil {
 		query.Set("hasPullRequest", strconv.FormatBool(*in.HasPullRequest))
 	}
+	for _, v := range in.FindingType {
+		query.Add("findingType", string(v))
+	}
+	for _, v := range in.Language {
+		query.Add("language", string(v))
+	}
 	if in.Branch != nil {
 		query.Set("branch", string(*in.Branch))
 	}
 	if in.Workflow != nil {
 		query.Set("workflow", string(*in.Workflow))
+	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
 	if in.IsResolved != nil {
 		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
@@ -444,11 +482,17 @@ func (c *Client) ListScpmFindingsDetailed(ctx context.Context, in ListScpmFindin
 	if in.IsArchived != nil {
 		query.Set("isArchived", strconv.FormatBool(*in.IsArchived))
 	}
+	if in.GateBase != nil {
+		query.Set("gateBase", strconv.FormatBool(*in.GateBase))
+	}
 	if in.SortBy != nil {
 		query.Set("sortBy", string(*in.SortBy))
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -472,16 +516,20 @@ func (c *Client) ListScpmFindingsDetailed(ctx context.Context, in ListScpmFindin
 type ListScpmFindingsPreviewInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FindingType []string `url:"findingType,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HasPullRequest *bool `url:"hasPullRequest,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsArchived *bool `url:"isArchived,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Language []string `url:"language,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	PriorityLabel *string `url:"priorityLabel,omitempty" json:"-"`
 	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
+	RuleID *string `url:"ruleId,omitempty" json:"-"`
 	Severity *string `url:"severity,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
@@ -525,6 +573,15 @@ func (c *Client) ListScpmFindingsPreview(ctx context.Context, in ListScpmFinding
 	for _, v := range in.RepositoryIds {
 		query.Add("repositoryIds", string(v))
 	}
+	if in.RuleID != nil {
+		query.Set("ruleId", string(*in.RuleID))
+	}
+	for _, v := range in.FindingType {
+		query.Add("findingType", string(v))
+	}
+	for _, v := range in.Language {
+		query.Add("language", string(v))
+	}
 	if in.IsResolved != nil {
 		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
@@ -546,6 +603,9 @@ func (c *Client) ListScpmFindingsPreview(ctx context.Context, in ListScpmFinding
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -564,70 +624,9 @@ func (c *Client) ListScpmFindingsPreview(ctx context.Context, in ListScpmFinding
 	return &out, nil
 }
 
-// CreateScpmFindingsRetriageInput is the input for CreateScpmFindingsRetriage — Retriage Findings.
-type CreateScpmFindingsRetriageInput struct {
-	Branch *string `json:"branch,omitempty"`
-	ContinueOnError *bool `json:"continueOnError,omitempty"`
-	FindingIds []string `json:"findingIds,omitempty"`
-	ForceRetriage *bool `json:"forceRetriage,omitempty"`
-	PriorityMinimum *string `json:"priorityMinimum,omitempty"`
-	RepositoryIds []string `json:"repositoryIds,omitempty"`
-	ReprocessFailedTriages *bool `json:"reprocessFailedTriages,omitempty"`
-	ReprocessFalsePositives *bool `json:"reprocessFalsePositives,omitempty"`
-	models.RequestScope
-}
-
-// CreateScpmFindingsRetriage - Retriage Findings
-// POST /scpm/findings/retriage
-func (c *Client) CreateScpmFindingsRetriage(ctx context.Context, in CreateScpmFindingsRetriageInput) (*models.EndpointsPostRetriageSCPMFindingsOutput, error) {
-	path := "/scpm/findings/retriage"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Branch *string `json:"branch,omitempty"`
-		ContinueOnError *bool `json:"continueOnError,omitempty"`
-		FindingIds []string `json:"findingIds,omitempty"`
-		ForceRetriage *bool `json:"forceRetriage,omitempty"`
-		PriorityMinimum *string `json:"priorityMinimum,omitempty"`
-		RepositoryIds []string `json:"repositoryIds,omitempty"`
-		ReprocessFailedTriages *bool `json:"reprocessFailedTriages,omitempty"`
-		ReprocessFalsePositives *bool `json:"reprocessFalsePositives,omitempty"`
-	}{
-		Branch: in.Branch,
-		ContinueOnError: in.ContinueOnError,
-		FindingIds: in.FindingIds,
-		ForceRetriage: in.ForceRetriage,
-		PriorityMinimum: in.PriorityMinimum,
-		RepositoryIds: in.RepositoryIds,
-		ReprocessFailedTriages: in.ReprocessFailedTriages,
-		ReprocessFalsePositives: in.ReprocessFalsePositives,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsPostRetriageSCPMFindingsOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
 // CreateScpmFindingsUploadInput is the input for CreateScpmFindingsUpload — Get Presigned URL to Upload SCPM Findings.
 type CreateScpmFindingsUploadInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ScanID string `json:"scanId"`
 	models.RequestScope
 }
@@ -640,6 +639,9 @@ func (c *Client) CreateScpmFindingsUpload(ctx context.Context, in CreateScpmFind
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -670,8 +672,12 @@ func (c *Client) CreateScpmFindingsUpload(ctx context.Context, in CreateScpmFind
 // GetScpmFindingsFindingIdInput is the input for GetScpmFindingsFindingId — Get Finding.
 type GetScpmFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetScpmFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetScpmFindingsFindingId - Get Finding
 // GET /scpm/findings/{findingId}
@@ -682,6 +688,9 @@ func (c *Client) GetScpmFindingsFindingId(ctx context.Context, in GetScpmFinding
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -704,10 +713,16 @@ func (c *Client) GetScpmFindingsFindingId(ctx context.Context, in GetScpmFinding
 // PatchScpmFindingsFindingIdInput is the input for PatchScpmFindingsFindingId — Update Finding.
 type PatchScpmFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
 	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+	UserNotes *string `json:"userNotes,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *PatchScpmFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // PatchScpmFindingsFindingId - Update Finding
 // PATCH /scpm/findings/{findingId}
@@ -719,6 +734,9 @@ func (c *Client) PatchScpmFindingsFindingId(ctx context.Context, in PatchScpmFin
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -727,11 +745,15 @@ func (c *Client) PatchScpmFindingsFindingId(ctx context.Context, in PatchScpmFin
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
 		PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 		SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
+		UserNotes *string `json:"userNotes,omitempty"`
 	}{
+		IsFalsePositive: in.IsFalsePositive,
 		PriorityOverride: in.PriorityOverride,
 		SeverityOverride: in.SeverityOverride,
+		UserNotes: in.UserNotes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -750,10 +772,14 @@ func (c *Client) PatchScpmFindingsFindingId(ctx context.Context, in PatchScpmFin
 // CreateScpmFindingsFindingIdAllowlistInput is the input for CreateScpmFindingsFindingIdAllowlist — Allowlist Finding.
 type CreateScpmFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScpmFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScpmFindingsFindingIdAllowlist - Allowlist Finding
 // POST /scpm/findings/{findingId}/allowlist
@@ -764,6 +790,9 @@ func (c *Client) CreateScpmFindingsFindingIdAllowlist(ctx context.Context, in Cr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -796,10 +825,14 @@ func (c *Client) CreateScpmFindingsFindingIdAllowlist(ctx context.Context, in Cr
 // ListScpmFindingsFindingIdAutofixActivityInput is the input for ListScpmFindingsFindingIdAutofixActivity — Get SCPM Finding Autofix Activity.
 type ListScpmFindingsFindingIdAutofixActivityInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int32 `url:"limit,omitempty" json:"-"`
 	SinceID *string `url:"since_id,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScpmFindingsFindingIdAutofixActivityInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScpmFindingsFindingIdAutofixActivity - Get SCPM Finding Autofix Activity
 // GET /scpm/findings/{findingId}/autofix/activity
@@ -816,6 +849,9 @@ func (c *Client) ListScpmFindingsFindingIdAutofixActivity(ctx context.Context, i
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -835,128 +871,19 @@ func (c *Client) ListScpmFindingsFindingIdAutofixActivity(ctx context.Context, i
 	return &out, nil
 }
 
-// CreateScpmFindingsFindingIdAutofixCacheInput is the input for CreateScpmFindingsFindingIdAutofixCache — Cache Autofix.
-type CreateScpmFindingsFindingIdAutofixCacheInput struct {
-	FindingID string `path:"findingId" json:"-"`
-	Force *bool `json:"force,omitempty"`
-	models.RequestScope
-}
-
-// CreateScpmFindingsFindingIdAutofixCache - Cache Autofix
-// POST /scpm/findings/{findingId}/autofix/cache
-func (c *Client) CreateScpmFindingsFindingIdAutofixCache(ctx context.Context, in CreateScpmFindingsFindingIdAutofixCacheInput) ([]byte, error) {
-	path := "/scpm/findings/{findingId}/autofix/cache"
-	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Force *bool `json:"force,omitempty"`
-	}{
-		Force: in.Force,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	return data, err
-}
-
-// CreateScpmFindingsFindingIdAutofixCacheCreatePrInput is the input for CreateScpmFindingsFindingIdAutofixCacheCreatePr — Create Pull Request from Cached Fix.
-type CreateScpmFindingsFindingIdAutofixCacheCreatePrInput struct {
-	FindingID string `path:"findingId" json:"-"`
-	Message *string `json:"message,omitempty"`
-	models.RequestScope
-}
-
-// CreateScpmFindingsFindingIdAutofixCacheCreatePr - Create Pull Request from Cached Fix
-// POST /scpm/findings/{findingId}/autofix/cache/create_pr
-func (c *Client) CreateScpmFindingsFindingIdAutofixCacheCreatePr(ctx context.Context, in CreateScpmFindingsFindingIdAutofixCacheCreatePrInput) (*models.EndpointsPostCreatePullRequestSCPMFindingOutput, error) {
-	path := "/scpm/findings/{findingId}/autofix/cache/create_pr"
-	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Message *string `json:"message,omitempty"`
-	}{
-		Message: in.Message,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsPostCreatePullRequestSCPMFindingOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListScpmFindingsFindingIdAutofixCacheDiffInput is the input for ListScpmFindingsFindingIdAutofixCacheDiff — Get SCPM Finding Autofix Diff.
-type ListScpmFindingsFindingIdAutofixCacheDiffInput struct {
-	FindingID string `path:"findingId" json:"-"`
-	models.RequestScope
-}
-
-// ListScpmFindingsFindingIdAutofixCacheDiff - Get SCPM Finding Autofix Diff
-// GET /scpm/findings/{findingId}/autofix/cache/diff
-func (c *Client) ListScpmFindingsFindingIdAutofixCacheDiff(ctx context.Context, in ListScpmFindingsFindingIdAutofixCacheDiffInput) (*models.EndpointsGetSCPMFindingFixOutput, error) {
-	path := "/scpm/findings/{findingId}/autofix/cache/diff"
-	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsGetSCPMFindingFixOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
 // CreateScpmFindingsFindingIdAutofixFixInput is the input for CreateScpmFindingsFindingIdAutofixFix — Autofix Finding.
 type CreateScpmFindingsFindingIdAutofixFixInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	Force *bool `json:"force,omitempty"`
 	Message *string `json:"message,omitempty"`
 	OriginCampaignID *string `json:"originCampaignId,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScpmFindingsFindingIdAutofixFixInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScpmFindingsFindingIdAutofixFix - Autofix Finding
 // POST /scpm/findings/{findingId}/autofix/fix
@@ -967,6 +894,9 @@ func (c *Client) CreateScpmFindingsFindingIdAutofixFix(ctx context.Context, in C
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1003,8 +933,12 @@ func (c *Client) CreateScpmFindingsFindingIdAutofixFix(ctx context.Context, in C
 // ListScpmFindingsFindingIdAutofixStateInput is the input for ListScpmFindingsFindingIdAutofixState — Get SCPM Finding Autofix State.
 type ListScpmFindingsFindingIdAutofixStateInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScpmFindingsFindingIdAutofixStateInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScpmFindingsFindingIdAutofixState - Get SCPM Finding Autofix State
 // GET /scpm/findings/{findingId}/autofix/state
@@ -1015,6 +949,9 @@ func (c *Client) ListScpmFindingsFindingIdAutofixState(ctx context.Context, in L
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1037,8 +974,12 @@ func (c *Client) ListScpmFindingsFindingIdAutofixState(ctx context.Context, in L
 // ListScpmFindingsFindingIdAutofixStatusInput is the input for ListScpmFindingsFindingIdAutofixStatus — Get SCPM Finding Autofix Status.
 type ListScpmFindingsFindingIdAutofixStatusInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScpmFindingsFindingIdAutofixStatusInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScpmFindingsFindingIdAutofixStatus - Get SCPM Finding Autofix Status
 // GET /scpm/findings/{findingId}/autofix/status
@@ -1049,6 +990,9 @@ func (c *Client) ListScpmFindingsFindingIdAutofixStatus(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1071,8 +1015,13 @@ func (c *Client) ListScpmFindingsFindingIdAutofixStatus(ctx context.Context, in 
 // ListScpmFindingsFindingIdEventsInput is the input for ListScpmFindingsFindingIdEvents — Get Finding Events.
 type ListScpmFindingsFindingIdEventsInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScpmFindingsFindingIdEventsInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScpmFindingsFindingIdEvents - Get Finding Events
 // GET /scpm/findings/{findingId}/events
@@ -1083,6 +1032,12 @@ func (c *Client) ListScpmFindingsFindingIdEvents(ctx context.Context, in ListScp
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1102,11 +1057,121 @@ func (c *Client) ListScpmFindingsFindingIdEvents(ctx context.Context, in ListScp
 	return &out, nil
 }
 
+// DeleteScpmFindingsFindingIdTicketInput is the input for DeleteScpmFindingsFindingIdTicket — Delete Ticket for SCPM Finding.
+type DeleteScpmFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *DeleteScpmFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// DeleteScpmFindingsFindingIdTicket - Delete Ticket for SCPM Finding
+// DELETE /scpm/findings/{findingId}/ticket
+func (c *Client) DeleteScpmFindingsFindingIdTicket(ctx context.Context, in DeleteScpmFindingsFindingIdTicketInput) (*models.EndpointsDeleteTicketSCPMFindingOutput, error) {
+	path := "/scpm/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScpmFindingsFindingIdTicketInput is the input for CreateScpmFindingsFindingIdTicket — Create Ticket for SCPM Finding.
+type CreateScpmFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Assignees []models.ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScpmFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// CreateScpmFindingsFindingIdTicket - Create Ticket for SCPM Finding
+// POST /scpm/findings/{findingId}/ticket
+func (c *Client) CreateScpmFindingsFindingIdTicket(ctx context.Context, in CreateScpmFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketSCPMFindingOutput, error) {
+	path := "/scpm/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Assignees []models.ModelsUser `json:"assignees,omitempty"`
+		CampaignID *string `json:"campaignId,omitempty"`
+		CampaignTitle *string `json:"campaignTitle,omitempty"`
+		Message *string `json:"message,omitempty"`
+		Project *string `json:"project,omitempty"`
+		UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+	}{
+		Assignees: in.Assignees,
+		CampaignID: in.CampaignID,
+		CampaignTitle: in.CampaignTitle,
+		Message: in.Message,
+		Project: in.Project,
+		UserCanonicalID: in.UserCanonicalID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCreateTicketSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListScpmFindingsFindingIdTriageInput is the input for ListScpmFindingsFindingIdTriage — Get Triaged Finding.
 type ListScpmFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScpmFindingsFindingIdTriageInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScpmFindingsFindingIdTriage - Get Triaged Finding
 // GET /scpm/findings/{findingId}/triage
@@ -1117,6 +1182,9 @@ func (c *Client) ListScpmFindingsFindingIdTriage(ctx context.Context, in ListScp
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1139,9 +1207,13 @@ func (c *Client) ListScpmFindingsFindingIdTriage(ctx context.Context, in ListScp
 // CreateScpmFindingsFindingIdUnallowlistInput is the input for CreateScpmFindingsFindingIdUnallowlist — Unallowlist Finding.
 type CreateScpmFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UnallowlistReason string `json:"unallowlistReason"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScpmFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScpmFindingsFindingIdUnallowlist - Unallowlist Finding
 // POST /scpm/findings/{findingId}/unallowlist
@@ -1152,6 +1224,9 @@ func (c *Client) CreateScpmFindingsFindingIdUnallowlist(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1170,4 +1245,286 @@ func (c *Client) CreateScpmFindingsFindingIdUnallowlist(ctx context.Context, in 
 	}
 	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
 	return data, err
+}
+
+// CreateScpmFindingsFindingIdUnmarkFalsePositiveInput is the input for CreateScpmFindingsFindingIdUnmarkFalsePositive — Unmark SCPM Finding as False Positive.
+type CreateScpmFindingsFindingIdUnmarkFalsePositiveInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScpmFindingsFindingIdUnmarkFalsePositiveInput) SetFindingID(id string) { in.FindingID = id }
+
+// CreateScpmFindingsFindingIdUnmarkFalsePositive - Unmark SCPM Finding as False Positive
+// POST /scpm/findings/{findingId}/unmark-false-positive
+func (c *Client) CreateScpmFindingsFindingIdUnmarkFalsePositive(ctx context.Context, in CreateScpmFindingsFindingIdUnmarkFalsePositiveInput) (*models.EndpointsPostUnmarkFalsePositiveSCPMFindingOutput, error) {
+	path := "/scpm/findings/{findingId}/unmark-false-positive"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnmarkFalsePositiveSCPMFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmFindingsFindingIdUsersInput is the input for ListScpmFindingsFindingIdUsers — Get Finding Users.
+type ListScpmFindingsFindingIdUsersInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScpmFindingsFindingIdUsersInput) SetFindingID(id string) { in.FindingID = id }
+
+// ListScpmFindingsFindingIdUsers - Get Finding Users
+// GET /scpm/findings/{findingId}/users
+func (c *Client) ListScpmFindingsFindingIdUsers(ctx context.Context, in ListScpmFindingsFindingIdUsersInput) (*models.EndpointsGetSCPMFindingUsersOutput, error) {
+	path := "/scpm/findings/{findingId}/users"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMFindingUsersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmRepositoriesInput is the input for ListScpmRepositories — Get Repositories.
+type ListScpmRepositoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListScpmRepositories - Get Repositories
+// GET /scpm/repositories
+func (c *Client) ListScpmRepositories(ctx context.Context, in ListScpmRepositoriesInput) (*models.EndpointsGetSCPMRepositoriesOutput, error) {
+	path := "/scpm/repositories"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMRepositoriesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmScanRunsInput is the input for ListScpmScanRuns — List Scan Runs.
+type ListScpmScanRunsInput struct {
+	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Sort *string `url:"sort,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListScpmScanRuns - List Scan Runs
+// GET /scpm/scan-runs
+func (c *Client) ListScpmScanRuns(ctx context.Context, in ListScpmScanRunsInput) (*models.EndpointsGetScanRunsOutput, error) {
+	path := "/scpm/scan-runs"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Sort != nil {
+		query.Set("sort", string(*in.Sort))
+	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetScanRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScpmSettingsInput is the input for ListScpmSettings — Get SCPM Settings.
+type ListScpmSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListScpmSettings - Get SCPM Settings
+// GET /scpm/settings
+func (c *Client) ListScpmSettings(ctx context.Context, in ListScpmSettingsInput) (*models.EndpointsGetSCPMSettingsOutput, error) {
+	path := "/scpm/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCPMSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateScpmSettingsInput is the input for UpdateScpmSettings — Put SCPM Settings.
+type UpdateScpmSettingsInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AcceptedLicenses []string `json:"acceptedLicenses,omitempty"`
+	CooldownDays int `json:"cooldownDays"`
+	CooldownEnabled bool `json:"cooldownEnabled"`
+	CooldownOverrides map[string]int `json:"cooldownOverrides,omitempty"`
+	CooldownWarnOnly *bool `json:"cooldownWarnOnly,omitempty"`
+	PackageAllowlist []models.ModelsSCPMPackageAllowlistEntry `json:"packageAllowlist,omitempty"`
+	models.RequestScope
+}
+
+// UpdateScpmSettings - Put SCPM Settings
+// PUT /scpm/settings
+func (c *Client) UpdateScpmSettings(ctx context.Context, in UpdateScpmSettingsInput) (*models.EndpointsPutSCPMSettingsOutput, error) {
+	path := "/scpm/settings"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AcceptedLicenses []string `json:"acceptedLicenses,omitempty"`
+		CooldownDays int `json:"cooldownDays"`
+		CooldownEnabled bool `json:"cooldownEnabled"`
+		CooldownOverrides map[string]int `json:"cooldownOverrides,omitempty"`
+		CooldownWarnOnly *bool `json:"cooldownWarnOnly,omitempty"`
+		PackageAllowlist []models.ModelsSCPMPackageAllowlistEntry `json:"packageAllowlist,omitempty"`
+	}{
+		AcceptedLicenses: in.AcceptedLicenses,
+		CooldownDays: in.CooldownDays,
+		CooldownEnabled: in.CooldownEnabled,
+		CooldownOverrides: in.CooldownOverrides,
+		CooldownWarnOnly: in.CooldownWarnOnly,
+		PackageAllowlist: in.PackageAllowlist,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutSCPMSettingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }

@@ -23,9 +23,10 @@ var _ = models.RequestScope{}
 
 // ListScaContainersFindingsInput is the input for ListScaContainersFindings — Get SCA Container Findings.
 type ListScaContainersFindingsInput struct {
-	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	AutoFixState *models.ModelsAutoFixState `url:"autoFixState,omitempty" json:"-"`
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
@@ -87,6 +88,9 @@ func (c *Client) ListScaContainersFindings(ctx context.Context, in ListScaContai
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -109,6 +113,7 @@ func (c *Client) ListScaContainersFindings(ctx context.Context, in ListScaContai
 type ListScaContainersFindingsDetailedInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
@@ -116,6 +121,7 @@ type ListScaContainersFindingsDetailedInput struct {
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Package *string `url:"package,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
 	Workflow *string `url:"workflow,omitempty" json:"-"`
@@ -149,6 +155,9 @@ func (c *Client) ListScaContainersFindingsDetailed(ctx context.Context, in ListS
 	if in.Workflow != nil {
 		query.Set("workflow", string(*in.Workflow))
 	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
 	if in.IsFalsePositive != nil {
 		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
@@ -166,6 +175,9 @@ func (c *Client) ListScaContainersFindingsDetailed(ctx context.Context, in ListS
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -187,9 +199,10 @@ func (c *Client) ListScaContainersFindingsDetailed(ctx context.Context, in ListS
 
 // ListScaContainersFindingsPreviewInput is the input for ListScaContainersFindingsPreview — Get SCA Container Findings Preview.
 type ListScaContainersFindingsPreviewInput struct {
-	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	AutoFixState *models.ModelsAutoFixState `url:"autoFixState,omitempty" json:"-"`
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
@@ -251,6 +264,9 @@ func (c *Client) ListScaContainersFindingsPreview(ctx context.Context, in ListSc
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -272,8 +288,12 @@ func (c *Client) ListScaContainersFindingsPreview(ctx context.Context, in ListSc
 // GetScaContainersFindingsFindingIdInput is the input for GetScaContainersFindingsFindingId — Get Container Finding.
 type GetScaContainersFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetScaContainersFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetScaContainersFindingsFindingId - Get Container Finding
 // GET /sca/containers/findings/{findingId}
@@ -284,6 +304,9 @@ func (c *Client) GetScaContainersFindingsFindingId(ctx context.Context, in GetSc
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -306,10 +329,14 @@ func (c *Client) GetScaContainersFindingsFindingId(ctx context.Context, in GetSc
 // PatchScaContainersFindingsFindingIdInput is the input for PatchScaContainersFindingsFindingId — Update Container Finding.
 type PatchScaContainersFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *PatchScaContainersFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // PatchScaContainersFindingsFindingId - Update Container Finding
 // PATCH /sca/containers/findings/{findingId}
@@ -320,6 +347,9 @@ func (c *Client) PatchScaContainersFindingsFindingId(ctx context.Context, in Pat
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -352,10 +382,14 @@ func (c *Client) PatchScaContainersFindingsFindingId(ctx context.Context, in Pat
 // CreateScaContainersFindingsFindingIdAllowlistInput is the input for CreateScaContainersFindingsFindingIdAllowlist — Allowlist Container Finding.
 type CreateScaContainersFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaContainersFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScaContainersFindingsFindingIdAllowlist - Allowlist Container Finding
 // POST /sca/containers/findings/{findingId}/allowlist
@@ -366,6 +400,9 @@ func (c *Client) CreateScaContainersFindingsFindingIdAllowlist(ctx context.Conte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -391,10 +428,14 @@ func (c *Client) CreateScaContainersFindingsFindingIdAllowlist(ctx context.Conte
 // ListScaContainersFindingsFindingIdAutofixActivityInput is the input for ListScaContainersFindingsFindingIdAutofixActivity — Get SCA Container Finding Autofix Activity.
 type ListScaContainersFindingsFindingIdAutofixActivityInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int32 `url:"limit,omitempty" json:"-"`
 	SinceID *string `url:"since_id,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdAutofixActivityInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaContainersFindingsFindingIdAutofixActivity - Get SCA Container Finding Autofix Activity
 // GET /sca/containers/findings/{findingId}/autofix/activity
@@ -411,6 +452,9 @@ func (c *Client) ListScaContainersFindingsFindingIdAutofixActivity(ctx context.C
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -433,12 +477,16 @@ func (c *Client) ListScaContainersFindingsFindingIdAutofixActivity(ctx context.C
 // CreateScaContainersFindingsFindingIdAutofixFixInput is the input for CreateScaContainersFindingsFindingIdAutofixFix — Fix Container Findings.
 type CreateScaContainersFindingsFindingIdAutofixFixInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	Force *bool `json:"force,omitempty"`
 	Message *string `json:"message,omitempty"`
 	OriginCampaignID *string `json:"originCampaignId,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaContainersFindingsFindingIdAutofixFixInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScaContainersFindingsFindingIdAutofixFix - Fix Container Findings
 // POST /sca/containers/findings/{findingId}/autofix/fix
@@ -449,6 +497,9 @@ func (c *Client) CreateScaContainersFindingsFindingIdAutofixFix(ctx context.Cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -485,8 +536,12 @@ func (c *Client) CreateScaContainersFindingsFindingIdAutofixFix(ctx context.Cont
 // ListScaContainersFindingsFindingIdAutofixStateInput is the input for ListScaContainersFindingsFindingIdAutofixState — Get Container Finding Autofix State.
 type ListScaContainersFindingsFindingIdAutofixStateInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdAutofixStateInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaContainersFindingsFindingIdAutofixState - Get Container Finding Autofix State
 // GET /sca/containers/findings/{findingId}/autofix/state
@@ -497,6 +552,9 @@ func (c *Client) ListScaContainersFindingsFindingIdAutofixState(ctx context.Cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -519,8 +577,12 @@ func (c *Client) ListScaContainersFindingsFindingIdAutofixState(ctx context.Cont
 // ListScaContainersFindingsFindingIdAutofixStatusInput is the input for ListScaContainersFindingsFindingIdAutofixStatus — Get Container Finding Autofix Status.
 type ListScaContainersFindingsFindingIdAutofixStatusInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdAutofixStatusInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaContainersFindingsFindingIdAutofixStatus - Get Container Finding Autofix Status
 // GET /sca/containers/findings/{findingId}/autofix/status
@@ -531,6 +593,9 @@ func (c *Client) ListScaContainersFindingsFindingIdAutofixStatus(ctx context.Con
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -553,8 +618,13 @@ func (c *Client) ListScaContainersFindingsFindingIdAutofixStatus(ctx context.Con
 // ListScaContainersFindingsFindingIdEventsInput is the input for ListScaContainersFindingsFindingIdEvents — Get SCA Container Finding Events.
 type ListScaContainersFindingsFindingIdEventsInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdEventsInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaContainersFindingsFindingIdEvents - Get SCA Container Finding Events
 // GET /sca/containers/findings/{findingId}/events
@@ -565,6 +635,12 @@ func (c *Client) ListScaContainersFindingsFindingIdEvents(ctx context.Context, i
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -584,9 +660,51 @@ func (c *Client) ListScaContainersFindingsFindingIdEvents(ctx context.Context, i
 	return &out, nil
 }
 
-// CreateScaContainersFindingsFindingIdTicketInput is the input for CreateScaContainersFindingsFindingIdTicket — Create Jira Ticket.
+// DeleteScaContainersFindingsFindingIdTicketInput is the input for DeleteScaContainersFindingsFindingIdTicket — Delete Ticket for Container Finding.
+type DeleteScaContainersFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *DeleteScaContainersFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// DeleteScaContainersFindingsFindingIdTicket - Delete Ticket for Container Finding
+// DELETE /sca/containers/findings/{findingId}/ticket
+func (c *Client) DeleteScaContainersFindingsFindingIdTicket(ctx context.Context, in DeleteScaContainersFindingsFindingIdTicketInput) (*models.EndpointsDeleteTicketSCAFindingOutput, error) {
+	path := "/sca/containers/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSCAFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaContainersFindingsFindingIdTicketInput is the input for CreateScaContainersFindingsFindingIdTicket — Create Ticket.
 type CreateScaContainersFindingsFindingIdTicketInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	CampaignTitle *string `json:"campaignTitle,omitempty"`
@@ -595,7 +713,10 @@ type CreateScaContainersFindingsFindingIdTicketInput struct {
 	models.RequestScope
 }
 
-// CreateScaContainersFindingsFindingIdTicket - Create Jira Ticket
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaContainersFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// CreateScaContainersFindingsFindingIdTicket - Create Ticket
 // POST /sca/containers/findings/{findingId}/ticket
 func (c *Client) CreateScaContainersFindingsFindingIdTicket(ctx context.Context, in CreateScaContainersFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketDependencyFindingOutput, error) {
 	path := "/sca/containers/findings/{findingId}/ticket"
@@ -604,6 +725,9 @@ func (c *Client) CreateScaContainersFindingsFindingIdTicket(ctx context.Context,
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -642,8 +766,12 @@ func (c *Client) CreateScaContainersFindingsFindingIdTicket(ctx context.Context,
 // ListScaContainersFindingsFindingIdTriageInput is the input for ListScaContainersFindingsFindingIdTriage — Get Triaged Finding.
 type ListScaContainersFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdTriageInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaContainersFindingsFindingIdTriage - Get Triaged Finding
 // GET /sca/containers/findings/{findingId}/triage
@@ -654,6 +782,9 @@ func (c *Client) ListScaContainersFindingsFindingIdTriage(ctx context.Context, i
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -673,12 +804,106 @@ func (c *Client) ListScaContainersFindingsFindingIdTriage(ctx context.Context, i
 	return &out, nil
 }
 
+// ListScaContainersFindingsFindingIdTriageActivityInput is the input for ListScaContainersFindingsFindingIdTriageActivity — Get SCA Container Finding Triage Activity.
+type ListScaContainersFindingsFindingIdTriageActivityInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	SinceID *string `url:"since_id,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdTriageActivityInput) SetFindingID(id string) { in.FindingID = id }
+
+// ListScaContainersFindingsFindingIdTriageActivity - Get SCA Container Finding Triage Activity
+// GET /sca/containers/findings/{findingId}/triage/activity
+func (c *Client) ListScaContainersFindingsFindingIdTriageActivity(ctx context.Context, in ListScaContainersFindingsFindingIdTriageActivityInput) (*models.EndpointsGetTriageActivityLogOutput, error) {
+	path := "/sca/containers/findings/{findingId}/triage/activity"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.SinceID != nil {
+		query.Set("since_id", string(*in.SinceID))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTriageActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaContainersFindingsFindingIdTriageStatusInput is the input for ListScaContainersFindingsFindingIdTriageStatus — Get SCA Container Finding Triage Status.
+type ListScaContainersFindingsFindingIdTriageStatusInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdTriageStatusInput) SetFindingID(id string) { in.FindingID = id }
+
+// ListScaContainersFindingsFindingIdTriageStatus - Get SCA Container Finding Triage Status
+// GET /sca/containers/findings/{findingId}/triage/status
+func (c *Client) ListScaContainersFindingsFindingIdTriageStatus(ctx context.Context, in ListScaContainersFindingsFindingIdTriageStatusInput) (*models.EndpointsTriageStatusOutput, error) {
+	path := "/sca/containers/findings/{findingId}/triage/status"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsTriageStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateScaContainersFindingsFindingIdUnallowlistInput is the input for CreateScaContainersFindingsFindingIdUnallowlist — Unallowlist Container Finding.
 type CreateScaContainersFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UnallowlistReason string `json:"unallowlistReason"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaContainersFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScaContainersFindingsFindingIdUnallowlist - Unallowlist Container Finding
 // POST /sca/containers/findings/{findingId}/unallowlist
@@ -689,6 +914,9 @@ func (c *Client) CreateScaContainersFindingsFindingIdUnallowlist(ctx context.Con
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -712,8 +940,12 @@ func (c *Client) CreateScaContainersFindingsFindingIdUnallowlist(ctx context.Con
 // ListScaContainersFindingsFindingIdUsersInput is the input for ListScaContainersFindingsFindingIdUsers — Get Finding Related Users.
 type ListScaContainersFindingsFindingIdUsersInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaContainersFindingsFindingIdUsersInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaContainersFindingsFindingIdUsers - Get Finding Related Users
 // GET /sca/containers/findings/{findingId}/users
@@ -724,6 +956,9 @@ func (c *Client) ListScaContainersFindingsFindingIdUsers(ctx context.Context, in
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -745,9 +980,11 @@ func (c *Client) ListScaContainersFindingsFindingIdUsers(ctx context.Context, in
 
 // ListScaDependenciesFindingsInput is the input for ListScaDependenciesFindings — Get SCA Dependency Findings.
 type ListScaDependenciesFindingsInput struct {
-	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	AutoFixState *models.ModelsAutoFixState `url:"autoFixState,omitempty" json:"-"`
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	HasMultipleVersions *bool `url:"hasMultipleVersions,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
@@ -800,6 +1037,9 @@ func (c *Client) ListScaDependenciesFindings(ctx context.Context, in ListScaDepe
 	if in.IsResolved != nil {
 		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
+	if in.HasMultipleVersions != nil {
+		query.Set("hasMultipleVersions", strconv.FormatBool(*in.HasMultipleVersions))
+	}
 	if in.AutoFixState != nil {
 		query.Set("autoFixState", string(*in.AutoFixState))
 	}
@@ -808,6 +1048,9 @@ func (c *Client) ListScaDependenciesFindings(ctx context.Context, in ListScaDepe
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -831,6 +1074,8 @@ func (c *Client) ListScaDependenciesFindings(ctx context.Context, in ListScaDepe
 type ListScaDependenciesFindingsDetailedInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	HasMultipleVersions *bool `url:"hasMultipleVersions,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
@@ -838,6 +1083,7 @@ type ListScaDependenciesFindingsDetailedInput struct {
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Package *string `url:"package,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
 	Workflow *string `url:"workflow,omitempty" json:"-"`
@@ -871,6 +1117,9 @@ func (c *Client) ListScaDependenciesFindingsDetailed(ctx context.Context, in Lis
 	if in.Workflow != nil {
 		query.Set("workflow", string(*in.Workflow))
 	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
 	if in.IsFalsePositive != nil {
 		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
@@ -883,11 +1132,17 @@ func (c *Client) ListScaDependenciesFindingsDetailed(ctx context.Context, in Lis
 	if in.IsResolved != nil {
 		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
+	if in.HasMultipleVersions != nil {
+		query.Set("hasMultipleVersions", strconv.FormatBool(*in.HasMultipleVersions))
+	}
 	if in.SortBy != nil {
 		query.Set("sortBy", string(*in.SortBy))
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -909,9 +1164,11 @@ func (c *Client) ListScaDependenciesFindingsDetailed(ctx context.Context, in Lis
 
 // ListScaDependenciesFindingsPreviewInput is the input for ListScaDependenciesFindingsPreview — Get SCA Dependency Findings Preview.
 type ListScaDependenciesFindingsPreviewInput struct {
-	AutoFixState *string `url:"autoFixState,omitempty" json:"-"`
+	AutoFixState *models.ModelsAutoFixState `url:"autoFixState,omitempty" json:"-"`
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	HasMultipleVersions *bool `url:"hasMultipleVersions,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsFixed *bool `url:"isFixed,omitempty" json:"-"`
@@ -964,6 +1221,9 @@ func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, in List
 	if in.IsResolved != nil {
 		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
 	}
+	if in.HasMultipleVersions != nil {
+		query.Set("hasMultipleVersions", strconv.FormatBool(*in.HasMultipleVersions))
+	}
 	if in.AutoFixState != nil {
 		query.Set("autoFixState", string(*in.AutoFixState))
 	}
@@ -972,6 +1232,9 @@ func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, in List
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -994,8 +1257,12 @@ func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, in List
 // GetScaDependenciesFindingsFindingIdInput is the input for GetScaDependenciesFindingsFindingId — Get Finding.
 type GetScaDependenciesFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetScaDependenciesFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetScaDependenciesFindingsFindingId - Get Finding
 // GET /sca/dependencies/findings/{findingId}
@@ -1006,6 +1273,9 @@ func (c *Client) GetScaDependenciesFindingsFindingId(ctx context.Context, in Get
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1028,10 +1298,14 @@ func (c *Client) GetScaDependenciesFindingsFindingId(ctx context.Context, in Get
 // PatchScaDependenciesFindingsFindingIdInput is the input for PatchScaDependenciesFindingsFindingId — Update Dependencies Finding.
 type PatchScaDependenciesFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *PatchScaDependenciesFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // PatchScaDependenciesFindingsFindingId - Update Dependencies Finding
 // PATCH /sca/dependencies/findings/{findingId}
@@ -1042,6 +1316,9 @@ func (c *Client) PatchScaDependenciesFindingsFindingId(ctx context.Context, in P
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1074,10 +1351,14 @@ func (c *Client) PatchScaDependenciesFindingsFindingId(ctx context.Context, in P
 // CreateScaDependenciesFindingsFindingIdAllowlistInput is the input for CreateScaDependenciesFindingsFindingIdAllowlist — Allowlist Dependency Finding.
 type CreateScaDependenciesFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaDependenciesFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScaDependenciesFindingsFindingIdAllowlist - Allowlist Dependency Finding
 // POST /sca/dependencies/findings/{findingId}/allowlist
@@ -1088,6 +1369,9 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdAllowlist(ctx context.Con
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1113,10 +1397,14 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdAllowlist(ctx context.Con
 // ListScaDependenciesFindingsFindingIdAutofixActivityInput is the input for ListScaDependenciesFindingsFindingIdAutofixActivity — Get SCA Dependency Finding Autofix Activity.
 type ListScaDependenciesFindingsFindingIdAutofixActivityInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int32 `url:"limit,omitempty" json:"-"`
 	SinceID *string `url:"since_id,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdAutofixActivityInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaDependenciesFindingsFindingIdAutofixActivity - Get SCA Dependency Finding Autofix Activity
 // GET /sca/dependencies/findings/{findingId}/autofix/activity
@@ -1133,6 +1421,9 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixActivity(ctx context
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1155,8 +1446,12 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixActivity(ctx context
 // ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput is the input for ListScaDependenciesFindingsFindingIdAutofixCacheDiff — Get SCA Dependency Finding Fix.
 type ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaDependenciesFindingsFindingIdAutofixCacheDiff - Get SCA Dependency Finding Fix
 // GET /sca/dependencies/findings/{findingId}/autofix/cache/diff
@@ -1167,6 +1462,9 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixCacheDiff(ctx contex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1189,12 +1487,16 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixCacheDiff(ctx contex
 // CreateScaDependenciesFindingsFindingIdAutofixFixInput is the input for CreateScaDependenciesFindingsFindingIdAutofixFix — Fix Dependency Finding.
 type CreateScaDependenciesFindingsFindingIdAutofixFixInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	Force *bool `json:"force,omitempty"`
 	Message *string `json:"message,omitempty"`
 	OriginCampaignID *string `json:"originCampaignId,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaDependenciesFindingsFindingIdAutofixFixInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScaDependenciesFindingsFindingIdAutofixFix - Fix Dependency Finding
 // POST /sca/dependencies/findings/{findingId}/autofix/fix
@@ -1205,6 +1507,9 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdAutofixFix(ctx context.Co
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1241,8 +1546,12 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdAutofixFix(ctx context.Co
 // ListScaDependenciesFindingsFindingIdAutofixStateInput is the input for ListScaDependenciesFindingsFindingIdAutofixState — Get Dependency Finding Autofix State.
 type ListScaDependenciesFindingsFindingIdAutofixStateInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdAutofixStateInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaDependenciesFindingsFindingIdAutofixState - Get Dependency Finding Autofix State
 // GET /sca/dependencies/findings/{findingId}/autofix/state
@@ -1253,6 +1562,9 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixState(ctx context.Co
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1275,8 +1587,12 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixState(ctx context.Co
 // ListScaDependenciesFindingsFindingIdAutofixStatusInput is the input for ListScaDependenciesFindingsFindingIdAutofixStatus — Get Dependency Finding Autofix Status.
 type ListScaDependenciesFindingsFindingIdAutofixStatusInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdAutofixStatusInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaDependenciesFindingsFindingIdAutofixStatus - Get Dependency Finding Autofix Status
 // GET /sca/dependencies/findings/{findingId}/autofix/status
@@ -1287,6 +1603,9 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixStatus(ctx context.C
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1309,8 +1628,13 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixStatus(ctx context.C
 // ListScaDependenciesFindingsFindingIdEventsInput is the input for ListScaDependenciesFindingsFindingIdEvents — Get SCA Dependency Finding Events.
 type ListScaDependenciesFindingsFindingIdEventsInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdEventsInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaDependenciesFindingsFindingIdEvents - Get SCA Dependency Finding Events
 // GET /sca/dependencies/findings/{findingId}/events
@@ -1321,6 +1645,12 @@ func (c *Client) ListScaDependenciesFindingsFindingIdEvents(ctx context.Context,
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1340,9 +1670,51 @@ func (c *Client) ListScaDependenciesFindingsFindingIdEvents(ctx context.Context,
 	return &out, nil
 }
 
-// CreateScaDependenciesFindingsFindingIdTicketInput is the input for CreateScaDependenciesFindingsFindingIdTicket — Create Jira Ticket.
+// DeleteScaDependenciesFindingsFindingIdTicketInput is the input for DeleteScaDependenciesFindingsFindingIdTicket — Delete Ticket for Dependency Finding.
+type DeleteScaDependenciesFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *DeleteScaDependenciesFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// DeleteScaDependenciesFindingsFindingIdTicket - Delete Ticket for Dependency Finding
+// DELETE /sca/dependencies/findings/{findingId}/ticket
+func (c *Client) DeleteScaDependenciesFindingsFindingIdTicket(ctx context.Context, in DeleteScaDependenciesFindingsFindingIdTicketInput) (*models.EndpointsDeleteTicketSCAFindingOutput, error) {
+	path := "/sca/dependencies/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSCAFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaDependenciesFindingsFindingIdTicketInput is the input for CreateScaDependenciesFindingsFindingIdTicket — Create Ticket.
 type CreateScaDependenciesFindingsFindingIdTicketInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	CampaignTitle *string `json:"campaignTitle,omitempty"`
@@ -1351,7 +1723,10 @@ type CreateScaDependenciesFindingsFindingIdTicketInput struct {
 	models.RequestScope
 }
 
-// CreateScaDependenciesFindingsFindingIdTicket - Create Jira Ticket
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaDependenciesFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// CreateScaDependenciesFindingsFindingIdTicket - Create Ticket
 // POST /sca/dependencies/findings/{findingId}/ticket
 func (c *Client) CreateScaDependenciesFindingsFindingIdTicket(ctx context.Context, in CreateScaDependenciesFindingsFindingIdTicketInput) (*models.EndpointsPostCreateTicketDependencyFindingOutput, error) {
 	path := "/sca/dependencies/findings/{findingId}/ticket"
@@ -1360,6 +1735,9 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdTicket(ctx context.Contex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1398,8 +1776,12 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdTicket(ctx context.Contex
 // ListScaDependenciesFindingsFindingIdTriageInput is the input for ListScaDependenciesFindingsFindingIdTriage — Get Triaged Finding.
 type ListScaDependenciesFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdTriageInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaDependenciesFindingsFindingIdTriage - Get Triaged Finding
 // GET /sca/dependencies/findings/{findingId}/triage
@@ -1410,6 +1792,9 @@ func (c *Client) ListScaDependenciesFindingsFindingIdTriage(ctx context.Context,
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1429,12 +1814,106 @@ func (c *Client) ListScaDependenciesFindingsFindingIdTriage(ctx context.Context,
 	return &out, nil
 }
 
+// ListScaDependenciesFindingsFindingIdTriageActivityInput is the input for ListScaDependenciesFindingsFindingIdTriageActivity — Get SCA Dependency Finding Triage Activity.
+type ListScaDependenciesFindingsFindingIdTriageActivityInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int32 `url:"limit,omitempty" json:"-"`
+	SinceID *string `url:"since_id,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdTriageActivityInput) SetFindingID(id string) { in.FindingID = id }
+
+// ListScaDependenciesFindingsFindingIdTriageActivity - Get SCA Dependency Finding Triage Activity
+// GET /sca/dependencies/findings/{findingId}/triage/activity
+func (c *Client) ListScaDependenciesFindingsFindingIdTriageActivity(ctx context.Context, in ListScaDependenciesFindingsFindingIdTriageActivityInput) (*models.EndpointsGetTriageActivityLogOutput, error) {
+	path := "/sca/dependencies/findings/{findingId}/triage/activity"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.SinceID != nil {
+		query.Set("since_id", string(*in.SinceID))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetTriageActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaDependenciesFindingsFindingIdTriageStatusInput is the input for ListScaDependenciesFindingsFindingIdTriageStatus — Get SCA Dependency Finding Triage Status.
+type ListScaDependenciesFindingsFindingIdTriageStatusInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdTriageStatusInput) SetFindingID(id string) { in.FindingID = id }
+
+// ListScaDependenciesFindingsFindingIdTriageStatus - Get SCA Dependency Finding Triage Status
+// GET /sca/dependencies/findings/{findingId}/triage/status
+func (c *Client) ListScaDependenciesFindingsFindingIdTriageStatus(ctx context.Context, in ListScaDependenciesFindingsFindingIdTriageStatusInput) (*models.EndpointsTriageStatusOutput, error) {
+	path := "/sca/dependencies/findings/{findingId}/triage/status"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsTriageStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateScaDependenciesFindingsFindingIdUnallowlistInput is the input for CreateScaDependenciesFindingsFindingIdUnallowlist — Unallowlist Dependency Finding.
 type CreateScaDependenciesFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UnallowlistReason string `json:"unallowlistReason"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateScaDependenciesFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateScaDependenciesFindingsFindingIdUnallowlist - Unallowlist Dependency Finding
 // POST /sca/dependencies/findings/{findingId}/unallowlist
@@ -1445,6 +1924,9 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdUnallowlist(ctx context.C
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1468,8 +1950,13 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdUnallowlist(ctx context.C
 // ListScaDependenciesFindingsFindingIdUsersInput is the input for ListScaDependenciesFindingsFindingIdUsers — Get Finding Related Users.
 type ListScaDependenciesFindingsFindingIdUsersInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	SourceOwnerOnly *bool `url:"sourceOwnerOnly,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListScaDependenciesFindingsFindingIdUsersInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListScaDependenciesFindingsFindingIdUsers - Get Finding Related Users
 // GET /sca/dependencies/findings/{findingId}/users
@@ -1480,6 +1967,12 @@ func (c *Client) ListScaDependenciesFindingsFindingIdUsers(ctx context.Context, 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.SourceOwnerOnly != nil {
+		query.Set("sourceOwnerOnly", strconv.FormatBool(*in.SourceOwnerOnly))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1505,6 +1998,7 @@ type ListScaEventsInput struct {
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
 	FindingID *string `url:"findingId,omitempty" json:"-"`
 	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
@@ -1541,6 +2035,9 @@ func (c *Client) ListScaEvents(ctx context.Context, in ListScaEventsInput) (*mod
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1561,6 +2058,7 @@ func (c *Client) ListScaEvents(ctx context.Context, in ListScaEventsInput) (*mod
 
 // ListScaRepositoriesInput is the input for ListScaRepositories — Get Repository Stats.
 type ListScaRepositoriesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
@@ -1580,6 +2078,9 @@ func (c *Client) ListScaRepositories(ctx context.Context, in ListScaRepositories
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1602,6 +2103,7 @@ func (c *Client) ListScaRepositories(ctx context.Context, in ListScaRepositories
 // GetScaRepositoriesRepositoryIdInput is the input for GetScaRepositoriesRepositoryId — Get Repository Stats.
 type GetScaRepositoriesRepositoryIdInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1614,6 +2116,9 @@ func (c *Client) GetScaRepositoriesRepositoryId(ctx context.Context, in GetScaRe
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1633,47 +2138,16 @@ func (c *Client) GetScaRepositoriesRepositoryId(ctx context.Context, in GetScaRe
 	return &out, nil
 }
 
-// ListScaRepositoriesRepositoryIdSbomInput is the input for ListScaRepositoriesRepositoryIdSbom — Get Repository SBOM.
-type ListScaRepositoriesRepositoryIdSbomInput struct {
-	RepositoryID string `path:"repositoryId" json:"-"`
-	models.RequestScope
-}
-
-// ListScaRepositoriesRepositoryIdSbom - Get Repository SBOM
-// GET /sca/repositories/{repositoryId}/sbom
-func (c *Client) ListScaRepositoriesRepositoryIdSbom(ctx context.Context, in ListScaRepositoriesRepositoryIdSbomInput) (*models.EndpointsGetSCARepositorySBOMOutput, error) {
-	path := "/sca/repositories/{repositoryId}/sbom"
-	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsGetSCARepositorySBOMOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
 // ListScaScanRunsInput is the input for ListScaScanRuns — List Scan Runs.
 type ListScaScanRunsInput struct {
+	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	ScanType *string `url:"scanType,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1701,6 +2175,15 @@ func (c *Client) ListScaScanRuns(ctx context.Context, in ListScaScanRunsInput) (
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1713,6 +2196,298 @@ func (c *Client) ListScaScanRuns(ctx context.Context, in ListScaScanRunsInput) (
 		return nil, err
 	}
 	var out models.EndpointsGetScanRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaThreatFeedInput is the input for ListScaThreatFeed — List Threat Intelligence Feed.
+type ListScaThreatFeedInput struct {
+	CveID *string `url:"cveId,omitempty" json:"-"`
+	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListScaThreatFeed - List Threat Intelligence Feed
+// GET /sca/threat-feed
+func (c *Client) ListScaThreatFeed(ctx context.Context, in ListScaThreatFeedInput) (*models.EndpointsGetSCAThreatFeedOutput, error) {
+	path := "/sca/threat-feed"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.CveID != nil {
+		query.Set("cveId", string(*in.CveID))
+	}
+	if in.Ecosystem != nil {
+		query.Set("ecosystem", string(*in.Ecosystem))
+	}
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAThreatFeedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetScaThreatFeedThreatIdInput is the input for GetScaThreatFeedThreatId — Get Threat Intelligence Detail.
+type GetScaThreatFeedThreatIdInput struct {
+	ThreatID string `path:"threatId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetScaThreatFeedThreatId - Get Threat Intelligence Detail
+// GET /sca/threat-feed/{threatId}
+func (c *Client) GetScaThreatFeedThreatId(ctx context.Context, in GetScaThreatFeedThreatIdInput) (*models.EndpointsGetSCAThreatFeedThreatOutput, error) {
+	path := "/sca/threat-feed/{threatId}"
+	path = strings.Replace(path, "{threatId}", url.PathEscape(in.ThreatID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAThreatFeedThreatOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaVulnerabilitiesInput is the input for ListScaVulnerabilities — List CVE Exposure Across The Fleet.
+type ListScaVulnerabilitiesInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	KevOnly *bool `url:"kevOnly,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	OpenOnly *bool `url:"openOnly,omitempty" json:"-"`
+	Package *string `url:"package,omitempty" json:"-"`
+	SortBy *string `url:"sortBy,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListScaVulnerabilities - List CVE Exposure Across The Fleet
+// GET /sca/vulnerabilities
+func (c *Client) ListScaVulnerabilities(ctx context.Context, in ListScaVulnerabilitiesInput) (*models.EndpointsGetSCAVulnerabilitiesOutput, error) {
+	path := "/sca/vulnerabilities"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.KevOnly != nil {
+		query.Set("kevOnly", strconv.FormatBool(*in.KevOnly))
+	}
+	if in.OpenOnly != nil {
+		query.Set("openOnly", strconv.FormatBool(*in.OpenOnly))
+	}
+	if in.SortBy != nil {
+		query.Set("sortBy", string(*in.SortBy))
+	}
+	if in.Package != nil {
+		query.Set("package", string(*in.Package))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAVulnerabilitiesOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetScaVulnerabilitiesCveIdInput is the input for GetScaVulnerabilitiesCveId — Get CVE Intelligence.
+type GetScaVulnerabilitiesCveIdInput struct {
+	CveID string `path:"cveId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetScaVulnerabilitiesCveId - Get CVE Intelligence
+// GET /sca/vulnerabilities/{cveId}
+func (c *Client) GetScaVulnerabilitiesCveId(ctx context.Context, in GetScaVulnerabilitiesCveIdInput) (*models.EndpointsGetSCAVulnerabilityOutput, error) {
+	path := "/sca/vulnerabilities/{cveId}"
+	path = strings.Replace(path, "{cveId}", url.PathEscape(in.CveID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAVulnerabilityOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaVulnerabilitiesCveIdFindingsInput is the input for ListScaVulnerabilitiesCveIdFindings — List Findings For A CVE.
+type ListScaVulnerabilitiesCveIdFindingsInput struct {
+	CveID string `path:"cveId" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	Type *string `url:"type,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListScaVulnerabilitiesCveIdFindings - List Findings For A CVE
+// GET /sca/vulnerabilities/{cveId}/findings
+func (c *Client) ListScaVulnerabilitiesCveIdFindings(ctx context.Context, in ListScaVulnerabilitiesCveIdFindingsInput) (*models.EndpointsGetSCAVulnerabilityFindingsOutput, error) {
+	path := "/sca/vulnerabilities/{cveId}/findings"
+	path = strings.Replace(path, "{cveId}", url.PathEscape(in.CveID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Type != nil {
+		query.Set("type", string(*in.Type))
+	}
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
+	}
+	if in.IsResolved != nil {
+		query.Set("isResolved", strconv.FormatBool(*in.IsResolved))
+	}
+	for _, v := range in.FileOwnerName {
+		query.Add("fileOwnerName", string(v))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAVulnerabilityFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListScaVulnerabilitiesCveIdPackagesInput is the input for ListScaVulnerabilitiesCveIdPackages — List Packages Affected By A CVE.
+type ListScaVulnerabilitiesCveIdPackagesInput struct {
+	CveID string `path:"cveId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListScaVulnerabilitiesCveIdPackages - List Packages Affected By A CVE
+// GET /sca/vulnerabilities/{cveId}/packages
+func (c *Client) ListScaVulnerabilitiesCveIdPackages(ctx context.Context, in ListScaVulnerabilitiesCveIdPackagesInput) (*models.EndpointsGetSCAVulnerabilityPackagesOutput, error) {
+	path := "/sca/vulnerabilities/{cveId}/packages"
+	path = strings.Replace(path, "{cveId}", url.PathEscape(in.CveID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSCAVulnerabilityPackagesOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}

@@ -3,17 +3,6 @@ package models
 
 import "encoding/json"
 
-type DependenciesDependencyUsage struct {
-	IsPinned *bool `json:"isPinned,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Platform *string `json:"platform,omitempty"`
-	RepositoryID *string `json:"repositoryId,omitempty"`
-	StepName *string `json:"stepName,omitempty"`
-	TenantID *string `json:"tenantId,omitempty"`
-	VersionRef *string `json:"versionRef,omitempty"`
-	WorkflowFile *string `json:"workflowFile,omitempty"`
-}
-
 type EndpointsAnalyzeContainerInput struct {
 	IdempotencyKey *string `json:"idempotencyKey,omitempty"`
 	PreviousReference *string `json:"previousReference,omitempty"`
@@ -51,21 +40,39 @@ type EndpointsBatchQueryDependenciesInput struct {
 }
 
 type EndpointsBatchQueryDependenciesOutput struct {
+	IntegrityBudgetExhausted *bool `json:"integrityBudgetExhausted,omitempty"`
 	Results []EndpointsBatchQueryDependencyResult `json:"results,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsBatchQueryDependencyPackage struct {
 	Ecosystem string `json:"ecosystem"`
+	Integrity *string `json:"integrity,omitempty"`
 	Name string `json:"name"`
+	Provenance *string `json:"provenance,omitempty"`
+	RegistryHost *string `json:"registryHost,omitempty"`
+	ResolvedURL *string `json:"resolvedUrl,omitempty"`
 	Version string `json:"version"`
 }
 
 type EndpointsBatchQueryDependencyResult struct {
+	AdvisoriesUnavailable *bool `json:"advisoriesUnavailable,omitempty"`
+	AllowlistExpiresAt *string `json:"allowlistExpiresAt,omitempty"`
+	AllowlistReason *string `json:"allowlistReason,omitempty"`
+	Allowlisted *bool `json:"allowlisted,omitempty"`
+	AnalysisStatus *string `json:"analysisStatus,omitempty"`
 	Ecosystem *string `json:"ecosystem,omitempty"`
+	Found *bool `json:"found,omitempty"`
+	IdentityMismatch *bool `json:"identityMismatch,omitempty"`
+	IdentityMismatchReason *string `json:"identityMismatchReason,omitempty"`
+	IntegrityUnchecked *bool `json:"integrityUnchecked,omitempty"`
+	IntegrityUncheckedReason *string `json:"integrityUncheckedReason,omitempty"`
+	IntegrityVerified *bool `json:"integrityVerified,omitempty"`
 	IsMalicious *bool `json:"isMalicious,omitempty"`
 	MalwareVerdict *string `json:"malwareVerdict,omitempty"`
 	Name *string `json:"name,omitempty"`
+	ProvenanceMissing *bool `json:"provenanceMissing,omitempty"`
+	ProvenanceVerified *bool `json:"provenanceVerified,omitempty"`
 	Version *string `json:"version,omitempty"`
 	Vulnerabilities []EndpointsBatchQueryVulnInfo `json:"vulnerabilities,omitempty"`
 }
@@ -81,14 +88,13 @@ type EndpointsBatchQueryVulnInfo struct {
 	Summary *string `json:"summary,omitempty"`
 }
 
-type EndpointsGetDependenciesOutput struct {
-	Dependencies []DependenciesDependencyUsage `json:"dependencies,omitempty"`
-	NumItems *int `json:"numItems,omitempty"`
+type EndpointsDeleteTicketSCPMFindingOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetSCPMEventsOutput struct {
 	Events []ModelsSCPMEventInterface `json:"events,omitempty"`
+	NextToken string `json:"nextToken"`
 	NumItems int `json:"numItems"`
 	Version *string `json:"version,omitempty"`
 }
@@ -105,21 +111,14 @@ type EndpointsGetSCPMFindingAutofixStatusOutput struct {
 
 type EndpointsGetSCPMFindingEventsOutput struct {
 	Events []ModelsSCPMEventInterface `json:"events,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
 	NumItems int `json:"numItems"`
-	Version *string `json:"version,omitempty"`
-}
-
-type EndpointsGetSCPMFindingFixOutput struct {
-	Commit string `json:"commit"`
-	Diffs []ModelsDiffFile `json:"diffs,omitempty"`
-	Explanation string `json:"explanation"`
-	PullRequestBody string `json:"pullRequestBody"`
-	PullRequestTitle string `json:"pullRequestTitle"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetSCPMFindingOutput struct {
 	Finding ModelsSCPMFinding `json:"finding"`
+	Movements []ModelsSCPMFindingMovement `json:"movements,omitempty"`
 	PresignedURL string `json:"presignedUrl"`
 	Version *string `json:"version,omitempty"`
 }
@@ -128,12 +127,20 @@ type EndpointsGetSCPMFindingTriageOutput struct {
 	Finding *ModelsTriagedSCPMFinding `json:"finding,omitempty"`
 	PresignedURL string `json:"presignedUrl"`
 	Version *string `json:"version,omitempty"`
+	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
+}
+
+type EndpointsGetSCPMFindingUsersOutput struct {
+	Users []ModelsCandidate `json:"users,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetSCPMFindingsDetailedOutput struct {
+	CooldownWarnOnly *bool `json:"cooldownWarnOnly,omitempty"`
 	Findings []ModelsSCPMFinding `json:"findings,omitempty"`
 	NextToken string `json:"nextToken"`
 	NumItems int `json:"numItems"`
+	ScannedBaseline *bool `json:"scannedBaseline,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -144,9 +151,28 @@ type EndpointsGetSCPMFindingsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsGetSCPMRepositoriesOutput struct {
+	NextToken string `json:"nextToken"`
+	NumItems int `json:"numItems"`
+	Repositories map[string]ModelsRepositoryPublic `json:"repositories,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetSCPMSettingsOutput struct {
+	AcceptedLicenses []string `json:"acceptedLicenses,omitempty"`
+	CooldownDays int `json:"cooldownDays"`
+	CooldownEnabled bool `json:"cooldownEnabled"`
+	CooldownOverrides map[string]int `json:"cooldownOverrides,omitempty"`
+	CooldownWarnOnly bool `json:"cooldownWarnOnly"`
+	PackageAllowlist []ModelsSCPMPackageAllowlistEntry `json:"packageAllowlist,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsPatchSCPMFindingInput struct {
+	IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
 	PriorityOverride *ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
+	UserNotes *string `json:"userNotes,omitempty"`
 }
 
 type EndpointsPatchSCPMFindingOutput struct {
@@ -181,20 +207,21 @@ type EndpointsPostAutofixSCPMFindingInput struct {
 type EndpointsPostAutofixSCPMFindingOutput struct {
 	AutoFixState ModelsAutoFixState `json:"autoFixState"`
 	Error *string `json:"error,omitempty"`
+	RunID *string `json:"runId,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
-type EndpointsPostCacheAutofixSCPMFindingInput struct {
-	Force *bool `json:"force,omitempty"`
-}
-
-type EndpointsPostCreatePullRequestSCPMFindingInput struct {
+type EndpointsPostCreateTicketSCPMFindingInput struct {
+	Assignees []ModelsUser `json:"assignees,omitempty"`
+	CampaignID *string `json:"campaignId,omitempty"`
+	CampaignTitle *string `json:"campaignTitle,omitempty"`
 	Message *string `json:"message,omitempty"`
+	Project *string `json:"project,omitempty"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
 }
 
-type EndpointsPostCreatePullRequestSCPMFindingOutput struct {
-	AutoFixState ModelsAutoFixState `json:"autoFixState"`
-	Error *string `json:"error,omitempty"`
+type EndpointsPostCreateTicketSCPMFindingOutput struct {
+	Ticket ModelsTicketProvider `json:"ticket"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -207,24 +234,31 @@ type EndpointsPostGetUploadSCPMFindingsURLOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
-type EndpointsPostRetriageSCPMFindingsInput struct {
-	Branch *string `json:"branch,omitempty"`
-	ContinueOnError *bool `json:"continueOnError,omitempty"`
-	FindingIds []string `json:"findingIds,omitempty"`
-	ForceRetriage *bool `json:"forceRetriage,omitempty"`
-	PriorityMinimum *string `json:"priorityMinimum,omitempty"`
-	RepositoryIds []string `json:"repositoryIds,omitempty"`
-	ReprocessFailedTriages *bool `json:"reprocessFailedTriages,omitempty"`
-	ReprocessFalsePositives *bool `json:"reprocessFalsePositives,omitempty"`
-}
-
-type EndpointsPostRetriageSCPMFindingsOutput struct {
-	Message string `json:"message"`
-	Version string `json:"version"`
-}
-
 type EndpointsPostUnallowlistSCPMFindingInput struct {
 	UnallowlistReason string `json:"unallowlistReason"`
+}
+
+type EndpointsPostUnmarkFalsePositiveSCPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPutSCPMSettingsInput struct {
+	AcceptedLicenses []string `json:"acceptedLicenses,omitempty"`
+	CooldownDays int `json:"cooldownDays"`
+	CooldownEnabled bool `json:"cooldownEnabled"`
+	CooldownOverrides map[string]int `json:"cooldownOverrides,omitempty"`
+	CooldownWarnOnly *bool `json:"cooldownWarnOnly,omitempty"`
+	PackageAllowlist []ModelsSCPMPackageAllowlistEntry `json:"packageAllowlist,omitempty"`
+}
+
+type EndpointsPutSCPMSettingsOutput struct {
+	AcceptedLicenses []string `json:"acceptedLicenses,omitempty"`
+	CooldownDays int `json:"cooldownDays"`
+	CooldownEnabled bool `json:"cooldownEnabled"`
+	CooldownOverrides map[string]int `json:"cooldownOverrides,omitempty"`
+	CooldownWarnOnly bool `json:"cooldownWarnOnly"`
+	PackageAllowlist []ModelsSCPMPackageAllowlistEntry `json:"packageAllowlist,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 type ModelsSCPMEventInterface struct {
@@ -256,10 +290,18 @@ type ModelsSCPMFinding struct {
 	CommitMessage *string `json:"commitMessage,omitempty"`
 	CommitURL *string `json:"commitUrl,omitempty"`
 	ConcurrencyLimit *int `json:"concurrencyLimit,omitempty"`
+	CooldownExpiresAt *string `json:"cooldownExpiresAt,omitempty"`
+	CooldownPublishedAt *string `json:"cooldownPublishedAt,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
 	DeletedAt *string `json:"deletedAt,omitempty"`
 	Description *string `json:"description,omitempty"`
+	EndLine *int `json:"endLine,omitempty"`
+	Enforcement *ModelsSCPMEnforcement `json:"enforcement,omitempty"`
+	FailedTriage *bool `json:"failedTriage,omitempty"`
+	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
+	FileOwners []ModelsFileOwner `json:"fileOwners,omitempty"`
 	FilePath *string `json:"filePath,omitempty"`
+	FindingType *ModelsSCPMFindingType `json:"findingType,omitempty"`
 	FirstSeenCommit *string `json:"firstSeenCommit,omitempty"`
 	ID *string `json:"id,omitempty"`
 	InstallationID string `json:"installationId"`
@@ -267,30 +309,43 @@ type ModelsSCPMFinding struct {
 	IsArchived bool `json:"isArchived"`
 	IsAutoFixableAgentVerdict *bool `json:"isAutoFixableAgentVerdict,omitempty"`
 	IsFalsePositive bool `json:"isFalsePositive"`
+	IsFixed *bool `json:"isFixed,omitempty"`
 	IsLatest bool `json:"isLatest"`
 	IsResolved bool `json:"isResolved"`
 	Language *string `json:"language,omitempty"`
+	LockfilePath *string `json:"lockfilePath,omitempty"`
+	ManifestPath *string `json:"manifestPath,omitempty"`
 	Message *string `json:"message,omitempty"`
 	Owner *string `json:"owner,omitempty"`
+	PackageManager *string `json:"packageManager,omitempty"`
+	PackageName *string `json:"packageName,omitempty"`
+	PackageVersion *string `json:"packageVersion,omitempty"`
 	Platform string `json:"platform"`
 	PriorityLabel *ModelsPriorityLabel `json:"priorityLabel,omitempty"`
 	PriorityLabelReason *string `json:"priorityLabelReason,omitempty"`
+	PriorityOverride *ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	PriorityScore *float64 `json:"priorityScore,omitempty"`
 	ProjectID *string `json:"projectId,omitempty"`
 	ProjectName *string `json:"projectName,omitempty"`
 	PullRequestID *string `json:"pullRequestId,omitempty"`
 	PullRequestURL *string `json:"pullRequestUrl,omitempty"`
 	PullRequestsAutofix []ModelsPullRequestInfo `json:"pullRequestsAutofix,omitempty"`
+	PureInsertion *bool `json:"pureInsertion,omitempty"`
 	Repository *string `json:"repository,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
+	ResolvedAt *string `json:"resolvedAt,omitempty"`
 	RuleID *string `json:"ruleId,omitempty"`
+	RuleSourceID *string `json:"ruleSourceId,omitempty"`
 	RuleURL *string `json:"ruleUrl,omitempty"`
 	Severity *ModelsSeverity `json:"severity,omitempty"`
+	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
+	StartLine *int `json:"startLine,omitempty"`
 	TenantID *string `json:"tenantId,omitempty"`
-	Ticket *string `json:"ticket,omitempty"`
+	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	TicketState *string `json:"ticketState,omitempty"`
 	Title *string `json:"title,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
+	UserNotes *string `json:"userNotes,omitempty"`
 	Workflow *string `json:"workflow,omitempty"`
 }
 
@@ -304,21 +359,31 @@ type ModelsSCPMFindingPreview struct {
 	Confidence string `json:"confidence"`
 	CreatedAt string `json:"createdAt"`
 	Description string `json:"description"`
+	Enforcement *ModelsSCPMEnforcement `json:"enforcement,omitempty"`
+	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
 	FilePath string `json:"filePath"`
+	FindingType ModelsSCPMFindingType `json:"findingType"`
 	ID string `json:"id"`
 	InstallationID string `json:"installationId"`
 	IsAllowlisted bool `json:"isAllowlisted"`
 	IsArchived bool `json:"isArchived"`
 	IsFalsePositive bool `json:"isFalsePositive"`
+	IsFixed bool `json:"isFixed"`
 	IsLatest bool `json:"isLatest"`
 	IsResolved bool `json:"isResolved"`
 	Language string `json:"language"`
+	LockfilePath string `json:"lockfilePath"`
+	ManifestPath string `json:"manifestPath"`
 	Message string `json:"message"`
 	Owasp []string `json:"owasp,omitempty"`
 	Owner string `json:"owner"`
+	PackageManager string `json:"packageManager"`
+	PackageName string `json:"packageName"`
+	PackageVersion string `json:"packageVersion"`
 	Platform string `json:"platform"`
 	PriorityLabel ModelsPriorityLabel `json:"priorityLabel"`
 	PriorityLabelReason string `json:"priorityLabelReason"`
+	PriorityOverride *ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	PriorityScore float64 `json:"priorityScore"`
 	ProjectID string `json:"projectId"`
 	ProjectName string `json:"projectName"`
@@ -329,11 +394,115 @@ type ModelsSCPMFindingPreview struct {
 	RepositoryID string `json:"repositoryId"`
 	RuleID string `json:"ruleId"`
 	RuleName string `json:"ruleName"`
+	RuleSourceID string `json:"ruleSourceId"`
 	Severity ModelsSeverity `json:"severity"`
+	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
 	Tags []string `json:"tags,omitempty"`
 	TenantID string `json:"tenantId"`
 	Title string `json:"title"`
+	TriageEnd *string `json:"triageEnd,omitempty"`
 	UpdatedAt string `json:"updatedAt"`
+}
+
+type ModelsSCPMFindingType string
+
+const (
+	ModelsSCPMFindingTypeKnownMalware ModelsSCPMFindingType = "known_malware"
+	ModelsSCPMFindingTypeTyposquat ModelsSCPMFindingType = "typosquat"
+	ModelsSCPMFindingTypeLicenseViolation ModelsSCPMFindingType = "license_violation"
+	ModelsSCPMFindingTypeUnpinnedDependency ModelsSCPMFindingType = "unpinned_dependency"
+	ModelsSCPMFindingTypeLockfileMissing ModelsSCPMFindingType = "lockfile_missing"
+	ModelsSCPMFindingTypeInstallScript ModelsSCPMFindingType = "install_script"
+	ModelsSCPMFindingTypeDependencyConfusion ModelsSCPMFindingType = "dependency_confusion"
+	ModelsSCPMFindingTypeCicdUnpinnedAction ModelsSCPMFindingType = "cicd_unpinned_action"
+	ModelsSCPMFindingTypeCicdMaliciousAction ModelsSCPMFindingType = "cicd_malicious_action"
+	ModelsSCPMFindingTypeCicdScriptInjection ModelsSCPMFindingType = "cicd_script_injection"
+	ModelsSCPMFindingTypeCicdExcessivePermissions ModelsSCPMFindingType = "cicd_excessive_permissions"
+	ModelsSCPMFindingTypeCicdDangerousTrigger ModelsSCPMFindingType = "cicd_dangerous_trigger"
+	ModelsSCPMFindingTypeCicdArtifactTokenLeak ModelsSCPMFindingType = "cicd_artifact_token_leak"
+	ModelsSCPMFindingTypeCicdSecretsExposure ModelsSCPMFindingType = "cicd_secrets_exposure"
+	ModelsSCPMFindingTypeCicdBotConditions ModelsSCPMFindingType = "cicd_bot_conditions"
+	ModelsSCPMFindingTypeCicdCachePoisoning ModelsSCPMFindingType = "cicd_cache_poisoning"
+	ModelsSCPMFindingTypeCicdGithubEnv ModelsSCPMFindingType = "cicd_github_env"
+	ModelsSCPMFindingTypeCicdHardcodedCredentials ModelsSCPMFindingType = "cicd_hardcoded_credentials"
+	ModelsSCPMFindingTypeCicdInsecureCommands ModelsSCPMFindingType = "cicd_insecure_commands"
+	ModelsSCPMFindingTypeCicdSecretsInherit ModelsSCPMFindingType = "cicd_secrets_inherit"
+	ModelsSCPMFindingTypeCicdOverprovisionedSecrets ModelsSCPMFindingType = "cicd_overprovisioned_secrets"
+	ModelsSCPMFindingTypeCicdUnredactedSecrets ModelsSCPMFindingType = "cicd_unredacted_secrets"
+	ModelsSCPMFindingTypeCicdUnpinnedImages ModelsSCPMFindingType = "cicd_unpinned_images"
+	ModelsSCPMFindingTypeCicdUnsoundCondition ModelsSCPMFindingType = "cicd_unsound_condition"
+	ModelsSCPMFindingTypeCicdConcurrencyLimits ModelsSCPMFindingType = "cicd_concurrency_limits"
+	ModelsSCPMFindingTypeCicdUseTrustedPublishing ModelsSCPMFindingType = "cicd_use_trusted_publishing"
+	ModelsSCPMFindingTypeCicdUnsoundContains ModelsSCPMFindingType = "cicd_unsound_contains"
+	ModelsSCPMFindingTypeCicdObfuscation ModelsSCPMFindingType = "cicd_obfuscation"
+	ModelsSCPMFindingTypeCicdRefVersionMismatch ModelsSCPMFindingType = "cicd_ref_version_mismatch"
+	ModelsSCPMFindingTypeCicdSelfHostedRunner ModelsSCPMFindingType = "cicd_self_hosted_runner"
+	ModelsSCPMFindingTypeCicdWorkflowRunRisk ModelsSCPMFindingType = "cicd_workflow_run_risk"
+	ModelsSCPMFindingTypeCicdPrivilegedCheckout ModelsSCPMFindingType = "cicd_privileged_checkout"
+	ModelsSCPMFindingTypeCicdDockerSocket ModelsSCPMFindingType = "cicd_docker_socket"
+	ModelsSCPMFindingTypeCicdGithubScriptInjection ModelsSCPMFindingType = "cicd_github_script_injection"
+	ModelsSCPMFindingTypeCicdUnprotectedDeployment ModelsSCPMFindingType = "cicd_unprotected_deployment"
+	ModelsSCPMFindingTypeCicdDefaultBranchPush ModelsSCPMFindingType = "cicd_default_branch_push"
+	ModelsSCPMFindingTypeCicdOidcOverscope ModelsSCPMFindingType = "cicd_oidc_overscope"
+	ModelsSCPMFindingTypeCicdMissingPermissions ModelsSCPMFindingType = "cicd_missing_permissions"
+	ModelsSCPMFindingTypeCicdUnverifiedAction ModelsSCPMFindingType = "cicd_unverified_action"
+	ModelsSCPMFindingTypeCicdMissingAttestation ModelsSCPMFindingType = "cicd_missing_attestation"
+	ModelsSCPMFindingTypeCicdDispatchToctou ModelsSCPMFindingType = "cicd_dispatch_toctou"
+	ModelsSCPMFindingTypeCicdEnvironmentBypass ModelsSCPMFindingType = "cicd_environment_bypass"
+	ModelsSCPMFindingTypeCicdAiRisk ModelsSCPMFindingType = "cicd_ai_risk"
+	ModelsSCPMFindingTypeCicdIncludeInjection ModelsSCPMFindingType = "cicd_include_injection"
+	ModelsSCPMFindingTypeCicdUnpinnedInclude ModelsSCPMFindingType = "cicd_unpinned_include"
+	ModelsSCPMFindingTypeCicdServiceConnection ModelsSCPMFindingType = "cicd_service_connection"
+	ModelsSCPMFindingTypeUnmaintainedPackage ModelsSCPMFindingType = "unmaintained_package"
+	ModelsSCPMFindingTypeDeprecatedPackage ModelsSCPMFindingType = "deprecated_package"
+	ModelsSCPMFindingTypeTrivialPackage ModelsSCPMFindingType = "trivial_package"
+	ModelsSCPMFindingTypeDependencyHijack ModelsSCPMFindingType = "dependency_hijack"
+	ModelsSCPMFindingTypeAiHallucinationHijack ModelsSCPMFindingType = "ai_hallucination_hijack"
+	ModelsSCPMFindingTypePhantomPackage ModelsSCPMFindingType = "phantom_package"
+	ModelsSCPMFindingTypeRapidPublish ModelsSCPMFindingType = "rapid_publish"
+	ModelsSCPMFindingTypeCopyleftLicense ModelsSCPMFindingType = "copyleft_license"
+	ModelsSCPMFindingTypeLicenseMismatch ModelsSCPMFindingType = "license_mismatch"
+	ModelsSCPMFindingTypeUnlicensedPackage ModelsSCPMFindingType = "unlicensed_package"
+	ModelsSCPMFindingTypeGitDependency ModelsSCPMFindingType = "git_dependency"
+	ModelsSCPMFindingTypeUnpinnedDockerBase ModelsSCPMFindingType = "unpinned_docker_base"
+	ModelsSCPMFindingTypeUnpinnedDockerImage ModelsSCPMFindingType = "unpinned_docker_image"
+	ModelsSCPMFindingTypeInsecureRegistry ModelsSCPMFindingType = "insecure_registry"
+	ModelsSCPMFindingTypeCooldownRecentPublish ModelsSCPMFindingType = "cooldown_recent_publish"
+	ModelsSCPMFindingTypeCooldownUpdaterMissing ModelsSCPMFindingType = "cooldown_updater_missing"
+	ModelsSCPMFindingTypeCooldownUpdaterBelowThreshold ModelsSCPMFindingType = "cooldown_updater_below_threshold"
+	ModelsSCPMFindingTypeCooldownUpdaterPartial ModelsSCPMFindingType = "cooldown_updater_partial"
+	ModelsSCPMFindingTypeCooldownUpdaterDisabled ModelsSCPMFindingType = "cooldown_updater_disabled"
+	ModelsSCPMFindingTypeCooldownUpdaterUnparseable ModelsSCPMFindingType = "cooldown_updater_unparseable"
+	ModelsSCPMFindingTypeCooldownUnverifiableEcosystem ModelsSCPMFindingType = "cooldown_unverifiable_ecosystem"
+	ModelsSCPMFindingTypeCooldownPmUnsupported ModelsSCPMFindingType = "cooldown_pm_unsupported"
+	ModelsSCPMFindingTypeCooldownAbsolutePinStale ModelsSCPMFindingType = "cooldown_absolute_pin_stale"
+	ModelsSCPMFindingTypeUpdaterUnsafeAutomation ModelsSCPMFindingType = "updater_unsafe_automation"
+	ModelsSCPMFindingTypeShellAccess ModelsSCPMFindingType = "shell_access"
+	ModelsSCPMFindingTypeUnmanagedDependency ModelsSCPMFindingType = "unmanaged_dependency"
+	ModelsSCPMFindingTypeStarJacking ModelsSCPMFindingType = "star_jacking"
+	ModelsSCPMFindingTypeNonExistentAuthor ModelsSCPMFindingType = "non_existent_author"
+	ModelsSCPMFindingTypeUnpopularPackage ModelsSCPMFindingType = "unpopular_package"
+	ModelsSCPMFindingTypeAllowScriptsEnabled ModelsSCPMFindingType = "allow_scripts_enabled"
+	ModelsSCPMFindingTypeHttpDependency ModelsSCPMFindingType = "http_dependency"
+	ModelsSCPMFindingTypeNoLicense ModelsSCPMFindingType = "no_license"
+	ModelsSCPMFindingTypeNonPermissiveLicense ModelsSCPMFindingType = "non_permissive_license"
+	ModelsSCPMFindingTypeScanManifestUnreadable ModelsSCPMFindingType = "scan_manifest_unreadable"
+	ModelsSCPMFindingTypeSuppressionFileChanged ModelsSCPMFindingType = "suppression_file_changed"
+	ModelsSCPMFindingTypeNonPublicDefaultRegistry ModelsSCPMFindingType = "non_public_default_registry"
+	ModelsSCPMFindingTypePatchedDependency ModelsSCPMFindingType = "patched_dependency"
+	ModelsSCPMFindingTypeWeakIntegrity ModelsSCPMFindingType = "weak_integrity"
+	ModelsSCPMFindingTypeLockfileRemoved ModelsSCPMFindingType = "lockfile_removed"
+	ModelsSCPMFindingTypeLockfileVersionDrift ModelsSCPMFindingType = "lockfile_version_drift"
+)
+
+type ModelsSCPMPackageAllowlistEntry struct {
+	CreatedBy *string `json:"createdBy,omitempty"`
+	Ecosystem string `json:"ecosystem"`
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	Namespace *string `json:"namespace,omitempty"`
+	PackageName string `json:"packageName"`
+	Reason *string `json:"reason,omitempty"`
+	VersionRange *string `json:"versionRange,omitempty"`
 }
 
 type ModelsTriagedSCPMFinding struct {

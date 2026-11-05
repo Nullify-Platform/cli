@@ -25,6 +25,7 @@ var _ = models.RequestScope{}
 type ListSecretsCredentialsFindingsInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
@@ -75,6 +76,9 @@ func (c *Client) ListSecretsCredentialsFindings(ctx context.Context, in ListSecr
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -95,6 +99,7 @@ func (c *Client) ListSecretsCredentialsFindings(ctx context.Context, in ListSecr
 
 // CreateSecretsCredentialsFindingsAllowlistBatchInput is the input for CreateSecretsCredentialsFindingsAllowlistBatch — Allowlist Batch of Credential Findings.
 type CreateSecretsCredentialsFindingsAllowlistBatchInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	FindingIds []string `json:"findingIds,omitempty"`
@@ -109,6 +114,9 @@ func (c *Client) CreateSecretsCredentialsFindingsAllowlistBatch(ctx context.Cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -137,11 +145,14 @@ func (c *Client) CreateSecretsCredentialsFindingsAllowlistBatch(ctx context.Cont
 type ListSecretsCredentialsFindingsDetailedInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FilePath []string `url:"filePath,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	SecretType *string `url:"secretType,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
@@ -181,11 +192,20 @@ func (c *Client) ListSecretsCredentialsFindingsDetailed(ctx context.Context, in 
 	if in.IsFalsePositive != nil {
 		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	for _, v := range in.FilePath {
+		query.Add("filePath", string(v))
+	}
 	if in.SortBy != nil {
 		query.Set("sortBy", string(*in.SortBy))
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -208,8 +228,12 @@ func (c *Client) ListSecretsCredentialsFindingsDetailed(ctx context.Context, in 
 // GetSecretsCredentialsFindingsFindingIdInput is the input for GetSecretsCredentialsFindingsFindingId — Get Credential Finding.
 type GetSecretsCredentialsFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetSecretsCredentialsFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetSecretsCredentialsFindingsFindingId - Get Credential Finding
 // GET /secrets/credentials/findings/{findingId}
@@ -220,6 +244,9 @@ func (c *Client) GetSecretsCredentialsFindingsFindingId(ctx context.Context, in 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -242,11 +269,15 @@ func (c *Client) GetSecretsCredentialsFindingsFindingId(ctx context.Context, in 
 // PatchSecretsCredentialsFindingsFindingIdInput is the input for PatchSecretsCredentialsFindingsFindingId — Update Credential Finding.
 type PatchSecretsCredentialsFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
 	UserNotes *string `json:"userNotes,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *PatchSecretsCredentialsFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // PatchSecretsCredentialsFindingsFindingId - Update Credential Finding
 // PATCH /secrets/credentials/findings/{findingId}
@@ -257,6 +288,9 @@ func (c *Client) PatchSecretsCredentialsFindingsFindingId(ctx context.Context, i
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -291,10 +325,14 @@ func (c *Client) PatchSecretsCredentialsFindingsFindingId(ctx context.Context, i
 // CreateSecretsCredentialsFindingsFindingIdAllowlistInput is the input for CreateSecretsCredentialsFindingsFindingIdAllowlist — Allowlist Credential Finding.
 type CreateSecretsCredentialsFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsCredentialsFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsCredentialsFindingsFindingIdAllowlist - Allowlist Credential Finding
 // POST /secrets/credentials/findings/{findingId}/allowlist
@@ -305,6 +343,9 @@ func (c *Client) CreateSecretsCredentialsFindingsFindingIdAllowlist(ctx context.
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -330,8 +371,13 @@ func (c *Client) CreateSecretsCredentialsFindingsFindingIdAllowlist(ctx context.
 // ListSecretsCredentialsFindingsFindingIdEventsInput is the input for ListSecretsCredentialsFindingsFindingIdEvents — Get Finding Events.
 type ListSecretsCredentialsFindingsFindingIdEventsInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsCredentialsFindingsFindingIdEventsInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsCredentialsFindingsFindingIdEvents - Get Finding Events
 // GET /secrets/credentials/findings/{findingId}/events
@@ -342,6 +388,12 @@ func (c *Client) ListSecretsCredentialsFindingsFindingIdEvents(ctx context.Conte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -361,9 +413,51 @@ func (c *Client) ListSecretsCredentialsFindingsFindingIdEvents(ctx context.Conte
 	return &out, nil
 }
 
+// DeleteSecretsCredentialsFindingsFindingIdTicketInput is the input for DeleteSecretsCredentialsFindingsFindingIdTicket — Delete Ticket for Credential Finding.
+type DeleteSecretsCredentialsFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *DeleteSecretsCredentialsFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// DeleteSecretsCredentialsFindingsFindingIdTicket - Delete Ticket for Credential Finding
+// DELETE /secrets/credentials/findings/{findingId}/ticket
+func (c *Client) DeleteSecretsCredentialsFindingsFindingIdTicket(ctx context.Context, in DeleteSecretsCredentialsFindingsFindingIdTicketInput) (*models.EndpointsDeleteTicketSecretsFindingOutput, error) {
+	path := "/secrets/credentials/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateSecretsCredentialsFindingsFindingIdTicketInput is the input for CreateSecretsCredentialsFindingsFindingIdTicket — Create Ticket for Credential Finding.
 type CreateSecretsCredentialsFindingsFindingIdTicketInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	CampaignTitle *string `json:"campaignTitle,omitempty"`
@@ -371,6 +465,9 @@ type CreateSecretsCredentialsFindingsFindingIdTicketInput struct {
 	Project *string `json:"project,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsCredentialsFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsCredentialsFindingsFindingIdTicket - Create Ticket for Credential Finding
 // POST /secrets/credentials/findings/{findingId}/ticket
@@ -381,6 +478,9 @@ func (c *Client) CreateSecretsCredentialsFindingsFindingIdTicket(ctx context.Con
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -419,8 +519,12 @@ func (c *Client) CreateSecretsCredentialsFindingsFindingIdTicket(ctx context.Con
 // ListSecretsCredentialsFindingsFindingIdTriageInput is the input for ListSecretsCredentialsFindingsFindingIdTriage — Get Triaged Credential Finding.
 type ListSecretsCredentialsFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsCredentialsFindingsFindingIdTriageInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsCredentialsFindingsFindingIdTriage - Get Triaged Credential Finding
 // GET /secrets/credentials/findings/{findingId}/triage
@@ -431,6 +535,9 @@ func (c *Client) ListSecretsCredentialsFindingsFindingIdTriage(ctx context.Conte
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -453,10 +560,14 @@ func (c *Client) ListSecretsCredentialsFindingsFindingIdTriage(ctx context.Conte
 // CreateSecretsCredentialsFindingsFindingIdUnallowlistInput is the input for CreateSecretsCredentialsFindingsFindingIdUnallowlist — Unallowlist Credential Finding.
 type CreateSecretsCredentialsFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UnallowlistReason string `json:"unallowlistReason"`
 	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsCredentialsFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsCredentialsFindingsFindingIdUnallowlist - Unallowlist Credential Finding
 // POST /secrets/credentials/findings/{findingId}/unallowlist
@@ -467,6 +578,9 @@ func (c *Client) CreateSecretsCredentialsFindingsFindingIdUnallowlist(ctx contex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -492,8 +606,12 @@ func (c *Client) CreateSecretsCredentialsFindingsFindingIdUnallowlist(ctx contex
 // ListSecretsCredentialsFindingsFindingIdUsersInput is the input for ListSecretsCredentialsFindingsFindingIdUsers — Get Credential Finding Related Users.
 type ListSecretsCredentialsFindingsFindingIdUsersInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsCredentialsFindingsFindingIdUsersInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsCredentialsFindingsFindingIdUsers - Get Credential Finding Related Users
 // GET /secrets/credentials/findings/{findingId}/users
@@ -504,6 +622,9 @@ func (c *Client) ListSecretsCredentialsFindingsFindingIdUsers(ctx context.Contex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -530,6 +651,7 @@ type ListSecretsEventsInput struct {
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
 	FindingID *string `url:"findingId,omitempty" json:"-"`
 	FromTime *string `url:"fromTime,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	NumItems *int `url:"numItems,omitempty" json:"-"`
@@ -573,6 +695,9 @@ func (c *Client) ListSecretsEvents(ctx context.Context, in ListSecretsEventsInpu
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -595,6 +720,7 @@ func (c *Client) ListSecretsEvents(ctx context.Context, in ListSecretsEventsInpu
 type ListSecretsFindingsInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
@@ -645,6 +771,9 @@ func (c *Client) ListSecretsFindings(ctx context.Context, in ListSecretsFindings
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -665,6 +794,7 @@ func (c *Client) ListSecretsFindings(ctx context.Context, in ListSecretsFindings
 
 // CreateSecretsFindingsAllowlistBatchInput is the input for CreateSecretsFindingsAllowlistBatch — Allowlist Batch of Credential Findings.
 type CreateSecretsFindingsAllowlistBatchInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	FindingIds []string `json:"findingIds,omitempty"`
@@ -679,6 +809,9 @@ func (c *Client) CreateSecretsFindingsAllowlistBatch(ctx context.Context, in Cre
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -707,11 +840,14 @@ func (c *Client) CreateSecretsFindingsAllowlistBatch(ctx context.Context, in Cre
 type ListSecretsFindingsDetailedInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	FilePath []string `url:"filePath,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	SecretType *string `url:"secretType,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
@@ -751,11 +887,20 @@ func (c *Client) ListSecretsFindingsDetailed(ctx context.Context, in ListSecrets
 	if in.IsFalsePositive != nil {
 		query.Set("isFalsePositive", strconv.FormatBool(*in.IsFalsePositive))
 	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	for _, v := range in.FilePath {
+		query.Add("filePath", string(v))
+	}
 	if in.SortBy != nil {
 		query.Set("sortBy", string(*in.SortBy))
 	}
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -779,6 +924,7 @@ func (c *Client) ListSecretsFindingsDetailed(ctx context.Context, in ListSecrets
 type ListSecretsFindingsPreviewInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
@@ -829,6 +975,9 @@ func (c *Client) ListSecretsFindingsPreview(ctx context.Context, in ListSecretsF
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -850,8 +999,12 @@ func (c *Client) ListSecretsFindingsPreview(ctx context.Context, in ListSecretsF
 // GetSecretsFindingsFindingIdInput is the input for GetSecretsFindingsFindingId — Get Credential Finding.
 type GetSecretsFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetSecretsFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetSecretsFindingsFindingId - Get Credential Finding
 // GET /secrets/findings/{findingId}
@@ -862,6 +1015,9 @@ func (c *Client) GetSecretsFindingsFindingId(ctx context.Context, in GetSecretsF
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -884,11 +1040,15 @@ func (c *Client) GetSecretsFindingsFindingId(ctx context.Context, in GetSecretsF
 // PatchSecretsFindingsFindingIdInput is the input for PatchSecretsFindingsFindingId — Update Credential Finding.
 type PatchSecretsFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	SeverityOverride *models.ModelsSeverity `json:"severityOverride,omitempty"`
 	UserNotes *string `json:"userNotes,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *PatchSecretsFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // PatchSecretsFindingsFindingId - Update Credential Finding
 // PATCH /secrets/findings/{findingId}
@@ -899,6 +1059,9 @@ func (c *Client) PatchSecretsFindingsFindingId(ctx context.Context, in PatchSecr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -933,10 +1096,14 @@ func (c *Client) PatchSecretsFindingsFindingId(ctx context.Context, in PatchSecr
 // CreateSecretsFindingsFindingIdAllowlistInput is the input for CreateSecretsFindingsFindingIdAllowlist — Allowlist Credential Finding.
 type CreateSecretsFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsFindingsFindingIdAllowlist - Allowlist Credential Finding
 // POST /secrets/findings/{findingId}/allowlist
@@ -947,6 +1114,9 @@ func (c *Client) CreateSecretsFindingsFindingIdAllowlist(ctx context.Context, in
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -972,8 +1142,13 @@ func (c *Client) CreateSecretsFindingsFindingIdAllowlist(ctx context.Context, in
 // ListSecretsFindingsFindingIdEventsInput is the input for ListSecretsFindingsFindingIdEvents — Get Finding Events.
 type ListSecretsFindingsFindingIdEventsInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsFindingsFindingIdEventsInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsFindingsFindingIdEvents - Get Finding Events
 // GET /secrets/findings/{findingId}/events
@@ -984,6 +1159,12 @@ func (c *Client) ListSecretsFindingsFindingIdEvents(ctx context.Context, in List
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.NextToken != nil {
+		query.Set("nextToken", string(*in.NextToken))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1003,9 +1184,51 @@ func (c *Client) ListSecretsFindingsFindingIdEvents(ctx context.Context, in List
 	return &out, nil
 }
 
+// DeleteSecretsFindingsFindingIdTicketInput is the input for DeleteSecretsFindingsFindingIdTicket — Delete Ticket for Credential Finding.
+type DeleteSecretsFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *DeleteSecretsFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// DeleteSecretsFindingsFindingIdTicket - Delete Ticket for Credential Finding
+// DELETE /secrets/findings/{findingId}/ticket
+func (c *Client) DeleteSecretsFindingsFindingIdTicket(ctx context.Context, in DeleteSecretsFindingsFindingIdTicketInput) (*models.EndpointsDeleteTicketSecretsFindingOutput, error) {
+	path := "/secrets/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSecretsFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateSecretsFindingsFindingIdTicketInput is the input for CreateSecretsFindingsFindingIdTicket — Create Ticket for Credential Finding.
 type CreateSecretsFindingsFindingIdTicketInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	CampaignTitle *string `json:"campaignTitle,omitempty"`
@@ -1013,6 +1236,9 @@ type CreateSecretsFindingsFindingIdTicketInput struct {
 	Project *string `json:"project,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsFindingsFindingIdTicket - Create Ticket for Credential Finding
 // POST /secrets/findings/{findingId}/ticket
@@ -1023,6 +1249,9 @@ func (c *Client) CreateSecretsFindingsFindingIdTicket(ctx context.Context, in Cr
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1061,8 +1290,12 @@ func (c *Client) CreateSecretsFindingsFindingIdTicket(ctx context.Context, in Cr
 // ListSecretsFindingsFindingIdTriageInput is the input for ListSecretsFindingsFindingIdTriage — Get Triaged Credential Finding.
 type ListSecretsFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsFindingsFindingIdTriageInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsFindingsFindingIdTriage - Get Triaged Credential Finding
 // GET /secrets/findings/{findingId}/triage
@@ -1073,6 +1306,9 @@ func (c *Client) ListSecretsFindingsFindingIdTriage(ctx context.Context, in List
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1095,10 +1331,14 @@ func (c *Client) ListSecretsFindingsFindingIdTriage(ctx context.Context, in List
 // CreateSecretsFindingsFindingIdUnallowlistInput is the input for CreateSecretsFindingsFindingIdUnallowlist — Unallowlist Credential Finding.
 type CreateSecretsFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UnallowlistReason string `json:"unallowlistReason"`
 	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsFindingsFindingIdUnallowlist - Unallowlist Credential Finding
 // POST /secrets/findings/{findingId}/unallowlist
@@ -1109,6 +1349,9 @@ func (c *Client) CreateSecretsFindingsFindingIdUnallowlist(ctx context.Context, 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1134,8 +1377,12 @@ func (c *Client) CreateSecretsFindingsFindingIdUnallowlist(ctx context.Context, 
 // ListSecretsFindingsFindingIdUsersInput is the input for ListSecretsFindingsFindingIdUsers — Get Credential Finding Related Users.
 type ListSecretsFindingsFindingIdUsersInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsFindingsFindingIdUsersInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsFindingsFindingIdUsers - Get Credential Finding Related Users
 // GET /secrets/findings/{findingId}/users
@@ -1146,6 +1393,9 @@ func (c *Client) ListSecretsFindingsFindingIdUsers(ctx context.Context, in ListS
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1167,10 +1417,13 @@ func (c *Client) ListSecretsFindingsFindingIdUsers(ctx context.Context, in ListS
 
 // ListSecretsScanRunsInput is the input for ListSecretsScanRuns — List Scan Runs.
 type ListSecretsScanRunsInput struct {
+	From *string `url:"from,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
 	Sort *string `url:"sort,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1195,6 +1448,15 @@ func (c *Client) ListSecretsScanRuns(ctx context.Context, in ListSecretsScanRuns
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1217,6 +1479,7 @@ func (c *Client) ListSecretsScanRuns(ctx context.Context, in ListSecretsScanRuns
 type ListSecretsSensitivedataFindingsInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
 	FileOwnerName []string `url:"fileOwnerName,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	IsAllowlisted *bool `url:"isAllowlisted,omitempty" json:"-"`
 	IsFalsePositive *bool `url:"isFalsePositive,omitempty" json:"-"`
 	IsResolved *bool `url:"isResolved,omitempty" json:"-"`
@@ -1267,6 +1530,9 @@ func (c *Client) ListSecretsSensitivedataFindings(ctx context.Context, in ListSe
 	if in.Sort != nil {
 		query.Set("sort", string(*in.Sort))
 	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -1287,6 +1553,7 @@ func (c *Client) ListSecretsSensitivedataFindings(ctx context.Context, in ListSe
 
 // CreateSecretsSensitivedataFindingsAllowlistBatchInput is the input for CreateSecretsSensitivedataFindingsAllowlistBatch — Allowlist Batch of Sensitive Data Findings.
 type CreateSecretsSensitivedataFindingsAllowlistBatchInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	FindingIds []string `json:"findingIds,omitempty"`
@@ -1301,6 +1568,9 @@ func (c *Client) CreateSecretsSensitivedataFindingsAllowlistBatch(ctx context.Co
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1328,8 +1598,12 @@ func (c *Client) CreateSecretsSensitivedataFindingsAllowlistBatch(ctx context.Co
 // GetSecretsSensitivedataFindingsFindingIdInput is the input for GetSecretsSensitivedataFindingsFindingId — Get Sensitive Data Finding.
 type GetSecretsSensitivedataFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *GetSecretsSensitivedataFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // GetSecretsSensitivedataFindingsFindingId - Get Sensitive Data Finding
 // GET /secrets/sensitivedata/findings/{findingId}
@@ -1340,6 +1614,9 @@ func (c *Client) GetSecretsSensitivedataFindingsFindingId(ctx context.Context, i
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1362,10 +1639,14 @@ func (c *Client) GetSecretsSensitivedataFindingsFindingId(ctx context.Context, i
 // PatchSecretsSensitivedataFindingsFindingIdInput is the input for PatchSecretsSensitivedataFindingsFindingId — Update Sensitive Data Finding.
 type PatchSecretsSensitivedataFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	PriorityOverride *models.ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	UserNotes *string `json:"userNotes,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *PatchSecretsSensitivedataFindingsFindingIdInput) SetFindingID(id string) { in.FindingID = id }
 
 // PatchSecretsSensitivedataFindingsFindingId - Update Sensitive Data Finding
 // PATCH /secrets/sensitivedata/findings/{findingId}
@@ -1376,6 +1657,9 @@ func (c *Client) PatchSecretsSensitivedataFindingsFindingId(ctx context.Context,
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1408,10 +1692,14 @@ func (c *Client) PatchSecretsSensitivedataFindingsFindingId(ctx context.Context,
 // CreateSecretsSensitivedataFindingsFindingIdAllowlistInput is the input for CreateSecretsSensitivedataFindingsFindingIdAllowlist — Allowlist Sensitive Data Finding.
 type CreateSecretsSensitivedataFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType models.ModelsAllowlistType `json:"allowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsSensitivedataFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsSensitivedataFindingsFindingIdAllowlist - Allowlist Sensitive Data Finding
 // POST /secrets/sensitivedata/findings/{findingId}/allowlist
@@ -1422,6 +1710,9 @@ func (c *Client) CreateSecretsSensitivedataFindingsFindingIdAllowlist(ctx contex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1444,9 +1735,51 @@ func (c *Client) CreateSecretsSensitivedataFindingsFindingIdAllowlist(ctx contex
 	return data, err
 }
 
+// DeleteSecretsSensitivedataFindingsFindingIdTicketInput is the input for DeleteSecretsSensitivedataFindingsFindingIdTicket — Delete Ticket for Sensitive Data Finding.
+type DeleteSecretsSensitivedataFindingsFindingIdTicketInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *DeleteSecretsSensitivedataFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
+
+// DeleteSecretsSensitivedataFindingsFindingIdTicket - Delete Ticket for Sensitive Data Finding
+// DELETE /secrets/sensitivedata/findings/{findingId}/ticket
+func (c *Client) DeleteSecretsSensitivedataFindingsFindingIdTicket(ctx context.Context, in DeleteSecretsSensitivedataFindingsFindingIdTicketInput) (*models.EndpointsDeleteTicketSecretsSensitiveDataFindingOutput, error) {
+	path := "/secrets/sensitivedata/findings/{findingId}/ticket"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDeleteTicketSecretsSensitiveDataFindingOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateSecretsSensitivedataFindingsFindingIdTicketInput is the input for CreateSecretsSensitivedataFindingsFindingIdTicket — Create Ticket for Sensitive Data Finding.
 type CreateSecretsSensitivedataFindingsFindingIdTicketInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Assignees []models.ModelsUser `json:"assignees,omitempty"`
 	CampaignID *string `json:"campaignId,omitempty"`
 	CampaignTitle *string `json:"campaignTitle,omitempty"`
@@ -1454,6 +1787,9 @@ type CreateSecretsSensitivedataFindingsFindingIdTicketInput struct {
 	Project *string `json:"project,omitempty"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsSensitivedataFindingsFindingIdTicketInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsSensitivedataFindingsFindingIdTicket - Create Ticket for Sensitive Data Finding
 // POST /secrets/sensitivedata/findings/{findingId}/ticket
@@ -1464,6 +1800,9 @@ func (c *Client) CreateSecretsSensitivedataFindingsFindingIdTicket(ctx context.C
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1502,8 +1841,12 @@ func (c *Client) CreateSecretsSensitivedataFindingsFindingIdTicket(ctx context.C
 // ListSecretsSensitivedataFindingsFindingIdTriageInput is the input for ListSecretsSensitivedataFindingsFindingIdTriage — Get Triaged Sensitive Data Finding.
 type ListSecretsSensitivedataFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsSensitivedataFindingsFindingIdTriageInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsSensitivedataFindingsFindingIdTriage - Get Triaged Sensitive Data Finding
 // GET /secrets/sensitivedata/findings/{findingId}/triage
@@ -1514,6 +1857,9 @@ func (c *Client) ListSecretsSensitivedataFindingsFindingIdTriage(ctx context.Con
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1536,10 +1882,14 @@ func (c *Client) ListSecretsSensitivedataFindingsFindingIdTriage(ctx context.Con
 // CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput is the input for CreateSecretsSensitivedataFindingsFindingIdUnallowlist — Unallowlist Sensitive Data Finding.
 type CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	UnallowlistReason string `json:"unallowlistReason"`
 	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
 
 // CreateSecretsSensitivedataFindingsFindingIdUnallowlist - Unallowlist Sensitive Data Finding
 // POST /secrets/sensitivedata/findings/{findingId}/unallowlist
@@ -1550,6 +1900,9 @@ func (c *Client) CreateSecretsSensitivedataFindingsFindingIdUnallowlist(ctx cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -1575,8 +1928,12 @@ func (c *Client) CreateSecretsSensitivedataFindingsFindingIdUnallowlist(ctx cont
 // ListSecretsSensitivedataFindingsFindingIdUsersInput is the input for ListSecretsSensitivedataFindingsFindingIdUsers — Get Sensitive Data Finding Related Users.
 type ListSecretsSensitivedataFindingsFindingIdUsersInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListSecretsSensitivedataFindingsFindingIdUsersInput) SetFindingID(id string) { in.FindingID = id }
 
 // ListSecretsSensitivedataFindingsFindingIdUsers - Get Sensitive Data Finding Related Users
 // GET /secrets/sensitivedata/findings/{findingId}/users
@@ -1587,6 +1944,9 @@ func (c *Client) ListSecretsSensitivedataFindingsFindingIdUsers(ctx context.Cont
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
 	}
 	in.RequestScope.AddTo(query)
 

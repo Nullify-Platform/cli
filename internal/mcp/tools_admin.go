@@ -66,7 +66,7 @@ func metricsOverTimeInput(period string) api.CreateAdminMetricsOverTimeInput {
 
 func registerAdminTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("get_metrics_overview",
+		readOnlyTool("get_metrics_overview",
 			mcp.WithDescription("Get a high-level security posture overview: counts of findings by severity and type."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -80,7 +80,7 @@ func registerAdminTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_metrics_over_time",
+		readOnlyTool("get_metrics_over_time",
 			mcp.WithDescription("Get security metrics trends over time."),
 			mcp.WithString("period", mcp.Description("Time period"), mcp.Enum("7d", "30d", "90d", "365d")),
 		),
@@ -99,7 +99,7 @@ func registerAdminTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("list_teams",
+		readOnlyTool("list_teams",
 			mcp.WithDescription("List teams in the organization (used for assigning findings and access)."),
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
@@ -118,7 +118,7 @@ func registerAdminTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("list_sla_policies",
+		readOnlyTool("list_sla_policies",
 			mcp.WithDescription("List SLA policies defining expected remediation timeframes by severity."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -132,7 +132,7 @@ func registerAdminTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_organization",
+		readOnlyTool("get_organization",
 			mcp.WithDescription("Get organization details including name and plan."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

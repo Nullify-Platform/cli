@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/findings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -74,11 +75,17 @@ var scannerListers = []scannerLister{
 			return marshalOut(c.ListCspmFindings(ctx, api.ListCspmFindingsInput{Limit: limitPtr(1)}))
 		},
 	},
+	{
+		name: "scpm",
+		peek: func(ctx context.Context, c *api.Client) (json.RawMessage, error) {
+			return marshalOut(c.ListScpmFindings(ctx, api.ListScpmFindingsInput{Limit: limitPtr(1)}))
+		},
+	},
 }
 
 func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("get_security_posture_summary",
+		readOnlyTool("get_security_posture_summary",
 			mcp.WithDescription("High-level security posture across all scanner types. Typically the first tool to call to understand overall state."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -102,9 +109,9 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_findings_for_repo",
-			mcp.WithDescription("Get findings for a specific repository across all scanner types."),
-			mcp.WithString("repository", mcp.Required(), mcp.Description("Repository name")),
+		readOnlyTool("get_findings_for_repo",
+			mcp.WithDescription("Get findings for a specific repository across all scanner types. "+findingsSearchScope),
+			mcp.WithString("repository", mcp.Required(), mcp.Description(repositoryFilterHelp)),
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
 			mcp.WithNumber("limit", mcp.Description("Max results per scanner (default 20)")),
 		),
@@ -118,17 +125,23 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			// repository/severity are honored there (the per-scanner GET list
 			// endpoints silently drop both).
 			for _, sc := range scannerListers {
-				findings, _, err := searchFindings(ctx, c, findingSearchOpts{
-					apiTypes:   findingTypes[sc.name].apiTypes,
-					severity:   severity,
-					repository: repo,
-					limit:      limit,
+				apiTypes := findings.Types[sc.name].APITypes
+				if !findings.HasRepository(apiTypes) {
+					parts = append(parts, fmt.Sprintf("--- %s ---\nNot listed: these findings have no repository.", sc.name))
+					continue
+				}
+
+				result, err := findings.Search(ctx, c, findings.SearchOptions{
+					APITypes:   apiTypes,
+					Severity:   severity,
+					Repository: repo,
+					Limit:      limit,
 				})
 				if err != nil {
 					parts = append(parts, fmt.Sprintf("--- %s ---\nError: %v", sc.name, err))
 					continue
 				}
-				b, _ := json.MarshalIndent(findings, "", "  ")
+				b, _ := json.MarshalIndent(result, "", "  ")
 				parts = append(parts, fmt.Sprintf("--- %s ---\n%s", sc.name, string(b)))
 			}
 			return toolResult(strings.Join(parts, "\n\n")), nil
@@ -136,25 +149,29 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_critical_path",
-			mcp.WithDescription("Get critical and high severity findings across all scanner types — the most urgent issues."),
+		readOnlyTool("get_critical_path",
+			mcp.WithDescription("Get critical and high severity findings across all scanner types — the most urgent issues. "+findingsSearchScope),
 			mcp.WithNumber("limit", mcp.Description("Max results per scanner per severity (default 10)")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			limit := getIntArg(req.GetArguments(), "limit", 10)
 			var parts []string
 			for _, sc := range scannerListers {
-				apiTypes := findingTypes[sc.name].apiTypes
+				apiTypes := findings.Types[sc.name].APITypes
 				for _, sev := range []string{"critical", "high"} {
-					findings, _, err := searchFindings(ctx, c, findingSearchOpts{
-						apiTypes: apiTypes,
-						severity: sev,
-						limit:    limit,
+					result, err := findings.Search(ctx, c, findings.SearchOptions{
+						APITypes: apiTypes,
+						Severity: sev,
+						Limit:    limit,
 					})
-					if err != nil || len(findings) == 0 {
+					if err != nil {
+						parts = append(parts, fmt.Sprintf("--- %s (%s) ---\nError: %v", sc.name, sev, err))
 						continue
 					}
-					b, _ := json.MarshalIndent(findings, "", "  ")
+					if len(result.Findings) == 0 {
+						continue
+					}
+					b, _ := json.MarshalIndent(result.Findings, "", "  ")
 					parts = append(parts, fmt.Sprintf("--- %s (%s) ---\n%s", sc.name, sev, string(b)))
 				}
 			}
@@ -166,7 +183,7 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("get_security_trends",
+		readOnlyTool("get_security_trends",
 			mcp.WithDescription("Security metrics: current posture overview plus how it has changed over time."),
 			mcp.WithString("period", mcp.Description("Time period"), mcp.Enum("7d", "30d", "90d", "365d")),
 		),

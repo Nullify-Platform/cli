@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"net/url"
 	"os"
+	"strings"
 
-	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/findings"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -14,108 +16,113 @@ import (
 var fixCmd = &cobra.Command{
 	Use:   "fix <finding-id>",
 	Short: "Generate an autofix for a finding",
-	Long: `Generate an automated fix for a security finding and optionally create a PR.
+	Long: `Generate an automated fix for a security finding and wait for it to finish.
 
-Supports SAST and SCA dependency findings.`,
+The fix run opens any pull request itself. --create-pr waits for a pull request
+that this run opened and reports it.
+
+The command exits non-zero when the fix failed, when it is still running at
+--timeout, or when --create-pr finds no new pull request. A run that is still
+running continues on the server. --no-wait starts the run, prints its state and
+exits 0. Check a run with nullify findings fix-status.`,
 	Example: `  # Fix a SAST finding
   nullify fix abc123 --type sast
 
-  # Fix and create a PR
+  # Fix and report the pull request
   nullify fix abc123 --type sast --create-pr
 
   # Fix an SCA dependency finding
-  nullify fix def456 --type sca`,
+  nullify fix def456 --type sca
+
+  # Start the run and continue at once
+  nullify fix abc123 --type sast --no-wait
+  nullify findings fix-status abc123 --type sast`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-
 		findingID := args[0]
+		findingType, _ := cmd.Flags().GetString("type")
+		createPR, _ := cmd.Flags().GetBool("create-pr")
+		noWait, _ := cmd.Flags().GetBool("no-wait")
+		timeout, _ := cmd.Flags().GetDuration("timeout")
 
-		authCtx, err := resolveCommandAuth(ctx)
+		authCtx, err := resolveCommandAuth(cmd.Context())
 		if err != nil {
 			return err
 		}
-		nullifyClient := authCtx.Client()
-		queryParams := authCtx.QueryParams
 
-		findingType, _ := cmd.Flags().GetString("type")
-		createPR, _ := cmd.Flags().GetBool("create-pr")
-
-		var basePath string
-		switch findingType {
-		case "sast":
-			basePath = "/sast/findings"
-		case "sca":
-			basePath = "/sca/dependencies/findings"
-		default:
-			return fmt.Errorf("--type must be 'sast' or 'sca'")
-		}
-
-		qs := lib.BuildQueryString(queryParams)
-
-		// Step 1: Generate autofix
 		if !quiet {
 			fmt.Fprintf(os.Stderr, "Generating fix for %s finding %s...\n", findingType, findingID)
 		}
-		_, err = lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-			fmt.Sprintf("%s/%s/autofix/fix%s", basePath, url.PathEscape(findingID), qs))
+		apiClient, err := newRefreshingAPIClient(cmd.Context(), authCtx, authCtx.QueryParams)
 		if err != nil {
-			return reportError(
-				cmd,
-				fmt.Errorf("generating fix: %w", err),
-				"Error generating fix: %v\n",
-				err,
-			)
+			return fmt.Errorf("failed to create client: %w", err)
 		}
-
-		// Step 2: Get diff
-		diffBody, err := lib.DoGet(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-			fmt.Sprintf("%s/%s/autofix/cache/diff%s", basePath, url.PathEscape(findingID), qs))
-		if err != nil {
-			return reportError(
-				cmd,
-				fmt.Errorf("getting diff: %w", err),
-				"Error getting diff: %v\n",
-				err,
-			)
-		}
-
-		result := map[string]any{
-			"finding_id": findingID,
-			"type":       findingType,
-			"diff":       json.RawMessage(diffBody),
-		}
-
-		// Step 3: Optionally create PR
-		if createPR {
-			if !quiet {
-				fmt.Fprintf(os.Stderr, "Creating PR...\n")
-			}
-			prBody, err := lib.DoPost(ctx, nullifyClient.HttpClient, nullifyClient.BaseURL,
-				fmt.Sprintf("%s/%s/autofix/cache/create_pr%s", basePath, url.PathEscape(findingID), qs))
-			if err != nil {
-				return reportError(
-					cmd,
-					fmt.Errorf("creating PR: %w", err),
-					"Error creating PR: %v\n",
-					err,
-				)
-			}
-			result["pr"] = json.RawMessage(prBody)
-		}
-
-		out, _ := json.MarshalIndent(result, "", "  ")
-		if err := output.Print(cmd, out); err != nil {
-			fmt.Fprintln(os.Stderr, string(out))
-		}
-		return nil
+		return runFix(cmd, apiClient, findingID, findingType, noWait, findings.FixOptions{WaitForPR: createPR, Timeout: timeout})
 	},
+}
+
+func runFix(cmd *cobra.Command, c *api.Client, findingID, findingType string, noWait bool, opts findings.FixOptions) error {
+	if noWait {
+		start, err := findings.StartFix(cmd.Context(), c, findingType, findingID)
+		if err != nil {
+			return findingsError(err)
+		}
+		return reportFix(cmd, findingID, findingType, findings.FixResult{State: start.State, RunID: start.RunID})
+	}
+
+	fixResult, err := findings.Fix(cmd.Context(), c, findingType, findingID, opts)
+	if err != nil {
+		if fixResult.CheckWith != "" {
+			_ = reportFix(cmd, findingID, findingType, fixResult)
+		}
+		return findingsError(err)
+	}
+	return reportFix(cmd, findingID, findingType, fixResult)
+}
+
+// reportFix prints the outcome and returns the failure of the run, so that a fix
+// that did not deliver its result exits non-zero after it prints what it has.
+func reportFix(cmd *cobra.Command, findingID, findingType string, fixResult findings.FixResult) error {
+	result := map[string]any{
+		"finding_id": findingID,
+		"type":       findingType,
+		"state":      fixResult.State,
+	}
+	if fixResult.RunID != "" {
+		result["run_id"] = fixResult.RunID
+	}
+	if fixResult.CheckWith != "" {
+		result["check_with"] = fixResult.CheckWith
+	}
+	if errors.Is(fixResult.Failure, findings.ErrAutofixStillRunning) {
+		result["still_running"] = true
+	}
+	if len(fixResult.Diff) > 0 {
+		result["diff"] = fixResult.Diff
+	}
+	if fixResult.PullRequest != nil {
+		result["pr"] = fixResult.PullRequest
+	}
+
+	out, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := output.Print(cmd, out); err != nil {
+		fmt.Fprintln(os.Stderr, string(out))
+	}
+	return fixResult.Failure
 }
 
 func init() {
 	rootCmd.AddCommand(fixCmd)
 
-	fixCmd.Flags().String("type", "", "Finding type (sast, sca)")
+	autofixTypes := findings.NamesWith(func(t findings.Type) bool { return t.AutofixFix != nil })
+	fixCmd.Flags().String("type", "", "Finding type (sca, "+strings.Join(autofixTypes, ", ")+")")
 	_ = fixCmd.MarkFlagRequired("type")
-	fixCmd.Flags().Bool("create-pr", false, "Create a PR with the fix")
+	fixCmd.Flags().Bool("create-pr", false, "Wait for and report a pull request that this run opens")
+	fixCmd.Flags().Bool("no-wait", false, "Start the run, print its state and exit 0")
+	fixCmd.Flags().Duration("timeout", findings.DefaultFixTimeout, "How long to wait for the run")
+	fixCmd.MarkFlagsMutuallyExclusive("no-wait", "create-pr")
+	fixCmd.MarkFlagsMutuallyExclusive("no-wait", "timeout")
 }

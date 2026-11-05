@@ -3,6 +3,13 @@ package models
 
 import "encoding/json"
 
+type AgentsGroupedAgentLog struct {
+	Logs *AgentsAgentLogs `json:"logs,omitempty"`
+	Summary *string `json:"summary,omitempty"`
+}
+
+type AgentsGroupedAgentLogs = []AgentsGroupedAgentLog
+
 type EndpointsAutofixActivityLogEntry struct {
 	Content *string `json:"content,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
@@ -11,12 +18,49 @@ type EndpointsAutofixActivityLogEntry struct {
 	Metadata *string `json:"metadata,omitempty"`
 }
 
-type EndpointsGetCSPMFindingAutofixDiffOutput struct {
-	Commit string `json:"commit"`
-	Diffs []ModelsDiffFile `json:"diffs,omitempty"`
-	Explanation string `json:"explanation"`
-	PullRequestBody string `json:"pullRequestBody"`
-	PullRequestTitle string `json:"pullRequestTitle"`
+type EndpointsAutofixCoordination struct {
+	Entries []EndpointsAutofixPRCoordination `json:"entries,omitempty"`
+	Unavailable bool `json:"unavailable"`
+}
+
+type EndpointsAutofixOutcome string
+
+const (
+	// (skipped value "" — no representable Go identifier)
+	EndpointsAutofixOutcomeDeclined EndpointsAutofixOutcome = "declined"
+	EndpointsAutofixOutcomeStopped EndpointsAutofixOutcome = "stopped"
+)
+
+type EndpointsAutofixPRCoordination struct {
+	AttemptID *string `json:"attemptId,omitempty"`
+	Blocked bool `json:"blocked"`
+	Message string `json:"message"`
+	PrIdentifier string `json:"prIdentifier"`
+	ReasonCode string `json:"reasonCode"`
+	RepositoryID string `json:"repositoryId"`
+	RequestID string `json:"requestId"`
+	RetryAllowed bool `json:"retryAllowed"`
+	State string `json:"state"`
+}
+
+type EndpointsAvailableAction struct {
+	Body map[string]json.RawMessage `json:"body,omitempty"`
+	Confirm *string `json:"confirm,omitempty"`
+	Href *string `json:"href,omitempty"`
+	ID string `json:"id"`
+	Kind EndpointsAvailableActionKind `json:"kind"`
+	Label string `json:"label"`
+	Method *string `json:"method,omitempty"`
+}
+
+type EndpointsAvailableActionKind string
+
+const (
+	EndpointsAvailableActionKindCommand EndpointsAvailableActionKind = "command"
+	EndpointsAvailableActionKindLink EndpointsAvailableActionKind = "link"
+)
+
+type EndpointsDeleteTicketCSPMFindingOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
@@ -35,10 +79,17 @@ type EndpointsGetCSPMFindingOutput struct {
 	Version string `json:"version"`
 }
 
+type EndpointsGetCSPMFindingTriageOutput struct {
+	Finding *ModelsTriagedCSPMFinding `json:"finding,omitempty"`
+	Version *string `json:"version,omitempty"`
+	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
+}
+
 type EndpointsGetCSPMFindingsOutput struct {
 	Findings []ModelsCSPMFindingPreview `json:"findings,omitempty"`
 	NextToken *string `json:"nextToken,omitempty"`
 	NumItems int `json:"numItems"`
+	TotalCount int `json:"totalCount"`
 	Version string `json:"version"`
 }
 
@@ -51,6 +102,7 @@ type EndpointsGetCSPMScansOutput struct {
 	NextToken *string `json:"nextToken,omitempty"`
 	NumItems int `json:"numItems"`
 	Scans []ModelsCSPMScanPreview `json:"scans,omitempty"`
+	TotalCount int `json:"totalCount"`
 	Version string `json:"version"`
 }
 
@@ -63,15 +115,48 @@ type EndpointsIterationSummary struct {
 	TotalOutputTokens int `json:"totalOutputTokens"`
 }
 
+type EndpointsPatchCSPMFindingInput struct {
+	ClearPriorityOverride *bool `json:"clearPriorityOverride,omitempty"`
+	ClearSeverityOverride *bool `json:"clearSeverityOverride,omitempty"`
+	PriorityOverride *ModelsPriorityLabel `json:"priorityOverride,omitempty"`
+	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
+	UserNotes *string `json:"userNotes,omitempty"`
+}
+
+type EndpointsPatchCSPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostAllowlistCSPMFindingInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType *ModelsAllowlistType `json:"allowlistType,omitempty"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostAllowlistCSPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostArchiveCSPMFindingInput struct {
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostArchiveCSPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsPostCSPMFindingAutofixInput struct {
 	Force *bool `json:"force,omitempty"`
+	GitRepositoryProvider *ModelsGitRepositoryProvider `json:"gitRepositoryProvider,omitempty"`
 	Message *string `json:"message,omitempty"`
 	OriginCampaignID *string `json:"originCampaignId,omitempty"`
+	UseCachedFix *bool `json:"useCachedFix,omitempty"`
 }
 
 type EndpointsPostCSPMFindingAutofixOutput struct {
 	AutoFixState ModelsAutoFixState `json:"autoFixState"`
 	Error *string `json:"error,omitempty"`
+	RunID *string `json:"runId,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -89,13 +174,105 @@ type EndpointsPostCreateTicketCSPMFindingOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostMarkFalsePositiveCSPMFindingInput struct {
+	FalsePositiveReason string `json:"falsePositiveReason"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostMarkFalsePositiveCSPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostUnallowlistCSPMFindingInput struct {
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostUnallowlistCSPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostUnarchiveCSPMFindingInput struct {
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostUnarchiveCSPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostUnmarkFalsePositiveCSPMFindingInput struct {
+	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
+}
+
+type EndpointsPostUnmarkFalsePositiveCSPMFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsPullRequestSummary struct {
+	CiCheckedAt *string `json:"ciCheckedAt,omitempty"`
+	CiDetailURL *string `json:"ciDetailUrl,omitempty"`
+	CiState *ModelsPullRequestCIState `json:"ciState,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
 	Identifier int `json:"identifier"`
 	MergedAt *string `json:"mergedAt,omitempty"`
 	Provider *ModelsProviderID `json:"provider,omitempty"`
+	RecordID *string `json:"recordId,omitempty"`
 	Status *ModelsPullRequestState `json:"status,omitempty"`
 	URL *string `json:"url,omitempty"`
+}
+
+type EndpointsStartCSPMScanOutput struct {
+	ExecutionArn *string `json:"executionArn,omitempty"`
+	ScanID *string `json:"scanId,omitempty"`
+	StatusCode *int `json:"statusCode,omitempty"`
+}
+
+type FrameworksConfidence string
+
+const (
+	FrameworksConfidenceExact FrameworksConfidence = "exact"
+	FrameworksConfidenceHeuristic FrameworksConfidence = "heuristic"
+	FrameworksConfidenceDefault FrameworksConfidence = "default"
+	FrameworksConfidenceNone FrameworksConfidence = "none"
+)
+
+type FrameworksControlRef struct {
+	Confidence *FrameworksConfidence `json:"confidence,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Level *string `json:"level,omitempty"`
+	Relationship *string `json:"relationship,omitempty"`
+	Title *string `json:"title,omitempty"`
+	URL *string `json:"url,omitempty"`
+}
+
+type FrameworksFrameworkID string
+
+const (
+	FrameworksFrameworkIDCvss31 FrameworksFrameworkID = "cvss-3.1"
+	FrameworksFrameworkIDCvss40 FrameworksFrameworkID = "cvss-4.0"
+	FrameworksFrameworkIDOwaspTop102021 FrameworksFrameworkID = "owasp-top10-2021"
+	FrameworksFrameworkIDOwaspAsvs50 FrameworksFrameworkID = "owasp-asvs-5.0"
+	FrameworksFrameworkIDPciDss401 FrameworksFrameworkID = "pci-dss-4.0.1"
+	FrameworksFrameworkIDNistCsf20 FrameworksFrameworkID = "nist-csf-2.0"
+	FrameworksFrameworkIDAuIsm FrameworksFrameworkID = "au-ism"
+)
+
+type FrameworksResult struct {
+	Controls []FrameworksControlRef `json:"controls,omitempty"`
+	Framework *FrameworksFrameworkID `json:"framework,omitempty"`
+	MappingConfidence *FrameworksConfidence `json:"mappingConfidence,omitempty"`
+	Notes []string `json:"notes,omitempty"`
+	Rank *string `json:"rank,omitempty"`
+	Score *FrameworksScore `json:"score,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type FrameworksScore struct {
+	BaseScore *float64 `json:"baseScore,omitempty"`
+	Nomenclature *string `json:"nomenclature,omitempty"`
+	Qualitative *string `json:"qualitative,omitempty"`
+	Synthesized *bool `json:"synthesized,omitempty"`
+	Vector *string `json:"vector,omitempty"`
 }
 
 type ModelsAutofixPhase string
@@ -137,7 +314,9 @@ type ModelsCSPMFinding struct {
 	ExploitabilityConfidence *string `json:"exploitabilityConfidence,omitempty"`
 	ExploitabilityLabel *string `json:"exploitabilityLabel,omitempty"`
 	FailedTriage *bool `json:"failedTriage,omitempty"`
+	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
 	FixCommit *string `json:"fixCommit,omitempty"`
+	FixEvidence *string `json:"fixEvidence,omitempty"`
 	FixSource *string `json:"fixSource,omitempty"`
 	FixedAt *string `json:"fixedAt,omitempty"`
 	ID *string `json:"id,omitempty"`
@@ -178,10 +357,10 @@ type ModelsCSPMFinding struct {
 	TicketState *string `json:"ticketState,omitempty"`
 	Title *string `json:"title,omitempty"`
 	TriageAgentVersion *string `json:"triageAgentVersion,omitempty"`
+	TriageAttempts *int `json:"triageAttempts,omitempty"`
+	TriageDeferredUntil *string `json:"triageDeferredUntil,omitempty"`
 	TriageDurationSeconds int `json:"triageDurationSeconds"`
 	TriageEnd *string `json:"triageEnd,omitempty"`
-	TriageLangfuseSessionID *string `json:"triageLangfuseSessionId,omitempty"`
-	TriageLangfuseTraceID *string `json:"triageLangfuseTraceId,omitempty"`
 	TriageLlmCostUsd *float64 `json:"triageLlmCostUsd,omitempty"`
 	TriageStart *string `json:"triageStart,omitempty"`
 	TriageTokenCount *int `json:"triageTokenCount,omitempty"`
@@ -201,10 +380,12 @@ type ModelsCSPMFindingPreview struct {
 	CloudProvider *string `json:"cloudProvider,omitempty"`
 	ComplianceFrames []ModelsComplianceFrame `json:"complianceFrames,omitempty"`
 	CreatedAt string `json:"createdAt"`
+	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
 	ID string `json:"id"`
 	IsAllowlisted *bool `json:"isAllowlisted,omitempty"`
 	IsArchived *bool `json:"isArchived,omitempty"`
 	IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
+	IsFixed *bool `json:"isFixed,omitempty"`
 	IsLatest *bool `json:"isLatest,omitempty"`
 	IsResolved bool `json:"isResolved"`
 	Message *string `json:"message,omitempty"`
@@ -219,12 +400,14 @@ type ModelsCSPMFindingPreview struct {
 	RuleID *string `json:"ruleId,omitempty"`
 	RuleURL *string `json:"ruleUrl,omitempty"`
 	Severity *ModelsSeverity `json:"severity,omitempty"`
+	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
 	TenantID string `json:"tenantId"`
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	Title string `json:"title"`
 	TriageEnd *string `json:"triageEnd,omitempty"`
 	TriageStart *string `json:"triageStart,omitempty"`
 	UpdatedAt string `json:"updatedAt"`
+	UserNotes *string `json:"userNotes,omitempty"`
 }
 
 type ModelsCSPMScan struct {
@@ -257,6 +440,8 @@ type ModelsCSPMScan struct {
 	Status *ModelsScanStatus `json:"status,omitempty"`
 	Summary ModelsCSPMScanSummary `json:"summary"`
 	TenantID *string `json:"tenantId,omitempty"`
+	TriageDeferredCount *int `json:"triageDeferredCount,omitempty"`
+	TriageEligibleCount *int `json:"triageEligibleCount,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
 
@@ -272,12 +457,15 @@ type ModelsCSPMScanPreview struct {
 	IsArchived *bool `json:"isArchived,omitempty"`
 	Progress *int `json:"progress,omitempty"`
 	Region *string `json:"region,omitempty"`
+	RegionsToScan []string `json:"regionsToScan,omitempty"`
 	ScanType *ModelsCSPMScanType `json:"scanType,omitempty"`
 	ScannerVersion *string `json:"scannerVersion,omitempty"`
 	StartedAt string `json:"startedAt"`
 	Status *ModelsScanStatus `json:"status,omitempty"`
 	Summary ModelsCSPMScanSummary `json:"summary"`
 	TenantID *string `json:"tenantId,omitempty"`
+	TriageDeferredCount *int `json:"triageDeferredCount,omitempty"`
+	TriageEligibleCount *int `json:"triageEligibleCount,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
 
@@ -303,17 +491,874 @@ const (
 	ModelsCSPMScanTypeScheduledCloudScan ModelsCSPMScanType = "scheduled-cloud-scan"
 )
 
-type ModelsCloudProvider string
-
-const (
-	ModelsCloudProviderAws ModelsCloudProvider = "AWS"
-	ModelsCloudProviderAzure ModelsCloudProvider = "AZURE"
-	ModelsCloudProviderGcp ModelsCloudProvider = "GCP"
-	ModelsCloudProviderK8s ModelsCloudProvider = "K8S"
-)
-
 type ModelsComplianceFrame struct {
 	Control *string `json:"control,omitempty"`
 	Framework *string `json:"framework,omitempty"`
 	Version *string `json:"version,omitempty"`
+}
+
+type ModelsCustomerQuestion struct {
+	Answer *json.RawMessage `json:"answer,omitempty"`
+	AnswerMemoryID *string `json:"answerMemoryId,omitempty"`
+	AnsweredAt *string `json:"answeredAt,omitempty"`
+	CustomMessage *string `json:"customMessage,omitempty"`
+	Expiry *ModelsCustomerQuestionExpiry `json:"expiry,omitempty"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	GapCategories []string `json:"gapCategories,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Options []ModelsCustomerQuestionOptionsElem `json:"options,omitempty"`
+	QuestionText *string `json:"questionText,omitempty"`
+	QuestionType *ModelsCustomerQuestionQuestionType `json:"questionType,omitempty"`
+	RelatedMemoryIds []string `json:"relatedMemoryIds,omitempty"`
+	Scope *ModelsCustomerQuestionScope `json:"scope,omitempty"`
+	ScopeResourceID *string `json:"scopeResourceId,omitempty"`
+	UnknownIds []string `json:"unknownIds,omitempty"`
+}
+
+type ModelsCustomerQuestionExpiry struct {
+	ExpiresInDays *int `json:"expiresInDays,omitempty"`
+	FollowUpDays *int `json:"followUpDays,omitempty"`
+	IfExpired *ModelsCustomerQuestionExpiryIfExpired `json:"ifExpired,omitempty"`
+	Justification *string `json:"justification,omitempty"`
+	Mode *ModelsCustomerQuestionExpiryMode `json:"mode,omitempty"`
+}
+
+type ModelsCustomerQuestionExpiryIfExpired string
+
+const (
+	ModelsCustomerQuestionExpiryIfExpiredEscalate ModelsCustomerQuestionExpiryIfExpired = "escalate"
+	ModelsCustomerQuestionExpiryIfExpiredExpire ModelsCustomerQuestionExpiryIfExpired = "expire"
+	ModelsCustomerQuestionExpiryIfExpiredReaskOnce ModelsCustomerQuestionExpiryIfExpired = "reask_once"
+)
+
+type ModelsCustomerQuestionExpiryMode string
+
+const (
+	ModelsCustomerQuestionExpiryModeDeadline ModelsCustomerQuestionExpiryMode = "deadline"
+	ModelsCustomerQuestionExpiryModeUntilResolved ModelsCustomerQuestionExpiryMode = "until_resolved"
+)
+
+type ModelsCustomerQuestionOptionsElem struct {
+	ID *string `json:"id,omitempty"`
+	Label *string `json:"label,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type ModelsCustomerQuestionQuestionType string
+
+const (
+	ModelsCustomerQuestionQuestionTypeFreeText ModelsCustomerQuestionQuestionType = "FREE_TEXT"
+	ModelsCustomerQuestionQuestionTypeMultiSelect ModelsCustomerQuestionQuestionType = "MULTI_SELECT"
+	ModelsCustomerQuestionQuestionTypeSingleSelect ModelsCustomerQuestionQuestionType = "SINGLE_SELECT"
+	ModelsCustomerQuestionQuestionTypeYesNo ModelsCustomerQuestionQuestionType = "YES_NO"
+)
+
+type ModelsCustomerQuestionScope string
+
+const (
+	ModelsCustomerQuestionScopeCloud ModelsCustomerQuestionScope = "CLOUD"
+	ModelsCustomerQuestionScopeOrganization ModelsCustomerQuestionScope = "ORGANIZATION"
+	ModelsCustomerQuestionScopeRepository ModelsCustomerQuestionScope = "REPOSITORY"
+)
+
+type ModelsCustomerQuestionSet struct {
+	CustomMessage *string `json:"customMessage,omitempty"`
+	GeneratedMemoryIds []string `json:"generatedMemoryIds,omitempty"`
+	ID *string `json:"id,omitempty"`
+	Questions []ModelsCustomerQuestion `json:"questions,omitempty"`
+}
+
+type ModelsTriageAgentConfidence string
+
+const (
+	ModelsTriageAgentConfidenceHigh ModelsTriageAgentConfidence = "HIGH"
+	ModelsTriageAgentConfidenceLow ModelsTriageAgentConfidence = "LOW"
+	ModelsTriageAgentConfidenceMedium ModelsTriageAgentConfidence = "MEDIUM"
+)
+
+type ModelsTriageCampaignMetadata struct {
+	ID *string `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+}
+
+type ModelsTriageCloudContext struct {
+	Confidence *float64 `json:"confidence,omitempty"`
+	Mode *ModelsTriageCloudContextMode `json:"mode,omitempty"`
+	OwnershipBasis *ModelsTriageCloudContextOwnershipBasis `json:"ownershipBasis,omitempty"`
+	Repos []string `json:"repos,omitempty"`
+	Thoughts *string `json:"thoughts,omitempty"`
+}
+
+type ModelsTriageCloudContextMode string
+
+const (
+	ModelsTriageCloudContextModeModea ModelsTriageCloudContextMode = "MODEA"
+	ModelsTriageCloudContextModeModeb ModelsTriageCloudContextMode = "MODEB"
+)
+
+type ModelsTriageCloudContextOwnershipBasis string
+
+const (
+	ModelsTriageCloudContextOwnershipBasisDeclared ModelsTriageCloudContextOwnershipBasis = "declared"
+	ModelsTriageCloudContextOwnershipBasisProven ModelsTriageCloudContextOwnershipBasis = "proven"
+)
+
+type ModelsTriageComplianceFramework struct {
+	Clause *string `json:"clause,omitempty"`
+	Framework *ModelsTriageComplianceFrameworkFramework `json:"framework,omitempty"`
+	Obligation *string `json:"obligation,omitempty"`
+}
+
+type ModelsTriageComplianceFrameworkFramework string
+
+const (
+	ModelsTriageComplianceFrameworkFrameworkCcpa ModelsTriageComplianceFrameworkFramework = "CCPA"
+	ModelsTriageComplianceFrameworkFrameworkCis ModelsTriageComplianceFrameworkFramework = "CIS"
+	ModelsTriageComplianceFrameworkFrameworkFedramp ModelsTriageComplianceFrameworkFramework = "FEDRAMP"
+	ModelsTriageComplianceFrameworkFrameworkGdpr ModelsTriageComplianceFrameworkFramework = "GDPR"
+	ModelsTriageComplianceFrameworkFrameworkGlba ModelsTriageComplianceFrameworkFramework = "GLBA"
+	ModelsTriageComplianceFrameworkFrameworkHipaa ModelsTriageComplianceFrameworkFramework = "HIPAA"
+	ModelsTriageComplianceFrameworkFrameworkIso27001 ModelsTriageComplianceFrameworkFramework = "ISO27001"
+	ModelsTriageComplianceFrameworkFrameworkNist ModelsTriageComplianceFrameworkFramework = "NIST"
+	ModelsTriageComplianceFrameworkFrameworkOther ModelsTriageComplianceFrameworkFramework = "OTHER"
+	ModelsTriageComplianceFrameworkFrameworkPciDss ModelsTriageComplianceFrameworkFramework = "PCI-DSS"
+	ModelsTriageComplianceFrameworkFrameworkSoc2 ModelsTriageComplianceFrameworkFramework = "SOC2"
+)
+
+type ModelsTriageComplianceImpact struct {
+	Citations []ModelsTriageReference `json:"citations,omitempty"`
+	Confidence *ModelsTriageComplianceImpactConfidence `json:"confidence,omitempty"`
+	Frameworks []ModelsTriageComplianceFramework `json:"frameworks,omitempty"`
+	Rationale *string `json:"rationale,omitempty"`
+}
+
+type ModelsTriageComplianceImpactConfidence string
+
+const (
+	ModelsTriageComplianceImpactConfidenceHigh ModelsTriageComplianceImpactConfidence = "HIGH"
+	ModelsTriageComplianceImpactConfidenceLow ModelsTriageComplianceImpactConfidence = "LOW"
+	ModelsTriageComplianceImpactConfidenceMedium ModelsTriageComplianceImpactConfidence = "MEDIUM"
+)
+
+type ModelsTriageContainerAssessmentBatchesElem struct {
+	CompletedCVEs []string `json:"completedCVEs,omitempty"`
+	Cves []string `json:"cves,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Result *string `json:"result,omitempty"`
+	Status *ModelsTriageContainerAssessmentBatchesElemStatus `json:"status,omitempty"`
+}
+
+type ModelsTriageContainerAssessmentBatchesElemStatus string
+
+const (
+	ModelsTriageContainerAssessmentBatchesElemStatusCompleted ModelsTriageContainerAssessmentBatchesElemStatus = "completed"
+	ModelsTriageContainerAssessmentBatchesElemStatusFailed ModelsTriageContainerAssessmentBatchesElemStatus = "failed"
+	ModelsTriageContainerAssessmentBatchesElemStatusIncomplete ModelsTriageContainerAssessmentBatchesElemStatus = "incomplete"
+)
+
+type ModelsTriageContainerAssessmentStatus string
+
+const (
+	ModelsTriageContainerAssessmentStatusCompleted ModelsTriageContainerAssessmentStatus = "completed"
+	ModelsTriageContainerAssessmentStatusFailed ModelsTriageContainerAssessmentStatus = "failed"
+	ModelsTriageContainerAssessmentStatusIncomplete ModelsTriageContainerAssessmentStatus = "incomplete"
+)
+
+type ModelsTriageExploitability struct {
+	AttackComplexity *ModelsTriageExploitabilityAttackComplexity `json:"attackComplexity,omitempty"`
+	AttackRequirements *ModelsTriageExploitabilityAttackRequirements `json:"attackRequirements,omitempty"`
+	AttackVector *ModelsTriageExploitabilityAttackVector `json:"attackVector,omitempty"`
+	Confidence *ModelsTriageExploitabilityConfidence `json:"confidence,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityLabel `json:"label,omitempty"`
+	PrivilegesRequired *ModelsTriageExploitabilityPrivilegesRequired `json:"privilegesRequired,omitempty"`
+	Title *string `json:"title,omitempty"`
+	Unknowns []string `json:"unknowns,omitempty"`
+	UserInteraction *ModelsTriageExploitabilityUserInteraction `json:"userInteraction,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackComplexity struct {
+	Description *string `json:"description,omitempty"`
+	ExploitChainRequired *ModelsTriageExploitabilityAttackComplexityExploitChainRequired `json:"exploitChainRequired,omitempty"`
+	Label *ModelsTriageExploitabilityAttackComplexityLabel `json:"label,omitempty"`
+	PayloadDifficulty *ModelsTriageExploitabilityAttackComplexityPayloadDifficulty `json:"payloadDifficulty,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackComplexityExploitChainRequired struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel string
+
+const (
+	ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabelHigh ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel = "HIGH"
+	ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabelLow ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel = "LOW"
+	ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabelNone ModelsTriageExploitabilityAttackComplexityExploitChainRequiredLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityAttackComplexityLabel string
+
+const (
+	ModelsTriageExploitabilityAttackComplexityLabelHigh ModelsTriageExploitabilityAttackComplexityLabel = "HIGH"
+	ModelsTriageExploitabilityAttackComplexityLabelLow ModelsTriageExploitabilityAttackComplexityLabel = "LOW"
+)
+
+type ModelsTriageExploitabilityAttackComplexityPayloadDifficulty struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel `json:"label,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel string
+
+const (
+	ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabelEasy ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel = "EASY"
+	ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabelHard ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel = "HARD"
+	ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabelNone ModelsTriageExploitabilityAttackComplexityPayloadDifficultyLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityAttackRequirements struct {
+	Description *string `json:"description,omitempty"`
+	EnvironmentState *ModelsTriageExploitabilityAttackRequirementsEnvironmentState `json:"environmentState,omitempty"`
+	Label *ModelsTriageExploitabilityAttackRequirementsLabel `json:"label,omitempty"`
+	Mitm *ModelsTriageExploitabilityAttackRequirementsMitm `json:"mitm,omitempty"`
+	RaceCondition *ModelsTriageExploitabilityAttackRequirementsRaceCondition `json:"raceCondition,omitempty"`
+	TimeWindow *ModelsTriageExploitabilityAttackRequirementsTimeWindow `json:"timeWindow,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackRequirementsEnvironmentState struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel string
+
+const (
+	ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabelHigh ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel = "HIGH"
+	ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabelLow ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel = "LOW"
+	ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabelNone ModelsTriageExploitabilityAttackRequirementsEnvironmentStateLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityAttackRequirementsLabel string
+
+const (
+	ModelsTriageExploitabilityAttackRequirementsLabelHigh ModelsTriageExploitabilityAttackRequirementsLabel = "HIGH"
+	ModelsTriageExploitabilityAttackRequirementsLabelLow ModelsTriageExploitabilityAttackRequirementsLabel = "LOW"
+	ModelsTriageExploitabilityAttackRequirementsLabelNone ModelsTriageExploitabilityAttackRequirementsLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityAttackRequirementsMitm struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityAttackRequirementsMitmLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackRequirementsMitmLabel string
+
+const (
+	ModelsTriageExploitabilityAttackRequirementsMitmLabelHigh ModelsTriageExploitabilityAttackRequirementsMitmLabel = "HIGH"
+	ModelsTriageExploitabilityAttackRequirementsMitmLabelLow ModelsTriageExploitabilityAttackRequirementsMitmLabel = "LOW"
+	ModelsTriageExploitabilityAttackRequirementsMitmLabelNone ModelsTriageExploitabilityAttackRequirementsMitmLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityAttackRequirementsRaceCondition struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel string
+
+const (
+	ModelsTriageExploitabilityAttackRequirementsRaceConditionLabelHigh ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel = "HIGH"
+	ModelsTriageExploitabilityAttackRequirementsRaceConditionLabelLow ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel = "LOW"
+	ModelsTriageExploitabilityAttackRequirementsRaceConditionLabelNone ModelsTriageExploitabilityAttackRequirementsRaceConditionLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityAttackRequirementsTimeWindow struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel string
+
+const (
+	ModelsTriageExploitabilityAttackRequirementsTimeWindowLabelHigh ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel = "HIGH"
+	ModelsTriageExploitabilityAttackRequirementsTimeWindowLabelLow ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel = "LOW"
+	ModelsTriageExploitabilityAttackRequirementsTimeWindowLabelNone ModelsTriageExploitabilityAttackRequirementsTimeWindowLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityAttackVector struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityAttackVectorLabel `json:"label,omitempty"`
+	SubVectors []ModelsTriageExploitabilityAttackVectorSubVectorsElem `json:"subVectors,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackVectorLabel string
+
+const (
+	ModelsTriageExploitabilityAttackVectorLabelAdjacent ModelsTriageExploitabilityAttackVectorLabel = "ADJACENT"
+	ModelsTriageExploitabilityAttackVectorLabelLocal ModelsTriageExploitabilityAttackVectorLabel = "LOCAL"
+	ModelsTriageExploitabilityAttackVectorLabelNetwork ModelsTriageExploitabilityAttackVectorLabel = "NETWORK"
+	ModelsTriageExploitabilityAttackVectorLabelPhysical ModelsTriageExploitabilityAttackVectorLabel = "PHYSICAL"
+)
+
+type ModelsTriageExploitabilityAttackVectorSubVectorsElem struct {
+	Description *string `json:"description,omitempty"`
+	OtherVector *string `json:"otherVector,omitempty"`
+	Vector *ModelsTriageExploitabilityAttackVectorSubVectorsElemVector `json:"vector,omitempty"`
+}
+
+type ModelsTriageExploitabilityAttackVectorSubVectorsElemVector string
+
+const (
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentArpSpoofing ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_ARP_SPOOFING"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentBleAdvertising ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_BLE_ADVERTISING"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentBluetoothClassic ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_BLUETOOTH_CLASSIC"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentBluetoothKnob ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_BLUETOOTH_KNOB"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentIpv6NeighborDiscovery ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_IPV6_NEIGHBOR_DISCOVERY"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentMdns ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_MDNS"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentNetbios ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_NETBIOS"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentNfc ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_NFC"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_OTHER"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentSmb ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_SMB"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentSsdp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_SSDP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentThread ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_THREAD"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentWifiDirect ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_WIFI_DIRECT"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorAdjacentZigbee ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "ADJACENT_ZIGBEE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalCommandLineArgument ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_COMMAND_LINE_ARGUMENT"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalConfigurationFile ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_CONFIGURATION_FILE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalCronJob ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_CRON_JOB"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalDBusMessage ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_D-BUS_MESSAGE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalDockerSocket ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_DOCKER_SOCKET"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalEnvironmentVariable ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_ENVIRONMENT_VARIABLE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalFileContent ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_FILE_CONTENT"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalFileName ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_FILE_NAME"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalFilePath ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_FILE_PATH"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalIpcSocket ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_IPC_SOCKET"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_OTHER"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalScriptPlugin ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SCRIPT_PLUGIN"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalSharedLibraryLoad ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SHARED_LIBRARY_LOAD"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalSharedMemory ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SHARED_MEMORY"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalShellCommand ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SHELL_COMMAND"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorLocalSuidExecutable ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "LOCAL_SUID_EXECUTABLE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkDns ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_DNS"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkFtp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_FTP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkGraphqlQuery ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_GRAPHQL_QUERY"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkGre ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_GRE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpBody ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_BODY"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpCookie ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_COOKIE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpFileUpload ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_FILE_UPLOAD"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpHeader ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_HEADER"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpMethod ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_METHOD"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpPathParameter ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_PATH_PARAMETER"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkHttpQueryParameter ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_HTTP_QUERY_PARAMETER"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkIcmp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_ICMP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkImap ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_IMAP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkIpsec ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_IPSEC"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkL2tp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_L2TP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkLdap ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_LDAP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkMqtt ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_MQTT"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkNtp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_NTP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_OTHER"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkPop3 ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_POP3"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkRdp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_RDP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkRestEndpointhyperlinkClick ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_REST_ENDPOINTHYPERLINK_CLICK"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSctp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SCTP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSip ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SIP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSmb ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SMB"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSmtp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SMTP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSnmp ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SNMP"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSoapRequest ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SOAP_REQUEST"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkSsh ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_SSH"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkTcpPort ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_TCP_PORT"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkUdpPort ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_UDP_PORT"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorNetworkWebsocketMessage ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "NETWORK_WEBSOCKET_MESSAGE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalBiosJtag ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_BIOS_JTAG"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalBluetooth ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_BLUETOOTH"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalEvilMaid ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_EVIL_MAID"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalFirewire ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_FIREWIRE"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalIr ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_IR"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalNfc ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_NFC"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalOther ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_OTHER"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalRfid ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_RFID"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalSdCard ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_SD_CARD"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalSdio ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_SDIO"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalSideChannel ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_SIDE_CHANNEL"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalTempest ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_TEMPEST"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalThunderbolt ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_THUNDERBOLT"
+	ModelsTriageExploitabilityAttackVectorSubVectorsElemVectorPhysicalUsb ModelsTriageExploitabilityAttackVectorSubVectorsElemVector = "PHYSICAL_USB"
+)
+
+type ModelsTriageExploitabilityConfidence string
+
+const (
+	ModelsTriageExploitabilityConfidenceHigh ModelsTriageExploitabilityConfidence = "HIGH"
+	ModelsTriageExploitabilityConfidenceLow ModelsTriageExploitabilityConfidence = "LOW"
+	ModelsTriageExploitabilityConfidenceMedium ModelsTriageExploitabilityConfidence = "MEDIUM"
+)
+
+type ModelsTriageExploitabilityLabel string
+
+const (
+	ModelsTriageExploitabilityLabelLikely ModelsTriageExploitabilityLabel = "LIKELY"
+	ModelsTriageExploitabilityLabelNeutral ModelsTriageExploitabilityLabel = "NEUTRAL"
+	ModelsTriageExploitabilityLabelUnlikely ModelsTriageExploitabilityLabel = "UNLIKELY"
+)
+
+type ModelsTriageExploitabilityPrivilegesRequired struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityPrivilegesRequiredLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+	Types []ModelsTriageExploitabilityPrivilegesRequiredTypesElem `json:"types,omitempty"`
+}
+
+type ModelsTriageExploitabilityPrivilegesRequiredLabel string
+
+const (
+	ModelsTriageExploitabilityPrivilegesRequiredLabelHigh ModelsTriageExploitabilityPrivilegesRequiredLabel = "HIGH"
+	ModelsTriageExploitabilityPrivilegesRequiredLabelLow ModelsTriageExploitabilityPrivilegesRequiredLabel = "LOW"
+	ModelsTriageExploitabilityPrivilegesRequiredLabelNone ModelsTriageExploitabilityPrivilegesRequiredLabel = "NONE"
+)
+
+type ModelsTriageExploitabilityPrivilegesRequiredTypesElem string
+
+const (
+	ModelsTriageExploitabilityPrivilegesRequiredTypesElemPrivilegedUser ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "PRIVILEGED_USER"
+	ModelsTriageExploitabilityPrivilegesRequiredTypesElemUnauthenticated ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "UNAUTHENTICATED"
+	ModelsTriageExploitabilityPrivilegesRequiredTypesElemUnverifiedUser ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "UNVERIFIED_USER"
+	ModelsTriageExploitabilityPrivilegesRequiredTypesElemVerifiedUser ModelsTriageExploitabilityPrivilegesRequiredTypesElem = "VERIFIED_USER"
+)
+
+type ModelsTriageExploitabilityUserInteraction struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageExploitabilityUserInteractionLabel `json:"label,omitempty"`
+	OtherTypes []string `json:"otherTypes,omitempty"`
+	Title *string `json:"title,omitempty"`
+	Types []ModelsTriageExploitabilityUserInteractionTypesElem `json:"types,omitempty"`
+}
+
+type ModelsTriageExploitabilityUserInteractionLabel string
+
+const (
+	ModelsTriageExploitabilityUserInteractionLabelActive ModelsTriageExploitabilityUserInteractionLabel = "ACTIVE"
+	ModelsTriageExploitabilityUserInteractionLabelNone ModelsTriageExploitabilityUserInteractionLabel = "NONE"
+	ModelsTriageExploitabilityUserInteractionLabelPassive ModelsTriageExploitabilityUserInteractionLabel = "PASSIVE"
+)
+
+type ModelsTriageExploitabilityUserInteractionTypesElem string
+
+const (
+	ModelsTriageExploitabilityUserInteractionTypesElemBrowsing ModelsTriageExploitabilityUserInteractionTypesElem = "BROWSING"
+	ModelsTriageExploitabilityUserInteractionTypesElemFileDownload ModelsTriageExploitabilityUserInteractionTypesElem = "FILE_DOWNLOAD"
+	ModelsTriageExploitabilityUserInteractionTypesElemFileUpload ModelsTriageExploitabilityUserInteractionTypesElem = "FILE_UPLOAD"
+	ModelsTriageExploitabilityUserInteractionTypesElemHyperlinkClick ModelsTriageExploitabilityUserInteractionTypesElem = "HYPERLINK_CLICK"
+	ModelsTriageExploitabilityUserInteractionTypesElemSocialEngineering ModelsTriageExploitabilityUserInteractionTypesElem = "SOCIAL_ENGINEERING"
+)
+
+type ModelsTriageFixEffort struct {
+	Confidence *ModelsTriageFixEffortConfidence `json:"confidence,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageFixEffortLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+	Unknowns []string `json:"unknowns,omitempty"`
+}
+
+type ModelsTriageFixEffortConfidence string
+
+const (
+	ModelsTriageFixEffortConfidenceHigh ModelsTriageFixEffortConfidence = "HIGH"
+	ModelsTriageFixEffortConfidenceLow ModelsTriageFixEffortConfidence = "LOW"
+	ModelsTriageFixEffortConfidenceMedium ModelsTriageFixEffortConfidence = "MEDIUM"
+)
+
+type ModelsTriageFixEffortLabel string
+
+const (
+	ModelsTriageFixEffortLabelEasy ModelsTriageFixEffortLabel = "EASY"
+	ModelsTriageFixEffortLabelHard ModelsTriageFixEffortLabel = "HARD"
+	ModelsTriageFixEffortLabelMedium ModelsTriageFixEffortLabel = "MEDIUM"
+)
+
+type ModelsTriageImpact struct {
+	Availability *ModelsTriageImpactAvailability `json:"availability,omitempty"`
+	BusinessCriticality *ModelsTriageImpactBusinessCriticality `json:"businessCriticality,omitempty"`
+	Confidence *ModelsTriageImpactConfidence `json:"confidence,omitempty"`
+	Confidentiality *ModelsTriageImpactConfidentiality `json:"confidentiality,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Integrity *ModelsTriageImpactIntegrity `json:"integrity,omitempty"`
+	Label *ModelsTriageImpactLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+	Unknowns []string `json:"unknowns,omitempty"`
+}
+
+type ModelsTriageImpactAvailability struct {
+	Cause []ModelsTriageImpactAvailabilityCauseElem `json:"cause,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageImpactAvailabilityLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+	Type []ModelsTriageImpactAvailabilityTypeElem `json:"type,omitempty"`
+}
+
+type ModelsTriageImpactAvailabilityCauseElem string
+
+const (
+	ModelsTriageImpactAvailabilityCauseElemBufferOverflow ModelsTriageImpactAvailabilityCauseElem = "BUFFER_OVERFLOW"
+	ModelsTriageImpactAvailabilityCauseElemBusinessLogic ModelsTriageImpactAvailabilityCauseElem = "BUSINESS_LOGIC"
+	ModelsTriageImpactAvailabilityCauseElemInfiniteLoop ModelsTriageImpactAvailabilityCauseElem = "INFINITE_LOOP"
+	ModelsTriageImpactAvailabilityCauseElemMemoryLeak ModelsTriageImpactAvailabilityCauseElem = "MEMORY_LEAK"
+	ModelsTriageImpactAvailabilityCauseElemResourceExhaustion ModelsTriageImpactAvailabilityCauseElem = "RESOURCE_EXHAUSTION"
+)
+
+type ModelsTriageImpactAvailabilityLabel string
+
+const (
+	ModelsTriageImpactAvailabilityLabelHigh ModelsTriageImpactAvailabilityLabel = "HIGH"
+	ModelsTriageImpactAvailabilityLabelLow ModelsTriageImpactAvailabilityLabel = "LOW"
+	ModelsTriageImpactAvailabilityLabelNone ModelsTriageImpactAvailabilityLabel = "NONE"
+)
+
+type ModelsTriageImpactAvailabilityTypeElem string
+
+const (
+	ModelsTriageImpactAvailabilityTypeElemCompleteServiceOutage ModelsTriageImpactAvailabilityTypeElem = "COMPLETE_SERVICE_OUTAGE"
+	ModelsTriageImpactAvailabilityTypeElemServiceDegradation ModelsTriageImpactAvailabilityTypeElem = "SERVICE_DEGRADATION"
+	ModelsTriageImpactAvailabilityTypeElemUserAccessDisruption ModelsTriageImpactAvailabilityTypeElem = "USER_ACCESS_DISRUPTION"
+)
+
+type ModelsTriageImpactBusinessCriticality struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageImpactBusinessCriticalityLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageImpactBusinessCriticalityLabel string
+
+const (
+	ModelsTriageImpactBusinessCriticalityLabelHigh ModelsTriageImpactBusinessCriticalityLabel = "HIGH"
+	ModelsTriageImpactBusinessCriticalityLabelLow ModelsTriageImpactBusinessCriticalityLabel = "LOW"
+	ModelsTriageImpactBusinessCriticalityLabelMedium ModelsTriageImpactBusinessCriticalityLabel = "MEDIUM"
+)
+
+type ModelsTriageImpactConfidence string
+
+const (
+	ModelsTriageImpactConfidenceHigh ModelsTriageImpactConfidence = "HIGH"
+	ModelsTriageImpactConfidenceLow ModelsTriageImpactConfidence = "LOW"
+	ModelsTriageImpactConfidenceMedium ModelsTriageImpactConfidence = "MEDIUM"
+)
+
+type ModelsTriageImpactConfidentiality struct {
+	DataLeaked []ModelsTriageImpactConfidentialityDataLeakedElem `json:"dataLeaked,omitempty"`
+	Label *ModelsTriageImpactConfidentialityLabel `json:"label,omitempty"`
+}
+
+type ModelsTriageImpactConfidentialityDataLeakedElem string
+
+const (
+	ModelsTriageImpactConfidentialityDataLeakedElemAccessToken ModelsTriageImpactConfidentialityDataLeakedElem = "ACCESS_TOKEN"
+	ModelsTriageImpactConfidentialityDataLeakedElemAddress ModelsTriageImpactConfidentialityDataLeakedElem = "ADDRESS"
+	ModelsTriageImpactConfidentialityDataLeakedElemAge ModelsTriageImpactConfidentialityDataLeakedElem = "AGE"
+	ModelsTriageImpactConfidentialityDataLeakedElemApiKey ModelsTriageImpactConfidentialityDataLeakedElem = "API_KEY"
+	ModelsTriageImpactConfidentialityDataLeakedElemAuthenticationData ModelsTriageImpactConfidentialityDataLeakedElem = "AUTHENTICATION_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemBankAccountInformation ModelsTriageImpactConfidentialityDataLeakedElem = "BANK_ACCOUNT_INFORMATION"
+	ModelsTriageImpactConfidentialityDataLeakedElemBiometricData ModelsTriageImpactConfidentialityDataLeakedElem = "BIOMETRIC_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemCallLogs ModelsTriageImpactConfidentialityDataLeakedElem = "CALL_LOGS"
+	ModelsTriageImpactConfidentialityDataLeakedElemCertificate ModelsTriageImpactConfidentialityDataLeakedElem = "CERTIFICATE"
+	ModelsTriageImpactConfidentialityDataLeakedElemClientAndVendorInformation ModelsTriageImpactConfidentialityDataLeakedElem = "CLIENT_AND_VENDOR_INFORMATION"
+	ModelsTriageImpactConfidentialityDataLeakedElemComplianceRecords ModelsTriageImpactConfidentialityDataLeakedElem = "COMPLIANCE_RECORDS"
+	ModelsTriageImpactConfidentialityDataLeakedElemCreditDebitCardDetails ModelsTriageImpactConfidentialityDataLeakedElem = "CREDIT_DEBIT_CARD_DETAILS"
+	ModelsTriageImpactConfidentialityDataLeakedElemDatabaseCredentials ModelsTriageImpactConfidentialityDataLeakedElem = "DATABASE_CREDENTIALS"
+	ModelsTriageImpactConfidentialityDataLeakedElemDeviceIdentifiers ModelsTriageImpactConfidentialityDataLeakedElem = "DEVICE_IDENTIFIERS"
+	ModelsTriageImpactConfidentialityDataLeakedElemDriversLicense ModelsTriageImpactConfidentialityDataLeakedElem = "DRIVERS_LICENSE"
+	ModelsTriageImpactConfidentialityDataLeakedElemEducationRecords ModelsTriageImpactConfidentialityDataLeakedElem = "EDUCATION_RECORDS"
+	ModelsTriageImpactConfidentialityDataLeakedElemEmailAddress ModelsTriageImpactConfidentialityDataLeakedElem = "EMAIL_ADDRESS"
+	ModelsTriageImpactConfidentialityDataLeakedElemEmailsAndMessages ModelsTriageImpactConfidentialityDataLeakedElem = "EMAILS_AND_MESSAGES"
+	ModelsTriageImpactConfidentialityDataLeakedElemEmploymentHistory ModelsTriageImpactConfidentialityDataLeakedElem = "EMPLOYMENT_HISTORY"
+	ModelsTriageImpactConfidentialityDataLeakedElemEncryptionKey ModelsTriageImpactConfidentialityDataLeakedElem = "ENCRYPTION_KEY"
+	ModelsTriageImpactConfidentialityDataLeakedElemGender ModelsTriageImpactConfidentialityDataLeakedElem = "GENDER"
+	ModelsTriageImpactConfidentialityDataLeakedElemIncomeAndTaxInformation ModelsTriageImpactConfidentialityDataLeakedElem = "INCOME_AND_TAX_INFORMATION"
+	ModelsTriageImpactConfidentialityDataLeakedElemIntellectualProperty ModelsTriageImpactConfidentialityDataLeakedElem = "INTELLECTUAL_PROPERTY"
+	ModelsTriageImpactConfidentialityDataLeakedElemInventoryData ModelsTriageImpactConfidentialityDataLeakedElem = "INVENTORY_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemInvestmentInformation ModelsTriageImpactConfidentialityDataLeakedElem = "INVESTMENT_INFORMATION"
+	ModelsTriageImpactConfidentialityDataLeakedElemIpAddresses ModelsTriageImpactConfidentialityDataLeakedElem = "IP_ADDRESSES"
+	ModelsTriageImpactConfidentialityDataLeakedElemLegalDocuments ModelsTriageImpactConfidentialityDataLeakedElem = "LEGAL_DOCUMENTS"
+	ModelsTriageImpactConfidentialityDataLeakedElemMedicalData ModelsTriageImpactConfidentialityDataLeakedElem = "MEDICAL_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemName ModelsTriageImpactConfidentialityDataLeakedElem = "NAME"
+	ModelsTriageImpactConfidentialityDataLeakedElemOtherPrivateNonSensitiveData ModelsTriageImpactConfidentialityDataLeakedElem = "OTHER_PRIVATE_NON_SENSITIVE_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemOtherPrivateSensitiveData ModelsTriageImpactConfidentialityDataLeakedElem = "OTHER_PRIVATE_SENSITIVE_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemOtherPublicData ModelsTriageImpactConfidentialityDataLeakedElem = "OTHER_PUBLIC_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemPassport ModelsTriageImpactConfidentialityDataLeakedElem = "PASSPORT"
+	ModelsTriageImpactConfidentialityDataLeakedElemPerformanceReviews ModelsTriageImpactConfidentialityDataLeakedElem = "PERFORMANCE_REVIEWS"
+	ModelsTriageImpactConfidentialityDataLeakedElemPhoneNumber ModelsTriageImpactConfidentialityDataLeakedElem = "PHONE_NUMBER"
+	ModelsTriageImpactConfidentialityDataLeakedElemPoliticalOpinions ModelsTriageImpactConfidentialityDataLeakedElem = "POLITICAL_OPINIONS"
+	ModelsTriageImpactConfidentialityDataLeakedElemRacialOrEthnicOrigin ModelsTriageImpactConfidentialityDataLeakedElem = "RACIAL_OR_ETHNIC_ORIGIN"
+	ModelsTriageImpactConfidentialityDataLeakedElemReligiousOrPhilosophicalBeliefs ModelsTriageImpactConfidentialityDataLeakedElem = "RELIGIOUS_OR_PHILOSOPHICAL_BELIEFS"
+	ModelsTriageImpactConfidentialityDataLeakedElemSalaryAndBenefitsInformation ModelsTriageImpactConfidentialityDataLeakedElem = "SALARY_AND_BENEFITS_INFORMATION"
+	ModelsTriageImpactConfidentialityDataLeakedElemSecretKey ModelsTriageImpactConfidentialityDataLeakedElem = "SECRET_KEY"
+	ModelsTriageImpactConfidentialityDataLeakedElemSexualOrientation ModelsTriageImpactConfidentialityDataLeakedElem = "SEXUAL_ORIENTATION"
+	ModelsTriageImpactConfidentialityDataLeakedElemSocialMediaInteractions ModelsTriageImpactConfidentialityDataLeakedElem = "SOCIAL_MEDIA_INTERACTIONS"
+	ModelsTriageImpactConfidentialityDataLeakedElemSocialSecurityNumber ModelsTriageImpactConfidentialityDataLeakedElem = "SOCIAL_SECURITY_NUMBER"
+	ModelsTriageImpactConfidentialityDataLeakedElemStrategicPlansAndForecasts ModelsTriageImpactConfidentialityDataLeakedElem = "STRATEGIC_PLANS_AND_FORECASTS"
+	ModelsTriageImpactConfidentialityDataLeakedElemSystemLogsAndMonitoringData ModelsTriageImpactConfidentialityDataLeakedElem = "SYSTEM_LOGS_AND_MONITORING_DATA"
+	ModelsTriageImpactConfidentialityDataLeakedElemTradeSecrets ModelsTriageImpactConfidentialityDataLeakedElem = "TRADE_SECRETS"
+	ModelsTriageImpactConfidentialityDataLeakedElemTransactionHistory ModelsTriageImpactConfidentialityDataLeakedElem = "TRANSACTION_HISTORY"
+)
+
+type ModelsTriageImpactConfidentialityLabel string
+
+const (
+	ModelsTriageImpactConfidentialityLabelHigh ModelsTriageImpactConfidentialityLabel = "HIGH"
+	ModelsTriageImpactConfidentialityLabelLow ModelsTriageImpactConfidentialityLabel = "LOW"
+	ModelsTriageImpactConfidentialityLabelNone ModelsTriageImpactConfidentialityLabel = "NONE"
+)
+
+type ModelsTriageImpactIntegrity struct {
+	Description *string `json:"description,omitempty"`
+	Label *ModelsTriageImpactIntegrityLabel `json:"label,omitempty"`
+	Title *string `json:"title,omitempty"`
+	Type []ModelsTriageImpactIntegrityTypeElem `json:"type,omitempty"`
+}
+
+type ModelsTriageImpactIntegrityLabel string
+
+const (
+	ModelsTriageImpactIntegrityLabelHigh ModelsTriageImpactIntegrityLabel = "HIGH"
+	ModelsTriageImpactIntegrityLabelLow ModelsTriageImpactIntegrityLabel = "LOW"
+	ModelsTriageImpactIntegrityLabelNone ModelsTriageImpactIntegrityLabel = "NONE"
+)
+
+type ModelsTriageImpactIntegrityTypeElem string
+
+const (
+	ModelsTriageImpactIntegrityTypeElemDatabaseAltered ModelsTriageImpactIntegrityTypeElem = "DATABASE_ALTERED"
+	ModelsTriageImpactIntegrityTypeElemMaliciousCodeExecuted ModelsTriageImpactIntegrityTypeElem = "MALICIOUS_CODE_EXECUTED"
+	ModelsTriageImpactIntegrityTypeElemPrivilegeEscalation ModelsTriageImpactIntegrityTypeElem = "PRIVILEGE_ESCALATION"
+	ModelsTriageImpactIntegrityTypeElemSystemBehaviourManipulated ModelsTriageImpactIntegrityTypeElem = "SYSTEM_BEHAVIOUR_MANIPULATED"
+)
+
+type ModelsTriageImpactLabel string
+
+const (
+	ModelsTriageImpactLabelCritical ModelsTriageImpactLabel = "CRITICAL"
+	ModelsTriageImpactLabelHigh ModelsTriageImpactLabel = "HIGH"
+	ModelsTriageImpactLabelLow ModelsTriageImpactLabel = "LOW"
+)
+
+type ModelsTriageInvestigationConfidence string
+
+const (
+	ModelsTriageInvestigationConfidenceHigh ModelsTriageInvestigationConfidence = "HIGH"
+	ModelsTriageInvestigationConfidenceLow ModelsTriageInvestigationConfidence = "LOW"
+	ModelsTriageInvestigationConfidenceMedium ModelsTriageInvestigationConfidence = "MEDIUM"
+)
+
+type ModelsTriagePentest struct {
+	AttemptedCVEs []string `json:"attemptedCVEs,omitempty"`
+	BrowserEvidence *ModelsTriagePentestBrowserEvidence `json:"browserEvidence,omitempty"`
+	Confidence *float64 `json:"confidence,omitempty"`
+	Cost *float64 `json:"cost,omitempty"`
+	Duration *float64 `json:"duration,omitempty"`
+	ExploitedCVE *string `json:"exploitedCVE,omitempty"`
+	Logs *AgentsGroupedAgentLogs `json:"logs,omitempty"`
+	MutationDisclosure *ModelsTriagePentestMutationDisclosure `json:"mutationDisclosure,omitempty"`
+	NetworkReachability *ModelsTriagePentestNetworkReachability `json:"networkReachability,omitempty"`
+	Outcome *ModelsTriagePentestOutcome `json:"outcome,omitempty"`
+	Report *string `json:"report,omitempty"`
+	ReproductionScript *string `json:"reproductionScript,omitempty"`
+	SourceAvailability *ModelsTriagePentestSourceAvailability `json:"sourceAvailability,omitempty"`
+	TestedEndpoints []ModelsTriagePentestTestedEndpointsElem `json:"testedEndpoints,omitempty"`
+	ValidatedBy *ModelsTriagePentestValidatedBy `json:"validatedBy,omitempty"`
+}
+
+type ModelsTriagePentestBrowserEvidence struct {
+	Citation *string `json:"citation,omitempty"`
+	Family *string `json:"family,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	ScreenshotRefs []string `json:"screenshotRefs,omitempty"`
+	Verdict *string `json:"verdict,omitempty"`
+}
+
+type ModelsTriagePentestMutationDisclosure struct {
+	Writes []ModelsTriagePentestMutationDisclosureWritesElem `json:"writes,omitempty"`
+	WritesAttempted *bool `json:"writesAttempted,omitempty"`
+}
+
+type ModelsTriagePentestMutationDisclosureWritesElem struct {
+	Method *string `json:"method,omitempty"`
+	Outcome *string `json:"outcome,omitempty"`
+	StatusCode *int `json:"statusCode,omitempty"`
+	URL *string `json:"url,omitempty"`
+}
+
+type ModelsTriagePentestNetworkReachability struct {
+	Citation *string `json:"citation,omitempty"`
+	ObservedInternetReachable *bool `json:"observedInternetReachable,omitempty"`
+	PublicHost *string `json:"publicHost,omitempty"`
+	RequiresAuth *bool `json:"requiresAuth,omitempty"`
+}
+
+type ModelsTriagePentestOutcome string
+
+const (
+	ModelsTriagePentestOutcomeCannotDetermine ModelsTriagePentestOutcome = "CANNOT_DETERMINE"
+	ModelsTriagePentestOutcomeConfirmed ModelsTriagePentestOutcome = "CONFIRMED"
+	ModelsTriagePentestOutcomeLikely ModelsTriagePentestOutcome = "LIKELY"
+	ModelsTriagePentestOutcomeNotExploitable ModelsTriagePentestOutcome = "NOT_EXPLOITABLE"
+	ModelsTriagePentestOutcomePotential ModelsTriagePentestOutcome = "POTENTIAL"
+)
+
+type ModelsTriagePentestSourceAvailability struct {
+	ApiSchema *bool `json:"apiSchema,omitempty"`
+	Checkout *bool `json:"checkout,omitempty"`
+	CodeSnippets *bool `json:"codeSnippets,omitempty"`
+}
+
+type ModelsTriagePentestTestedEndpointsElem struct {
+	Method *string `json:"method,omitempty"`
+	Path *string `json:"path,omitempty"`
+}
+
+type ModelsTriagePentestValidatedBy struct {
+	Engine *ModelsTriagePentestValidatedByEngine `json:"engine,omitempty"`
+	RecordedAt *string `json:"recordedAt,omitempty"`
+	RunID *string `json:"runId,omitempty"`
+}
+
+type ModelsTriagePentestValidatedByEngine string
+
+const (
+	ModelsTriagePentestValidatedByEngineFindingExploitValidation ModelsTriagePentestValidatedByEngine = "FINDING_EXPLOIT_VALIDATION"
+	ModelsTriagePentestValidatedByEnginePentestExploitAnalysis ModelsTriagePentestValidatedByEngine = "PENTEST_EXPLOIT_ANALYSIS"
+)
+
+type ModelsTriageReference struct {
+	DocumentID *string `json:"documentId,omitempty"`
+	EndLine *int `json:"endLine,omitempty"`
+	FileName *string `json:"fileName,omitempty"`
+	NodeID *string `json:"nodeId,omitempty"`
+	Page *int `json:"page,omitempty"`
+	Quote *string `json:"quote,omitempty"`
+	Score *float64 `json:"score,omitempty"`
+	StartLine *int `json:"startLine,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type ModelsTriageRetriageComparison struct {
+	Narrative *string `json:"narrative,omitempty"`
+	NewInformation *ModelsTriageRetriageComparisonNewInformation `json:"newInformation,omitempty"`
+	QualityAssessment *ModelsTriageRetriageComparisonQualityAssessment `json:"qualityAssessment,omitempty"`
+	VerdictChanges []ModelsTriageRetriageComparisonVerdictChangesElem `json:"verdictChanges,omitempty"`
+}
+
+type ModelsTriageRetriageComparisonNewInformation struct {
+	CloudContextUpdated *bool `json:"cloudContextUpdated,omitempty"`
+	MemoryChanges []ModelsTriageRetriageComparisonNewInformationMemoryChangesElem `json:"memoryChanges,omitempty"`
+	PentestResultAdded *bool `json:"pentestResultAdded,omitempty"`
+	UserComments []ModelsTriageRetriageComparisonNewInformationUserCommentsElem `json:"userComments,omitempty"`
+}
+
+type ModelsTriageRetriageComparisonNewInformationMemoryChangesElem struct {
+	Description *string `json:"description,omitempty"`
+	Kind *ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKind `json:"kind,omitempty"`
+}
+
+type ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKind string
+
+const (
+	ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKindAdded ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKind = "ADDED"
+	ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKindCorrected ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKind = "CORRECTED"
+	ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKindInvalidated ModelsTriageRetriageComparisonNewInformationMemoryChangesElemKind = "INVALIDATED"
+)
+
+type ModelsTriageRetriageComparisonNewInformationUserCommentsElem struct {
+	CommentID *string `json:"commentId,omitempty"`
+	Influence *ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluence `json:"influence,omitempty"`
+	KeyClaim *string `json:"keyClaim,omitempty"`
+}
+
+type ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluence string
+
+const (
+	ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluenceChangedVerdict ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluence = "changed_verdict"
+	ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluenceDecreasedConfidence ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluence = "decreased_confidence"
+	ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluenceIncreasedConfidence ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluence = "increased_confidence"
+	ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluenceNoEffect ModelsTriageRetriageComparisonNewInformationUserCommentsElemInfluence = "no_effect"
+)
+
+type ModelsTriageRetriageComparisonQualityAssessment struct {
+	RemainingUncertainties []string `json:"remainingUncertainties,omitempty"`
+	SufficientEvidence *bool `json:"sufficientEvidence,omitempty"`
+}
+
+type ModelsTriageRetriageComparisonVerdictChangesElem struct {
+	Current *string `json:"current,omitempty"`
+	Field *string `json:"field,omitempty"`
+	Previous *string `json:"previous,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+type ModelsTriageRetriageMetadata struct {
+	MemoryChanges []ModelsTriageRetriageMetadataMemoryChangesElem `json:"memoryChanges,omitempty"`
+	TriggeredAt *string `json:"triggeredAt,omitempty"`
+}
+
+type ModelsTriageRetriageMetadataMemoryChangesElem struct {
+	MemoryChangeType *ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType `json:"memoryChangeType,omitempty"`
+	MemoryID *string `json:"memoryId,omitempty"`
+}
+
+type ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType string
+
+const (
+	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryAdded ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_ADDED"
+	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryCorrected ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_CORRECTED"
+	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryInvalidated ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_INVALIDATED"
+	ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeTypeMemoryRemoved ModelsTriageRetriageMetadataMemoryChangesElemMemoryChangeType = "MEMORY_REMOVED"
+)
+
+type ModelsTriageRetriageStatus string
+
+const (
+	ModelsTriageRetriageStatusNotRetriaged ModelsTriageRetriageStatus = "NOT_RETRIAGED"
+	ModelsTriageRetriageStatusRetriageCompleted ModelsTriageRetriageStatus = "RETRIAGE_COMPLETED"
+	ModelsTriageRetriageStatusRetriageFailed ModelsTriageRetriageStatus = "RETRIAGE_FAILED"
+	ModelsTriageRetriageStatusRetriageInProgress ModelsTriageRetriageStatus = "RETRIAGE_IN_PROGRESS"
+	ModelsTriageRetriageStatusRetriageRequested ModelsTriageRetriageStatus = "RETRIAGE_REQUESTED"
+)
+
+type ModelsTriageSeverity struct {
+	Confidence *ModelsTriageSeverityConfidence `json:"confidence,omitempty"`
+	Label *ModelsSeverityEnum `json:"label,omitempty"`
+	Score *int `json:"score,omitempty"`
+	Unknowns []string `json:"unknowns,omitempty"`
+}
+
+type ModelsTriageStopReason string
+
+const (
+	ModelsTriageStopReasonCostCap ModelsTriageStopReason = "cost_cap"
+	ModelsTriageStopReasonHeldWithoutContext ModelsTriageStopReason = "held_without_context"
+	ModelsTriageStopReasonNoSubmission ModelsTriageStopReason = "no_submission"
+	ModelsTriageStopReasonProviderError ModelsTriageStopReason = "provider_error"
+	ModelsTriageStopReasonReachabilityUnproven ModelsTriageStopReason = "reachability_unproven"
+	ModelsTriageStopReasonReachabilityUnprovenRetried ModelsTriageStopReason = "reachability_unproven_retried"
+	ModelsTriageStopReasonRefusal ModelsTriageStopReason = "refusal"
+	ModelsTriageStopReasonTenantBudget ModelsTriageStopReason = "tenant_budget"
+	ModelsTriageStopReasonWallTimeout ModelsTriageStopReason = "wall_timeout"
+)
+
+type ModelsTriagedCSPMFinding struct {
+	AssessmentFactors []ModelsAssessmentFactor `json:"assessmentFactors,omitempty"`
+	Finding *ModelsCSPMFinding `json:"finding,omitempty"`
+	InvestigationSteps []ModelsInvestigationStep `json:"investigationSteps,omitempty"`
+	IsFalsePositive bool `json:"isFalsePositive"`
+	SourceAgentVersion *string `json:"sourceAgentVersion,omitempty"`
+	SourceInputHash *string `json:"sourceInputHash,omitempty"`
+	SourceTriageEnd *string `json:"sourceTriageEnd,omitempty"`
+	Triage *ModelsTriage `json:"triage,omitempty"`
 }

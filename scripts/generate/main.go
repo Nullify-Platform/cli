@@ -83,57 +83,51 @@ type Schema struct {
 
 // Service grouping based on path prefix.
 //
-// NOTE: prefixes are matched against the full request path, so any path whose
-// prefix is absent here is silently dropped from the generated CLI. Keep this in
-// sync with the services published in the OpenAPI bundle.
+// Prefixes are matched against the full request path. A path whose prefix is in
+// neither this map nor excludePrefixes fails generation with ErrUnmappedPath.
 var serviceMapping = map[string]string{
-	"/sast/":           "sast",
-	"/sca/":            "sca",
-	"/secrets/":        "secrets",
-	"/dast/":           "dast",
-	"/admin/":          "admin",
-	"/manager/":        "manager",
-	"/context/":        "context",
-	"/cspm/":           "cspm",
-	"/scpm/":           "scpm",
-	"/orchestrator/":   "orchestrator",
-	"/asset-graph/":    "asset-graph",
-	"/infrastructure/": "infrastructure",
-	"/ticket/":         "ticket",
+	"/sast/":         "sast",
+	"/sca/":          "sca",
+	"/secrets/":      "secrets",
+	"/dast/":         "dast",
+	"/admin/":        "admin",
+	"/manager/":      "manager",
+	"/context/":      "context",
+	"/cspm/":         "cspm",
+	"/scpm/":         "scpm",
+	"/orchestrator/": "orchestrator",
+	"/findings/":     "findings",
 }
 
 // serviceDescriptions maps service names to human-readable descriptions.
 var serviceDescriptions = map[string]string{
-	"sast":           "Static Application Security Testing (SAST)",
-	"sca":            "Software Composition Analysis (SCA)",
-	"secrets":        "Secrets Detection",
-	"dast":           "Dynamic Application Security Testing (DAST)",
-	"admin":          "Administration and Metrics",
-	"manager":        "Finding Lifecycle Management",
-	"context":        "Repository and Code Classification",
-	"cspm":           "Cloud Security Posture Management (CSPM)",
-	"scpm":           "SaaS Security Posture Management (SCPM)",
-	"orchestrator":   "Scan Orchestration (autofix batches, code reviews, retriage, onboarding)",
-	"asset-graph":    "Asset Graph (reachability, search, subgraph, summary)",
-	"infrastructure": "Infrastructure Graphs",
-	"ticket":         "Ticket Integration",
+	"sast":         "Static Application Security Testing (SAST)",
+	"sca":          "Software Composition Analysis (SCA)",
+	"secrets":      "Secrets Detection",
+	"dast":         "Dynamic Application Security Testing (DAST)",
+	"admin":        "Administration and Metrics",
+	"manager":      "Finding Lifecycle Management",
+	"context":      "Repository, Asset Graph and Infrastructure Context",
+	"cspm":         "Cloud Security Posture Management (CSPM)",
+	"scpm":         "SaaS Security Posture Management (SCPM)",
+	"orchestrator": "Scan Orchestration (autofix batches, code reviews, retriage, onboarding)",
+	"findings":     "Findings across all scanner types (feedback)",
 }
 
 // Paths to exclude from CLI generation.
 //
-// Prefer this list over silent absence from serviceMapping: a path whose prefix
-// is in neither map is dropped anyway, but listing it here records the intent
-// so a future spec audit doesn't rediscover it as a "missing service".
 // These are all paths the published bundle does carry but that aren't useful
 // CLI commands: /auth/* are the auth handshake endpoints (access/refresh/github
-// tokens, logout) the CLI drives through internal/auth, and /core/{bitbucket,jira}/*
-// are integration webhooks/descriptors. Genuinely internal endpoints are kept
-// out of the published bundle at the source (each service's openapi-public.yml),
-// so they never reach here.
+// tokens, logout) the CLI drives through internal/auth, /core/{bitbucket,jira}/*
+// are integration webhooks/descriptors, and /public/* are the unauthenticated
+// feedback-link and workspace bootstrap flows that a browser drives. Genuinely
+// internal endpoints are kept out of the published bundle at the source (each
+// service's openapi-public.yml), so they never reach here.
 var excludePrefixes = []string{
 	"/auth/",
 	"/core/bitbucket/",
 	"/core/jira/",
+	"/public/",
 }
 
 type Endpoint struct {
@@ -156,6 +150,7 @@ func main() {
 	specPath := "spec/nullify-openapi-bundle.yaml"
 	outputDir := "internal/api"
 	cmdOutputDir := "internal/commands"
+	namesPath := "spec/command-names.lock"
 
 	for i, arg := range os.Args {
 		if arg == "--spec" && i+1 < len(os.Args) {
@@ -166,6 +161,9 @@ func main() {
 		}
 		if arg == "--cmd-output" && i+1 < len(os.Args) {
 			cmdOutputDir = os.Args[i+1]
+		}
+		if arg == "--names" && i+1 < len(os.Args) {
+			namesPath = os.Args[i+1]
 		}
 	}
 
@@ -187,9 +185,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	endpoints := extractEndpoints(spec)
+	endpoints, err := extractEndpoints(spec)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 	grouped := groupByService(endpoints)
-	assignCobraUses(grouped)
+
+	names, err := loadCommandNames(namesPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading command names: %v\n", err)
+		os.Exit(1)
+	}
+	assignCobraUses(grouped, names)
+	if err := names.write(namesPath); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing command names: %v\n", err)
+		os.Exit(1)
+	}
 
 	registry := buildModelRegistry(spec, endpoints)
 
@@ -199,6 +211,11 @@ func main() {
 	}
 	if err := os.MkdirAll(cmdOutputDir, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating cmd output dir: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := removeGeneratedFiles(outputDir, filepath.Join(outputDir, "models"), cmdOutputDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Error removing stale output: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -212,8 +229,9 @@ func main() {
 	}
 }
 
-func extractEndpoints(spec OpenAPISpec) []Endpoint {
+func extractEndpoints(spec OpenAPISpec) ([]Endpoint, error) {
 	var endpoints []Endpoint
+	var unmapped []string
 
 	for path, methods := range spec.Paths {
 		// Skip excluded paths
@@ -228,12 +246,13 @@ func extractEndpoints(spec OpenAPISpec) []Endpoint {
 			continue
 		}
 
-		for method, op := range methods {
-			service := classifyService(path)
-			if service == "" {
-				continue
-			}
+		service := classifyService(path)
+		if service == "" {
+			unmapped = append(unmapped, path)
+			continue
+		}
 
+		for method, op := range methods {
 			ep := Endpoint{
 				Path:        path,
 				Method:      strings.ToUpper(method),
@@ -265,6 +284,11 @@ func extractEndpoints(spec OpenAPISpec) []Endpoint {
 		}
 	}
 
+	if len(unmapped) > 0 {
+		sort.Strings(unmapped)
+		return nil, fmt.Errorf("%w: %s", ErrUnmappedPath, strings.Join(unmapped, ", "))
+	}
+
 	// Sort fully deterministically. The spec's paths/methods are decoded from YAML
 	// maps (random iteration order), so we must tie-break all the way down to the
 	// method; otherwise two operations on the same path can swap order between runs
@@ -279,7 +303,7 @@ func extractEndpoints(spec OpenAPISpec) []Endpoint {
 		return endpoints[i].Method < endpoints[j].Method
 	})
 
-	return endpoints
+	return endpoints, nil
 }
 
 func classifyService(path string) string {
@@ -433,9 +457,7 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/nullify-platform/cli/internal/apierror"
 	"github.com/nullify-platform/cli/internal/client"
@@ -443,22 +465,6 @@ import (
 
 // Version is set at build time via ldflags.
 var Version = "dev"
-
-// defaultTimeout is the request timeout used when NULLIFY_HTTP_TIMEOUT is unset
-// or invalid. 30s is too short for long-running calls (scan-start, autofix), so
-// callers can raise it via the env var (e.g. "120s").
-const defaultTimeout = 30 * time.Second
-
-// httpTimeout returns the request timeout, overridable via the
-// NULLIFY_HTTP_TIMEOUT env var (a Go duration string such as "120s").
-func httpTimeout() time.Duration {
-	if v := os.Getenv("NULLIFY_HTTP_TIMEOUT"); v != "" {
-		if d, err := time.ParseDuration(v); err == nil && d > 0 {
-			return d
-		}
-	}
-	return defaultTimeout
-}
 
 // Client is a typed HTTP client for the Nullify API.
 type Client struct {
@@ -493,7 +499,7 @@ func NewClient(host string, token string, defaultParams map[string]string, opts 
 		Token:         token,
 		DefaultParams: defaultParams,
 		HTTPClient: &http.Client{
-			Timeout:       httpTimeout(),
+			Timeout:       client.HTTPTimeout(),
 			Transport:     client.NewRetryTransport(http.DefaultTransport),
 			CheckRedirect: client.StripBearerOnRedirect,
 		},
@@ -548,6 +554,32 @@ func generateCommands(outputDir string, grouped map[string][]Endpoint, registry 
 	for service, endpoints := range grouped {
 		generateCommandFile(outputDir, service, endpoints, registry)
 	}
+	generateServiceRegistry(outputDir, grouped)
+}
+
+// generateServiceRegistry writes the single function that mounts every service,
+// so that a service added to serviceMapping cannot be left out of the CLI.
+func generateServiceRegistry(outputDir string, grouped map[string][]Endpoint) {
+	services := make([]string, 0, len(grouped))
+	for service := range grouped {
+		services = append(services, service)
+	}
+	sort.Strings(services)
+
+	var sb strings.Builder
+	sb.WriteString(generatedFileMarker + "\npackage commands\n\nimport \"github.com/spf13/cobra\"\n\n")
+	sb.WriteString("// RegisterAPICommands adds the generated command group of every service to parent.\n")
+	sb.WriteString("func RegisterAPICommands(parent *cobra.Command, getClient ClientFactory) {\n")
+	for _, service := range services {
+		fmt.Fprintf(&sb, "\tRegister%sCommands(parent, getClient)\n", toPascalCase(service))
+	}
+	sb.WriteString("}\n")
+
+	filePath := filepath.Join(outputDir, "api_services.go")
+	if err := os.WriteFile(filePath, []byte(sb.String()), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing file %s: %v\n", filePath, err)
+		os.Exit(1)
+	}
 }
 
 func generateCommandFile(outputDir string, service string, endpoints []Endpoint, registry *modelRegistry) {
@@ -596,7 +628,7 @@ func generateCommandFile(outputDir string, service string, endpoints []Endpoint,
 // invoking the typed client method, and printing the typed response.
 func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 	cobraUse := ep.CobraUse
-	summary := strings.ReplaceAll(ep.Summary, `"`, `\"`)
+	summary := ep.Summary
 
 	pathNames := extractPathParamNames(ep.Path)
 	pathLookup := map[string]Parameter{}
@@ -689,10 +721,11 @@ func emitCobraCommand(sb *strings.Builder, ep Endpoint, r *modelRegistry) {
 	}
 	sb.WriteString("\t\t\t},\n\t\t}\n")
 	sb.WriteString("\t\tpreserveRuntimeUsage(cmd)\n")
+	fmt.Fprintf(sb, "\t\tsetRoute(cmd, %q)\n", ep.Method+" "+ep.Path)
 
 	// Flag declarations.
 	for _, p := range queryParams {
-		desc := strings.ReplaceAll(p.Description, `"`, `\"`)
+		desc := p.Description
 		flagName := toKebabCase(p.Name)
 		fmt.Fprintf(sb, "\t\tcmd.Flags().String(%q, \"\", %q)\n", flagName, desc)
 	}
@@ -859,30 +892,39 @@ func disambiguatedUse(ep Endpoint) string {
 }
 
 // assignCobraUses sets a unique CobraUse on every endpoint within each service.
-// Non-colliding endpoints keep the short name; colliding ones are expanded to
-// include their distinguishing path segments, and any residual duplicates get a
-// numeric suffix as a last resort. This guarantees no two commands under one
-// service parent share a Use (which would silently shadow each other in cobra).
-func assignCobraUses(grouped map[string][]Endpoint) {
-	for _, endpoints := range grouped {
-		base := make([]string, len(endpoints))
+// A route in the lock keeps its recorded name whatever its siblings are. A new
+// route takes the short name if no other route holds it, otherwise its fully
+// qualified name, and a numeric suffix as a last resort. New names are added to
+// the lock, so they do not change on a later regeneration.
+func assignCobraUses(grouped map[string][]Endpoint, names *commandNames) {
+	for service, endpoints := range grouped {
+		taken := names.takenIn(service)
+
 		counts := map[string]int{}
 		for i := range endpoints {
-			base[i] = generateCobraUse(endpoints[i])
-			counts[base[i]]++
+			if _, locked := names.useByRoute[routeKey(endpoints[i].Method, endpoints[i].Path)]; !locked {
+				counts[generateCobraUse(endpoints[i])]++
+			}
 		}
-		seen := map[string]int{}
+
 		for i := range endpoints {
-			use := base[i]
-			if counts[use] > 1 {
+			route := routeKey(endpoints[i].Method, endpoints[i].Path)
+			if use, locked := names.useByRoute[route]; locked {
+				endpoints[i].CobraUse = use
+				continue
+			}
+
+			use := generateCobraUse(endpoints[i])
+			if counts[use] > 1 || taken[use] {
 				use = disambiguatedUse(endpoints[i])
 			}
-			if n := seen[use]; n > 0 {
-				seen[use] = n + 1
-				use = fmt.Sprintf("%s-%d", use, n+1)
-			} else {
-				seen[use] = 1
+			for n, base := 2, use; taken[use]; n++ {
+				use = fmt.Sprintf("%s-%d", base, n)
 			}
+
+			taken[use] = true
+			names.useByRoute[route] = use
+			names.service[route] = service
 			endpoints[i].CobraUse = use
 		}
 	}

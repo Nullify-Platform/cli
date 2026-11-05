@@ -3,6 +3,10 @@ package models
 
 import "encoding/json"
 
+type EndpointsDeleteTicketSASTFindingOutput struct {
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsGetSASTEventsOutput struct {
 	Events []ModelsSASTEventInterface `json:"events,omitempty"`
 	NextToken string `json:"nextToken"`
@@ -22,6 +26,7 @@ type EndpointsGetSASTFindingAutofixStatusOutput struct {
 
 type EndpointsGetSASTFindingEventsOutput struct {
 	Events []ModelsSASTEventInterface `json:"events,omitempty"`
+	NextToken *string `json:"nextToken,omitempty"`
 	NumItems int `json:"numItems"`
 	Version *string `json:"version,omitempty"`
 }
@@ -43,8 +48,12 @@ type EndpointsGetSASTFindingOutput struct {
 
 type EndpointsGetSASTFindingTriageOutput struct {
 	Finding *ModelsTriagedSASTFinding `json:"finding,omitempty"`
+	HasCurrentExploitProof *bool `json:"hasCurrentExploitProof,omitempty"`
 	PresignedURL string `json:"presignedUrl"`
+	StopReason *string `json:"stopReason,omitempty"`
+	TriageStatus EndpointsFindingTriageStatus `json:"triageStatus"`
 	Version *string `json:"version,omitempty"`
+	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
 }
 
 type EndpointsGetSASTFindingUsersOutput struct {
@@ -115,6 +124,7 @@ type EndpointsPostAutofixSASTFindingInput struct {
 type EndpointsPostAutofixSASTFindingOutput struct {
 	AutoFixState ModelsAutoFixState `json:"autoFixState"`
 	Error *string `json:"error,omitempty"`
+	RunID *string `json:"runId,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -135,6 +145,21 @@ type EndpointsPostUnallowlistSASTFindingInput struct {
 	UnallowlistReason string `json:"unallowlistReason"`
 }
 
+type EndpointsSCAScanRunOutcome struct {
+	CoverageGaps []ModelsSCAScanCoverageGap `json:"coverageGaps,omitempty"`
+	Degraded *bool `json:"degraded,omitempty"`
+	FailureStage *string `json:"failureStage,omitempty"`
+	KeptLiveCoverage *int `json:"keptLiveCoverage,omitempty"`
+	KeptLiveNotSeenInSbom *int `json:"keptLiveNotSeenInSbom,omitempty"`
+	KeptLivePackageGate *int `json:"keptLivePackageGate,omitempty"`
+	KeptLiveUnchangedManifests *int `json:"keptLiveUnchangedManifests,omitempty"`
+	SbomAuthoritative *bool `json:"sbomAuthoritative,omitempty"`
+	SbomFailureClass *string `json:"sbomFailureClass,omitempty"`
+	SbomIncomplete *bool `json:"sbomIncomplete,omitempty"`
+	SbomSource *string `json:"sbomSource,omitempty"`
+	TicketsReopenSkipped *int `json:"ticketsReopenSkipped,omitempty"`
+}
+
 type EndpointsScanRunSummary struct {
 	AllowlistedFindingsCount *int `json:"allowlistedFindingsCount,omitempty"`
 	Branch *string `json:"branch,omitempty"`
@@ -146,6 +171,7 @@ type EndpointsScanRunSummary struct {
 	LiveFindingsCount *int `json:"liveFindingsCount,omitempty"`
 	NewFindingsCount *int `json:"newFindingsCount,omitempty"`
 	ReintroducedFindingsCount *int `json:"reintroducedFindingsCount,omitempty"`
+	ScaOutcome *EndpointsSCAScanRunOutcome `json:"scaOutcome,omitempty"`
 	ScanCompletedAt *string `json:"scanCompletedAt,omitempty"`
 	ScanRunID *string `json:"scanRunId,omitempty"`
 	SeverityCritical *int `json:"severityCritical,omitempty"`
@@ -213,10 +239,12 @@ type ModelsSASTFinding struct {
 	ConcurrencyLimit *int `json:"concurrencyLimit,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
 	Cwe *int `json:"cwe,omitempty"`
+	CweIds []int `json:"cweIds,omitempty"`
 	DeletedAt *string `json:"deletedAt,omitempty"`
 	Description *string `json:"description,omitempty"`
 	DevDescription *string `json:"devDescription,omitempty"`
 	EndLine *int `json:"endLine,omitempty"`
+	EndLines []int `json:"endLines,omitempty"`
 	Entrypoint *string `json:"entrypoint,omitempty"`
 	ExploitabilityConfidence *string `json:"exploitabilityConfidence,omitempty"`
 	ExploitabilityLabel *string `json:"exploitabilityLabel,omitempty"`
@@ -225,6 +253,7 @@ type ModelsSASTFinding struct {
 	FilePath *string `json:"filePath,omitempty"`
 	FirstSeenCommit *string `json:"firstSeenCommit,omitempty"`
 	FixCommit *string `json:"fixCommit,omitempty"`
+	FixEvidence *ModelsFixEvidence `json:"fixEvidence,omitempty"`
 	FixSource *ModelsFixSource `json:"fixSource,omitempty"`
 	FixedAt *string `json:"fixedAt,omitempty"`
 	GraphExists *bool `json:"graphExists,omitempty"`
@@ -238,6 +267,7 @@ type ModelsSASTFinding struct {
 	IsCloudTriaged *bool `json:"isCloudTriaged,omitempty"`
 	IsFalsePositive *bool `json:"isFalsePositive,omitempty"`
 	IsFixed *bool `json:"isFixed,omitempty"`
+	IsInternetReachable *bool `json:"isInternetReachable,omitempty"`
 	IsLatest *bool `json:"isLatest,omitempty"`
 	IsResolved bool `json:"isResolved"`
 	Language *LanguageCodeLanguage `json:"language,omitempty"`
@@ -252,17 +282,30 @@ type ModelsSASTFinding struct {
 	ProjectName *string `json:"projectName,omitempty"`
 	PullRequestsAllowlist []ModelsPullRequestInfo `json:"pullRequestsAllowlist,omitempty"`
 	PullRequestsAutofix []ModelsPullRequestInfo `json:"pullRequestsAutofix,omitempty"`
+	PureInsertion *bool `json:"pureInsertion,omitempty"`
 	Repository *string `json:"repository,omitempty"`
 	RepositoryID *string `json:"repositoryId,omitempty"`
 	ResolvedAt *string `json:"resolvedAt,omitempty"`
+	RuleConfidence *float64 `json:"ruleConfidence,omitempty"`
+	RuleConfidenceLabel *string `json:"ruleConfidenceLabel,omitempty"`
+	RuleHash *string `json:"ruleHash,omitempty"`
 	RuleID *string `json:"ruleId,omitempty"`
+	RuleIds []string `json:"ruleIds,omitempty"`
+	RuleImpact *float64 `json:"ruleImpact,omitempty"`
+	RuleImpactLabel *string `json:"ruleImpactLabel,omitempty"`
+	RuleLikelihood *float64 `json:"ruleLikelihood,omitempty"`
+	RuleLikelihoodLabel *string `json:"ruleLikelihoodLabel,omitempty"`
+	RuleSeverity *float64 `json:"ruleSeverity,omitempty"`
+	RuleSeverityLabel *string `json:"ruleSeverityLabel,omitempty"`
 	RuleURL *string `json:"ruleUrl,omitempty"`
+	RuleUrls []string `json:"ruleUrls,omitempty"`
 	Severity *ModelsSeverity `json:"severity,omitempty"`
 	SeverityConfidence *string `json:"severityConfidence,omitempty"`
 	SeverityLabel *ModelsSeverity `json:"severityLabel,omitempty"`
 	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
 	SeverityScore *int `json:"severityScore,omitempty"`
 	StartLine *int `json:"startLine,omitempty"`
+	StartLines []int `json:"startLines,omitempty"`
 	TenantID *string `json:"tenantId,omitempty"`
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	TicketState *string `json:"ticketState,omitempty"`
@@ -270,11 +313,10 @@ type ModelsSASTFinding struct {
 	TriageAgentVersion *string `json:"triageAgentVersion,omitempty"`
 	TriageDurationSeconds int `json:"triageDurationSeconds"`
 	TriageEnd *string `json:"triageEnd,omitempty"`
-	TriageLangfuseSessionID *string `json:"triageLangfuseSessionId,omitempty"`
-	TriageLangfuseTraceID *string `json:"triageLangfuseTraceId,omitempty"`
 	TriageLlmCostUsd *float64 `json:"triageLlmCostUsd,omitempty"`
 	TriageMaxInputTokens *int `json:"triageMaxInputTokens,omitempty"`
 	TriageStart *string `json:"triageStart,omitempty"`
+	TriageStopReason *string `json:"triageStopReason,omitempty"`
 	TriageTokenCount *int `json:"triageTokenCount,omitempty"`
 	TriageTraceID *string `json:"triageTraceId,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
@@ -297,7 +339,9 @@ type ModelsSASTFindingPreview struct {
 	CommitHash string `json:"commitHash"`
 	CreatedAt string `json:"createdAt"`
 	Cwe int `json:"cwe"`
+	CweIds []int `json:"cweIds,omitempty"`
 	EndLine int `json:"endLine"`
+	EndLines []int `json:"endLines,omitempty"`
 	Entrypoint string `json:"entrypoint"`
 	FileOwners []ModelsFileOwner `json:"fileOwners,omitempty"`
 	FilePath string `json:"filePath"`
@@ -306,6 +350,7 @@ type ModelsSASTFindingPreview struct {
 	ID string `json:"id"`
 	IsAllowlisted bool `json:"isAllowlisted"`
 	IsArchived bool `json:"isArchived"`
+	IsAutoFixable *bool `json:"isAutoFixable,omitempty"`
 	IsCloudTriaged bool `json:"isCloudTriaged"`
 	IsFalsePositive bool `json:"isFalsePositive"`
 	IsLatest bool `json:"isLatest"`
@@ -322,9 +367,12 @@ type ModelsSASTFindingPreview struct {
 	Repository string `json:"repository"`
 	RepositoryID string `json:"repositoryId"`
 	RuleID string `json:"ruleId"`
+	RuleIds []string `json:"ruleIds,omitempty"`
 	RuleURL string `json:"ruleUrl"`
+	RuleUrls []string `json:"ruleUrls,omitempty"`
 	Severity ModelsSeverity `json:"severity"`
 	StartLine int `json:"startLine"`
+	StartLines []int `json:"startLines,omitempty"`
 	TenantID string `json:"tenantId"`
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	Title string `json:"title"`
@@ -334,10 +382,30 @@ type ModelsSASTFindingPreview struct {
 	Workflow string `json:"workflow"`
 }
 
+type ModelsSCAScanCoverageGap struct {
+	Ecosystems []string `json:"ecosystems,omitempty"`
+	PackageAuth []ModelsSBOMPackageAuth `json:"packageAuth,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Scope *string `json:"scope,omitempty"`
+	Side *string `json:"side,omitempty"`
+	Source *string `json:"source,omitempty"`
+	Status *string `json:"status,omitempty"`
+	Suspect *ModelsSCASuspectSBOM `json:"suspect,omitempty"`
+	TouchedByChange *bool `json:"touchedByChange,omitempty"`
+}
+
+type ModelsSCASuspectSBOM struct {
+	FirstSeen *string `json:"firstSeen,omitempty"`
+	Loss *string `json:"loss,omitempty"`
+	Sha256 *string `json:"sha256,omitempty"`
+	Version *int `json:"version,omitempty"`
+}
+
 type ModelsTriagedSASTFinding struct {
 	AgentVersion string `json:"agentVersion"`
 	AssessmentFactors []ModelsAssessmentFactor `json:"assessmentFactors,omitempty"`
 	CodeContext *ModelsCodeContext `json:"codeContext,omitempty"`
+	ExploitEvidence []ModelsExploitEvidenceAttachment `json:"exploitEvidence,omitempty"`
 	FalsePositiveReason *string `json:"falsePositiveReason,omitempty"`
 	Finding *ModelsSASTFinding `json:"finding,omitempty"`
 	FixStoryPointEstimate *int `json:"fixStoryPointEstimate,omitempty"`

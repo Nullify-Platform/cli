@@ -45,7 +45,7 @@ var scanRunMethods = map[string]scanRunLister{
 
 func registerScanTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
-		mcp.NewTool("nullify_start_cloud_scan",
+		writeTool("nullify_start_cloud_scan",
 			mcp.WithDescription("Start a cloud security scan (CSPM / cloud reconnaissance) for the authenticated installation. Returns a scanId; poll nullify_get_cloud_scan_status."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -59,7 +59,7 @@ func registerScanTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("nullify_get_cloud_scan_status",
+		readOnlyTool("nullify_get_cloud_scan_status",
 			mcp.WithDescription("Get the status of a cloud scan started with nullify_start_cloud_scan."),
 			mcp.WithString("scan_id", mcp.Required(), mcp.Description("The scan ID")),
 		),
@@ -76,7 +76,7 @@ func registerScanTools(s *server.MCPServer, c *api.Client) {
 	)
 
 	s.AddTool(
-		mcp.NewTool("nullify_list_scan_runs",
+		readOnlyTool("nullify_list_scan_runs",
 			mcp.WithDescription("List scan run history for a code scanner (SAST, SCA, or secrets) on a repository. Use list_repositories / get_repository to resolve a repository_id."),
 			mcp.WithString("type", mcp.Required(), mcp.Description("Scanner type"), mcp.Enum("sast", "sca", "secrets")),
 			mcp.WithString("repository_id", mcp.Required(), mcp.Description("Internal repository ID")),

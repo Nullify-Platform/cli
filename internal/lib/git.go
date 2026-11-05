@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bufio"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,11 @@ func DetectRepoFromGit() string {
 		return ParseRepoFromGitConfig(gitConfig)
 	}
 	return ""
+}
+
+// DetectRepoFullNameFromGit returns the repository path from the git origin.
+func DetectRepoFullNameFromGit() string {
+	return ExtractRepoFullName(originURL(findGitConfig()))
 }
 
 // DetectOwnerFromGit reads the git remote origin URL of the repository around
@@ -129,7 +135,6 @@ func originURL(path string) string {
 func ExtractRepoName(remoteURL string) string {
 	remoteURL = strings.TrimSuffix(remoteURL, ".git")
 
-	// SSH format: git@github.com:org/repo
 	if strings.Contains(remoteURL, ":") && strings.HasPrefix(remoteURL, "git@") {
 		parts := strings.SplitN(remoteURL, ":", 2)
 		if len(parts) == 2 {
@@ -140,7 +145,6 @@ func ExtractRepoName(remoteURL string) string {
 		}
 	}
 
-	// HTTPS format: https://github.com/org/repo
 	parts := strings.Split(remoteURL, "/")
 	if len(parts) > 0 {
 		return parts[len(parts)-1]
@@ -179,4 +183,21 @@ func ExtractRepoOwner(remoteURL string) string {
 		return ""
 	}
 	return segments[0]
+}
+
+// ExtractRepoFullName extracts the path of the repository from a git remote URL:
+// owner/name for most hosts. It returns an empty string for an empty URL.
+func ExtractRepoFullName(remoteURL string) string {
+	remoteURL = strings.TrimSuffix(remoteURL, ".git")
+
+	if strings.HasPrefix(remoteURL, "git@") {
+		_, path, _ := strings.Cut(remoteURL, ":")
+		return path
+	}
+
+	parsed, err := url.Parse(remoteURL)
+	if err != nil {
+		return ExtractRepoName(remoteURL)
+	}
+	return strings.Trim(parsed.Path, "/")
 }

@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-	"time"
 
 	"github.com/nullify-platform/cli/internal/apierror"
+	"github.com/nullify-platform/cli/internal/client"
 )
 
 func TestClientDo_Success(t *testing.T) {
@@ -98,36 +98,6 @@ func TestClientDo_5xxError(t *testing.T) {
 	}
 }
 
-func TestHTTPTimeout(t *testing.T) {
-	t.Run("default when unset", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "")
-		if got := httpTimeout(); got != defaultTimeout {
-			t.Errorf("httpTimeout() = %v, want %v", got, defaultTimeout)
-		}
-	})
-
-	t.Run("overrides from env", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "120s")
-		if got := httpTimeout(); got != 120*time.Second {
-			t.Errorf("httpTimeout() = %v, want %v", got, 120*time.Second)
-		}
-	})
-
-	t.Run("falls back to default on invalid", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "not-a-duration")
-		if got := httpTimeout(); got != defaultTimeout {
-			t.Errorf("httpTimeout() = %v, want %v", got, defaultTimeout)
-		}
-	})
-
-	t.Run("falls back to default on non-positive", func(t *testing.T) {
-		t.Setenv("NULLIFY_HTTP_TIMEOUT", "0s")
-		if got := httpTimeout(); got != defaultTimeout {
-			t.Errorf("httpTimeout() = %v, want %v", got, defaultTimeout)
-		}
-	})
-}
-
 func TestNewClient_DefaultsToRetryingClient(t *testing.T) {
 	c := NewClient("example.com", "tok", nil)
 	if c.HTTPClient == nil {
@@ -136,8 +106,8 @@ func TestNewClient_DefaultsToRetryingClient(t *testing.T) {
 	if c.HTTPClient.Transport == nil {
 		t.Fatal("expected default HTTPClient.Transport to be non-nil (retry transport)")
 	}
-	if c.HTTPClient.Timeout != defaultTimeout {
-		t.Errorf("Timeout = %v, want %v", c.HTTPClient.Timeout, defaultTimeout)
+	if c.HTTPClient.Timeout != client.DefaultHTTPTimeout {
+		t.Errorf("Timeout = %v, want %v", c.HTTPClient.Timeout, client.DefaultHTTPTimeout)
 	}
 	if c.BaseURL != "https://api.example.com" {
 		t.Errorf("BaseURL = %q, want %q", c.BaseURL, "https://api.example.com")
