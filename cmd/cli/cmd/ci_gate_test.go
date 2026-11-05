@@ -15,14 +15,18 @@ import (
 )
 
 func gateRequests(severities ...string) []string {
-	var want []string
-	for _, path := range []string{
-		"/sast/findings", "/sca/dependencies/findings", "/sca/containers/findings", "/secrets/findings",
-		"/dast/pentest/findings", "/dast/bughunt/findings", "/cspm/findings",
-	} {
-		for _, severity := range severities {
-			want = append(want, path+"?limit=1&repository=acme%2Fapp&severity="+severity+"&status=open")
-		}
+	want := []string{
+		"/sca/dependencies/findings?isResolved=false&limit=1&repository=acme%2Fapp",
+		"/sca/containers/findings?isResolved=false&limit=1&repository=acme%2Fapp",
+		"/secrets/findings?isResolved=false&limit=1&repository=acme%2Fapp",
+		"/dast/pentest/findings?isResolved=false&limit=1&repository=acme%2Fapp",
+		"/dast/bughunt/findings?limit=1&repository=acme%2Fapp",
+	}
+	for _, severity := range severities {
+		want = append(want,
+			"/sast/findings?isResolved=false&limit=1&repository=acme%2Fapp&severity="+strings.ToUpper(severity),
+			"/cspm/findings?limit=1&repository=acme%2Fapp&severity="+strings.ToUpper(severity)+"&status=open",
+		)
 	}
 	slices.Sort(want)
 	return want
@@ -38,14 +42,15 @@ func TestCIGateRequestsAndExitCodes(t *testing.T) {
 		exit      int
 		requests  []string
 	}{
-		{name: "the default set", threshold: "high", status: http.StatusOK, body: `{"total":0}`, exit: ExitSuccess, requests: gateRequests("critical", "high")},
-		{name: "every severity", threshold: "low", status: http.StatusOK, body: `{"total":0}`, exit: ExitSuccess, requests: gateRequests("critical", "high", "low", "medium")},
-		{name: "a list route type", threshold: "critical", findType: "cspm", status: http.StatusOK, body: `{"total":0}`, exit: ExitSuccess, requests: []string{"/cspm/findings?limit=1&repository=acme%2Fapp&severity=critical&status=open"}},
-		{name: "scpm is not a gate type", threshold: "critical", findType: "scpm", status: http.StatusOK, body: `{"total":0}`, exit: ExitSuccess, requests: gateRequests("critical")},
-		{name: "sensitive data is not a gate type", threshold: "critical", findType: "secrets_sensitive_data", status: http.StatusOK, body: `{"total":0}`, exit: ExitSuccess, requests: gateRequests("critical")},
-		{name: "a monorepo name is not a gate type", threshold: "critical", findType: "dast_pentest", status: http.StatusOK, body: `{"total":0}`, exit: ExitSuccess, requests: gateRequests("critical")},
-		{name: "findings fail the gate", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"total":2}`, exit: ExitFindings, requests: []string{"/sast/findings?limit=1&repository=acme%2Fapp&severity=critical&status=open"}},
-		{name: "a failed request exits 3", threshold: "critical", findType: "sast", status: http.StatusForbidden, body: `{}`, exit: ExitNetworkError, requests: []string{"/sast/findings?limit=1&repository=acme%2Fapp&severity=critical&status=open"}},
+		{name: "the default set", threshold: "high", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical", "high")},
+		{name: "every severity", threshold: "low", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical", "high", "low", "medium")},
+		{name: "a list route type", threshold: "critical", findType: "cspm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: []string{"/cspm/findings?limit=1&repository=acme%2Fapp&severity=CRITICAL&status=open"}},
+		{name: "scpm is not a gate type", threshold: "critical", findType: "scpm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
+		{name: "sensitive data is not a gate type", threshold: "critical", findType: "secrets_sensitive_data", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
+		{name: "a monorepo name is not a gate type", threshold: "critical", findType: "dast_pentest", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
+		{name: "findings fail the gate", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"findings":[{"id":"f1"},{"id":"f2"}]}`, exit: ExitFindings, requests: []string{"/sast/findings?isResolved=false&limit=1&repository=acme%2Fapp&severity=CRITICAL"}},
+		{name: "a total without findings fails closed", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"total":0}`, exit: ExitNetworkError, requests: []string{"/sast/findings?isResolved=false&limit=1&repository=acme%2Fapp&severity=CRITICAL"}},
+		{name: "a failed request exits 3", threshold: "critical", findType: "sast", status: http.StatusForbidden, body: `{}`, exit: ExitNetworkError, requests: []string{"/sast/findings?isResolved=false&limit=1&repository=acme%2Fapp&severity=CRITICAL"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
