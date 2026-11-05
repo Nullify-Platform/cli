@@ -14,28 +14,41 @@ import (
 )
 
 // ServeWithClient runs the MCP server over stdio, driving the generated
-// api.Client. Tenant/owner scoping travels in the client's default query params.
-func ServeWithClient(ctx context.Context, apiClient *api.Client, toolSet ToolSet) error {
-	return serveWithClientIO(ctx, apiClient, toolSet, os.Stdin, os.Stdout)
+// api.Client. The client's default query params carry fixed scope such as
+// --repo; each call's org comes from orgs and travels in the request context,
+// so apiClient's HTTP client must route through ScopeTransport.
+func ServeWithClient(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs) error {
+	return serveWithClientIO(ctx, apiClient, toolSet, orgs, os.Stdin, os.Stdout)
 }
 
-func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolSet, stdin io.Reader, stdout io.Writer) error {
+func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs, stdin io.Reader, stdout io.Writer) error {
+	s := NewServer(apiClient, toolSet, orgs)
+
+	logger.L(ctx).Debug("starting MCP server over stdio", logger.String("toolSet", string(toolSet)))
+
+	stdioServer := server.NewStdioServer(s)
+	return stdioServer.Listen(ctx, stdin, stdout)
+}
+
+// NewServer builds the MCP server: the tool set, list_organizations, an
+// optional org argument on every other tool, and the resources and prompts.
+func NewServer(apiClient *api.Client, toolSet ToolSet, orgs Orgs) *server.MCPServer {
 	s := server.NewMCPServer(
 		"Nullify",
 		logger.Version,
 		server.WithToolCapabilities(true),
 		server.WithResourceCapabilities(true, false),
 		server.WithPromptCapabilities(true),
+		server.WithToolHandlerMiddleware(orgMiddleware(orgs)),
+		server.WithResourceHandlerMiddleware(resourceOrgMiddleware(orgs)),
 	)
 
 	registerTools(s, apiClient, toolSet)
+	addOrgArgument(s)
+	registerOrgTools(s, orgs)
 	registerResources(s, apiClient)
 	registerPrompts(s)
-
-	logger.L(ctx).Debug("starting MCP server over stdio", logger.String("toolSet", string(toolSet)))
-
-	stdioServer := server.NewStdioServer(s)
-	return stdioServer.Listen(ctx, stdin, stdout)
+	return s
 }
 
 // registerTools selects which tools to expose. The default set is deliberately

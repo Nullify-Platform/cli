@@ -111,7 +111,12 @@ func resolveNullifyToken(
 		}
 		req.Header.Set("Content-Type", "application/json")
 
-		httpClient := &http.Client{Timeout: 30 * time.Second}
+		// The body carries the GitHub token: a redirect is never followed,
+		// since a 307 would replay it to wherever the Location points.
+		httpClient := &http.Client{
+			Timeout:       30 * time.Second,
+			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+		}
 		res, err := httpClient.Do(req)
 		if err != nil {
 			return "", err
