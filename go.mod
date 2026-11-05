@@ -93,6 +93,7 @@ require (
 	github.com/gofrs/flock v0.13.0
 	github.com/nullify-platform/logger v1.32.2
 	github.com/stretchr/testify v1.11.1
+	go.uber.org/goleak v1.3.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/term v0.39.0
 	gopkg.in/yaml.v3 v3.0.1

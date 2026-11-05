@@ -8,23 +8,27 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/mcp"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 // fakeNullify stands in for the router and the acme tenant at the transport
 // level, so the real auth, refresh and client code run unchanged.
 type fakeNullify struct {
-	mu        sync.Mutex
-	live      string // the access token the tenant accepts
-	refreshes []string
-	apiCalls  []string
-	lists     int
-	notHosted string // an owner id the tenant refuses as not hosted there
+	mu            sync.Mutex
+	live          string // the access token the tenant accepts
+	refreshes     []string
+	apiCalls      []string
+	lists         int
+	installations string
+	listStatus    int
+	notHosted     string // an owner id the tenant refuses as not hosted there
 }
 
 func (f *fakeNullify) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -46,8 +50,14 @@ func (f *fakeNullify) RoundTrip(r *http.Request) (*http.Response, error) {
 		return reply(200, `{"expiresIn":3600}`, h)
 	case r.URL.Host == "api.nullify.ai" && r.URL.Path == "/admin/installations":
 		f.lists++
+		if f.listStatus != 0 {
+			return reply(f.listStatus, `{}`, nil)
+		}
 		if r.Header.Get("Authorization") != "Bearer "+f.live {
 			return reply(401, `{"message":"Unauthorized"}`, nil)
+		}
+		if f.installations != "" {
+			return reply(200, f.installations, nil)
 		}
 		return reply(200, `{"installations": [
 		  {"name": "acme-web", "provider": {"id": "GitHub", "github": {}}, "nullifyBaseUrl": "https://api.acme.nullify.ai",
@@ -282,4 +292,198 @@ func TestMCPNotHostedRefreshesTheOrgList(t *testing.T) {
 	out = mcpCall(t, ctx, s, map[string]any{"org": "acme-wbe"})
 	require.Contains(t, out, `"isError":true`)
 	require.Contains(t, out, "not one of your organizations")
+}
+
+func mcpInstallations(t *testing.T, orgs ...auth.Org) string {
+	t.Helper()
+	installations := make([]map[string]any, 0, len(orgs))
+	for _, org := range orgs {
+		installations = append(installations, map[string]any{
+			"name":               org.Name,
+			"provider":           map[string]string{"id": org.Provider},
+			"nullifyBaseUrl":     "https://" + org.Host,
+			"queryParameters":    org.Query(),
+			"provisioningStatus": org.Status,
+		})
+	}
+	body, err := json.Marshal(map[string]any{"installations": installations})
+	require.NoError(t, err)
+	return string(body)
+}
+
+func TestMCPDefaultAvailabilityRefresh(t *testing.T) {
+	moved := testOrgA
+	moved.Host = "api.beta.nullify.ai"
+	pending := testOrgA
+	pending.Status = "pending"
+	collision := testOrgA
+	collision.Provider, collision.Key = "azure", "azureOrganizationId"
+
+	for _, tt := range []struct {
+		name string
+		orgs []auth.Org
+		want string
+	}{
+		{"moved", []auth.Org{moved, testOrgB}, "served by api.beta.nullify.ai"},
+		{"removed", []auth.Org{testOrgB}, "no longer available"},
+		{"pending", []auth.Org{pending, testOrgB}, "no longer available"},
+		{
+			"provider collision", []auth.Org{collision, testOrgB},
+			"no longer available",
+		},
+	} {
+		for _, expiry := range []bool{false, true} {
+			name := tt.name + "/refusal"
+			if expiry {
+				name = tt.name + "/expiry"
+			}
+			t.Run(name, func(t *testing.T) {
+				loginEnv(t)
+				require.NoError(t, auth.SelectOrg(testOrgA))
+				oldTTL := mcpOrgCacheTTL
+				mcpOrgCacheTTL = time.Hour
+				t.Cleanup(func() { mcpOrgCacheTTL = oldTTL })
+				fake := &fakeNullify{live: "router-token"}
+				ctx, s := startMCP(t, fake)
+
+				out := mcpCall(t, ctx, s, nil)
+				require.Contains(t, out, "Organization: acme-web")
+				fake.mu.Lock()
+				require.Equal(t, 1, fake.lists)
+				fake.installations = mcpInstallations(t, tt.orgs...)
+				fake.notHosted = testOrgA.ID
+				fake.mu.Unlock()
+
+				wantCalls := 1
+				if expiry {
+					mcpOrgCacheTTL = -time.Second
+				} else {
+					out = mcpCall(t, ctx, s, nil)
+					require.Contains(t, out, "not hosted on this instance")
+					wantCalls++
+					fake.mu.Lock()
+					require.Len(t, fake.apiCalls, wantCalls)
+					require.Equal(t, 1, fake.lists)
+					fake.mu.Unlock()
+				}
+
+				out = mcpCall(t, ctx, s, nil)
+				require.Contains(t, out, `"isError":true`)
+				require.Contains(t, out, tt.want)
+				require.Contains(t, out, "acme-web")
+				fake.mu.Lock()
+				require.Len(t, fake.apiCalls, wantCalls)
+				require.Equal(t, 2, fake.lists)
+				fake.mu.Unlock()
+
+				out = mcpCall(t, ctx, s,
+					map[string]any{"org": "acme-payments"})
+				require.Contains(t, out, "Organization: acme-payments")
+				require.NotContains(t, out, `"isError":true`)
+
+				fake.mu.Lock()
+				fake.installations = mcpInstallations(t, testOrgA, testOrgB)
+				fake.notHosted = ""
+				fake.mu.Unlock()
+				mcpOrgCacheTTL = -time.Second
+				out = mcpCall(t, ctx, s, nil)
+				require.Contains(t, out, "Organization: acme-web")
+				require.NotContains(t, out, `"isError":true`)
+			})
+		}
+	}
+}
+
+func TestMCPConcurrentDefaultAndExplicitOrgCalls(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	loginEnv(t)
+	require.NoError(t, auth.SelectOrg(testOrgA))
+	fake := &fakeNullify{live: "router-token"}
+	ctx, s := startMCP(t, fake)
+	require.Contains(t, mcpCall(t, ctx, s, nil), "Organization: acme-web")
+
+	var wg sync.WaitGroup
+	results := make([]string, 12)
+	for i := range results {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var args map[string]any
+			if i%2 != 0 {
+				args = map[string]any{"org": "acme-payments"}
+			}
+			results[i] = mcpCall(t, ctx, s, args)
+		}()
+	}
+	wg.Wait()
+
+	for i, out := range results {
+		want := "Organization: acme-web"
+		if i%2 != 0 {
+			want = "Organization: acme-payments"
+		}
+		require.Contains(t, out, want)
+		require.NotContains(t, out, `"isError":true`)
+	}
+	fake.mu.Lock()
+	defer fake.mu.Unlock()
+	require.Equal(t, 1, fake.lists)
+	require.Len(t, fake.apiCalls, 13)
+}
+
+func TestMCPDefaultOrgListFailureCanRecover(t *testing.T) {
+	loginEnv(t)
+	require.NoError(t, auth.SelectOrg(testOrgA))
+	fake := &fakeNullify{live: "router-token"}
+	ctx, s := startMCP(t, fake)
+	require.Contains(t, mcpCall(t, ctx, s, nil), "Organization: acme-web")
+
+	oldTTL := mcpOrgCacheTTL
+	mcpOrgCacheTTL = -time.Second
+	t.Cleanup(func() { mcpOrgCacheTTL = oldTTL })
+	fake.mu.Lock()
+	fake.listStatus = http.StatusServiceUnavailable
+	fake.mu.Unlock()
+	out := mcpCall(t, ctx, s, nil)
+	require.Contains(t, out, `"isError":true`)
+	require.Contains(t, out, "status 503")
+	fake.mu.Lock()
+	require.Len(t, fake.apiCalls, 1)
+	fake.listStatus = 0
+	fake.mu.Unlock()
+
+	out = mcpCall(t, ctx, s, nil)
+	require.Contains(t, out, "Organization: acme-web")
+	require.NotContains(t, out, `"isError":true`)
+}
+
+func TestMCPMachineTokenDefaultDoesNotListOrgs(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		id   string
+	}{
+		{"token scope", ""},
+		{"explicit owner id", "2002002"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			loginEnv(t)
+			t.Setenv("NULLIFY_TOKEN", "machine-token")
+			t.Setenv("NULLIFY_GITHUB_OWNER_ID", tt.id)
+			fake := &fakeNullify{live: "machine-token"}
+			ctx, s := startMCP(t, fake)
+
+			for range 2 {
+				out := mcpCall(t, ctx, s, nil)
+				require.NotContains(t, out, `"isError":true`)
+			}
+			fake.mu.Lock()
+			defer fake.mu.Unlock()
+			require.Zero(t, fake.lists)
+			require.Equal(t, []string{
+				"Bearer machine-token " + tt.id,
+				"Bearer machine-token " + tt.id,
+			}, fake.apiCalls)
+		})
+	}
 }

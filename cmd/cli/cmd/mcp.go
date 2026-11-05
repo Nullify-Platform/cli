@@ -93,6 +93,26 @@ type mcpDefault struct {
 	err     error
 }
 
+func (d *mcpDefault) availableOn(host string, list auth.OrgList) error {
+	for _, org := range list.Orgs {
+		if org.Key == d.org.Key && org.ID == d.org.ID {
+			return nil
+		}
+	}
+
+	for _, org := range list.Elsewhere {
+		if org.Key == d.org.Key && org.ID == d.org.ID {
+			return fmt.Errorf("default organization %s is served by %s; "+
+				"restart the MCP server with --host %s", d.label, org.Host,
+				org.DataHost())
+		}
+	}
+
+	return fmt.Errorf("default organization %s is no longer available on %s; "+
+		"pass an available org argument or restart the MCP server with --org",
+		d.label, host)
+}
+
 // mcpServeConfig resolves the hosts and token, never an org: a login may
 // cover several orgs, and each tool call picks one (its org argument, else
 // the default the server started with).
@@ -157,11 +177,27 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 		if def.settled {
 			return def, nil
 		}
-		token, err := tokenProvider()
-		if err != nil {
-			return nil, err
+		var scope orgScope
+		var err error
+		if usesMachineToken() {
+			var token string
+			token, err = tokenProvider()
+			if err == nil {
+				scope, err = resolveOrgScope(ctx, dataHost, token,
+					startInputs, false)
+			}
+		} else {
+			var list auth.OrgList
+			list, err = cache.get(ctx, false)
+			if err == nil {
+				var org auth.Org
+				org, _, err = auth.ResolveOrgReason(dataHost, list, startInputs)
+				if err == nil {
+					scope.Org, scope.Query = &org, org.Query()
+				}
+			}
 		}
-		scope, err := resolveOrgScope(ctx, dataHost, token, startInputs, false)
+
 		var notChosen *auth.ErrOrgNotChosen
 		switch {
 		case errors.As(err, &notChosen) && notChosen.Unavailable == nil:
@@ -188,6 +224,15 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 				}
 				if d.err != nil {
 					return nil, "", d.err
+				}
+				if d.org != nil && !usesMachineToken() {
+					list, err := cache.get(ctx, false)
+					if err != nil {
+						return nil, "", err
+					}
+					if err := d.availableOn(dataHost, list); err != nil {
+						return nil, "", err
+					}
 				}
 				return d.query, d.label, nil
 			}
