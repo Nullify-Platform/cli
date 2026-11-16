@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bufio"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -200,4 +201,12 @@ func ExtractRepoFullName(remoteURL string) string {
 		return ExtractRepoName(remoteURL)
 	}
 	return strings.Trim(parsed.Path, "/")
+}
+
+// ValidateGitRef rejects a revision that Git can read as an option.
+func ValidateGitRef(ref string) error {
+	if strings.HasPrefix(ref, "-") {
+		return fmt.Errorf("%w: %q", ErrGitRefOption, ref)
+	}
+	return nil
 }

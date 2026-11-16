@@ -25,6 +25,7 @@ import (
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/ci"
+	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/scan"
 	"github.com/nullify-platform/cli/internal/scan/manifest"
 	"github.com/spf13/cobra"
@@ -527,7 +528,11 @@ func renderResults(format string, analyzed []analyzedDep) error {
 // --- small helpers ---
 
 func resolveCommit(ctx context.Context, repoPath, ref string) (string, error) {
-	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--verify", ref+"^{commit}")
+	if err := lib.ValidateGitRef(ref); err != nil {
+		return "", err
+	}
+
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--verify", "--end-of-options", ref+"^{commit}")
 	cmd.Dir = repoPath
 	out, err := cmd.Output()
 	if err != nil {
