@@ -1,6 +1,14 @@
 package ci
 
-import "testing"
+import (
+	"context"
+	"os/exec"
+	"strings"
+	"testing"
+
+	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/stretchr/testify/require"
+)
 
 // signatureEnvs are every env var any provider's Detect() keys on. Tests
 // clear them all, then set only the ones under test, so the host's own
@@ -127,5 +135,44 @@ func TestEnrichHeaderStampsProvider(t *testing.T) {
 	NewLocal().EnrichHeader(h)
 	if got := h["X-Nullify-Ci-Provider"]; len(got) != 1 || got[0] != string(PlatformOther) {
 		t.Fatalf("X-Nullify-CI-Provider = %v, want [%q]", got, PlatformOther)
+	}
+}
+
+func TestResolveRefRevisionBoundary(t *testing.T) {
+	ctx := context.Background()
+	repo := t.TempDir()
+	git := func(args ...string) string {
+		t.Helper()
+		cmd := exec.CommandContext(ctx, "git", args...)
+		cmd.Dir = repo
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, "%s", out)
+		return strings.TrimSpace(string(out))
+	}
+	git("init", "--initial-branch=main")
+	git("config", "user.email", "test@example.com")
+	git("config", "user.name", "Test")
+	git("config", "commit.gpgsign", "false")
+	git("commit", "--allow-empty", "-m", "base")
+	base := git("rev-parse", "HEAD")
+	git("commit", "--allow-empty", "-m", "head")
+	head := git("rev-parse", "HEAD")
+
+	for _, tt := range []struct {
+		name, ref, want string
+		wantErr         error
+	}{
+		{"sha", base, base, nil},
+		{"branch", "main", head, nil},
+		{"relative", "HEAD~", base, nil},
+		{"help", "--help", "", lib.ErrGitRefOption},
+		{"short option", "-q", "", lib.ErrGitRefOption},
+		{"output option", "--output=unexpected", "", lib.ErrGitRefOption},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := resolveRef(ctx, repo, tt.ref)
+			require.ErrorIs(t, err, tt.wantErr)
+			require.Equal(t, tt.want, got)
+		})
 	}
 }

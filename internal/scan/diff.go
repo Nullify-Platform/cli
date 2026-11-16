@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/scan/manifest"
 )
 
@@ -44,9 +45,6 @@ type ChangedDep struct {
 // and diffing the parsed manifest entries. Returns the changed deps
 // ordered by (file, name) for stable display.
 func Diff(ctx context.Context, repoPath, baseRef, headRef string, parsers []manifest.Parser) ([]ChangedDep, error) {
-	// List files changed between the two revs that are lockfiles we
-	// know how to parse. Cheaper than reading every lockfile in the
-	// repo for both revs — a monorepo can have hundreds.
 	changedPaths, err := listChangedFiles(ctx, repoPath, baseRef, headRef)
 	if err != nil {
 		return nil, err
@@ -72,7 +70,14 @@ func Diff(ctx context.Context, repoPath, baseRef, headRef string, parsers []mani
 // lockfiles (e.g., deleted at head) are still returned — the parser
 // just produces zero entries for that rev.
 func listChangedFiles(ctx context.Context, repoPath, base, head string) ([]string, error) {
-	cmd := exec.CommandContext(ctx, "git", "diff", "--name-only", base+".."+head)
+	if err := lib.ValidateGitRef(base); err != nil {
+		return nil, err
+	}
+	if err := lib.ValidateGitRef(head); err != nil {
+		return nil, err
+	}
+
+	cmd := exec.CommandContext(ctx, "git", "diff", "--name-only", base+".."+head, "--")
 	cmd.Dir = repoPath
 	out, err := cmd.Output()
 	if err != nil {
@@ -112,11 +117,14 @@ func parseAtRef(
 	paths []string,
 	parsers []manifest.Parser,
 ) (map[entryKey]manifest.Entry, error) {
+	if err := lib.ValidateGitRef(ref); err != nil {
+		return nil, err
+	}
+
 	files := make([]manifest.File, 0, len(paths))
 	for _, p := range paths {
 		data, err := gitShow(ctx, repoPath, ref, p)
 		if err != nil {
-			// File doesn't exist at this ref — skip silently.
 			continue
 		}
 		files = append(files, manifest.File{Path: p, Data: data})
@@ -137,8 +145,12 @@ type entryKey struct {
 // gitShow captures `git show <ref>:<path>`. Returns an error that
 // callers treat as "file absent at this ref."
 func gitShow(ctx context.Context, repoPath, ref, path string) ([]byte, error) {
+	if err := lib.ValidateGitRef(ref); err != nil {
+		return nil, err
+	}
+
 	var stdout bytes.Buffer
-	cmd := exec.CommandContext(ctx, "git", "show", ref+":"+path)
+	cmd := exec.CommandContext(ctx, "git", "show", ref+":"+path, "--")
 	cmd.Dir = repoPath
 	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {

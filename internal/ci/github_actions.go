@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/lib"
 )
 
 // GitHubActions — https://docs.github.com/en/actions/learn-github-actions/variables
@@ -97,7 +99,11 @@ func (g *GitHubActions) EnrichHeader(h http.Header) {
 // a commit. Package-level helper so every provider reuses the same
 // shell-out, scoped to the repository the workflow is analysing.
 func resolveRef(ctx context.Context, repoPath, ref string) (string, error) {
-	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--verify", ref+"^{commit}")
+	if err := lib.ValidateGitRef(ref); err != nil {
+		return "", err
+	}
+
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--verify", "--end-of-options", ref+"^{commit}")
 	cmd.Dir = repoPath
 	out, err := cmd.Output()
 	if err != nil {

@@ -4,14 +4,18 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os/exec"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/nullify-platform/cli/internal/api"
 	"github.com/nullify-platform/cli/internal/ci"
+	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/scan"
 	"github.com/nullify-platform/cli/internal/scan/manifest"
+	"github.com/stretchr/testify/require"
 )
 
 func dep(name string) scan.ChangedDep {
@@ -217,5 +221,44 @@ func TestPostSCPMAnalyze_HTTPError(t *testing.T) {
 	client := &api.Client{BaseURL: srv.URL, HTTPClient: srv.Client()}
 	if _, err := postSCPMAnalyze(context.Background(), client, ci.NewLocal(), scpmAnalyzeRequest{Name: "x"}); err == nil {
 		t.Fatal("expected error on 500")
+	}
+}
+
+func TestResolveCommitRevisionBoundary(t *testing.T) {
+	ctx := context.Background()
+	repo := t.TempDir()
+	git := func(args ...string) string {
+		t.Helper()
+		cmd := exec.CommandContext(ctx, "git", args...)
+		cmd.Dir = repo
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, "%s", out)
+		return strings.TrimSpace(string(out))
+	}
+	git("init", "--initial-branch=main")
+	git("config", "user.email", "test@example.com")
+	git("config", "user.name", "Test")
+	git("config", "commit.gpgsign", "false")
+	git("commit", "--allow-empty", "-m", "base")
+	base := git("rev-parse", "HEAD")
+	git("commit", "--allow-empty", "-m", "head")
+	head := git("rev-parse", "HEAD")
+
+	for _, tt := range []struct {
+		name, ref, want string
+		wantErr         error
+	}{
+		{"sha", base, base, nil},
+		{"branch", "main", head, nil},
+		{"relative", "HEAD~", base, nil},
+		{"help", "--help", "", lib.ErrGitRefOption},
+		{"short option", "-q", "", lib.ErrGitRefOption},
+		{"output option", "--output=unexpected", "", lib.ErrGitRefOption},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := resolveCommit(ctx, repo, tt.ref)
+			require.ErrorIs(t, err, tt.wantErr)
+			require.Equal(t, tt.want, got)
+		})
 	}
 }
