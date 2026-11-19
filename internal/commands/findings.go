@@ -136,4 +136,42 @@ func RegisterFindingsCommands(parent *cobra.Command, getClient ClientFactory) {
 		serviceCmd.AddCommand(cmd)
 	}
 
+	{
+		cmd := &cobra.Command{
+			Use:   "get-versions <findingId>",
+			Short: "List a finding's triage versions",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListFindingsFindingIdTriageVersionsInput{}
+				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListFindingsFindingIdTriageVersions(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /findings/{findingId}/triage/versions")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
 }

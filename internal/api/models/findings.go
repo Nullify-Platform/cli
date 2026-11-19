@@ -33,6 +33,11 @@ type EndpointsGetFindingFeedbackOutput struct {
 	Feedback []EndpointsFindingFeedbackEntry `json:"feedback,omitempty"`
 }
 
+type EndpointsGetFindingTriageVersionsOutput struct {
+	Truncated bool `json:"truncated"`
+	Versions []ModelsFindingTriageVersion `json:"versions,omitempty"`
+}
+
 type EndpointsPostFindingFeedbackInput struct {
 	CommentText *string `json:"commentText,omitempty"`
 	FindingType *string `json:"findingType,omitempty"`
@@ -41,4 +46,16 @@ type EndpointsPostFindingFeedbackInput struct {
 
 type EndpointsPostFindingFeedbackOutput struct {
 	Feedback EndpointsFindingFeedbackEntry `json:"feedback"`
+}
+
+type ModelsFindingTriageVersion struct {
+	AgentVersion *string `json:"agentVersion,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	IsLatest bool `json:"isLatest"`
+	Origin *string `json:"origin,omitempty"`
+	PriorityLabel *string `json:"priorityLabel,omitempty"`
+	Rationale *string `json:"rationale,omitempty"`
+	SeverityLabel *string `json:"severityLabel,omitempty"`
+	SeverityScore *int `json:"severityScore,omitempty"`
+	Version int `json:"version"`
 }

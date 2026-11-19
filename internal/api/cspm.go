@@ -129,6 +129,105 @@ func (c *Client) ListCspmFindings(ctx context.Context, in ListCspmFindingsInput)
 	return &out, nil
 }
 
+// CreateCspmFindingsAllowlistInput is the input for CreateCspmFindingsAllowlist — Allowlist Batch of CSPM Findings.
+type CreateCspmFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateCspmFindingsAllowlist - Allowlist Batch of CSPM Findings
+// POST /cspm/findings/allowlist
+func (c *Client) CreateCspmFindingsAllowlist(ctx context.Context, in CreateCspmFindingsAllowlistInput) (*models.EndpointsPostAllowListCSPMFindingBatchOutput, error) {
+	path := "/cspm/findings/allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType string `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowListCSPMFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateCspmFindingsUnallowlistInput is the input for CreateCspmFindingsUnallowlist — Unallowlist Batch of CSPM Findings.
+type CreateCspmFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateCspmFindingsUnallowlist - Unallowlist Batch of CSPM Findings
+// POST /cspm/findings/unallowlist
+func (c *Client) CreateCspmFindingsUnallowlist(ctx context.Context, in CreateCspmFindingsUnallowlistInput) (*models.EndpointsPostUnallowListCSPMFindingBatchOutput, error) {
+	path := "/cspm/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListCSPMFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // GetCspmFindingsFindingIdInput is the input for GetCspmFindingsFindingId — Get CSPM Finding.
 type GetCspmFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
@@ -955,6 +1054,7 @@ func (c *Client) ListCspmScans(ctx context.Context, in ListCspmScansInput) (*mod
 // CreateCspmScansStartInput is the input for CreateCspmScansStart — Start CSPM Scan.
 type CreateCspmScansStartInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Scope *models.ModelsCSPMScanScope `json:"scope,omitempty"`
 	models.RequestScope
 }
 
@@ -977,7 +1077,15 @@ func (c *Client) CreateCspmScansStart(ctx context.Context, in CreateCspmScansSta
 		fullURL += "?" + query.Encode()
 	}
 
-	data, err := c.do(ctx, "POST", fullURL, nil)
+	bodyBytes, err := json.Marshal(struct {
+		Scope *models.ModelsCSPMScanScope `json:"scope,omitempty"`
+	}{
+		Scope: in.Scope,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, err
 	}

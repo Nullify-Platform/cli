@@ -39,7 +39,7 @@ lint-docker:
 # reproducible and offline. To update: bump SPEC_REF, run `make fetch-spec`,
 # `make generate-api` and `make command-surface`, and commit spec/ and the
 # regenerated code. The spec-drift workflow does this on a schedule.
-SPEC_REF ?= 1b9c3dd0cf497030de8646ae1b8e1f407d25e04a
+SPEC_REF ?= f4b792e0fc1ae8d2f11c3298f63d450c96583b4a
 SPEC_REPO ?= nullify-platform/nullify
 SPEC_PATH_IN_REPO ?= public-docs/.gitbook/assets/api/nullify-openapi-bundle.yaml
 SPEC_LOCAL ?= spec/nullify-openapi-bundle.yaml

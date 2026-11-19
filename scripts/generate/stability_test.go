@@ -148,3 +148,36 @@ func TestCommandNamesRoundTrip(t *testing.T) {
 		t.Errorf("loaded = %+v", loaded)
 	}
 }
+
+// Staff-only routes reach the published bundle when they are not tagged
+// Private at source. The generator keeps them out of the customer CLI,
+// while their customer-facing siblings stay in.
+func TestExtractEndpointsSkipsStaffOnlyOperations(t *testing.T) {
+	tests := []struct {
+		name   string
+		path   string
+		method string
+		want   bool
+	}{
+		{name: "operator prefix", path: "/admin/operator/tenant-capabilities", method: "get", want: false},
+		{name: "run changes prefix", path: "/dast/runs/{kind}/{runId}/changes/restore", method: "post", want: false},
+		{name: "staff-only credential verb", path: "/dast/credentials/{credentialId}/login-reset", method: "post", want: false},
+		{name: "deprecated alias", path: "/secrets/findings/allowlist", method: "post", want: false},
+		{name: "customer sibling of a staff verb", path: "/dast/credentials/{credentialId}/login-status", method: "get", want: true},
+		{name: "customer batch allowlist", path: "/secrets/credentials/findings/allowlist", method: "post", want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			spec := OpenAPISpec{Paths: map[string]map[string]Operation{tt.path: {tt.method: {}}}}
+
+			endpoints, err := extractEndpoints(spec)
+			if err != nil {
+				t.Fatalf("extractEndpoints(%s): %v", tt.path, err)
+			}
+
+			if got := len(endpoints) == 1; got != tt.want {
+				t.Errorf("%s %s generated = %v, want %v", tt.method, tt.path, got, tt.want)
+			}
+		})
+	}
+}

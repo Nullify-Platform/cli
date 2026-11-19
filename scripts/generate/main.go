@@ -128,6 +128,35 @@ var excludePrefixes = []string{
 	"/core/bitbucket/",
 	"/core/jira/",
 	"/public/",
+	// Staff and operator routes. The bundle filter drops only routes tagged
+	// Private, and these are registered with OperatorAuth or StaffAuth but
+	// not tagged, so they reach the bundle and a customer token only ever
+	// gets 403 from them. Remove an entry once the route is tagged Private
+	// at source.
+	"/admin/operator/",
+	"/dast/runs/{kind}/{runId}/changes",
+}
+
+// excludeOperations are single operations, as "METHOD /path", kept out of
+// the CLI while their siblings stay in. Each is either staff-only (the route
+// or its handler refuses anyone who is not Nullify staff) or a deprecated
+// alias of another route the CLI already has.
+var excludeOperations = map[string]string{
+	"POST /context/cloud-connector-pr/runs/{runId}/recover":       "staff only: OperatorAuth",
+	"POST /context/waf-allowlist-pr/runs/{runId}/recover":         "staff only: OperatorAuth",
+	"POST /dast/credentials/migration/census":                     "staff only: the handler admits only staff",
+	"POST /dast/credentials/{credentialId}/migration/{operation}": "staff only: the handler admits only staff",
+	"POST /dast/credentials/{credentialId}/login-reset":           "staff only: the handler admits only staff",
+	"POST /dast/credentials/{credentialId}/recorded-login":        "staff only: the handler admits only staff",
+	"POST /secrets/findings/allowlist":                            "deprecated alias of POST /secrets/credentials/findings/allowlist",
+	"POST /secrets/findings/unallowlist":                          "deprecated alias of POST /secrets/credentials/findings/unallowlist",
+}
+
+// excludedOperation reports whether method and path name an operation in
+// excludeOperations.
+func excludedOperation(method, path string) bool {
+	_, ok := excludeOperations[strings.ToUpper(method)+" "+path]
+	return ok
 }
 
 type Endpoint struct {
@@ -253,6 +282,9 @@ func extractEndpoints(spec OpenAPISpec) ([]Endpoint, error) {
 		}
 
 		for method, op := range methods {
+			if excludedOperation(method, path) {
+				continue
+			}
 			ep := Endpoint{
 				Path:        path,
 				Method:      strings.ToUpper(method),

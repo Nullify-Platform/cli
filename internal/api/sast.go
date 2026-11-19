@@ -465,6 +465,54 @@ func (c *Client) ListSastFindingsPreview(ctx context.Context, in ListSastFinding
 	return &out, nil
 }
 
+// CreateSastFindingsUnallowlistInput is the input for CreateSastFindingsUnallowlist — Unallowlist Batch of SAST Findings.
+type CreateSastFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateSastFindingsUnallowlist - Unallowlist Batch of SAST Findings
+// POST /sast/findings/unallowlist
+func (c *Client) CreateSastFindingsUnallowlist(ctx context.Context, in CreateSastFindingsUnallowlistInput) (*models.EndpointsPostUnallowListSASTFindingBatchOutput, error) {
+	path := "/sast/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListSASTFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // GetSastFindingsFindingIdInput is the input for GetSastFindingsFindingId — Get Finding.
 type GetSastFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
@@ -1036,7 +1084,7 @@ func (c *Client) ListSastFindingsFindingIdTriage(ctx context.Context, in ListSas
 type CreateSastFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	models.RequestScope
 }
 
@@ -1064,7 +1112,7 @@ func (c *Client) CreateSastFindingsFindingIdUnallowlist(ctx context.Context, in 
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 	})

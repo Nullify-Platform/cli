@@ -164,6 +164,142 @@ func RegisterCspmCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-allowlist",
+			Short: "Allowlist Batch of CSPM Findings",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (string, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateCspmFindingsAllowlistInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateCspmFindingsAllowlist(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /cspm/findings/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-unallowlist",
+			Short: "Unallowlist Batch of CSPM Findings",
+			Long: "Request body (JSON) fields: findingIds (array, required), unallowlistReason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateCspmFindingsUnallowlistInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateCspmFindingsUnallowlist(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /cspm/findings/unallowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "get-findings <findingId>",
 			Short: "Get CSPM Finding",
 			Args:  cobra.ExactArgs(1),
@@ -1122,6 +1258,7 @@ func RegisterCspmCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "create-start",
 			Short: "Start CSPM Scan",
+			Long: "Request body (JSON) fields: scope (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
 				if err != nil {
@@ -1129,6 +1266,35 @@ func RegisterCspmCommands(parent *cobra.Command, getClient ClientFactory) {
 					return err
 				}
 				in := api.CreateCspmScansStartInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
 				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
 					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
 						return fmt.Errorf("githubInstallationId"+": %w", err)
@@ -1151,6 +1317,8 @@ func RegisterCspmCommands(parent *cobra.Command, getClient ClientFactory) {
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "POST /cspm/scans/start")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 

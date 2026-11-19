@@ -3,6 +3,14 @@ package models
 
 import "encoding/json"
 
+type EndpointsArchiveBugHuntScanOutput struct {
+	Scan ModelsBugHuntScan `json:"scan"`
+}
+
+type EndpointsArchivePentestScanOutput struct {
+	Scan ModelsPentestScan `json:"scan"`
+}
+
 type EndpointsBugHuntConfigInput struct {
 	Cadence *ModelsCadence `json:"cadence,omitempty"`
 	Credentials []ModelsCredentialBinding `json:"credentials,omitempty"`
@@ -86,6 +94,91 @@ type EndpointsDASTAssessmentWebService struct {
 	Targets []EndpointsDASTAssessmentTarget `json:"targets,omitempty"`
 }
 
+type EndpointsDASTCredentialLoginAsk struct {
+	Kind string `json:"kind"`
+	Options []string `json:"options,omitempty"`
+	PageKey *string `json:"pageKey,omitempty"`
+	SecretSlots []string `json:"secretSlots,omitempty"`
+}
+
+type EndpointsDASTCredentialLoginDefinitionOutput struct {
+	Credential ModelsCredential `json:"credential"`
+	Resets []string `json:"resets,omitempty"`
+}
+
+type EndpointsDASTCredentialLoginOpenAssist struct {
+	Ask *EndpointsDASTCredentialLoginAsk `json:"ask,omitempty"`
+	FailurePoint string `json:"failurePoint"`
+	Question string `json:"question"`
+	Revision int64 `json:"revision"`
+	RunID string `json:"runId"`
+}
+
+type EndpointsDASTCredentialLoginRun struct {
+	Consumer string `json:"consumer"`
+	Engine string `json:"engine"`
+	FinishedAt *string `json:"finishedAt,omitempty"`
+	ID string `json:"id"`
+	Outcome *string `json:"outcome,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	StartedAt string `json:"startedAt"`
+}
+
+type EndpointsDASTCredentialLoginRunDetail struct {
+	Run EndpointsDASTCredentialLoginRun `json:"run"`
+	Steps []EndpointsDASTCredentialLoginStep `json:"steps,omitempty"`
+}
+
+type EndpointsDASTCredentialLoginSecretAnswer struct {
+	ClientSecret *string `json:"clientSecret,omitempty"`
+	Gateway *ModelsLoginGatewayPatch `json:"gateway,omitempty"`
+	Slot string `json:"slot"`
+}
+
+type EndpointsDASTCredentialLoginStatus struct {
+	Budget int `json:"budget"`
+	CredentialID string `json:"credentialId"`
+	FailuresInARow int `json:"failuresInARow"`
+	LastRun *EndpointsDASTCredentialLoginRun `json:"lastRun,omitempty"`
+	LimitedEvidence bool `json:"limitedEvidence"`
+	OpenAssist *EndpointsDASTCredentialLoginOpenAssist `json:"openAssist,omitempty"`
+	Revision int64 `json:"revision"`
+	StopReason *string `json:"stopReason,omitempty"`
+	Stopped bool `json:"stopped"`
+	StoppedAt *string `json:"stoppedAt,omitempty"`
+}
+
+type EndpointsDASTCredentialLoginStep struct {
+	At string `json:"at"`
+	Cause *string `json:"cause,omitempty"`
+	Certainty *string `json:"certainty,omitempty"`
+	Class *string `json:"class,omitempty"`
+	Decision *string `json:"decision,omitempty"`
+	Evidence *string `json:"evidence,omitempty"`
+	Host *string `json:"host,omitempty"`
+	Kind string `json:"kind"`
+	ParamKeys []string `json:"paramKeys,omitempty"`
+	ResponseClass *string `json:"responseClass,omitempty"`
+	Stage *string `json:"stage,omitempty"`
+	Tool *string `json:"tool,omitempty"`
+	ToolVersion *int `json:"toolVersion,omitempty"`
+}
+
+type EndpointsDASTCredentialSessionLease struct {
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	Generation *int64 `json:"generation,omitempty"`
+	Principal *EndpointsDASTCredentialSessionPrincipal `json:"principal,omitempty"`
+	Session []ModelsSessionComponent `json:"session,omitempty"`
+	State string `json:"state"`
+	ValidationRunID *string `json:"validationRunId,omitempty"`
+}
+
+type EndpointsDASTCredentialSessionPrincipal struct {
+	CredentialID string `json:"credentialId"`
+	Identity *string `json:"identity,omitempty"`
+	TargetOrigin *string `json:"targetOrigin,omitempty"`
+}
+
 type EndpointsDASTCredentialValidationRun struct {
 	ExpiresAt *string `json:"expiresAt,omitempty"`
 	Outcome *string `json:"outcome,omitempty"`
@@ -105,6 +198,7 @@ const (
 	EndpointsDASTReadinessCodeWebServiceNoTargets EndpointsDASTReadinessCode = "web_service_no_targets"
 	EndpointsDASTReadinessCodeTargetMissing EndpointsDASTReadinessCode = "target_missing"
 	EndpointsDASTReadinessCodeInvalidConfiguration EndpointsDASTReadinessCode = "invalid_configuration"
+	EndpointsDASTReadinessCodeTargetNotConfirmed EndpointsDASTReadinessCode = "target_not_confirmed"
 	EndpointsDASTReadinessCodeDeploymentSelectionRequired EndpointsDASTReadinessCode = "deployment_selection_required"
 	EndpointsDASTReadinessCodeNoCredentials EndpointsDASTReadinessCode = "no_credentials"
 	EndpointsDASTReadinessCodeCredentialsUnvalidated EndpointsDASTReadinessCode = "credentials_unvalidated"
@@ -267,6 +361,7 @@ type EndpointsGetCredentialOutput struct {
 
 type EndpointsGetCredentialsOutput struct {
 	Credentials []ModelsCredential `json:"credentials,omitempty"`
+	LoginEngine *string `json:"loginEngine,omitempty"`
 	TotalCount int `json:"totalCount"`
 }
 
@@ -285,6 +380,10 @@ type EndpointsGetDASTApplicationReadinessOutput struct {
 type EndpointsGetDASTApplicationsOutput struct {
 	Applications []ModelsDASTApplication `json:"applications,omitempty"`
 	NextToken string `json:"nextToken"`
+}
+
+type EndpointsGetDASTCredentialLoginRunsOutput struct {
+	Runs []EndpointsDASTCredentialLoginRun `json:"runs,omitempty"`
 }
 
 type EndpointsGetDASTExploitValidationPoliciesOutput struct {
@@ -368,6 +467,7 @@ type EndpointsGetPentestAppConfigsOutput struct {
 type EndpointsGetPentestAuthMatrixCasesOutput struct {
 	Cases []EndpointsPentestAuthMatrixCase `json:"cases,omitempty"`
 	Limit int `json:"limit"`
+	NextCursor *string `json:"nextCursor,omitempty"`
 	Offset int `json:"offset"`
 	Total int `json:"total"`
 }
@@ -403,6 +503,7 @@ type EndpointsGetPentestFindingEventsOutput struct {
 
 type EndpointsGetPentestFindingFullOutput struct {
 	Finding ModelsPentestFinding `json:"finding"`
+	HasCurrentExploitProof *bool `json:"hasCurrentExploitProof,omitempty"`
 	Version *string `json:"version,omitempty"`
 	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
 }
@@ -445,6 +546,11 @@ type EndpointsGetPentestScanEventsOutput struct {
 	Events []ModelsDASTEventInterface `json:"events,omitempty"`
 	HighestSeq int64 `json:"highestSeq"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetPentestScanExecutionsOutput struct {
+	Executions []ModelsPentestAssessmentPhase `json:"executions,omitempty"`
+	TotalCount int `json:"totalCount"`
 }
 
 type EndpointsGetPentestScanFindingLinksOutput struct {
@@ -501,20 +607,28 @@ type EndpointsGetPentestScanReportExternalPDFOutput struct {
 type EndpointsGetPentestScanReportOutput struct {
 	Partial *bool `json:"partial,omitempty"`
 	Report ModelsPentestReport `json:"report"`
+	Superseded *EndpointsPentestReportSupersession `json:"superseded,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetPentestScanReportPDFOutput struct {
 	DownloadURL string `json:"downloadUrl"`
 	Partial *bool `json:"partial,omitempty"`
+	ReportFormat *string `json:"reportFormat,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsGetPentestScansOutput struct {
+	FiltersApplied *bool `json:"filtersApplied,omitempty"`
 	NextToken string `json:"nextToken"`
 	Scans []ModelsPentestScan `json:"scans,omitempty"`
 	TotalCount int `json:"totalCount"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsGetPentestScheduleOutput struct {
+	Occurrences []ModelsPentestScheduleOccurrence `json:"occurrences,omitempty"`
+	Schedule ModelsPentestSchedule `json:"schedule"`
 }
 
 type EndpointsGetSourceIPsOutput struct {
@@ -547,6 +661,16 @@ type EndpointsListExploitValidationAttemptsOutput struct {
 	NumItems int `json:"numItems"`
 }
 
+type EndpointsMovePentestConfigItemInput struct {
+	CredentialID *string `json:"credentialId,omitempty"`
+	TargetID *string `json:"targetId,omitempty"`
+	ToApplicationID string `json:"toApplicationId"`
+}
+
+type EndpointsMovePentestConfigItemOutput struct {
+	Success bool `json:"success"`
+}
+
 type EndpointsPaginatedValidations struct {
 	NextToken string `json:"nextToken"`
 	Validations []ModelsDASTValidation `json:"validations,omitempty"`
@@ -554,6 +678,7 @@ type EndpointsPaginatedValidations struct {
 
 type EndpointsPatchBugHuntFindingAllowlistInput struct {
 	Allow bool `json:"allow"`
+	AllowlistType *ModelsAllowlistType `json:"allowlistType,omitempty"`
 	Reason string `json:"reason"`
 }
 
@@ -637,6 +762,19 @@ const (
 	EndpointsPentestEstimateSourceHeuristic EndpointsPentestEstimateSource = "heuristic"
 )
 
+type EndpointsPentestReportSupersededFinding struct {
+	CurrentOutcome *string `json:"currentOutcome,omitempty"`
+	FindingID string `json:"findingId"`
+	FindingType string `json:"findingType"`
+	PublishedOutcome string `json:"publishedOutcome"`
+	Withdrawn *bool `json:"withdrawn,omitempty"`
+}
+
+type EndpointsPentestReportSupersession struct {
+	Findings []EndpointsPentestReportSupersededFinding `json:"findings,omitempty"`
+	Reason string `json:"reason"`
+}
+
 type EndpointsPentestScanActivityLogEntry struct {
 	Content *string `json:"content,omitempty"`
 	CreatedAt *string `json:"createdAt,omitempty"`
@@ -651,6 +789,33 @@ const (
 	EndpointsPentestStartModeSelfServeStarted EndpointsPentestStartMode = "self_serve_started"
 	EndpointsPentestStartModeManualRequested EndpointsPentestStartMode = "manual_requested"
 )
+
+type EndpointsPostAllowListBugHuntFindingBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListBugHuntFindingBatchOutput struct {
+	Allowlisted []string `json:"allowlisted,omitempty"`
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+}
+
+type EndpointsPostAllowListPentestFindingBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListPentestFindingBatchOutput struct {
+	Allowlisted []string `json:"allowlisted,omitempty"`
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+}
+
+type EndpointsPostAllowlistBugHuntFindingInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType *ModelsAllowlistType `json:"allowlistType,omitempty"`
+}
 
 type EndpointsPostAllowlistPentestFindingInput struct {
 	AllowlistReason string `json:"allowlistReason"`
@@ -744,6 +909,35 @@ type EndpointsPostDASTApplicationInput struct {
 
 type EndpointsPostDASTApplicationOutput struct {
 	Application ModelsDASTApplication `json:"application"`
+}
+
+type EndpointsPostDASTCredentialLoginAnswerInput struct {
+	Choice *string `json:"choice,omitempty"`
+	Hint *string `json:"hint,omitempty"`
+	Kind string `json:"kind"`
+	PageKey *string `json:"pageKey,omitempty"`
+	Revision int64 `json:"revision"`
+	RunID string `json:"runId"`
+	Secret *EndpointsDASTCredentialLoginSecretAnswer `json:"secret,omitempty"`
+}
+
+type EndpointsPostDASTCredentialLoginDefinitionInput struct {
+	Description *string `json:"description,omitempty"`
+	Login ModelsLoginDefinitionPatch `json:"login"`
+	Name string `json:"name"`
+}
+
+type EndpointsPostDASTCredentialLoginRetryInput struct {
+	Reason string `json:"reason"`
+	StopObservedAt string `json:"stopObservedAt"`
+}
+
+type EndpointsPostDASTCredentialSessionLeaseInput struct {
+	EndedGeneration *int64 `json:"endedGeneration,omitempty"`
+	Purpose string `json:"purpose"`
+	RunAttempt *string `json:"runAttempt,omitempty"`
+	ScanID *string `json:"scanId,omitempty"`
+	Target *string `json:"target,omitempty"`
 }
 
 type EndpointsPostDASTCredentialValidationInput struct {
@@ -845,8 +1039,32 @@ type EndpointsPostPentestAppConfigOutput struct {
 	Application ModelsApplicationPentestConfig `json:"application"`
 }
 
+type EndpointsPostUnallowListBugHuntFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListBugHuntFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
+type EndpointsPostUnallowListPentestFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListPentestFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
+type EndpointsPostUnallowlistBugHuntFindingInput struct {
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
 type EndpointsPostUnallowlistPentestFindingInput struct {
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 }
 
 type EndpointsPutBugHuntConfigInput struct {
@@ -878,6 +1096,7 @@ type EndpointsPutCredentialOutput struct {
 
 type EndpointsPutDASTApplicationInput struct {
 	Description *string `json:"description,omitempty"`
+	ExpectedMembershipRevision *string `json:"expectedMembershipRevision,omitempty"`
 	Name *string `json:"name,omitempty"`
 	ScopeExcludePatterns []string `json:"scopeExcludePatterns,omitempty"`
 	WebServiceIds []string `json:"webServiceIds,omitempty"`
@@ -885,6 +1104,13 @@ type EndpointsPutDASTApplicationInput struct {
 
 type EndpointsPutDASTApplicationOutput struct {
 	Application ModelsDASTApplication `json:"application"`
+}
+
+type EndpointsPutDASTCredentialLoginDefinitionInput struct {
+	Description *string `json:"description,omitempty"`
+	ExpectedRevision int64 `json:"expectedRevision"`
+	Login ModelsLoginDefinitionPatch `json:"login"`
+	Name string `json:"name"`
 }
 
 type EndpointsPutDASTExploitValidationPolicyInput struct {
@@ -956,6 +1182,19 @@ type EndpointsPutPentestAppConfigOutput struct {
 	Application ModelsApplicationPentestConfig `json:"application"`
 }
 
+type EndpointsPutPentestScheduleInput struct {
+	Cadence ModelsCadence `json:"cadence"`
+	Companions []ModelsPentestDeployment `json:"companions,omitempty"`
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	Deployment ModelsPentestDeployment `json:"deployment"`
+	FirstDueAt string `json:"firstDueAt"`
+	Stages []string `json:"stages,omitempty"`
+}
+
+type EndpointsPutPentestScheduleOutput struct {
+	Schedule ModelsPentestSchedule `json:"schedule"`
+}
+
 type EndpointsPutTargetClassificationInput struct {
 	Classification ModelsDASTTargetClassification `json:"classification"`
 }
@@ -980,6 +1219,7 @@ type EndpointsStartPentestPreflightOutput struct {
 
 type EndpointsStartPentestScanFromApplicationInput struct {
 	ApplicationID string `json:"applicationId"`
+	Companions []ModelsPentestDeployment `json:"companions,omitempty"`
 	ConfigOverrides *ModelsApplicationPentestConfigOverrides `json:"configOverrides,omitempty"`
 	Deployment *ModelsPentestDeployment `json:"deployment,omitempty"`
 	OnboardingDispatch *bool `json:"onboardingDispatch,omitempty"`
@@ -1073,9 +1313,20 @@ const (
 )
 
 type ModelsAppendices struct {
+	AuthMatrixCoverage []ModelsAppendixAuthMatrixCoverage `json:"authMatrixCoverage,omitempty"`
 	AuthMatrixHypotheses []ModelsAppendixAuthMatrixHypothesis `json:"authMatrixHypotheses,omitempty"`
 	NetworkLogsSummary *ModelsNetworkLogsSummary `json:"networkLogsSummary,omitempty"`
 	ToolOutputs *ModelsToolOutputs `json:"toolOutputs,omitempty"`
+	UntestedRoutes []ModelsAppendixUntestedRoute `json:"untestedRoutes,omitempty"`
+	UntestedRoutesOmitted *int `json:"untestedRoutesOmitted,omitempty"`
+}
+
+type ModelsAppendixAuthMatrixCoverage struct {
+	Compared int `json:"compared"`
+	Declared int `json:"declared"`
+	Host string `json:"host"`
+	LookedAt int `json:"lookedAt"`
+	Received int `json:"received"`
 }
 
 type ModelsAppendixAuthMatrixHypothesis struct {
@@ -1083,6 +1334,13 @@ type ModelsAppendixAuthMatrixHypothesis struct {
 	FindingID *string `json:"findingId,omitempty"`
 	Hypothesis string `json:"hypothesis"`
 	IsInsecure bool `json:"isInsecure"`
+}
+
+type ModelsAppendixUntestedRoute struct {
+	Host string `json:"host"`
+	Method string `json:"method"`
+	Path string `json:"path"`
+	Reason string `json:"reason"`
 }
 
 type ModelsApplicationPentestConfig struct {
@@ -1104,6 +1362,7 @@ type ModelsApplicationPentestConfigOverrides struct {
 	EnableAuthMatrix bool `json:"enableAuthMatrix"`
 	EnableExploitAnalysis bool `json:"enableExploitAnalysis"`
 	EnablePentestTools bool `json:"enablePentestTools"`
+	SourceAnalysisConcurrency *int `json:"sourceAnalysisConcurrency,omitempty"`
 	Targets []ModelsApplicationPentestTarget `json:"targets,omitempty"`
 }
 
@@ -1155,6 +1414,7 @@ type ModelsAuthMatrixAgentResponseCaseManifest struct {
 	Counts *ModelsAuthMatrixCaseCounts `json:"counts,omitempty"`
 	Digest *string `json:"digest,omitempty"`
 	Experiments *ModelsAuthMatrixExperimentManifest `json:"experiments,omitempty"`
+	Operations []ModelsAuthMatrixOperationCoverage `json:"operations,omitempty"`
 	Version *int `json:"version,omitempty"`
 }
 
@@ -1189,6 +1449,7 @@ type ModelsAuthMatrixCaseCounts struct {
 	ByLifecycle map[string]int `json:"byLifecycle,omitempty"`
 	ByOutcome map[string]int `json:"byOutcome,omitempty"`
 	Total *int `json:"total,omitempty"`
+	VerdictsWithEvidence *int `json:"verdictsWithEvidence,omitempty"`
 }
 
 type ModelsAuthMatrixCredentialContext struct {
@@ -1290,6 +1551,7 @@ type ModelsAuthMatrixExperimentManifest struct {
 	Expectations []ModelsAuthMatrixExpectation `json:"expectations,omitempty"`
 	Experiments []ModelsAuthMatrixExperiment `json:"experiments,omitempty"`
 	Templates []ModelsAuthMatrixRequestTemplate `json:"templates,omitempty"`
+	UnfinishedExperimentCount *int `json:"unfinishedExperimentCount,omitempty"`
 	UnfinishedExperimentIds []string `json:"unfinishedExperimentIds,omitempty"`
 	Version *int `json:"version,omitempty"`
 	WritesStoppedReason *string `json:"writesStoppedReason,omitempty"`
@@ -1399,6 +1661,19 @@ const (
 	ModelsAuthMatrixObservationTransportUnknown ModelsAuthMatrixObservationTransport = "unknown"
 )
 
+type ModelsAuthMatrixOperationCoverage struct {
+	Compared *bool `json:"compared,omitempty"`
+	ComparedAcrossAccounts *bool `json:"comparedAcrossAccounts,omitempty"`
+	EndpointID *string `json:"endpointId,omitempty"`
+	FirstReason *string `json:"firstReason,omitempty"`
+	LastComparedAt *string `json:"lastComparedAt,omitempty"`
+	LastComparedScanID *string `json:"lastComparedScanId,omitempty"`
+	Method *string `json:"method,omitempty"`
+	OperationID *string `json:"operationId,omitempty"`
+	Path *string `json:"path,omitempty"`
+	Reached *bool `json:"reached,omitempty"`
+}
+
 type ModelsAuthMatrixOverride struct {
 	MaxEndpoints *int `json:"maxEndpoints,omitempty"`
 	MaxRoles *int `json:"maxRoles,omitempty"`
@@ -1481,7 +1756,6 @@ type ModelsBugHuntAssessmentPhase struct {
 }
 
 type ModelsBugHuntFinding struct {
-	AiDevTitle *string `json:"aiDevTitle,omitempty"`
 	AiTitle *string `json:"aiTitle,omitempty"`
 	AllowlistReason *string `json:"allowlistReason,omitempty"`
 	AllowlistType *string `json:"allowlistType,omitempty"`
@@ -1530,6 +1804,7 @@ type ModelsBugHuntPhaseUsageMetrics struct {
 }
 
 type ModelsBugHuntScan struct {
+	ArchivedAt *string `json:"archivedAt,omitempty"`
 	AssessmentPhases []ModelsBugHuntAssessmentPhase `json:"assessmentPhases,omitempty"`
 	CreatedAt string `json:"createdAt"`
 	EndTime *string `json:"endTime,omitempty"`
@@ -1940,6 +2215,7 @@ type ModelsCredential struct {
 	IsDeleted bool `json:"isDeleted"`
 	LastUsed *string `json:"lastUsed,omitempty"`
 	LastValidatedAt *string `json:"lastValidatedAt,omitempty"`
+	Login *ModelsCredentialLoginView `json:"login,omitempty"`
 	Name string `json:"name"`
 	TenantID string `json:"tenantId"`
 	Type ModelsCredentialType `json:"type"`
@@ -1957,6 +2233,7 @@ type ModelsCredentialAppSession struct {
 	ExpectedOrganization *string `json:"expectedOrganization,omitempty"`
 	ExpectedSubject *string `json:"expectedSubject,omitempty"`
 	IdentifierOrigins []string `json:"identifierOrigins,omitempty"`
+	Members []ModelsCredentialAppSessionMember `json:"members,omitempty"`
 	Mode *string `json:"mode,omitempty"`
 	OrganizationPath []string `json:"organizationPath,omitempty"`
 	ProbeURL *string `json:"probeUrl,omitempty"`
@@ -1964,6 +2241,18 @@ type ModelsCredentialAppSession struct {
 	StartSelector *string `json:"startSelector,omitempty"`
 	SubjectPath []string `json:"subjectPath,omitempty"`
 	Version *int `json:"version,omitempty"`
+}
+
+type ModelsCredentialAppSessionMember struct {
+	ExpectedOrganization *string `json:"expectedOrganization,omitempty"`
+	ExpectedSubject *string `json:"expectedSubject,omitempty"`
+	LearnURL *string `json:"learnUrl,omitempty"`
+	OrganizationPath []string `json:"organizationPath,omitempty"`
+	Origin *string `json:"origin,omitempty"`
+	ProbeBody *string `json:"probeBody,omitempty"`
+	ProbeMethod *string `json:"probeMethod,omitempty"`
+	ProbeURL *string `json:"probeUrl,omitempty"`
+	SubjectPath []string `json:"subjectPath,omitempty"`
 }
 
 type ModelsCredentialAuthPolicy struct {
@@ -2007,7 +2296,10 @@ type ModelsCredentialConfig struct {
 	Hints *string `json:"hints,omitempty"`
 	IdpType *string `json:"idpType,omitempty"`
 	Issuer *string `json:"issuer,omitempty"`
+	LinkedSecrets []ModelsLinkedSecret `json:"linkedSecrets,omitempty"`
 	LoginBodyFormat *ModelsLoginBodyFormat `json:"loginBodyFormat,omitempty"`
+	LoginHeaders map[string]string `json:"loginHeaders,omitempty"`
+	LoginOrigins *ModelsCredentialLoginOrigins `json:"loginOrigins,omitempty"`
 	LoginStrategy *ModelsLoginStrategy `json:"loginStrategy,omitempty"`
 	LoginURL *string `json:"loginUrl,omitempty"`
 	MfaType *ModelsMFAType `json:"mfaType,omitempty"`
@@ -2036,6 +2328,21 @@ type ModelsCredentialGateway struct {
 	Username *string `json:"username,omitempty"`
 }
 
+type ModelsCredentialLoginOrigins struct {
+	Credential []string `json:"credential,omitempty"`
+	Explicit *bool `json:"explicit,omitempty"`
+	Navigation []string `json:"navigation,omitempty"`
+}
+
+type ModelsCredentialLoginView struct {
+	Definition ModelsLoginDefinition `json:"definition"`
+	Engine string `json:"engine"`
+	LegacyFields []string `json:"legacyFields,omitempty"`
+	NeedsOperator bool `json:"needsOperator"`
+	Revision int64 `json:"revision"`
+	Shape ModelsLoginShape `json:"shape"`
+}
+
 type ModelsCredentialType string
 
 const (
@@ -2058,6 +2365,7 @@ type ModelsDASTApplication struct {
 	CreatedAt string `json:"createdAt"`
 	Description *string `json:"description,omitempty"`
 	ID string `json:"id"`
+	MembershipRevision *string `json:"membershipRevision,omitempty"`
 	MutationAckAt *string `json:"mutationAckAt,omitempty"`
 	MutationAckBy *string `json:"mutationAckBy,omitempty"`
 	MutationWarningVersion *string `json:"mutationWarningVersion,omitempty"`
@@ -2165,6 +2473,7 @@ type ModelsDASTWebService struct {
 	ApiType *ModelsAPIType `json:"apiType,omitempty"`
 	CreatedAt string `json:"createdAt"`
 	Description *string `json:"description,omitempty"`
+	GraphqlSubpath *string `json:"graphqlSubpath,omitempty"`
 	ID string `json:"id"`
 	Name *string `json:"name,omitempty"`
 	ProjectID *string `json:"projectId,omitempty"`
@@ -2195,6 +2504,7 @@ type ModelsDependencyFinding struct {
 	HasReachableCVEs *bool `json:"hasReachableCVEs,omitempty"`
 	HostEffectivePriorityLabel *string `json:"hostEffectivePriorityLabel,omitempty"`
 	ID *string `json:"id,omitempty"`
+	Instances []ModelsDependencyFindingInstancesElem `json:"instances,omitempty"`
 	IsAutoFixable *bool `json:"isAutoFixable,omitempty"`
 	IsCloudTriaged *bool `json:"isCloudTriaged,omitempty"`
 	IsDirect *bool `json:"isDirect,omitempty"`
@@ -2308,6 +2618,28 @@ const (
 	ModelsDependencyFindingDossierReachabilityMethodUnsupported ModelsDependencyFindingDossierReachabilityMethod = "UNSUPPORTED"
 )
 
+type ModelsDependencyFindingInstancesElem struct {
+	Affected *bool `json:"affected,omitempty"`
+	AffectedAdvisoryIds []string `json:"affectedAdvisoryIds,omitempty"`
+	FilePath *string `json:"filePath,omitempty"`
+	FixVersion *string `json:"fixVersion,omitempty"`
+	IsDirect *bool `json:"isDirect,omitempty"`
+	Line *int `json:"line,omitempty"`
+	PackageFilePath *string `json:"packageFilePath,omitempty"`
+	ReachabilityEvidence *ModelsDependencyFindingInstancesElemReachabilityEvidence `json:"reachabilityEvidence,omitempty"`
+	Representative *bool `json:"representative,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+type ModelsDependencyFindingInstancesElemReachabilityEvidence string
+
+const (
+	ModelsDependencyFindingInstancesElemReachabilityEvidenceNotObserved ModelsDependencyFindingInstancesElemReachabilityEvidence = "not_observed"
+	ModelsDependencyFindingInstancesElemReachabilityEvidenceReachable ModelsDependencyFindingInstancesElemReachabilityEvidence = "reachable"
+	ModelsDependencyFindingInstancesElemReachabilityEvidenceUnrecorded ModelsDependencyFindingInstancesElemReachabilityEvidence = "unrecorded"
+	ModelsDependencyFindingInstancesElemReachabilityEvidenceUnsupported ModelsDependencyFindingInstancesElemReachabilityEvidence = "unsupported"
+)
+
 type ModelsDependencyFindingVulnerabilitiesElem struct {
 	Cves []ModelsDependencyFindingVulnerabilitiesElemCvesElem `json:"cves,omitempty"`
 	Details *string `json:"details,omitempty"`
@@ -2416,11 +2748,79 @@ type ModelsLightweightBackendPentestOverride struct {
 	MaxSeconds *int `json:"maxSeconds,omitempty"`
 }
 
+type ModelsLinkedSecret struct {
+	Field *string `json:"field,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Role *ModelsLinkedSecretRole `json:"role,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type ModelsLinkedSecretRole string
+
+const (
+	ModelsLinkedSecretRoleHeader ModelsLinkedSecretRole = "header"
+	ModelsLinkedSecretRoleFormField ModelsLinkedSecretRole = "form_field"
+)
+
 type ModelsLoginBodyFormat string
 
 const (
 	ModelsLoginBodyFormatForm ModelsLoginBodyFormat = "form"
 	ModelsLoginBodyFormatJson ModelsLoginBodyFormat = "json"
+)
+
+type ModelsLoginDefinition struct {
+	ApiKeyParamName *string `json:"apiKeyParamName,omitempty"`
+	ApiKeyPlacement *ModelsAPIKeyPlacement `json:"apiKeyPlacement,omitempty"`
+	Audience *string `json:"audience,omitempty"`
+	BodyFormat *ModelsLoginBodyFormat `json:"bodyFormat,omitempty"`
+	ClientID *string `json:"clientId,omitempty"`
+	Discovered *ModelsDiscoveredWiring `json:"discovered,omitempty"`
+	Gateway *ModelsLoginDefinition `json:"gateway,omitempty"`
+	Hint *string `json:"hint,omitempty"`
+	LoginURL *string `json:"loginUrl,omitempty"`
+	PasswordField *string `json:"passwordField,omitempty"`
+	Realm *string `json:"realm,omitempty"`
+	Resource *string `json:"resource,omitempty"`
+	Scope *string `json:"scope,omitempty"`
+	Secrets []ModelsSecretRef `json:"secrets,omitempty"`
+	TokenURL *string `json:"tokenUrl,omitempty"`
+	Username *string `json:"username,omitempty"`
+	UsernameField *string `json:"usernameField,omitempty"`
+}
+
+type ModelsLoginDefinitionPatch struct {
+	ApiKey *string `json:"apiKey,omitempty"`
+	ApiKeyParamName *string `json:"apiKeyParamName,omitempty"`
+	ApiKeyPlacement *ModelsAPIKeyPlacement `json:"apiKeyPlacement,omitempty"`
+	Audience *string `json:"audience,omitempty"`
+	ClientID *string `json:"clientId,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty"`
+	Gateway *ModelsLoginGatewayPatch `json:"gateway,omitempty"`
+	Hint *string `json:"hint,omitempty"`
+	LoginURL *string `json:"loginUrl,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Resource *string `json:"resource,omitempty"`
+	Scope *string `json:"scope,omitempty"`
+	Shape ModelsLoginShape `json:"shape"`
+	TokenURL *string `json:"tokenUrl,omitempty"`
+	TotpSeed *string `json:"totpSeed,omitempty"`
+	Username *string `json:"username,omitempty"`
+}
+
+type ModelsLoginGatewayPatch struct {
+	LoginURL *string `json:"loginUrl,omitempty"`
+	Password *string `json:"password,omitempty"`
+	TotpSeed *string `json:"totpSeed,omitempty"`
+	Username *string `json:"username,omitempty"`
+}
+
+type ModelsLoginShape string
+
+const (
+	ModelsLoginShapePassword ModelsLoginShape = "password"
+	ModelsLoginShapeKey ModelsLoginShape = "key"
+	ModelsLoginShapeClientSecret ModelsLoginShape = "client_secret"
 )
 
 type ModelsLoginStrategy string
@@ -2545,6 +2945,9 @@ const (
 	ModelsPentestAbortCodeBudgetExhausted ModelsPentestAbortCode = "budget_exhausted"
 	ModelsPentestAbortCodeConcurrencyLimited ModelsPentestAbortCode = "concurrency_limited"
 	ModelsPentestAbortCodeMutationCapabilityInvalid ModelsPentestAbortCode = "mutation_capability_invalid"
+	ModelsPentestAbortCodeResumeConfigChanged ModelsPentestAbortCode = "resume_config_changed"
+	ModelsPentestAbortCodeRunInterrupted ModelsPentestAbortCode = "run_interrupted"
+	ModelsPentestAbortCodeSessionRejected ModelsPentestAbortCode = "session_rejected"
 )
 
 type ModelsPentestAbortReason struct {
@@ -2604,6 +3007,7 @@ type ModelsPentestAuthMatrixIdentityCoverage struct {
 
 type ModelsPentestAuthMatrixResult struct {
 	CaseManifest *ModelsAuthMatrixAgentResponseCaseManifest `json:"caseManifest,omitempty"`
+	ChangeLog *ModelsPentestChangeLog `json:"changeLog,omitempty"`
 	Findings []ModelsPentestFinding `json:"findings,omitempty"`
 	Hypotheses []ModelsPentestAuthMatrixHypothesis `json:"hypotheses,omitempty"`
 	MutationSnapshot *ModelsPentestMutationSnapshot `json:"mutationSnapshot,omitempty"`
@@ -2631,6 +3035,20 @@ type ModelsPentestAuthMatrixUnassessed struct {
 	Unresolved int `json:"unresolved"`
 }
 
+type ModelsPentestBrokenCredential struct {
+	CredentialID string `json:"credentialId"`
+	RecordedWrites []string `json:"recordedWrites,omitempty"`
+}
+
+type ModelsPentestChangeLog struct {
+	BrokenCredentials []ModelsPentestBrokenCredential `json:"brokenCredentials,omitempty"`
+	Changes []ModelsPentestRunChange `json:"changes,omitempty"`
+	ExploitWritesOnly *bool `json:"exploitWritesOnly,omitempty"`
+	OmittedChanges *int `json:"omittedChanges,omitempty"`
+	RecordFailures *int `json:"recordFailures,omitempty"`
+	SkippedLogins *int `json:"skippedLogins,omitempty"`
+}
+
 type ModelsPentestDeployment struct {
 	TargetID string `json:"targetId"`
 	WebServiceID string `json:"webServiceId"`
@@ -2639,7 +3057,10 @@ type ModelsPentestDeployment struct {
 type ModelsPentestDeploymentSnapshot struct {
 	CredentialIds []string `json:"credentialIds,omitempty"`
 	IsProd *bool `json:"isProd,omitempty"`
+	Members []ModelsPentestScopeMember `json:"members,omitempty"`
 	NonProductionConfirmed *bool `json:"nonProductionConfirmed,omitempty"`
+	ScopeContractVersion *int `json:"scopeContractVersion,omitempty"`
+	ScopeMode *ModelsPentestScopeMode `json:"scopeMode,omitempty"`
 	SiblingPaths []string `json:"siblingPaths,omitempty"`
 	SourceProjectID *string `json:"sourceProjectId,omitempty"`
 	SourceRepoPath *string `json:"sourceRepoPath,omitempty"`
@@ -2688,7 +3109,10 @@ type ModelsPentestFinding struct {
 	ConcurrencyLimit *int `json:"concurrencyLimit,omitempty"`
 	CreatedAt string `json:"createdAt"`
 	Cwe int `json:"cwe"`
+	EffectivePriority *ModelsPriorityLabel `json:"effectivePriority,omitempty"`
+	EffectiveSeverity *ModelsSeverity `json:"effectiveSeverity,omitempty"`
 	Endpoint ModelsPentestFindingEndpoint `json:"endpoint"`
+	FailedTriage *bool `json:"failedTriage,omitempty"`
 	FixEvidence *ModelsFixEvidence `json:"fixEvidence,omitempty"`
 	Host string `json:"host"`
 	ID string `json:"id"`
@@ -2700,6 +3124,8 @@ type ModelsPentestFinding struct {
 	IsFixed bool `json:"isFixed"`
 	IsLatest bool `json:"isLatest"`
 	PriorityLabel ModelsPriorityLabel `json:"priorityLabel"`
+	PriorityLabelReason *string `json:"priorityLabelReason,omitempty"`
+	PriorityOverride *ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	PriorityScore int `json:"priorityScore"`
 	PullRequestsAutofix []ModelsPullRequestInfo `json:"pullRequestsAutofix,omitempty"`
 	Repository *string `json:"repository,omitempty"`
@@ -2708,14 +3134,20 @@ type ModelsPentestFinding struct {
 	RepositoryName *string `json:"repositoryName,omitempty"`
 	RepositoryPath *string `json:"repositoryPath,omitempty"`
 	ScanInfo ModelsPentestFindingScanInfo `json:"scanInfo"`
+	SeverityOverride *ModelsSeverity `json:"severityOverride,omitempty"`
+	SinkLocation *ModelsPentestFindingCodeLocation `json:"sinkLocation,omitempty"`
 	Source ModelsPentestFindingSource `json:"source"`
+	SourceCommit *string `json:"sourceCommit,omitempty"`
+	SourceLocation *ModelsPentestFindingCodeLocation `json:"sourceLocation,omitempty"`
 	Summary string `json:"summary"`
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	Title string `json:"title"`
 	Triage *ModelsTriage `json:"triage,omitempty"`
+	TriageAgentVersion *string `json:"triageAgentVersion,omitempty"`
 	UpdatedAt string `json:"updatedAt"`
 	UserRole *string `json:"userRole,omitempty"`
 	UserRoleDescription *string `json:"userRoleDescription,omitempty"`
+	Writeup *ModelsPentestFindingWriteup `json:"writeup,omitempty"`
 }
 
 type ModelsPentestFindingAPI struct {
@@ -2762,6 +3194,12 @@ type ModelsPentestFindingAuthMatrixUser struct {
 	UserName string `json:"userName"`
 }
 
+type ModelsPentestFindingCodeLocation struct {
+	EndLine int `json:"endLine"`
+	FilePath string `json:"filePath"`
+	StartLine int `json:"startLine"`
+}
+
 type ModelsPentestFindingEndpoint struct {
 	Method string `json:"method"`
 	Path string `json:"path"`
@@ -2782,6 +3220,14 @@ type ModelsPentestFindingMetrics struct {
 	Undetected *int `json:"undetected,omitempty"`
 	Unfixed int `json:"unfixed"`
 	ValidatedExternal *int `json:"validatedExternal,omitempty"`
+}
+
+type ModelsPentestFindingProofExchange struct {
+	Body *string `json:"body,omitempty"`
+	Method *string `json:"method,omitempty"`
+	Path *string `json:"path,omitempty"`
+	Status *string `json:"status,omitempty"`
+	Truncated *bool `json:"truncated,omitempty"`
 }
 
 type ModelsPentestFindingRESTQueryParameters struct {
@@ -2838,6 +3284,20 @@ const (
 	ModelsPentestFindingStatusValidatedExternal ModelsPentestFindingStatus = "validated_external"
 	ModelsPentestFindingStatusValidatedExternalUnconfirmed ModelsPentestFindingStatus = "validated_external_unconfirmed"
 )
+
+type ModelsPentestFindingWriteup struct {
+	Fix *string `json:"fix,omitempty"`
+	Impact *string `json:"impact,omitempty"`
+	Proof []ModelsPentestFindingProofExchange `json:"proof,omitempty"`
+	WhatsWrong *string `json:"whatsWrong,omitempty"`
+	Where *ModelsPentestFindingWriteupWhere `json:"where,omitempty"`
+}
+
+type ModelsPentestFindingWriteupWhere struct {
+	Route *ModelsPentestFindingEndpoint `json:"route,omitempty"`
+	Sink *ModelsPentestFindingCodeLocation `json:"sink,omitempty"`
+	Source *ModelsPentestFindingCodeLocation `json:"source,omitempty"`
+}
 
 type ModelsPentestHypothesis struct {
 	Description string `json:"description"`
@@ -2939,7 +3399,12 @@ type ModelsPentestPreflight struct {
 type ModelsPentestPreflightAppContextSnapshot struct {
 	ApiEndpointCount *int `json:"apiEndpointCount,omitempty"`
 	ApiEndpointsSample []string `json:"apiEndpointsSample,omitempty"`
+	ApiSchemaArtifactID *string `json:"apiSchemaArtifactId,omitempty"`
+	ApiSchemaBasis *string `json:"apiSchemaBasis,omitempty"`
+	ApiSchemaDigest *string `json:"apiSchemaDigest,omitempty"`
+	ApiSchemaOrigin *string `json:"apiSchemaOrigin,omitempty"`
 	ApiSchemaPartial *bool `json:"apiSchemaPartial,omitempty"`
+	ApiSchemaSourceCommit *string `json:"apiSchemaSourceCommit,omitempty"`
 	ApiSchemaSourceRef *string `json:"apiSchemaSourceRef,omitempty"`
 	ApiSchemaType *string `json:"apiSchemaType,omitempty"`
 	ComponentCount *int `json:"componentCount,omitempty"`
@@ -3062,6 +3527,7 @@ type ModelsPentestReport struct {
 	DisprovenCandidates []ModelsDisprovenCandidate `json:"disprovenCandidates,omitempty"`
 	ExecutiveSummary *ModelsExecutiveSummary `json:"executiveSummary,omitempty"`
 	ExploitAnalysisResult *ModelsPentestExploitAnalysisResult `json:"exploitAnalysisResult,omitempty"`
+	FindingLifecycle map[string]string `json:"findingLifecycle,omitempty"`
 	FindingScanCoverage *ModelsPentestFindingScanCoverage `json:"findingScanCoverage,omitempty"`
 	FindingsSummary []ModelsFindingSummary `json:"findingsSummary,omitempty"`
 	Limitations *string `json:"limitations,omitempty"`
@@ -3072,9 +3538,13 @@ type ModelsPentestReport struct {
 	PentestToolsResult *ModelsPentestToolsResult `json:"pentestToolsResult,omitempty"`
 	ProducersRan []ModelsPentestFindingSource `json:"producersRan,omitempty"`
 	ReportMetadata *ModelsReportMetadata `json:"reportMetadata,omitempty"`
+	RestorationsNeeded []ModelsPentestRestorationNeeded `json:"restorationsNeeded,omitempty"`
 	RetestPolicy *string `json:"retestPolicy,omitempty"`
 	ScanID string `json:"scanId"`
 	Scope *ModelsReportScope `json:"scope,omitempty"`
+	StageModels []ModelsPentestStageModelRecord `json:"stageModels,omitempty"`
+	StagesNotRun []ModelsPentestStageNotRun `json:"stagesNotRun,omitempty"`
+	TestingIncomplete *bool `json:"testingIncomplete,omitempty"`
 }
 
 type ModelsPentestRequestMetrics struct {
@@ -3087,10 +3557,36 @@ type ModelsPentestRequestMetrics struct {
 	Total int `json:"total"`
 }
 
+type ModelsPentestRestorationNeeded struct {
+	CredentialID *string `json:"credentialId,omitempty"`
+	CredentialName *string `json:"credentialName,omitempty"`
+	Field *string `json:"field,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+}
+
+type ModelsPentestRunChange struct {
+	Before *string `json:"before,omitempty"`
+	Class string `json:"class"`
+	ID string `json:"id"`
+	LoginSensitive bool `json:"loginSensitive"`
+	Method string `json:"method"`
+	Outcome string `json:"outcome"`
+	Principal string `json:"principal"`
+	PrincipalName *string `json:"principalName,omitempty"`
+	Request *string `json:"request,omitempty"`
+	RestoreReason *string `json:"restoreReason,omitempty"`
+	RestoreStatus string `json:"restoreStatus"`
+	Result *string `json:"result,omitempty"`
+	SentAt string `json:"sentAt"`
+	Stage *string `json:"stage,omitempty"`
+	URL string `json:"url"`
+}
+
 type ModelsPentestScan struct {
 	AbortReason *ModelsPentestAbortReason `json:"abortReason,omitempty"`
 	AppID string `json:"appId"`
 	AppName *string `json:"appName,omitempty"`
+	ArchivedAt *string `json:"archivedAt,omitempty"`
 	AssessmentPhases []ModelsPentestAssessmentPhase `json:"assessmentPhases,omitempty"`
 	CaptureBytes *int `json:"captureBytes,omitempty"`
 	CaptureScrubbed *bool `json:"captureScrubbed,omitempty"`
@@ -3100,7 +3596,9 @@ type ModelsPentestScan struct {
 	DiscoveredCount *int `json:"discoveredCount,omitempty"`
 	EndTime *string `json:"endTime,omitempty"`
 	ExecutionArn string `json:"executionArn"`
+	Executor *string `json:"executor,omitempty"`
 	FailureReason *string `json:"failureReason,omitempty"`
+	FallbackOfScanID *string `json:"fallbackOfScanId,omitempty"`
 	FindingIds []string `json:"findingIds,omitempty"`
 	ID string `json:"id"`
 	IsExternal bool `json:"isExternal"`
@@ -3109,6 +3607,8 @@ type ModelsPentestScan struct {
 	RefusedHosts []string `json:"refusedHosts,omitempty"`
 	ReportFindingsCount *int `json:"reportFindingsCount,omitempty"`
 	ScopePolicy *ModelsPentestScopePolicy `json:"scopePolicy,omitempty"`
+	SourceGaps []ModelsPentestSourceGap `json:"sourceGaps,omitempty"`
+	StageModels []ModelsPentestStageModelRecord `json:"stageModels,omitempty"`
 	StartTime *string `json:"startTime,omitempty"`
 	Status ModelsScanStatus `json:"status"`
 	TenantID string `json:"tenantId"`
@@ -3149,12 +3649,154 @@ type ModelsPentestScanCostSummary struct {
 	TotalOutputTokens int `json:"totalOutputTokens"`
 }
 
+type ModelsPentestSchedule struct {
+	AnchorAt string `json:"anchorAt"`
+	ApplicationID string `json:"applicationId"`
+	ApprovedAt *string `json:"approvedAt,omitempty"`
+	ApprovedBy *string `json:"approvedBy,omitempty"`
+	Cadence ModelsCadence `json:"cadence"`
+	Companions []ModelsPentestDeployment `json:"companions,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+	CreatedByKind ModelsPentestScheduleCreatorKind `json:"createdByKind"`
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	Deployment ModelsPentestDeployment `json:"deployment"`
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	ExploitSeverityFloor *ModelsSeverityFloor `json:"exploitSeverityFloor,omitempty"`
+	ID string `json:"id"`
+	NextDueAt string `json:"nextDueAt"`
+	Stages []string `json:"stages,omitempty"`
+	Status ModelsPentestScheduleStatus `json:"status"`
+	StopReason *string `json:"stopReason,omitempty"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type ModelsPentestScheduleCreatorKind string
+
+const (
+	ModelsPentestScheduleCreatorKindStaff ModelsPentestScheduleCreatorKind = "staff"
+	ModelsPentestScheduleCreatorKindCustomer ModelsPentestScheduleCreatorKind = "customer"
+)
+
+type ModelsPentestScheduleOccurrence struct {
+	Attempts int32 `json:"attempts"`
+	DueAt string `json:"dueAt"`
+	ID string `json:"id"`
+	Reason *string `json:"reason,omitempty"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
+	RetryUntil string `json:"retryUntil"`
+	ScanID *string `json:"scanId,omitempty"`
+	ScheduleID string `json:"scheduleId"`
+	Status ModelsPentestScheduleOccurrenceStatus `json:"status"`
+}
+
+type ModelsPentestScheduleOccurrenceStatus string
+
+const (
+	ModelsPentestScheduleOccurrenceStatusPending ModelsPentestScheduleOccurrenceStatus = "pending"
+	ModelsPentestScheduleOccurrenceStatusLeased ModelsPentestScheduleOccurrenceStatus = "leased"
+	ModelsPentestScheduleOccurrenceStatusDispatched ModelsPentestScheduleOccurrenceStatus = "dispatched"
+	ModelsPentestScheduleOccurrenceStatusDeferred ModelsPentestScheduleOccurrenceStatus = "deferred"
+	ModelsPentestScheduleOccurrenceStatusLoginBlocked ModelsPentestScheduleOccurrenceStatus = "login_blocked"
+	ModelsPentestScheduleOccurrenceStatusCompleted ModelsPentestScheduleOccurrenceStatus = "completed"
+	ModelsPentestScheduleOccurrenceStatusFailed ModelsPentestScheduleOccurrenceStatus = "failed"
+	ModelsPentestScheduleOccurrenceStatusMissed ModelsPentestScheduleOccurrenceStatus = "missed"
+)
+
+type ModelsPentestScheduleStatus string
+
+const (
+	ModelsPentestScheduleStatusAwaitingApproval ModelsPentestScheduleStatus = "awaiting_approval"
+	ModelsPentestScheduleStatusActive ModelsPentestScheduleStatus = "active"
+	ModelsPentestScheduleStatusPaused ModelsPentestScheduleStatus = "paused"
+	ModelsPentestScheduleStatusStopped ModelsPentestScheduleStatus = "stopped"
+)
+
+type ModelsPentestScopeMember struct {
+	ApiType *ModelsAPIType `json:"apiType,omitempty"`
+	Authority *string `json:"authority,omitempty"`
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	GraphqlPath *string `json:"graphqlPath,omitempty"`
+	IsProd *bool `json:"isProd,omitempty"`
+	MountPath *string `json:"mountPath,omitempty"`
+	NonProductionConfirmed *bool `json:"nonProductionConfirmed,omitempty"`
+	Primary *bool `json:"primary,omitempty"`
+	SchemaDigest *string `json:"schemaDigest,omitempty"`
+	SiblingPaths []string `json:"siblingPaths,omitempty"`
+	SpecProjectID *string `json:"specProjectId,omitempty"`
+	SpecRepoPath *string `json:"specRepoPath,omitempty"`
+	SpecRepositoryID *string `json:"specRepositoryId,omitempty"`
+	TargetID string `json:"targetId"`
+	URL *string `json:"url,omitempty"`
+	WebServiceID string `json:"webServiceId"`
+}
+
+type ModelsPentestScopeMode string
+
+const (
+	// (skipped value "" — no representable Go identifier)
+	ModelsPentestScopeModeApplication ModelsPentestScopeMode = "application"
+)
+
 type ModelsPentestScopePolicy struct {
 	Authority *string `json:"authority,omitempty"`
 	BasePath *string `json:"basePath,omitempty"`
 	ExcludePatterns []string `json:"excludePatterns,omitempty"`
 	Hash *string `json:"hash,omitempty"`
 }
+
+type ModelsPentestSourceGap struct {
+	Code string `json:"code"`
+	ID string `json:"id"`
+	Path *string `json:"path,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	RepositoryName *string `json:"repositoryName,omitempty"`
+}
+
+type ModelsPentestStage string
+
+const (
+	ModelsPentestStagePentestTools ModelsPentestStage = "pentest_tools"
+	ModelsPentestStageAuthMatrix ModelsPentestStage = "auth_matrix"
+	ModelsPentestStageSourceAnalysis ModelsPentestStage = "source_analysis"
+	ModelsPentestStageExploitAnalysis ModelsPentestStage = "exploit_analysis"
+	ModelsPentestStageTestSetup ModelsPentestStage = "test_setup"
+)
+
+type ModelsPentestStageModelRecord struct {
+	Model *string `json:"model,omitempty"`
+	Provider *string `json:"provider,omitempty"`
+	Ran *bool `json:"ran,omitempty"`
+	Source *ModelsPentestStageModelSource `json:"source,omitempty"`
+	Stage *string `json:"stage,omitempty"`
+}
+
+type ModelsPentestStageModelSource string
+
+const (
+	ModelsPentestStageModelSourceRun ModelsPentestStageModelSource = "run"
+	ModelsPentestStageModelSourceTenant ModelsPentestStageModelSource = "tenant"
+	ModelsPentestStageModelSourceDefault ModelsPentestStageModelSource = "default"
+	ModelsPentestStageModelSourceFixed ModelsPentestStageModelSource = "fixed"
+)
+
+type ModelsPentestStageNotRun struct {
+	Reason ModelsPentestStageNotRunReason `json:"reason"`
+	Stage ModelsPentestStage `json:"stage"`
+}
+
+type ModelsPentestStageNotRunReason string
+
+const (
+	ModelsPentestStageNotRunReasonNotSelected ModelsPentestStageNotRunReason = "not_selected"
+	ModelsPentestStageNotRunReasonNoRepository ModelsPentestStageNotRunReason = "no_repository"
+	ModelsPentestStageNotRunReasonNoCredentials ModelsPentestStageNotRunReason = "no_credentials"
+	ModelsPentestStageNotRunReasonSkipped ModelsPentestStageNotRunReason = "skipped"
+	ModelsPentestStageNotRunReasonInterrupted ModelsPentestStageNotRunReason = "interrupted"
+	ModelsPentestStageNotRunReasonFailed ModelsPentestStageNotRunReason = "failed"
+	ModelsPentestStageNotRunReasonNotReached ModelsPentestStageNotRunReason = "not_reached"
+	ModelsPentestStageNotRunReasonConfigChanged ModelsPentestStageNotRunReason = "config_changed"
+)
 
 type ModelsPentestToolsResult struct {
 	Findings []ModelsPentestFinding `json:"findings,omitempty"`
@@ -3183,20 +3825,70 @@ type ModelsPortScanOverride struct {
 	ThreadCount *int `json:"threadCount,omitempty"`
 }
 
+type ModelsReportExcludedCodeTasks struct {
+	Count *int `json:"count,omitempty"`
+	Ids []string `json:"ids,omitempty"`
+	Reason string `json:"reason"`
+}
+
+type ModelsReportMemberCodeTasks struct {
+	Attempted *int `json:"attempted,omitempty"`
+	Excluded []ModelsReportExcludedCodeTasks `json:"excluded,omitempty"`
+	Exploited *int `json:"exploited,omitempty"`
+	Total *int `json:"total,omitempty"`
+	Unreached []ModelsReportUnreachedCodeTasks `json:"unreached,omitempty"`
+}
+
+type ModelsReportMemberSession struct {
+	CredentialID string `json:"credentialId"`
+	Label string `json:"label"`
+	Origin string `json:"origin"`
+	Verification string `json:"verification"`
+}
+
 type ModelsReportMetadata struct {
 	Authors []ModelsAuthor `json:"authors,omitempty"`
+	ClaimedFindings map[string]string `json:"claimedFindings,omitempty"`
 	Classification string `json:"classification"`
 	Client string `json:"client"`
 	ReportVersion string `json:"reportVersion"`
 	Title string `json:"title"`
+	VerdictBasis map[string]string `json:"verdictBasis,omitempty"`
 }
 
 type ModelsReportScope struct {
 	Excluded []ModelsExcludedRoute `json:"excluded,omitempty"`
+	ExploitSeverityFloor *ModelsSeverityFloor `json:"exploitSeverityFloor,omitempty"`
+	MemberSessions []ModelsReportMemberSession `json:"memberSessions,omitempty"`
+	Members []ModelsReportScopeMember `json:"members,omitempty"`
+	ObservedHosts []string `json:"observedHosts,omitempty"`
 	OutOfScopeHosts []string `json:"outOfScopeHosts,omitempty"`
+	ReferencedHosts []string `json:"referencedHosts,omitempty"`
+	ReferencedHostsTruncated *bool `json:"referencedHostsTruncated,omitempty"`
 	TargetDescription *string `json:"targetDescription,omitempty"`
 	TargetURL string `json:"targetUrl"`
 	Users []ModelsScopeUser `json:"users,omitempty"`
+}
+
+type ModelsReportScopeMember struct {
+	ApiType *ModelsAPIType `json:"apiType,omitempty"`
+	Assessment *string `json:"assessment,omitempty"`
+	AuthForm *string `json:"authForm,omitempty"`
+	CodeTasks *ModelsReportMemberCodeTasks `json:"codeTasks,omitempty"`
+	FindingCount *int `json:"findingCount,omitempty"`
+	Host string `json:"host"`
+	Primary *bool `json:"primary,omitempty"`
+	SignedIn *bool `json:"signedIn,omitempty"`
+	StagesRun []string `json:"stagesRun,omitempty"`
+	TargetID string `json:"targetId"`
+	URL string `json:"url"`
+	WebServiceID string `json:"webServiceId"`
+}
+
+type ModelsReportUnreachedCodeTasks struct {
+	Count *int `json:"count,omitempty"`
+	Ids []string `json:"ids,omitempty"`
+	Reason string `json:"reason"`
 }
 
 type ModelsRulesOfEngagement struct {
@@ -3240,6 +3932,85 @@ type ModelsScopeUser struct {
 	RoleDescription string `json:"roleDescription"`
 }
 
+type ModelsSecretRef string
+
+const (
+	ModelsSecretRefPassword ModelsSecretRef = "password"
+	ModelsSecretRefTotpSeed ModelsSecretRef = "totp_seed"
+	ModelsSecretRefApiKey ModelsSecretRef = "api_key"
+	ModelsSecretRefToken ModelsSecretRef = "token"
+	ModelsSecretRefClientSecret ModelsSecretRef = "client_secret"
+	ModelsSecretRefRefreshToken ModelsSecretRef = "refresh_token"
+	ModelsSecretRefGatewayPassword ModelsSecretRef = "gateway_password"
+	ModelsSecretRefGatewayTotpSeed ModelsSecretRef = "gateway_totp_seed"
+	ModelsSecretRefUsername ModelsSecretRef = "username"
+	ModelsSecretRefGatewayUsername ModelsSecretRef = "gateway_username"
+)
+
+type ModelsSessionComponent struct {
+	Audience *string `json:"audience,omitempty"`
+	Cookies []ModelsSessionCookie `json:"cookies,omitempty"`
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	Headers []ModelsSessionHeader `json:"headers,omitempty"`
+	Kind *ModelsSessionComponentKind `json:"kind,omitempty"`
+	Parts []ModelsSessionPart `json:"parts,omitempty"`
+	Resource *string `json:"resource,omitempty"`
+	Scope *string `json:"scope,omitempty"`
+}
+
+type ModelsSessionComponentKind string
+
+const (
+	ModelsSessionComponentKindApp ModelsSessionComponentKind = "app"
+	ModelsSessionComponentKindGateway ModelsSessionComponentKind = "gateway"
+)
+
+type ModelsSessionCookie struct {
+	Domain *string `json:"domain,omitempty"`
+	Expires *string `json:"expires,omitempty"`
+	HostOnly *bool `json:"hostOnly,omitempty"`
+	HttpOnly *bool `json:"httpOnly,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Path *string `json:"path,omitempty"`
+	SameSite *string `json:"sameSite,omitempty"`
+	Secure *bool `json:"secure,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type ModelsSessionHeader struct {
+	Name *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+type ModelsSessionPart struct {
+	Dual *bool `json:"dual,omitempty"`
+	ID *ModelsSessionPartID `json:"id,omitempty"`
+	Role *ModelsSessionPartRole `json:"role,omitempty"`
+}
+
+type ModelsSessionPartID struct {
+	Domain *string `json:"domain,omitempty"`
+	HostOnly *bool `json:"hostOnly,omitempty"`
+	Kind *ModelsSessionPartKind `json:"kind,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Path *string `json:"path,omitempty"`
+}
+
+type ModelsSessionPartKind string
+
+const (
+	ModelsSessionPartKindCookie ModelsSessionPartKind = "cookie"
+	ModelsSessionPartKindHeader ModelsSessionPartKind = "header"
+)
+
+type ModelsSessionPartRole string
+
+const (
+	ModelsSessionPartRoleNecessary ModelsSessionPartRole = "necessary"
+	ModelsSessionPartRoleIrrelevant ModelsSessionPartRole = "irrelevant"
+	ModelsSessionPartRoleUnknown ModelsSessionPartRole = "unknown"
+)
+
 type ModelsSeverityFloor string
 
 const (
@@ -3254,6 +4025,7 @@ const (
 type ModelsTOTPConfig struct {
 	Algorithm *string `json:"algorithm,omitempty"`
 	Digits *int `json:"digits,omitempty"`
+	EnrolledBy *string `json:"enrolledBy,omitempty"`
 	Period *int `json:"period,omitempty"`
 	Secret *string `json:"secret,omitempty"`
 }

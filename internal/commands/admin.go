@@ -2095,6 +2095,350 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-identity-slack-link",
+			Short: "Link a Slack account",
+			Long: "Request body (JSON) fields: token (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateAdminIdentitySlackLinkInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateAdminIdentitySlackLink(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /admin/identity/slack/link")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-decision-by-id <requestId>",
+			Short: "Approve or decline a Slack account link",
+			Long: "Request body (JSON) fields: approve (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateAdminIdentitySlackLinkRequestsRequestIdDecisionInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				in.RequestID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				data, err := client.CreateAdminIdentitySlackLinkRequestsRequestIdDecision(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /admin/identity/slack/link-requests/{requestId}/decision")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-preview",
+			Short: "Preview a Slack account link",
+			Long: "Request body (JSON) fields: token (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateAdminIdentitySlackLinkPreviewInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateAdminIdentitySlackLinkPreview(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /admin/identity/slack/link/preview")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-links",
+			Short: "List Slack account links",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListAdminIdentitySlackLinksInput{}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListAdminIdentitySlackLinks(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /admin/identity/slack/links")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "list-identity-slack-links-me",
+			Short: "List my Slack account links",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListAdminIdentitySlackLinksMeInput{}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListAdminIdentitySlackLinksMe(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /admin/identity/slack/links/me")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-me <directoryId> <slackUserId>",
+			Short: "Unlink one of my Slack accounts",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserIdInput{}
+				in.DirectoryID = args[0]
+				in.SlackUserID = args[1]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				data, err := client.DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserId(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "DELETE /admin/identity/slack/links/me/{directoryId}/{slackUserId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "delete-links <directoryId> <slackUserId>",
+			Short: "Revoke a Slack account link",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.DeleteAdminIdentitySlackLinksDirectoryIdSlackUserIdInput{}
+				in.DirectoryID = args[0]
+				in.SlackUserID = args[1]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				data, err := client.DeleteAdminIdentitySlackLinksDirectoryIdSlackUserId(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "DELETE /admin/identity/slack/links/{directoryId}/{slackUserId}")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-installations",
 			Short: "Get App Installations",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -5753,6 +6097,52 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "list-channels",
+			Short: "List Slack Channels",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListAdminIntegrationsSlackChannelsInput{}
+				if v, _ := cmd.Flags().GetString("channel-id"); v != "" {
+					x := string(v)
+					in.ChannelID = &x
+				}
+				if v, _ := cmd.Flags().GetString("cursor"); v != "" {
+					x := string(v)
+					in.Cursor = &x
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListAdminIntegrationsSlackChannels(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /admin/integrations/slack/channels")
+		cmd.Flags().String("channel-id", "", "")
+		cmd.Flags().String("cursor", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-integrations-slack-install",
 			Short: "Start Slack distributed install",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -6411,7 +6801,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "update-settings",
 			Short: "Update Manager Settings",
-			Long: "Request body (JSON) fields: automatedThreatInvestigations (boolean), blockedActionTypes (array), dailyUpdatesEnabled (boolean), expectedUpdatedAt (string), groundRules (string), weeklyUpdatesEnabled (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: appSecTeamId (string), automatedThreatInvestigations (boolean), blockedActionTypes (array), dailyUpdatesEnabled (boolean), expectedUpdatedAt (string), groundRules (string), primaryContactUserId (string), reason (string), weeklyUpdatesEnabled (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
 				if err != nil {
@@ -7430,913 +7820,6 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
-			Use:   "create-operator-external-writes-initialize",
-			Short: "Initialize External Write Defaults",
-			Long: "Request body (JSON) fields: dryRun (boolean), reason (string, required), tenantId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorExternalWritesInitializeInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.CreateAdminOperatorExternalWritesInitialize(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/external-writes/initialize")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-operator-github-tenant-route",
-			Short: "Preview, write or inspect a GitHub tenant route born paused",
-			Long: "Request body (JSON) fields: deploymentId (string), dryRun (boolean), expectedBaseDomain (string), expectedRegion (string), expectedStackOwnerIds (array), githubOwnerId (integer), inspect (boolean), installationId (integer), operationId (string), prepareBeforeInstallation (boolean), reason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorGithubTenantRouteInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				out, err := client.CreateAdminOperatorGithubTenantRoute(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/github-tenant/route")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-operator-native-tenant-route",
-			Short: "Preview or write a native Azure workspace route",
-			Long: "Request body (JSON) fields: administrators (array), baseDomain (string), deploymentId (string), directoryId (string), dryRun (boolean), expectedState (string), inspect (boolean), operationId (string), operator (string), reason (string), region (string), stage (string), tenantId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorNativeTenantRouteInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				out, err := client.CreateAdminOperatorNativeTenantRoute(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/native-tenant/route")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-package-feeds",
-			Short: "Read Staff Package Feeds",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.ListAdminOperatorPackageFeedsInput{}
-				if v, _ := cmd.Flags().GetString("connection-id"); v != "" {
-					x := string(v)
-					in.ConnectionID = &x
-				}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.ListAdminOperatorPackageFeeds(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "GET /admin/operator/package-feeds")
-		cmd.Flags().String("connection-id", "", "Optional connection id to read")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-package-feeds",
-			Short: "Control Staff Package Feed",
-			Long: "Request body (JSON) fields: connectionId (string), displayName (string), expectedRevision (integer), fields (object), operation (string, required), providerId (string), reason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorPackageFeedsInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.CreateAdminOperatorPackageFeeds(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/package-feeds")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-scan-entitlement",
-			Short: "Read Staff Scan Entitlement",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.ListAdminOperatorScanEntitlementInput{}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.ListAdminOperatorScanEntitlement(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "GET /admin/operator/scan-entitlement")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "update-scan-entitlement",
-			Short: "Replace Staff Scan Entitlement",
-			Long: "Request body (JSON) fields: codeRepositoryCap (integer), expectedUpdatedAt (string), reason (string, required), scopingEnabled (boolean), secretsMode (string), secretsRepositoryCap (integer), staffRepositoryAllowlist (boolean), tenantId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.UpdateAdminOperatorScanEntitlementInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.UpdateAdminOperatorScanEntitlement(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "PUT /admin/operator/scan-entitlement")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-operator-scan-scope-repositories",
-			Short: "Read Staff Repository Scan Scopes",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.ListAdminOperatorScanScopeRepositoriesInput{}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.ListAdminOperatorScanScopeRepositories(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "GET /admin/operator/scan-scope/repositories")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "update-repositories",
-			Short: "Set Staff Repository Scan Limits",
-			Long: "Request body (JSON) fields: reason (string, required), repositories (array, required), tenantId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.UpdateAdminOperatorScanScopeRepositoriesInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.UpdateAdminOperatorScanScopeRepositories(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "PUT /admin/operator/scan-scope/repositories")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-operator-tenant-capabilities",
-			Short: "Read Staff Tenant Capabilities",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.ListAdminOperatorTenantCapabilitiesInput{}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.ListAdminOperatorTenantCapabilities(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "GET /admin/operator/tenant-capabilities")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "update-operator-tenant-capabilities",
-			Short: "Force Tenant Capability",
-			Long: "Request body (JSON) fields: capability (string, required), expectedStaffUpdatedAt (string), lockReason (string), reason (string, required), repository (string), seedCustomerEnabled (boolean), seedRepositoryDisabled (boolean), seedStaffIfAbsent (boolean), staffState (string, required), tenantId (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.UpdateAdminOperatorTenantCapabilitiesInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
-					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
-						return fmt.Errorf("githubInstallationId"+": %w", err)
-					} else {
-						x := n
-						in.GithubInstallationID = &x
-					}
-				}
-				out, err := client.UpdateAdminOperatorTenantCapabilities(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "PUT /admin/operator/tenant-capabilities")
-		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-approve",
-			Short: "Approve an exact provisioning request",
-			Long: "Request body (JSON) fields: action (string), confirm (boolean), deploymentId (string), expectedOperationRevision (integer), expectedRevision (integer), reason (string), requestId (string), setupKind (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorWorkspaceBootstrapApproveInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				out, err := client.CreateAdminOperatorWorkspaceBootstrapApprove(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/workspace-bootstrap/approve")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-invitation",
-			Short: "Preview or issue a workspace bootstrap invitation",
-			Long: "Request body (JSON) fields: deploymentId (string), dryRun (boolean), expectedDirectoryId (string), expectedState (string), reason (string), recipient (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorWorkspaceBootstrapInvitationInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				out, err := client.CreateAdminOperatorWorkspaceBootstrapInvitation(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/workspace-bootstrap/invitation")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-operation",
-			Short: "Inspect a durable workspace claim",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.ListAdminOperatorWorkspaceBootstrapOperationInput{}
-				if v, _ := cmd.Flags().GetString("operation-id"); v != "" {
-					x := string(v)
-					in.OperationID = &x
-				}
-				out, err := client.ListAdminOperatorWorkspaceBootstrapOperation(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "GET /admin/operator/workspace-bootstrap/operation")
-		cmd.Flags().String("operation-id", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-renew",
-			Short: "Preview or renew an organization-pinned workspace invitation",
-			Long: "Request body (JSON) fields: dryRun (boolean), expectedRevision (integer), expectedState (string), operationId (string), reason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorWorkspaceBootstrapRenewInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				out, err := client.CreateAdminOperatorWorkspaceBootstrapRenew(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/workspace-bootstrap/renew")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "list-requests",
-			Short: "List provisioning requests",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.ListAdminOperatorWorkspaceBootstrapRequestsInput{}
-				if v, _ := cmd.Flags().GetString("before-request-id"); v != "" {
-					x := string(v)
-					in.BeforeRequestID = &x
-				}
-				out, err := client.ListAdminOperatorWorkspaceBootstrapRequests(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "GET /admin/operator/workspace-bootstrap/requests")
-		cmd.Flags().String("before-request-id", "", "")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
-			Use:   "create-revoke",
-			Short: "Preview or revoke a workspace claim without stage receipts",
-			Long: "Request body (JSON) fields: dryRun (boolean), expectedRevision (integer), expectedState (string), operationId (string), reason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				client, err := getClient(cmd.Context())
-				if err != nil {
-					cmd.SilenceUsage = true
-					return err
-				}
-				in := api.CreateAdminOperatorWorkspaceBootstrapRevokeInput{}
-				dataFlag, _ := cmd.Flags().GetString("data")
-				dataFile, _ := cmd.Flags().GetString("data-file")
-				switch {
-				case dataFlag != "":
-					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data: %w", err)
-					}
-				case dataFile == "-":
-					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-						return fmt.Errorf("decode --data-file stdin: %w", err)
-					}
-				case dataFile != "":
-					f, err := os.Open(dataFile)
-					if err != nil {
-						return fmt.Errorf("open --data-file: %w", err)
-					}
-					dec := json.NewDecoder(f)
-					decErr := dec.Decode(&in)
-					f.Close()
-					if decErr != nil {
-						return fmt.Errorf("decode --data-file: %w", decErr)
-					}
-				default:
-					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
-						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
-							return fmt.Errorf("decode body from stdin: %w", err)
-						}
-					}
-				}
-				out, err := client.CreateAdminOperatorWorkspaceBootstrapRevoke(cmd.Context(), in)
-				if err != nil {
-					return err
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				return output.Print(cmd, data)
-			},
-		}
-		preserveRuntimeUsage(cmd)
-		setRoute(cmd, "POST /admin/operator/workspace-bootstrap/revoke")
-		cmd.Flags().String("data", "", "Request body as a raw JSON string")
-		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
-		serviceCmd.AddCommand(cmd)
-	}
-
-	{
-		cmd := &cobra.Command{
 			Use:   "list-organization",
 			Short: "Get Organization",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -8416,7 +7899,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "update-pr-gate-settings",
 			Short: "Put PR Gate Settings",
-			Long: "Request body (JSON) fields: allowApprovingReviews (boolean), allowRequestChangesReviews (boolean), cvssEnforcement (boolean), enabled (boolean, required), expectedPrScansEnabled (boolean), expectedPushScansEnabled (boolean), failOnIncompleteCoverage (boolean), findingsPolicy (object), minPriority (object, required), mode (string), prReviewsEnabled (boolean), prScansEnabled (boolean), pushScansEnabled (boolean), scaBlockCvssThreshold (number).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: allowApprovingReviews (boolean), allowRequestChangesReviews (boolean), cvssEnforcement (boolean), dependencyExclusions (array), enabled (boolean, required), expectedPrScansEnabled (boolean), expectedPushScansEnabled (boolean), failOnIncompleteCoverage (boolean), findingsPolicy (object), minPriority (object, required), mode (string), prReviewsEnabled (boolean), prScansEnabled (boolean), pushScansEnabled (boolean), scaBlockCvssThreshold (number), secretsEnforcement (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
 				if err != nil {
@@ -9186,6 +8669,59 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "get-events <kind> <id>",
+			Short: "Get Run History",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListAdminRunsKindIdEventsInput{}
+				in.Kind = args[0]
+				in.ID = args[1]
+				if v, _ := cmd.Flags().GetString("after"); v != "" {
+					x := string(v)
+					in.After = &x
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("limit"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("limit"+": %w", err)
+					} else {
+						x := int(n)
+						in.Limit = &x
+					}
+				}
+				out, err := client.ListAdminRunsKindIdEvents(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /admin/runs/{kind}/{id}/events")
+		cmd.Flags().String("after", "", "Read the rows after this row id; empty reads from the first row")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("limit", "", "Rows to read, default 500, at most 1000")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-scan-scope",
 			Short: "Get Scan Scope",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -9290,6 +8826,270 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "list-native",
+			Short: "Export Native Finding Evidence",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListAdminScannersNativeInput{}
+				if v, _ := cmd.Flags().GetString("after"); v != "" {
+					x := string(v)
+					in.After = &x
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListAdminScannersNative(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /admin/scanners/native")
+		cmd.Flags().String("after", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-scanners-findings <provider>",
+			Short: "Compare Scanner Findings",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListAdminScannersProviderFindingsInput{}
+				in.Provider = args[0]
+				if v, _ := cmd.Flags().GetString("after"); v != "" {
+					x := string(v)
+					in.After = &x
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListAdminScannersProviderFindings(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /admin/scanners/{provider}/findings")
+		cmd.Flags().String("after", "", "")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-raw <provider> <id>",
+			Short: "Read Scanner Evidence",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListAdminScannersProviderFindingsIdRawInput{}
+				in.Provider = args[0]
+				in.ID = args[1]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListAdminScannersProviderFindingsIdRaw(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /admin/scanners/{provider}/findings/{id}/raw")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "update-review <provider> <id>",
+			Short: "Review Detection Gap",
+			Long: "Request body (JSON) fields: evidenceDigest (string), note (string), review (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.UpdateAdminScannersProviderFindingsIdReviewInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				in.Provider = args[0]
+				in.ID = args[1]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.UpdateAdminScannersProviderFindingsIdReview(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "PUT /admin/scanners/{provider}/findings/{id}/review")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-sync-by-id <provider>",
+			Short: "Import Scanner Findings",
+			Long: "Request body (JSON) fields: runId (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateAdminScannersProviderSyncInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				in.Provider = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateAdminScannersProviderSync(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /admin/scanners/{provider}/sync")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-orchestrator",
 			Short: "List Orchestrator Scans",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -9358,7 +9158,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "Max scans per page (default 100, max 100)")
 		cmd.Flags().String("offset", "", "Pagination offset (default 0)")
-		cmd.Flags().String("scan-type", "", "Scan types to include (sast, sca_dependencies, sca_containers, secrets); default all")
+		cmd.Flags().String("scan-type", "", "Scan types to include (sast, sca_dependencies, sca_containers, secrets, scpm); default all")
 		cmd.Flags().String("status", "", "Scan run statuses to include (running_scan, running_results, completed, skipped, scan_failed, results_failed, stuck_failed); default all")
 		cmd.Flags().String("to", "", "Only include scans started at or before this RFC3339 timestamp")
 		serviceCmd.AddCommand(cmd)
@@ -10387,6 +10187,11 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 						in.GithubInstallationID = &x
 					}
 				}
+				if v, _ := cmd.Flags().GetString("ids"); v != "" {
+					for _, s := range strings.Split(v, ",") {
+						in.Ids = append(in.Ids, string(s))
+					}
+				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
 						return fmt.Errorf("limit"+": %w", err)
@@ -10433,6 +10238,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "GET /admin/teams")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("ids", "", "Return exactly these teams (at most 100), soft-disabled ones included, paged like any other list. Each team carries its own fields only: no members, code ownerships or ground rules. Cannot be combined with search or repositoryId.")
 		cmd.Flags().String("limit", "", "Maximum number of teams to return per page")
 		cmd.Flags().String("next-token", "", "Pagination token for the next page of results")
 		cmd.Flags().String("offset", "", "Pagination offset; overrides nextToken when set")
@@ -10446,7 +10252,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "create-teams",
 			Short: "Post Team",
-			Long: "Request body (JSON) fields: codeOwnerships (array), github (object), gitlab (object), groundRules (array), jira (object), leadId (string), memberIds (array), messageChannelProvider (object, required), name (string, required), privacy (object, required), slug (string, required), ticketProjectProvider (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: codeOwnerships (array), github (object), gitlab (object), groundRules (array), jira (object), leadId (string), memberIds (array), messageChannelProvider (object, required), name (string, required), privacy (object, required), slug (string, required), ticketBoardId (string), ticketProjectProvider (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
 				if err != nil {
@@ -10964,7 +10770,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "patch-teams <teamID>",
 			Short: "Patch Team",
-			Long: "Request body (JSON) fields: addMemberIds (array), clearLead (boolean), codeOwnerships (array), github (object), gitlab (object), groundRules (array), jira (object), leadId (string), memberIds (array), messageChannelProvider (object), name (string), privacy (object), removeMemberIds (array), slug (string), ticketBoardId (string), ticketProjectProvider (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: actor (string), addMemberIds (array), clearLead (boolean), codeOwnerships (array), github (object), gitlab (object), groundRules (array), jira (object), leadId (string), memberIds (array), messageChannelProvider (object), name (string), privacy (object), removeMemberIds (array), slug (string), ticketBoardId (string), ticketProjectProvider (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
@@ -13363,7 +13169,7 @@ func RegisterAdminCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "update-mapping <userId>",
 			Short: "Edit User Mapping",
-			Long: "Request body (JSON) fields: azure (object), bitbucket (object), clearSlack (boolean), clearTeams (boolean), github (object), gitlab (object), jira (object), linear (object), slack (object), teams (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: actor (string), azure (object), bitbucket (object), clearSlack (boolean), clearTeams (boolean), github (object), gitlab (object), jira (object), linear (object), slack (object), teams (object).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())

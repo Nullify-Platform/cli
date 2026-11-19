@@ -136,6 +136,74 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-containers-findings-allowlist",
+			Short: "Allowlist Batch of Container Findings",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (string, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateScaContainersFindingsAllowlistInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateScaContainersFindingsAllowlist(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sca/containers/findings/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "list-containers-findings-detailed",
 			Short: "Get SCA Container Findings [DEPRECATED - TO BE REMOVED BY 2025]",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -343,6 +411,74 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd.Flags().String("sort", "", "")
 		cmd.Flags().String("sort-by", "", "")
 		cmd.Flags().String("workflow", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-containers-findings-unallowlist",
+			Short: "Unallowlist Batch of Container Findings",
+			Long: "Request body (JSON) fields: findingIds (array, required), unallowlistReason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateScaContainersFindingsUnallowlistInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateScaContainersFindingsUnallowlist(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sca/containers/findings/unallowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -882,6 +1018,26 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListScaContainersFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("cve-limit"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("cveLimit"+": %w", err)
+					} else {
+						x := int(n)
+						in.CveLimit = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("cve-offset"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("cveOffset"+": %w", err)
+					} else {
+						x := int(n)
+						in.CveOffset = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("cve-snapshot"); v != "" {
+					x := string(v)
+					in.CveSnapshot = &x
+				}
 				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
 					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
 						return fmt.Errorf("githubInstallationId"+": %w", err)
@@ -889,6 +1045,18 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 						x := n
 						in.GithubInstallationID = &x
 					}
+				}
+				if v, _ := cmd.Flags().GetString("triage-offset"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("triageOffset"+": %w", err)
+					} else {
+						x := int(n)
+						in.TriageOffset = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("triage-snapshot"); v != "" {
+					x := string(v)
+					in.TriageSnapshot = &x
 				}
 				out, err := client.ListScaContainersFindingsFindingIdTriage(cmd.Context(), in)
 				if err != nil {
@@ -903,7 +1071,12 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		}
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "GET /sca/containers/findings/{findingId}/triage")
+		cmd.Flags().String("cve-limit", "", "")
+		cmd.Flags().String("cve-offset", "", "")
+		cmd.Flags().String("cve-snapshot", "", "")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("triage-offset", "", "")
+		cmd.Flags().String("triage-snapshot", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1001,7 +1174,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "create-containers-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Container Finding",
-			Long: "Request body (JSON) fields: unallowlistReason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: unallowlistReason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
@@ -1209,6 +1382,74 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd.Flags().String("sort", "", "")
 		cmd.Flags().String("sort-by", "", "")
 		cmd.Flags().String("workflow", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-dependencies-findings-allowlist",
+			Short: "Allowlist Batch of Dependency Findings",
+			Long: "Request body (JSON) fields: allowlistReason (string, required), allowlistType (string, required), findingIds (array, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateScaDependenciesFindingsAllowlistInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateScaDependenciesFindingsAllowlist(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sca/dependencies/findings/allowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1431,6 +1672,74 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd.Flags().String("sort", "", "")
 		cmd.Flags().String("sort-by", "", "")
 		cmd.Flags().String("workflow", "", "")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-dependencies-findings-unallowlist",
+			Short: "Unallowlist Batch of Dependency Findings",
+			Long: "Request body (JSON) fields: findingIds (array, required), unallowlistReason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateScaDependenciesFindingsUnallowlistInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateScaDependenciesFindingsUnallowlist(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /sca/dependencies/findings/unallowlist")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -1681,6 +1990,14 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 						in.GithubInstallationID = &x
 					}
 				}
+				if v, _ := cmd.Flags().GetString("pull-request-number"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("pullRequestNumber"+": %w", err)
+					} else {
+						x := int(n)
+						in.PullRequestNumber = &x
+					}
+				}
 				out, err := client.ListScaDependenciesFindingsFindingIdAutofixCacheDiff(cmd.Context(), in)
 				if err != nil {
 					return err
@@ -1695,6 +2012,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "GET /sca/dependencies/findings/{findingId}/autofix/cache/diff")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("pull-request-number", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2008,6 +2326,26 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 				}
 				in := api.ListScaDependenciesFindingsFindingIdTriageInput{}
 				in.FindingID = args[0]
+				if v, _ := cmd.Flags().GetString("cve-limit"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("cveLimit"+": %w", err)
+					} else {
+						x := int(n)
+						in.CveLimit = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("cve-offset"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("cveOffset"+": %w", err)
+					} else {
+						x := int(n)
+						in.CveOffset = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("cve-snapshot"); v != "" {
+					x := string(v)
+					in.CveSnapshot = &x
+				}
 				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
 					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
 						return fmt.Errorf("githubInstallationId"+": %w", err)
@@ -2015,6 +2353,18 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 						x := n
 						in.GithubInstallationID = &x
 					}
+				}
+				if v, _ := cmd.Flags().GetString("triage-offset"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("triageOffset"+": %w", err)
+					} else {
+						x := int(n)
+						in.TriageOffset = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("triage-snapshot"); v != "" {
+					x := string(v)
+					in.TriageSnapshot = &x
 				}
 				out, err := client.ListScaDependenciesFindingsFindingIdTriage(cmd.Context(), in)
 				if err != nil {
@@ -2029,7 +2379,12 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		}
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "GET /sca/dependencies/findings/{findingId}/triage")
+		cmd.Flags().String("cve-limit", "", "")
+		cmd.Flags().String("cve-offset", "", "")
+		cmd.Flags().String("cve-snapshot", "", "")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("triage-offset", "", "")
+		cmd.Flags().String("triage-snapshot", "", "")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -2127,7 +2482,7 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd := &cobra.Command{
 			Use:   "create-dependencies-findings-unallowlist-by-id <findingId>",
 			Short: "Unallowlist Dependency Finding",
-			Long: "Request body (JSON) fields: unallowlistReason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: unallowlistReason (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
@@ -2602,6 +2957,10 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 						in.GithubInstallationID = &x
 					}
 				}
+				if v, _ := cmd.Flags().GetString("internet-reachable-only"); v != "" {
+					b := v == "true"
+					in.InternetReachableOnly = &b
+				}
 				if v, _ := cmd.Flags().GetString("kev-only"); v != "" {
 					b := v == "true"
 					in.KevOnly = &b
@@ -2612,6 +2971,14 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 					} else {
 						x := int(n)
 						in.Limit = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("min-epss"); v != "" {
+					if n, err := strconv.ParseFloat(v, 64); err != nil {
+						return fmt.Errorf("minEpss"+": %w", err)
+					} else {
+						x := n
+						in.MinEpss = &x
 					}
 				}
 				if v, _ := cmd.Flags().GetString("offset"); v != "" {
@@ -2629,6 +2996,14 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 				if v, _ := cmd.Flags().GetString("package"); v != "" {
 					x := string(v)
 					in.Package = &x
+				}
+				if v, _ := cmd.Flags().GetString("repository-id"); v != "" {
+					x := string(v)
+					in.RepositoryID = &x
+				}
+				if v, _ := cmd.Flags().GetString("severity"); v != "" {
+					x := string(v)
+					in.Severity = &x
 				}
 				if v, _ := cmd.Flags().GetString("sort-by"); v != "" {
 					x := string(v)
@@ -2648,11 +3023,15 @@ func RegisterScaCommands(parent *cobra.Command, getClient ClientFactory) {
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "GET /sca/vulnerabilities")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("internet-reachable-only", "", "Only CVEs with at least one open finding whose triage evidence shows a path from the internet. A CVE without that evidence is excluded, but it is not shown to be unreachable")
 		cmd.Flags().String("kev-only", "", "KEV as recorded at each finding's last Review (snapshot)")
 		cmd.Flags().String("limit", "", "")
+		cmd.Flags().String("min-epss", "", "Minimum recorded EPSS, inclusive; excludes CVEs without a recorded score")
 		cmd.Flags().String("offset", "", "")
 		cmd.Flags().String("open-only", "", "only CVEs with >=1 unresolved finding (default true)")
 		cmd.Flags().String("package", "", "only CVEs carried by a finding of this package or container artifact (exact name, case-insensitive)")
+		cmd.Flags().String("repository-id", "", "Comma-separated repository IDs within the caller scope (up to 50)")
+		cmd.Flags().String("severity", "", "Comma-separated highest advisory severities: CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN")
 		cmd.Flags().String("sort-by", "", "severity|repositories|findings|epss|cvss|firstSeen (default repositories)")
 		serviceCmd.AddCommand(cmd)
 	}

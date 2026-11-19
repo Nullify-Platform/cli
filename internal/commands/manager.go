@@ -128,7 +128,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient ClientFactory) {
 		cmd.Flags().String("state", "", "snoozed lists items snoozed until a later date; active lists the rest; waiting lists the active items that are not blocked behind another item")
 		cmd.Flags().String("status", "", "")
 		cmd.Flags().String("team-id", "", "")
-		cmd.Flags().String("unassigned-only", "", "if true, only items with team_id IS NULL (central security)")
+		cmd.Flags().String("unassigned-only", "", "if true, only items no team owns: the tenant has not named an AppSec team")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -634,9 +634,117 @@ func RegisterManagerCommands(parent *cobra.Command, getClient ClientFactory) {
 
 	{
 		cmd := &cobra.Command{
+			Use:   "create-edit-by-id <actionItemId>",
+			Short: "Edit Action Item",
+			Long: "Request body (JSON) fields: addFindings (array), addLinks (array), clearTeam (boolean), deliveryMode (string), detailedQuestion (string), expiry (object), removeFindings (array), removeLinks (array), revision (string, required), teamId (string), title (string).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateManagerActionItemsActionItemIdEditInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				in.ActionItemID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateManagerActionItemsActionItemIdEdit(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /manager/action-items/{actionItemId}/edit")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-links <actionItemId>",
+			Short: "Get Action Item Links",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListManagerActionItemsActionItemIdLinksInput{}
+				in.ActionItemID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListManagerActionItemsActionItemIdLinks(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /manager/action-items/{actionItemId}/links")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
 			Use:   "create-map-user-by-id <actionItemId>",
 			Short: "Map User For Action Item",
-			Long: "Request body (JSON) fields: messageUserId (string), serviceAccount (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: confirmToken (string), messageUserId (string), serviceAccount (boolean).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
@@ -1289,6 +1397,10 @@ func RegisterManagerCommands(parent *cobra.Command, getClient ClientFactory) {
 						in.Limit = &x
 					}
 				}
+				if v, _ := cmd.Flags().GetString("mapped-findings-only"); v != "" {
+					b := v == "true"
+					in.MappedFindingsOnly = &b
+				}
 				if v, _ := cmd.Flags().GetString("offset"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
 						return fmt.Errorf("offset"+": %w", err)
@@ -1328,6 +1440,7 @@ func RegisterManagerCommands(parent *cobra.Command, getClient ClientFactory) {
 		setRoute(cmd, "GET /manager/campaigns/previews")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
 		cmd.Flags().String("limit", "", "Maximum number of campaign previews to return; overrides pageSize when set")
+		cmd.Flags().String("mapped-findings-only", "", "Return finding previews only for campaigns on this page")
 		cmd.Flags().String("offset", "", "Number of campaign previews to skip; overrides page when set")
 		cmd.Flags().String("page", "", "")
 		cmd.Flags().String("page-size", "", "")

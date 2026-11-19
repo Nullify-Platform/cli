@@ -624,6 +624,54 @@ func (c *Client) ListScpmFindingsPreview(ctx context.Context, in ListScpmFinding
 	return &out, nil
 }
 
+// CreateScpmFindingsUnallowlistInput is the input for CreateScpmFindingsUnallowlist — Unallowlist Batch of SCPM Findings.
+type CreateScpmFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateScpmFindingsUnallowlist - Unallowlist Batch of SCPM Findings
+// POST /scpm/findings/unallowlist
+func (c *Client) CreateScpmFindingsUnallowlist(ctx context.Context, in CreateScpmFindingsUnallowlistInput) (*models.EndpointsPostUnallowListSCPMFindingBatchOutput, error) {
+	path := "/scpm/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListSCPMFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateScpmFindingsUploadInput is the input for CreateScpmFindingsUpload — Get Presigned URL to Upload SCPM Findings.
 type CreateScpmFindingsUploadInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -1208,7 +1256,7 @@ func (c *Client) ListScpmFindingsFindingIdTriage(ctx context.Context, in ListScp
 type CreateScpmFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	models.RequestScope
 }
 
@@ -1236,7 +1284,7 @@ func (c *Client) CreateScpmFindingsFindingIdUnallowlist(ctx context.Context, in 
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 	})

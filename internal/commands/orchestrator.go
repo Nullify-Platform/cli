@@ -138,7 +138,7 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient ClientFactory
 		cmd := &cobra.Command{
 			Use:   "create-iterate-pr",
 			Short: "Iterate Autofix PR",
-			Long: "Request body (JSON) fields: ownerProvider (object, required), pullRequest (object, required), reason (string), repository (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Long: "Request body (JSON) fields: ownerProvider (object, required), pullRequest (object, required), reason (string), repairInstructions (string), repository (object, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				client, err := getClient(cmd.Context())
 				if err != nil {
@@ -352,6 +352,14 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient ClientFactory
 					b := v == "true"
 					in.Blocked = &b
 				}
+				if v, _ := cmd.Flags().GetString("branch"); v != "" {
+					x := string(v)
+					in.Branch = &x
+				}
+				if v, _ := cmd.Flags().GetString("commit-sha"); v != "" {
+					x := string(v)
+					in.CommitSha = &x
+				}
 				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
 					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
 						return fmt.Errorf("githubInstallationId"+": %w", err)
@@ -359,6 +367,14 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient ClientFactory
 						x := n
 						in.GithubInstallationID = &x
 					}
+				}
+				if v, _ := cmd.Flags().GetString("include-skipped"); v != "" {
+					b := v == "true"
+					in.IncludeSkipped = &b
+				}
+				if v, _ := cmd.Flags().GetString("include-unverified"); v != "" {
+					b := v == "true"
+					in.IncludeUnverified = &b
 				}
 				if v, _ := cmd.Flags().GetString("limit"); v != "" {
 					if n, err := strconv.Atoi(v); err != nil {
@@ -380,9 +396,33 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient ClientFactory
 						in.Offset = &x
 					}
 				}
+				if v, _ := cmd.Flags().GetString("pull-request-number"); v != "" {
+					if n, err := strconv.Atoi(v); err != nil {
+						return fmt.Errorf("pullRequestNumber"+": %w", err)
+					} else {
+						x := int(n)
+						in.PullRequestNumber = &x
+					}
+				}
+				if v, _ := cmd.Flags().GetString("repository-id"); v != "" {
+					x := string(v)
+					in.RepositoryID = &x
+				}
+				if v, _ := cmd.Flags().GetString("search"); v != "" {
+					x := string(v)
+					in.Search = &x
+				}
 				if v, _ := cmd.Flags().GetString("since"); v != "" {
 					x := string(v)
 					in.Since = &x
+				}
+				if v, _ := cmd.Flags().GetString("status"); v != "" {
+					x := string(v)
+					in.Status = &x
+				}
+				if v, _ := cmd.Flags().GetString("until"); v != "" {
+					x := string(v)
+					in.Until = &x
 				}
 				out, err := client.ListOrchestratorCodereviews(cmd.Context(), in)
 				if err != nil {
@@ -397,12 +437,21 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient ClientFactory
 		}
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "GET /orchestrator/codereviews")
-		cmd.Flags().String("blocked", "", "Only pull requests whose latest run failed the Nullify check (findings or a blocking incomplete scan) and was not overridden")
+		cmd.Flags().String("blocked", "", "Latest pull request assessments with recorded check or review blockers")
+		cmd.Flags().String("branch", "", "")
+		cmd.Flags().String("commit-sha", "", "")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("include-skipped", "", "Include skipped runs, such as duplicate events, busy branches and changes outside the scan scope; a status=skipped filter includes them too")
+		cmd.Flags().String("include-unverified", "", "Include pull requests whose formal review state is not recorded; applies with blocked=true")
 		cmd.Flags().String("limit", "", "Maximum number of code reviews to return per page")
 		cmd.Flags().String("next-token", "", "Pagination token for the next page of results")
 		cmd.Flags().String("offset", "", "Pagination offset; overrides nextToken when set")
-		cmd.Flags().String("since", "", "RFC 3339 lower bound on a blocked run's start time; defaults to 14 days ago. Only applies with blocked=true")
+		cmd.Flags().String("pull-request-number", "", "")
+		cmd.Flags().String("repository-id", "", "")
+		cmd.Flags().String("search", "", "")
+		cmd.Flags().String("since", "", "RFC 3339 lower bound on run start time; blocked views default to 14 days ago")
+		cmd.Flags().String("status", "", "")
+		cmd.Flags().String("until", "", "RFC 3339 upper bound on run start time")
 		serviceCmd.AddCommand(cmd)
 	}
 
@@ -441,6 +490,114 @@ func RegisterOrchestratorCommands(parent *cobra.Command, getClient ClientFactory
 		preserveRuntimeUsage(cmd)
 		setRoute(cmd, "GET /orchestrator/codereviews/{id}")
 		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "get-controls <id>",
+			Short: "Get current code review controls",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.ListOrchestratorCodereviewsIdControlsInput{}
+				in.ID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.ListOrchestratorCodereviewsIdControls(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "GET /orchestrator/codereviews/{id}/controls")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		serviceCmd.AddCommand(cmd)
+	}
+
+	{
+		cmd := &cobra.Command{
+			Use:   "create-override-by-id <id>",
+			Short: "Withdraw Nullify change requests",
+			Long: "Request body (JSON) fields: reason (string, required).\n\nProvide the body with --data '<json>', --data-file <path> (- for stdin), or piped stdin.",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				client, err := getClient(cmd.Context())
+				if err != nil {
+					cmd.SilenceUsage = true
+					return err
+				}
+				in := api.CreateOrchestratorCodereviewsIdOverrideInput{}
+				dataFlag, _ := cmd.Flags().GetString("data")
+				dataFile, _ := cmd.Flags().GetString("data-file")
+				switch {
+				case dataFlag != "":
+					if err := json.NewDecoder(strings.NewReader(dataFlag)).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data: %w", err)
+					}
+				case dataFile == "-":
+					if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+						return fmt.Errorf("decode --data-file stdin: %w", err)
+					}
+				case dataFile != "":
+					f, err := os.Open(dataFile)
+					if err != nil {
+						return fmt.Errorf("open --data-file: %w", err)
+					}
+					dec := json.NewDecoder(f)
+					decErr := dec.Decode(&in)
+					f.Close()
+					if decErr != nil {
+						return fmt.Errorf("decode --data-file: %w", decErr)
+					}
+				default:
+					if stat, _ := os.Stdin.Stat(); (stat.Mode() & os.ModeCharDevice) == 0 {
+						if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
+							return fmt.Errorf("decode body from stdin: %w", err)
+						}
+					}
+				}
+				in.ID = args[0]
+				if v, _ := cmd.Flags().GetString("github-installation-id"); v != "" {
+					if n, err := strconv.ParseInt(v, 10, 64); err != nil {
+						return fmt.Errorf("githubInstallationId"+": %w", err)
+					} else {
+						x := n
+						in.GithubInstallationID = &x
+					}
+				}
+				out, err := client.CreateOrchestratorCodereviewsIdOverride(cmd.Context(), in)
+				if err != nil {
+					return err
+				}
+				data, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				return output.Print(cmd, data)
+			},
+		}
+		preserveRuntimeUsage(cmd)
+		setRoute(cmd, "POST /orchestrator/codereviews/{id}/override")
+		cmd.Flags().String("github-installation-id", "", "Operator routes only: the GitHub App installation ID to use alongside githubOwnerId when the tenant's stored record has none. Ignored on customer routes.")
+		cmd.Flags().String("data", "", "Request body as a raw JSON string")
+		cmd.Flags().String("data-file", "", "Read request body JSON from a file (- for stdin)")
 		serviceCmd.AddCommand(cmd)
 	}
 

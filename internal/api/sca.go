@@ -109,6 +109,57 @@ func (c *Client) ListScaContainersFindings(ctx context.Context, in ListScaContai
 	return &out, nil
 }
 
+// CreateScaContainersFindingsAllowlistInput is the input for CreateScaContainersFindingsAllowlist — Allowlist Batch of Container Findings.
+type CreateScaContainersFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateScaContainersFindingsAllowlist - Allowlist Batch of Container Findings
+// POST /sca/containers/findings/allowlist
+func (c *Client) CreateScaContainersFindingsAllowlist(ctx context.Context, in CreateScaContainersFindingsAllowlistInput) (*models.EndpointsPostAllowListSCAContainerFindingBatchOutput, error) {
+	path := "/sca/containers/findings/allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType string `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowListSCAContainerFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListScaContainersFindingsDetailedInput is the input for ListScaContainersFindingsDetailed — Get SCA Container Findings [DEPRECATED - TO BE REMOVED BY 2025].
 type ListScaContainersFindingsDetailedInput struct {
 	Branch *string `url:"branch,omitempty" json:"-"`
@@ -279,6 +330,54 @@ func (c *Client) ListScaContainersFindingsPreview(ctx context.Context, in ListSc
 		return nil, err
 	}
 	var out models.EndpointsGetSCAContainerFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaContainersFindingsUnallowlistInput is the input for CreateScaContainersFindingsUnallowlist — Unallowlist Batch of Container Findings.
+type CreateScaContainersFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateScaContainersFindingsUnallowlist - Unallowlist Batch of Container Findings
+// POST /sca/containers/findings/unallowlist
+func (c *Client) CreateScaContainersFindingsUnallowlist(ctx context.Context, in CreateScaContainersFindingsUnallowlistInput) (*models.EndpointsPostUnallowListSCAContainerFindingBatchOutput, error) {
+	path := "/sca/containers/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListSCAContainerFindingBatchOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -766,7 +865,12 @@ func (c *Client) CreateScaContainersFindingsFindingIdTicket(ctx context.Context,
 // ListScaContainersFindingsFindingIdTriageInput is the input for ListScaContainersFindingsFindingIdTriage — Get Triaged Finding.
 type ListScaContainersFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	CveLimit *int `url:"cveLimit,omitempty" json:"-"`
+	CveOffset *int `url:"cveOffset,omitempty" json:"-"`
+	CveSnapshot *string `url:"cveSnapshot,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	TriageOffset *int `url:"triageOffset,omitempty" json:"-"`
+	TriageSnapshot *string `url:"triageSnapshot,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -782,6 +886,21 @@ func (c *Client) ListScaContainersFindingsFindingIdTriage(ctx context.Context, i
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.TriageOffset != nil {
+		query.Set("triageOffset", strconv.Itoa(int(*in.TriageOffset)))
+	}
+	if in.TriageSnapshot != nil {
+		query.Set("triageSnapshot", string(*in.TriageSnapshot))
+	}
+	if in.CveOffset != nil {
+		query.Set("cveOffset", strconv.Itoa(int(*in.CveOffset)))
+	}
+	if in.CveLimit != nil {
+		query.Set("cveLimit", strconv.Itoa(int(*in.CveLimit)))
+	}
+	if in.CveSnapshot != nil {
+		query.Set("cveSnapshot", string(*in.CveSnapshot))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -898,7 +1017,7 @@ func (c *Client) ListScaContainersFindingsFindingIdTriageStatus(ctx context.Cont
 type CreateScaContainersFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	models.RequestScope
 }
 
@@ -926,7 +1045,7 @@ func (c *Client) CreateScaContainersFindingsFindingIdUnallowlist(ctx context.Con
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 	})
@@ -1064,6 +1183,57 @@ func (c *Client) ListScaDependenciesFindings(ctx context.Context, in ListScaDepe
 		return nil, err
 	}
 	var out models.EndpointsGetSCADependencyFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaDependenciesFindingsAllowlistInput is the input for CreateScaDependenciesFindingsAllowlist — Allowlist Batch of Dependency Findings.
+type CreateScaDependenciesFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateScaDependenciesFindingsAllowlist - Allowlist Batch of Dependency Findings
+// POST /sca/dependencies/findings/allowlist
+func (c *Client) CreateScaDependenciesFindingsAllowlist(ctx context.Context, in CreateScaDependenciesFindingsAllowlistInput) (*models.EndpointsPostAllowListSCADependencyFindingBatchOutput, error) {
+	path := "/sca/dependencies/findings/allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType string `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowListSCADependencyFindingBatchOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -1248,6 +1418,54 @@ func (c *Client) ListScaDependenciesFindingsPreview(ctx context.Context, in List
 		return nil, err
 	}
 	var out models.EndpointsGetSCADependencyFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateScaDependenciesFindingsUnallowlistInput is the input for CreateScaDependenciesFindingsUnallowlist — Unallowlist Batch of Dependency Findings.
+type CreateScaDependenciesFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateScaDependenciesFindingsUnallowlist - Unallowlist Batch of Dependency Findings
+// POST /sca/dependencies/findings/unallowlist
+func (c *Client) CreateScaDependenciesFindingsUnallowlist(ctx context.Context, in CreateScaDependenciesFindingsUnallowlistInput) (*models.EndpointsPostUnallowListSCADependencyFindingBatchOutput, error) {
+	path := "/sca/dependencies/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListSCADependencyFindingBatchOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -1447,6 +1665,7 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixActivity(ctx context
 type ListScaDependenciesFindingsFindingIdAutofixCacheDiffInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	PullRequestNumber *int `url:"pullRequestNumber,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1462,6 +1681,9 @@ func (c *Client) ListScaDependenciesFindingsFindingIdAutofixCacheDiff(ctx contex
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.PullRequestNumber != nil {
+		query.Set("pullRequestNumber", strconv.Itoa(int(*in.PullRequestNumber)))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -1776,7 +1998,12 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdTicket(ctx context.Contex
 // ListScaDependenciesFindingsFindingIdTriageInput is the input for ListScaDependenciesFindingsFindingIdTriage — Get Triaged Finding.
 type ListScaDependenciesFindingsFindingIdTriageInput struct {
 	FindingID string `path:"findingId" json:"-"`
+	CveLimit *int `url:"cveLimit,omitempty" json:"-"`
+	CveOffset *int `url:"cveOffset,omitempty" json:"-"`
+	CveSnapshot *string `url:"cveSnapshot,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	TriageOffset *int `url:"triageOffset,omitempty" json:"-"`
+	TriageSnapshot *string `url:"triageSnapshot,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -1792,6 +2019,21 @@ func (c *Client) ListScaDependenciesFindingsFindingIdTriage(ctx context.Context,
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.TriageOffset != nil {
+		query.Set("triageOffset", strconv.Itoa(int(*in.TriageOffset)))
+	}
+	if in.TriageSnapshot != nil {
+		query.Set("triageSnapshot", string(*in.TriageSnapshot))
+	}
+	if in.CveOffset != nil {
+		query.Set("cveOffset", strconv.Itoa(int(*in.CveOffset)))
+	}
+	if in.CveLimit != nil {
+		query.Set("cveLimit", strconv.Itoa(int(*in.CveLimit)))
+	}
+	if in.CveSnapshot != nil {
+		query.Set("cveSnapshot", string(*in.CveSnapshot))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -1908,7 +2150,7 @@ func (c *Client) ListScaDependenciesFindingsFindingIdTriageStatus(ctx context.Co
 type CreateScaDependenciesFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	models.RequestScope
 }
 
@@ -1936,7 +2178,7 @@ func (c *Client) CreateScaDependenciesFindingsFindingIdUnallowlist(ctx context.C
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 	})
@@ -2299,11 +2541,15 @@ func (c *Client) GetScaThreatFeedThreatId(ctx context.Context, in GetScaThreatFe
 // ListScaVulnerabilitiesInput is the input for ListScaVulnerabilities — List CVE Exposure Across The Fleet.
 type ListScaVulnerabilitiesInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	InternetReachableOnly *bool `url:"internetReachableOnly,omitempty" json:"-"`
 	KevOnly *bool `url:"kevOnly,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
+	MinEpss *float64 `url:"minEpss,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	OpenOnly *bool `url:"openOnly,omitempty" json:"-"`
 	Package *string `url:"package,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Severity *string `url:"severity,omitempty" json:"-"`
 	SortBy *string `url:"sortBy,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -2316,6 +2562,15 @@ func (c *Client) ListScaVulnerabilities(ctx context.Context, in ListScaVulnerabi
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.Severity != nil {
+		query.Set("severity", string(*in.Severity))
+	}
+	if in.MinEpss != nil {
+		query.Set("minEpss", strconv.FormatFloat(*in.MinEpss, 'f', -1, 64))
+	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
@@ -2334,6 +2589,9 @@ func (c *Client) ListScaVulnerabilities(ctx context.Context, in ListScaVulnerabi
 	}
 	if in.Package != nil {
 		query.Set("package", string(*in.Package))
+	}
+	if in.InternetReachableOnly != nil {
+		query.Set("internetReachableOnly", strconv.FormatBool(*in.InternetReachableOnly))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))

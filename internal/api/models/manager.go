@@ -5,7 +5,10 @@ import "encoding/json"
 
 type ActionitemanswerAnswer struct {
 	Assignments []ActionitemanswerAssignment `json:"assignments,omitempty"`
+	Channel *string `json:"channel,omitempty"`
 	DurationDays *int `json:"durationDays,omitempty"`
+	LeadUserID *string `json:"leadUserId,omitempty"`
+	MemberUserIds []string `json:"memberUserIds,omitempty"`
 	OptionID *string `json:"optionId,omitempty"`
 	OptionIds []string `json:"optionIds,omitempty"`
 	Other *string `json:"other,omitempty"`
@@ -60,6 +63,7 @@ type ActionitemanswerSpec struct {
 	Options []ActionitemanswerOption `json:"options,omitempty"`
 	PickerKind *string `json:"pickerKind,omitempty"`
 	Placeholder *string `json:"placeholder,omitempty"`
+	RoutingFields []string `json:"routingFields,omitempty"`
 	Statement *string `json:"statement,omitempty"`
 	Suggested *string `json:"suggested,omitempty"`
 	Targets []ActionitemanswerTarget `json:"targets,omitempty"`
@@ -87,6 +91,7 @@ type EndpointsActionItem struct {
 	CreatedAt string `json:"createdAt"`
 	CreatedBy string `json:"createdBy"`
 	DedupKey string `json:"dedupKey"`
+	DeliveryMode *string `json:"deliveryMode,omitempty"`
 	DependsOnIds []string `json:"dependsOnIds,omitempty"`
 	DetailedQuestion string `json:"detailedQuestion"`
 	Disposition *string `json:"disposition,omitempty"`
@@ -110,15 +115,25 @@ type EndpointsActionItem struct {
 	ResolutionReason *string `json:"resolutionReason,omitempty"`
 	ResolvedByUserID *string `json:"resolvedByUserId,omitempty"`
 	Response *string `json:"response,omitempty"`
+	Revision *string `json:"revision,omitempty"`
 	Severity *string `json:"severity,omitempty"`
 	SnoozedUntil *string `json:"snoozedUntil,omitempty"`
 	State string `json:"state"`
 	Status ModelsActionItemStatus `json:"status"`
 	TeamID *string `json:"teamId,omitempty"`
+	TeamPinned *bool `json:"teamPinned,omitempty"`
 	TenantID string `json:"tenantId"`
 	Title string `json:"title"`
 	UpdatedAt string `json:"updatedAt"`
 	WaitingSince string `json:"waitingSince"`
+}
+
+type EndpointsActionItemExpiryEdit struct {
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	FollowUpDays *int `json:"followUpDays,omitempty"`
+	IfExpired *string `json:"ifExpired,omitempty"`
+	Mode string `json:"mode"`
+	Reason string `json:"reason"`
 }
 
 type EndpointsActionItemFinding struct {
@@ -127,12 +142,30 @@ type EndpointsActionItemFinding struct {
 	Title *string `json:"title,omitempty"`
 }
 
+type EndpointsActionItemFindingRef struct {
+	FindingID string `json:"findingId"`
+	FindingType ModelsActionItemLinkType `json:"findingType"`
+}
+
 type EndpointsActionItemGitUser struct {
 	AvatarURL *string `json:"avatarUrl,omitempty"`
 	Email *string `json:"email,omitempty"`
 	Login string `json:"login"`
 	Name *string `json:"name,omitempty"`
 	ProfileURL *string `json:"profileUrl,omitempty"`
+}
+
+type EndpointsActionItemLink struct {
+	CreatedAt string `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+	ID string `json:"id"`
+	TargetID string `json:"targetId"`
+	TargetType string `json:"targetType"`
+}
+
+type EndpointsActionItemLinkRef struct {
+	TargetID string `json:"targetId"`
+	TargetType string `json:"targetType"`
 }
 
 type EndpointsActionItemPullRequest struct {
@@ -196,6 +229,7 @@ type EndpointsCampaignRunDetail struct {
 	State string `json:"state"`
 	TenantID string `json:"tenantId"`
 	ToolEventCount *int32 `json:"toolEventCount,omitempty"`
+	TriggerRunID *string `json:"triggerRunId,omitempty"`
 }
 
 type EndpointsCampaignRunSummary struct {
@@ -210,6 +244,7 @@ type EndpointsCampaignRunSummary struct {
 	State string `json:"state"`
 	TenantID string `json:"tenantId"`
 	ToolEventCount *int32 `json:"toolEventCount,omitempty"`
+	TriggerRunID *string `json:"triggerRunId,omitempty"`
 }
 
 type EndpointsChatSessionAction struct {
@@ -261,6 +296,26 @@ type EndpointsDismissActionItemOutput struct {
 	Version string `json:"version"`
 }
 
+type EndpointsEditActionItemInput struct {
+	AddFindings []EndpointsActionItemFindingRef `json:"addFindings,omitempty"`
+	AddLinks []EndpointsActionItemLinkRef `json:"addLinks,omitempty"`
+	ClearTeam *bool `json:"clearTeam,omitempty"`
+	DeliveryMode *string `json:"deliveryMode,omitempty"`
+	DetailedQuestion *string `json:"detailedQuestion,omitempty"`
+	Expiry *EndpointsActionItemExpiryEdit `json:"expiry,omitempty"`
+	RemoveFindings []EndpointsActionItemFindingRef `json:"removeFindings,omitempty"`
+	RemoveLinks []EndpointsActionItemLinkRef `json:"removeLinks,omitempty"`
+	Revision string `json:"revision"`
+	TeamID *string `json:"teamId,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+type EndpointsEditActionItemOutput struct {
+	ActionItem EndpointsActionItem `json:"actionItem"`
+	Links []EndpointsActionItemLink `json:"links,omitempty"`
+	Version string `json:"version"`
+}
+
 type EndpointsEscalationRecipient struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
@@ -284,6 +339,11 @@ type EndpointsGenerateDefaultCampaignsOutput struct {
 	ExecutionArn *string `json:"executionArn,omitempty"`
 	Message string `json:"message"`
 	RunID *string `json:"runId,omitempty"`
+	Version string `json:"version"`
+}
+
+type EndpointsGetActionItemLinksOutput struct {
+	Links []EndpointsActionItemLink `json:"links,omitempty"`
 	Version string `json:"version"`
 }
 
@@ -629,6 +689,7 @@ type EndpointsManagerConfigInput struct {
 }
 
 type EndpointsMapUserActionItemInput struct {
+	ConfirmToken *string `json:"confirmToken,omitempty"`
 	MessageUserID *string `json:"messageUserId,omitempty"`
 	ServiceAccount *bool `json:"serviceAccount,omitempty"`
 }
@@ -757,6 +818,7 @@ type EndpointsPatchThreatInvestigationInput struct {
 }
 
 type EndpointsPatchThreatInvestigationOutput struct {
+	RunID *string `json:"runId,omitempty"`
 	ThreatInvestigation ModelsThreatInvestigation `json:"threatInvestigation"`
 	Version *string `json:"version,omitempty"`
 }

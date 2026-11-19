@@ -299,6 +299,7 @@ type UpdateDastApplicationsApplicationIdInput struct {
 	ApplicationID string `path:"applicationId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Description *string `json:"description,omitempty"`
+	ExpectedMembershipRevision *string `json:"expectedMembershipRevision,omitempty"`
 	Name *string `json:"name,omitempty"`
 	ScopeExcludePatterns []string `json:"scopeExcludePatterns,omitempty"`
 	WebServiceIds []string `json:"webServiceIds,omitempty"`
@@ -327,11 +328,13 @@ func (c *Client) UpdateDastApplicationsApplicationId(ctx context.Context, in Upd
 
 	bodyBytes, err := json.Marshal(struct {
 		Description *string `json:"description,omitempty"`
+		ExpectedMembershipRevision *string `json:"expectedMembershipRevision,omitempty"`
 		Name *string `json:"name,omitempty"`
 		ScopeExcludePatterns []string `json:"scopeExcludePatterns,omitempty"`
 		WebServiceIds []string `json:"webServiceIds,omitempty"`
 	}{
 		Description: in.Description,
+		ExpectedMembershipRevision: in.ExpectedMembershipRevision,
 		Name: in.Name,
 		ScopeExcludePatterns: in.ScopeExcludePatterns,
 		WebServiceIds: in.WebServiceIds,
@@ -512,6 +515,105 @@ func (c *Client) ListDastBughuntFindings(ctx context.Context, in ListDastBughunt
 	return &out, nil
 }
 
+// CreateDastBughuntFindingsAllowlistInput is the input for CreateDastBughuntFindingsAllowlist — Allowlist Batch of BugHunt Findings.
+type CreateDastBughuntFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateDastBughuntFindingsAllowlist - Allowlist Batch of BugHunt Findings
+// POST /dast/bughunt/findings/allowlist
+func (c *Client) CreateDastBughuntFindingsAllowlist(ctx context.Context, in CreateDastBughuntFindingsAllowlistInput) (*models.EndpointsPostAllowListBugHuntFindingBatchOutput, error) {
+	path := "/dast/bughunt/findings/allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType string `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowListBugHuntFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastBughuntFindingsUnallowlistInput is the input for CreateDastBughuntFindingsUnallowlist — Unallowlist Batch of BugHunt Findings.
+type CreateDastBughuntFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateDastBughuntFindingsUnallowlist - Unallowlist Batch of BugHunt Findings
+// POST /dast/bughunt/findings/unallowlist
+func (c *Client) CreateDastBughuntFindingsUnallowlist(ctx context.Context, in CreateDastBughuntFindingsUnallowlistInput) (*models.EndpointsPostUnallowListBugHuntFindingBatchOutput, error) {
+	path := "/dast/bughunt/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListBugHuntFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // GetDastBughuntFindingsFindingIdInput is the input for GetDastBughuntFindingsFindingId — Get BugHunt Finding.
 type GetDastBughuntFindingsFindingIdInput struct {
 	FindingID string `path:"findingId" json:"-"`
@@ -558,6 +660,7 @@ type PatchDastBughuntFindingsFindingIdAllowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Allow bool `json:"allow"`
+	AllowlistType *models.ModelsAllowlistType `json:"allowlistType,omitempty"`
 	Reason string `json:"reason"`
 	models.RequestScope
 }
@@ -587,9 +690,11 @@ func (c *Client) PatchDastBughuntFindingsFindingIdAllowlist(ctx context.Context,
 
 	bodyBytes, err := json.Marshal(struct {
 		Allow bool `json:"allow"`
+		AllowlistType *models.ModelsAllowlistType `json:"allowlistType,omitempty"`
 		Reason string `json:"reason"`
 	}{
 		Allow: in.Allow,
+		AllowlistType: in.AllowlistType,
 		Reason: in.Reason,
 	})
 	if err != nil {
@@ -604,6 +709,52 @@ func (c *Client) PatchDastBughuntFindingsFindingIdAllowlist(ctx context.Context,
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
+}
+
+// CreateDastBughuntFindingsFindingIdAllowlistInput is the input for CreateDastBughuntFindingsFindingIdAllowlist — Allowlist BugHunt Finding.
+type CreateDastBughuntFindingsFindingIdAllowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType *models.ModelsAllowlistType `json:"allowlistType,omitempty"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateDastBughuntFindingsFindingIdAllowlistInput) SetFindingID(id string) { in.FindingID = id }
+
+// CreateDastBughuntFindingsFindingIdAllowlist - Allowlist BugHunt Finding
+// POST /dast/bughunt/findings/{findingId}/allowlist
+func (c *Client) CreateDastBughuntFindingsFindingIdAllowlist(ctx context.Context, in CreateDastBughuntFindingsFindingIdAllowlistInput) ([]byte, error) {
+	path := "/dast/bughunt/findings/{findingId}/allowlist"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType *models.ModelsAllowlistType `json:"allowlistType,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
 }
 
 // ListDastBughuntFindingsFindingIdEventsInput is the input for ListDastBughuntFindingsFindingIdEvents — Get BugHunt Finding Events.
@@ -783,6 +934,49 @@ func (c *Client) ListDastBughuntFindingsFindingIdTriage(ctx context.Context, in 
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return &out, nil
+}
+
+// CreateDastBughuntFindingsFindingIdUnallowlistInput is the input for CreateDastBughuntFindingsFindingIdUnallowlist — Unallowlist BugHunt Finding.
+type CreateDastBughuntFindingsFindingIdUnallowlistInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *CreateDastBughuntFindingsFindingIdUnallowlistInput) SetFindingID(id string) { in.FindingID = id }
+
+// CreateDastBughuntFindingsFindingIdUnallowlist - Unallowlist BugHunt Finding
+// POST /dast/bughunt/findings/{findingId}/unallowlist
+func (c *Client) CreateDastBughuntFindingsFindingIdUnallowlist(ctx context.Context, in CreateDastBughuntFindingsFindingIdUnallowlistInput) ([]byte, error) {
+	path := "/dast/bughunt/findings/{findingId}/unallowlist"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
 }
 
 // CreateDastBughuntProgramImportInput is the input for CreateDastBughuntProgramImport — Preview BugHunt Program Import.
@@ -1011,6 +1205,44 @@ func (c *Client) ListDastBughuntScansScanIdActivity(ctx context.Context, in List
 		return nil, err
 	}
 	var out models.EndpointsGetAutofixActivityLogOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastBughuntScansScanIdArchiveInput is the input for CreateDastBughuntScansScanIdArchive — Archive BugHunt Scan.
+type CreateDastBughuntScansScanIdArchiveInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateDastBughuntScansScanIdArchive - Archive BugHunt Scan
+// POST /dast/bughunt/scans/{scanId}/archive
+func (c *Client) CreateDastBughuntScansScanIdArchive(ctx context.Context, in CreateDastBughuntScansScanIdArchiveInput) (*models.EndpointsArchiveBugHuntScanOutput, error) {
+	path := "/dast/bughunt/scans/{scanId}/archive"
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsArchiveBugHuntScanOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -1404,6 +1636,57 @@ func (c *Client) CreateDastCredentials(ctx context.Context, in CreateDastCredent
 	return &out, nil
 }
 
+// CreateDastCredentialsLoginDefinitionInput is the input for CreateDastCredentialsLoginDefinition — Create Credential From Login Definition.
+type CreateDastCredentialsLoginDefinitionInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Description *string `json:"description,omitempty"`
+	Login models.ModelsLoginDefinitionPatch `json:"login"`
+	Name string `json:"name"`
+	models.RequestScope
+}
+
+// CreateDastCredentialsLoginDefinition - Create Credential From Login Definition
+// POST /dast/credentials/login-definition
+func (c *Client) CreateDastCredentialsLoginDefinition(ctx context.Context, in CreateDastCredentialsLoginDefinitionInput) (*models.EndpointsDASTCredentialLoginDefinitionOutput, error) {
+	path := "/dast/credentials/login-definition"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Description *string `json:"description,omitempty"`
+		Login models.ModelsLoginDefinitionPatch `json:"login"`
+		Name string `json:"name"`
+	}{
+		Description: in.Description,
+		Login: in.Login,
+		Name: in.Name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDASTCredentialLoginDefinitionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateDastCredentialsValidateInput is the input for CreateDastCredentialsValidate — Validate Credentials.
 type CreateDastCredentialsValidateInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -1625,6 +1908,356 @@ func (c *Client) UpdateDastCredentialsCredentialIdActive(ctx context.Context, in
 		return nil, err
 	}
 	var out models.EndpointsPutCredentialActiveOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastCredentialsCredentialIdLoginAssistAnswerInput is the input for CreateDastCredentialsCredentialIdLoginAssistAnswer — Answer Credential Login Question.
+type CreateDastCredentialsCredentialIdLoginAssistAnswerInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Choice *string `json:"choice,omitempty"`
+	Hint *string `json:"hint,omitempty"`
+	Kind string `json:"kind"`
+	PageKey *string `json:"pageKey,omitempty"`
+	Revision int64 `json:"revision"`
+	RunID string `json:"runId"`
+	Secret *models.EndpointsDASTCredentialLoginSecretAnswer `json:"secret,omitempty"`
+	models.RequestScope
+}
+
+// CreateDastCredentialsCredentialIdLoginAssistAnswer - Answer Credential Login Question
+// POST /dast/credentials/{credentialId}/login-assist/answer
+func (c *Client) CreateDastCredentialsCredentialIdLoginAssistAnswer(ctx context.Context, in CreateDastCredentialsCredentialIdLoginAssistAnswerInput) (*models.EndpointsDASTCredentialValidationRun, error) {
+	path := "/dast/credentials/{credentialId}/login-assist/answer"
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Choice *string `json:"choice,omitempty"`
+		Hint *string `json:"hint,omitempty"`
+		Kind string `json:"kind"`
+		PageKey *string `json:"pageKey,omitempty"`
+		Revision int64 `json:"revision"`
+		RunID string `json:"runId"`
+		Secret *models.EndpointsDASTCredentialLoginSecretAnswer `json:"secret,omitempty"`
+	}{
+		Choice: in.Choice,
+		Hint: in.Hint,
+		Kind: in.Kind,
+		PageKey: in.PageKey,
+		Revision: in.Revision,
+		RunID: in.RunID,
+		Secret: in.Secret,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDASTCredentialValidationRun
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastCredentialsCredentialIdLoginAssistRetryInput is the input for CreateDastCredentialsCredentialIdLoginAssistRetry — Retry Credential Login.
+type CreateDastCredentialsCredentialIdLoginAssistRetryInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reason string `json:"reason"`
+	StopObservedAt string `json:"stopObservedAt"`
+	models.RequestScope
+}
+
+// CreateDastCredentialsCredentialIdLoginAssistRetry - Retry Credential Login
+// POST /dast/credentials/{credentialId}/login-assist/retry
+func (c *Client) CreateDastCredentialsCredentialIdLoginAssistRetry(ctx context.Context, in CreateDastCredentialsCredentialIdLoginAssistRetryInput) (*models.EndpointsDASTCredentialValidationRun, error) {
+	path := "/dast/credentials/{credentialId}/login-assist/retry"
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Reason string `json:"reason"`
+		StopObservedAt string `json:"stopObservedAt"`
+	}{
+		Reason: in.Reason,
+		StopObservedAt: in.StopObservedAt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDASTCredentialValidationRun
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateDastCredentialsCredentialIdLoginDefinitionInput is the input for UpdateDastCredentialsCredentialIdLoginDefinition — Update Credential Login Definition.
+type UpdateDastCredentialsCredentialIdLoginDefinitionInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Description *string `json:"description,omitempty"`
+	ExpectedRevision int64 `json:"expectedRevision"`
+	Login models.ModelsLoginDefinitionPatch `json:"login"`
+	Name string `json:"name"`
+	models.RequestScope
+}
+
+// UpdateDastCredentialsCredentialIdLoginDefinition - Update Credential Login Definition
+// PUT /dast/credentials/{credentialId}/login-definition
+func (c *Client) UpdateDastCredentialsCredentialIdLoginDefinition(ctx context.Context, in UpdateDastCredentialsCredentialIdLoginDefinitionInput) (*models.EndpointsDASTCredentialLoginDefinitionOutput, error) {
+	path := "/dast/credentials/{credentialId}/login-definition"
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Description *string `json:"description,omitempty"`
+		ExpectedRevision int64 `json:"expectedRevision"`
+		Login models.ModelsLoginDefinitionPatch `json:"login"`
+		Name string `json:"name"`
+	}{
+		Description: in.Description,
+		ExpectedRevision: in.ExpectedRevision,
+		Login: in.Login,
+		Name: in.Name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDASTCredentialLoginDefinitionOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastCredentialsCredentialIdLoginRunsInput is the input for ListDastCredentialsCredentialIdLoginRuns — Credential Login Runs.
+type ListDastCredentialsCredentialIdLoginRunsInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListDastCredentialsCredentialIdLoginRuns - Credential Login Runs
+// GET /dast/credentials/{credentialId}/login-runs
+func (c *Client) ListDastCredentialsCredentialIdLoginRuns(ctx context.Context, in ListDastCredentialsCredentialIdLoginRunsInput) (*models.EndpointsGetDASTCredentialLoginRunsOutput, error) {
+	path := "/dast/credentials/{credentialId}/login-runs"
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetDASTCredentialLoginRunsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetDastCredentialsCredentialIdLoginRunsRunIdInput is the input for GetDastCredentialsCredentialIdLoginRunsRunId — Credential Login Run.
+type GetDastCredentialsCredentialIdLoginRunsRunIdInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	RunID string `path:"runId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetDastCredentialsCredentialIdLoginRunsRunId - Credential Login Run
+// GET /dast/credentials/{credentialId}/login-runs/{runId}
+func (c *Client) GetDastCredentialsCredentialIdLoginRunsRunId(ctx context.Context, in GetDastCredentialsCredentialIdLoginRunsRunIdInput) (*models.EndpointsDASTCredentialLoginRunDetail, error) {
+	path := "/dast/credentials/{credentialId}/login-runs/{runId}"
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
+	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDASTCredentialLoginRunDetail
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastCredentialsCredentialIdLoginStatusInput is the input for ListDastCredentialsCredentialIdLoginStatus — Credential Login Status.
+type ListDastCredentialsCredentialIdLoginStatusInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListDastCredentialsCredentialIdLoginStatus - Credential Login Status
+// GET /dast/credentials/{credentialId}/login-status
+func (c *Client) ListDastCredentialsCredentialIdLoginStatus(ctx context.Context, in ListDastCredentialsCredentialIdLoginStatusInput) (*models.EndpointsDASTCredentialLoginStatus, error) {
+	path := "/dast/credentials/{credentialId}/login-status"
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDASTCredentialLoginStatus
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastCredentialsCredentialIdSessionLeaseInput is the input for CreateDastCredentialsCredentialIdSessionLease — Lease Credential Session.
+type CreateDastCredentialsCredentialIdSessionLeaseInput struct {
+	CredentialID string `path:"credentialId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	EndedGeneration *int64 `json:"endedGeneration,omitempty"`
+	Purpose string `json:"purpose"`
+	RunAttempt *string `json:"runAttempt,omitempty"`
+	ScanID *string `json:"scanId,omitempty"`
+	Target *string `json:"target,omitempty"`
+	models.RequestScope
+}
+
+// CreateDastCredentialsCredentialIdSessionLease - Lease Credential Session
+// POST /dast/credentials/{credentialId}/session-lease
+func (c *Client) CreateDastCredentialsCredentialIdSessionLease(ctx context.Context, in CreateDastCredentialsCredentialIdSessionLeaseInput) (*models.EndpointsDASTCredentialSessionLease, error) {
+	path := "/dast/credentials/{credentialId}/session-lease"
+	path = strings.Replace(path, "{credentialId}", url.PathEscape(in.CredentialID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		EndedGeneration *int64 `json:"endedGeneration,omitempty"`
+		Purpose string `json:"purpose"`
+		RunAttempt *string `json:"runAttempt,omitempty"`
+		ScanID *string `json:"scanId,omitempty"`
+		Target *string `json:"target,omitempty"`
+	}{
+		EndedGeneration: in.EndedGeneration,
+		Purpose: in.Purpose,
+		RunAttempt: in.RunAttempt,
+		ScanID: in.ScanID,
+		Target: in.Target,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsDASTCredentialSessionLease
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -2609,6 +3242,59 @@ func (c *Client) ListDastPentestApplicationsApplicationIdEstimate(ctx context.Co
 	return &out, nil
 }
 
+// CreateDastPentestApplicationsApplicationIdMoveInput is the input for CreateDastPentestApplicationsApplicationIdMove — Move a target or credential to another application.
+type CreateDastPentestApplicationsApplicationIdMoveInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	CredentialID *string `json:"credentialId,omitempty"`
+	TargetID *string `json:"targetId,omitempty"`
+	ToApplicationID string `json:"toApplicationId"`
+	models.RequestScope
+}
+
+// CreateDastPentestApplicationsApplicationIdMove - Move a target or credential to another application
+// POST /dast/pentest/applications/{applicationId}/move
+func (c *Client) CreateDastPentestApplicationsApplicationIdMove(ctx context.Context, in CreateDastPentestApplicationsApplicationIdMoveInput) (*models.EndpointsMovePentestConfigItemOutput, error) {
+	path := "/dast/pentest/applications/{applicationId}/move"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		CredentialID *string `json:"credentialId,omitempty"`
+		TargetID *string `json:"targetId,omitempty"`
+		ToApplicationID string `json:"toApplicationId"`
+	}{
+		CredentialID: in.CredentialID,
+		TargetID: in.TargetID,
+		ToApplicationID: in.ToApplicationID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsMovePentestConfigItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // UpdateDastPentestApplicationsApplicationIdMutationConsentInput is the input for UpdateDastPentestApplicationsApplicationIdMutationConsent — Create Interactor [].
 type UpdateDastPentestApplicationsApplicationIdMutationConsentInput struct {
 	ApplicationID string `path:"applicationId" json:"-"`
@@ -2786,6 +3472,137 @@ func (c *Client) ListDastPentestApplicationsApplicationIdPreflightQuota(ctx cont
 	return &out, nil
 }
 
+// DeleteDastPentestApplicationsApplicationIdScheduleInput is the input for DeleteDastPentestApplicationsApplicationIdSchedule — Delete Pentest Schedule.
+type DeleteDastPentestApplicationsApplicationIdScheduleInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteDastPentestApplicationsApplicationIdSchedule - Delete Pentest Schedule
+// DELETE /dast/pentest/applications/{applicationId}/schedule
+func (c *Client) DeleteDastPentestApplicationsApplicationIdSchedule(ctx context.Context, in DeleteDastPentestApplicationsApplicationIdScheduleInput) ([]byte, error) {
+	path := "/dast/pentest/applications/{applicationId}/schedule"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	return data, err
+}
+
+// ListDastPentestApplicationsApplicationIdScheduleInput is the input for ListDastPentestApplicationsApplicationIdSchedule — Get Pentest Schedule.
+type ListDastPentestApplicationsApplicationIdScheduleInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListDastPentestApplicationsApplicationIdSchedule - Get Pentest Schedule
+// GET /dast/pentest/applications/{applicationId}/schedule
+func (c *Client) ListDastPentestApplicationsApplicationIdSchedule(ctx context.Context, in ListDastPentestApplicationsApplicationIdScheduleInput) (*models.EndpointsGetPentestScheduleOutput, error) {
+	path := "/dast/pentest/applications/{applicationId}/schedule"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScheduleOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateDastPentestApplicationsApplicationIdScheduleInput is the input for UpdateDastPentestApplicationsApplicationIdSchedule — Save Pentest Schedule.
+type UpdateDastPentestApplicationsApplicationIdScheduleInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Cadence models.ModelsCadence `json:"cadence"`
+	Companions []models.ModelsPentestDeployment `json:"companions,omitempty"`
+	CredentialIds []string `json:"credentialIds,omitempty"`
+	Deployment models.ModelsPentestDeployment `json:"deployment"`
+	FirstDueAt string `json:"firstDueAt"`
+	Stages []string `json:"stages,omitempty"`
+	models.RequestScope
+}
+
+// UpdateDastPentestApplicationsApplicationIdSchedule - Save Pentest Schedule
+// PUT /dast/pentest/applications/{applicationId}/schedule
+func (c *Client) UpdateDastPentestApplicationsApplicationIdSchedule(ctx context.Context, in UpdateDastPentestApplicationsApplicationIdScheduleInput) (*models.EndpointsPutPentestScheduleOutput, error) {
+	path := "/dast/pentest/applications/{applicationId}/schedule"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Cadence models.ModelsCadence `json:"cadence"`
+		Companions []models.ModelsPentestDeployment `json:"companions,omitempty"`
+		CredentialIds []string `json:"credentialIds,omitempty"`
+		Deployment models.ModelsPentestDeployment `json:"deployment"`
+		FirstDueAt string `json:"firstDueAt"`
+		Stages []string `json:"stages,omitempty"`
+	}{
+		Cadence: in.Cadence,
+		Companions: in.Companions,
+		CredentialIds: in.CredentialIds,
+		Deployment: in.Deployment,
+		FirstDueAt: in.FirstDueAt,
+		Stages: in.Stages,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPutPentestScheduleOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListDastPentestBudgetInput is the input for ListDastPentestBudget — Get Pentest Budget.
 type ListDastPentestBudgetInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -2892,6 +3709,105 @@ func (c *Client) ListDastPentestFindings(ctx context.Context, in ListDastPentest
 		return nil, err
 	}
 	var out models.EndpointsGetPentestFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestFindingsAllowlistInput is the input for CreateDastPentestFindingsAllowlist — Allowlist Batch of Pentest Findings.
+type CreateDastPentestFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateDastPentestFindingsAllowlist - Allowlist Batch of Pentest Findings
+// POST /dast/pentest/findings/allowlist
+func (c *Client) CreateDastPentestFindingsAllowlist(ctx context.Context, in CreateDastPentestFindingsAllowlistInput) (*models.EndpointsPostAllowListPentestFindingBatchOutput, error) {
+	path := "/dast/pentest/findings/allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType string `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowListPentestFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateDastPentestFindingsUnallowlistInput is the input for CreateDastPentestFindingsUnallowlist — Unallowlist Batch of Pentest Findings.
+type CreateDastPentestFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateDastPentestFindingsUnallowlist - Unallowlist Batch of Pentest Findings
+// POST /dast/pentest/findings/unallowlist
+func (c *Client) CreateDastPentestFindingsUnallowlist(ctx context.Context, in CreateDastPentestFindingsUnallowlistInput) (*models.EndpointsPostUnallowListPentestFindingBatchOutput, error) {
+	path := "/dast/pentest/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListPentestFindingBatchOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -3405,7 +4321,7 @@ func (c *Client) ListDastPentestFindingsFindingIdTriage(ctx context.Context, in 
 type CreateDastPentestFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	models.RequestScope
 }
 
@@ -3433,7 +4349,7 @@ func (c *Client) CreateDastPentestFindingsFindingIdUnallowlist(ctx context.Conte
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 	})
@@ -3571,6 +4487,9 @@ type ListDastPentestScansInput struct {
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	Search *string `url:"search,omitempty" json:"-"`
+	StartedAfter *string `url:"startedAfter,omitempty" json:"-"`
+	StartedBefore *string `url:"startedBefore,omitempty" json:"-"`
+	Statuses []string `url:"statuses,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -3594,6 +4513,15 @@ func (c *Client) ListDastPentestScans(ctx context.Context, in ListDastPentestSca
 	}
 	if in.Search != nil {
 		query.Set("search", string(*in.Search))
+	}
+	for _, v := range in.Statuses {
+		query.Add("statuses", string(v))
+	}
+	if in.StartedAfter != nil {
+		query.Set("startedAfter", string(*in.StartedAfter))
+	}
+	if in.StartedBefore != nil {
+		query.Set("startedBefore", string(*in.StartedBefore))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -3700,9 +4628,48 @@ func (c *Client) ListDastPentestScansScanIdActivity(ctx context.Context, in List
 	return &out, nil
 }
 
+// CreateDastPentestScansScanIdArchiveInput is the input for CreateDastPentestScansScanIdArchive — Archive Pentest Scan.
+type CreateDastPentestScansScanIdArchiveInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateDastPentestScansScanIdArchive - Archive Pentest Scan
+// POST /dast/pentest/scans/{scanId}/archive
+func (c *Client) CreateDastPentestScansScanIdArchive(ctx context.Context, in CreateDastPentestScansScanIdArchiveInput) (*models.EndpointsArchivePentestScanOutput, error) {
+	path := "/dast/pentest/scans/{scanId}/archive"
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsArchivePentestScanOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListDastPentestScansScanIdAuthMatrixCasesInput is the input for ListDastPentestScansScanIdAuthMatrixCases — List pentest auth-matrix cases.
 type ListDastPentestScansScanIdAuthMatrixCasesInput struct {
 	ScanID string `path:"scanId" json:"-"`
+	Cursor *string `url:"cursor,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HideNotRun *bool `url:"hideNotRun,omitempty" json:"-"`
 	Identity *string `url:"identity,omitempty" json:"-"`
@@ -3736,6 +4703,9 @@ func (c *Client) ListDastPentestScansScanIdAuthMatrixCases(ctx context.Context, 
 	}
 	if in.Offset != nil {
 		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -3872,6 +4842,52 @@ func (c *Client) ListDastPentestScansScanIdEvents(ctx context.Context, in ListDa
 		return nil, err
 	}
 	var out models.EndpointsGetPentestScanEventsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListDastPentestScansScanIdExecutionsInput is the input for ListDastPentestScansScanIdExecutions — Get Pentest Scan Executions.
+type ListDastPentestScansScanIdExecutionsInput struct {
+	ScanID string `path:"scanId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	Offset *int `url:"offset,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListDastPentestScansScanIdExecutions - Get Pentest Scan Executions
+// GET /dast/pentest/scans/{scanId}/executions
+func (c *Client) ListDastPentestScansScanIdExecutions(ctx context.Context, in ListDastPentestScansScanIdExecutionsInput) (*models.EndpointsGetPentestScanExecutionsOutput, error) {
+	path := "/dast/pentest/scans/{scanId}/executions"
+	path = strings.Replace(path, "{scanId}", url.PathEscape(in.ScanID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.Offset != nil {
+		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetPentestScanExecutionsOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -4105,6 +5121,7 @@ type ListDastPentestScansScanIdReportInput struct {
 	ScanID string `path:"scanId" json:"-"`
 	Exclude []string `url:"exclude,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	View *string `url:"view,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -4120,6 +5137,9 @@ func (c *Client) ListDastPentestScansScanIdReport(ctx context.Context, in ListDa
 	}
 	for _, v := range in.Exclude {
 		query.Add("exclude", string(v))
+	}
+	if in.View != nil {
+		query.Set("view", string(*in.View))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -4336,6 +5356,7 @@ func (c *Client) CreateDastPentestScansScanIdStop(ctx context.Context, in Create
 type CreateDastPentestStartInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	ApplicationID string `json:"applicationId"`
+	Companions []models.ModelsPentestDeployment `json:"companions,omitempty"`
 	ConfigOverrides *models.ModelsApplicationPentestConfigOverrides `json:"configOverrides,omitempty"`
 	Deployment *models.ModelsPentestDeployment `json:"deployment,omitempty"`
 	OnboardingDispatch *bool `json:"onboardingDispatch,omitempty"`
@@ -4363,11 +5384,13 @@ func (c *Client) CreateDastPentestStart(ctx context.Context, in CreateDastPentes
 
 	bodyBytes, err := json.Marshal(struct {
 		ApplicationID string `json:"applicationId"`
+		Companions []models.ModelsPentestDeployment `json:"companions,omitempty"`
 		ConfigOverrides *models.ModelsApplicationPentestConfigOverrides `json:"configOverrides,omitempty"`
 		Deployment *models.ModelsPentestDeployment `json:"deployment,omitempty"`
 		OnboardingDispatch *bool `json:"onboardingDispatch,omitempty"`
 	}{
 		ApplicationID: in.ApplicationID,
+		Companions: in.Companions,
 		ConfigOverrides: in.ConfigOverrides,
 		Deployment: in.Deployment,
 		OnboardingDispatch: in.OnboardingDispatch,
