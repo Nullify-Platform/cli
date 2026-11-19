@@ -48,7 +48,7 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithDescription("Create a threat investigation entry in the threat-intelligence catalog."),
 			mcp.WithString("title", mcp.Required(), mcp.Description("Short title of the threat")),
 			mcp.WithString("description", mcp.Description("Detailed description")),
-			mcp.WithString("severity", mcp.Description("Severity"), mcp.Enum("critical", "high", "medium", "low")),
+			mcp.WithString("severity", mcp.Description("Severity"), mcp.Enum("critical", "high", "medium", "low", "informational")),
 			mcp.WithString("advice", mcp.Description("Remediation advice")),
 			mcp.WithString("ecosystem", mcp.Description("Affected ecosystem (e.g. npm, pypi, go)")),
 			mcp.WithString("keywords", mcp.Description("Comma-separated keywords")),
@@ -65,7 +65,10 @@ func registerThreatTools(s *server.MCPServer, c *api.Client) {
 				in.Description = &v
 			}
 			if v := getStringArg(args, "severity"); v != "" {
-				in.Severity = &v
+				// The server stores the severity as sent, and its enum is
+				// upper case, so a lower-case value never matches a filter.
+				upper := strings.ToUpper(strings.TrimSpace(v))
+				in.Severity = &upper
 			}
 			if v := getStringArg(args, "advice"); v != "" {
 				in.Advice = &v
