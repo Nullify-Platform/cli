@@ -32,14 +32,14 @@ func collectScannerReports(
 	get findingsGetter,
 	base map[string]string,
 	endpoints []scannerEndpoint,
-	repo string,
+	scope repositoryScope,
 ) []scannerReport {
 	reports := make([]scannerReport, len(endpoints))
 	var wg sync.WaitGroup
 	for i, ep := range endpoints {
 		wg.Go(func() {
-			findings, err := collectFindings(ctx, get, ep.path, base, scannerQueryParams(ep, "", repo))
-			reports[i] = scannerReport{ep: ep, findings: countedFindings(ep, findings), err: err}
+			findings, err := collectFindings(ctx, get, ep.path, base, scannerQueryParams(ep, "", scope))
+			reports[i] = scannerReport{ep: ep, findings: countedFindings(ep, scope, findings), err: err}
 		})
 	}
 	wg.Wait()

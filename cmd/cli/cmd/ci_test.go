@@ -1,16 +1,9 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
-	"io"
 	"net/http"
-	"os"
-	"strings"
-	"sync/atomic"
 	"testing"
-
-	"github.com/spf13/cobra"
 
 	"github.com/stretchr/testify/require"
 )
@@ -36,53 +29,25 @@ func TestSeveritiesAboveThreshold(t *testing.T) {
 }
 
 func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
-	byName := map[string]scannerEndpoint{}
-	for _, ep := range allScannerEndpoints() {
-		byName[ep.name] = ep
-	}
-
+	scope := repositoryScope{id: "42", source: "--repository-id", providerParams: []string{"githubRepositoryId", "42"}}
 	tests := []struct {
 		scanner  string
 		expected []string
 	}{
-		{
-			scanner:  "sast",
-			expected: []string{"severity", "CRITICAL", "isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "cspm",
-			expected: []string{"severity", "CRITICAL", "status", "open", "repository", "org/repo"},
-		},
-		{
-			scanner:  "sca_dependencies",
-			expected: []string{"isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "sca_containers",
-			expected: []string{"isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "secrets",
-			expected: []string{"isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "pentest",
-			expected: []string{"isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "bughunt",
-			expected: []string{"repository", "org/repo"},
-		},
+		{scanner: "sast", expected: []string{"severity", "CRITICAL", "isResolved", "false", "githubRepositoryId", "42", "repositoryIds", "42"}},
+		{scanner: "cspm", expected: []string{"severity", "CRITICAL", "status", "open"}},
+		{scanner: "sca_dependencies", expected: []string{"isResolved", "false", "githubRepositoryId", "42"}},
+		{scanner: "sca_containers", expected: []string{"isResolved", "false", "githubRepositoryId", "42"}},
+		{scanner: "secrets", expected: []string{"isResolved", "false", "githubRepositoryId", "42"}},
+		{scanner: "pentest", expected: []string{"isResolved", "false"}},
+		{scanner: "bughunt", expected: []string{}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.scanner, func(t *testing.T) {
-			ep, ok := byName[tt.scanner]
-			require.True(t, ok)
-
+			ep := scannerByName(t, tt.scanner)
 			severities := scannerSeverities(ep, []string{"critical", "high"})
-			params := scannerQueryParams(ep, severities[0], "org/repo")
-			require.Equal(t, tt.expected, params)
+			require.Equal(t, tt.expected, scannerQueryParams(ep, severities[0], scope))
 		})
 	}
 }
@@ -115,14 +80,6 @@ func TestScannerSeveritiesCollapseWithoutServerSideFilter(t *testing.T) {
 }
 
 func TestCIGateResponseValidation(t *testing.T) {
-	t.Setenv("NULLIFY_HOST", "review.nullify.ai")
-	t.Setenv("NULLIFY_TOKEN", "synthetic-token")
-	originalHost, originalToken, originalGithub := host, nullifyToken, githubToken
-	host, nullifyToken, githubToken = "review.nullify.ai", "synthetic-token", ""
-	t.Cleanup(func() {
-		host, nullifyToken, githubToken = originalHost, originalToken, originalGithub
-	})
-
 	tests := []struct {
 		name     string
 		scanner  string
@@ -142,83 +99,44 @@ func TestCIGateResponseValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			originalTransport := http.DefaultTransport
-			t.Cleanup(func() { http.DefaultTransport = originalTransport })
-			var calls atomic.Int64
-			http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-				calls.Add(1)
+			useCIEnv(t)
+			api := serveScannerAPI(t, func(req *http.Request) (int, string) {
 				if tt.scanner == "cspm" {
 					query := req.URL.Query()
 					if query.Get("status") != "open" || query.Get("severity") != "CRITICAL" {
 						t.Errorf("unexpected CSPM filters: %s", req.URL.RawQuery)
 					}
 				}
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       io.NopCloser(strings.NewReader(tt.body)),
-					Header:     make(http.Header),
-					Request:    req,
-				}, nil
+				return http.StatusOK, tt.body
 			})
 
-			cmd := &cobra.Command{}
-			cmd.SetContext(context.Background())
-			cmd.Flags().String("severity-threshold", "critical", "")
-			cmd.Flags().String("type", tt.scanner, "")
-			cmd.Flags().String("repo", "org/repo", "")
-			err := ciGateCmd.RunE(cmd, nil)
+			_, err := runCI(t, ciGateCmd, map[string]string{
+				"severity-threshold": "critical",
+				"type":               tt.scanner,
+				"repository-id":      "42",
+			})
 
 			require.Equal(t, tt.wantExit, ExitCodeForError(err))
-			require.Equal(t, int64(1), calls.Load())
+			require.Len(t, api.requests(), 1)
 		})
 	}
 }
 
 func TestCIReportPreservesPentestFindingsWithZeroCount(t *testing.T) {
-	t.Setenv("NULLIFY_HOST", "review.nullify.ai")
-	t.Setenv("NULLIFY_TOKEN", "synthetic-token")
-	originalHost, originalToken, originalGithub := host, nullifyToken, githubToken
-	host, nullifyToken, githubToken = "review.nullify.ai", "synthetic-token", ""
-	t.Cleanup(func() {
-		host, nullifyToken, githubToken = originalHost, originalToken, originalGithub
-	})
-
-	originalTransport := http.DefaultTransport
-	t.Cleanup(func() { http.DefaultTransport = originalTransport })
-	http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-		body := `{"findings":[],"numItems":0}`
+	useCIEnv(t)
+	serveScannerAPI(t, func(req *http.Request) (int, string) {
 		if req.URL.Path == "/dast/pentest/findings" {
-			body = `{"findings":[{"id":"pentest-1","title":"Critical pentest finding","severity":"CRITICAL"}],"groups":null,"numItems":0,"nextToken":""}`
+			return http.StatusOK, `{"findings":[{"id":"pentest-1","title":"Critical pentest finding","severity":"CRITICAL"}],"groups":null,"numItems":0,"nextToken":""}`
 		}
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Body:       io.NopCloser(strings.NewReader(body)),
-			Header:     make(http.Header),
-			Request:    req,
-		}, nil
+		return emptyFindings(req)
 	})
 
 	for _, format := range []string{"markdown", "sarif"} {
 		t.Run(format, func(t *testing.T) {
-			stdout, err := os.CreateTemp(t.TempDir(), "report")
-			require.NoError(t, err)
-			t.Cleanup(func() { _ = stdout.Close() })
-			originalStdout := os.Stdout
-			os.Stdout = stdout
-			t.Cleanup(func() { os.Stdout = originalStdout })
-
-			cmd := &cobra.Command{}
-			cmd.SetContext(context.Background())
-			cmd.Flags().String("repo", "org/repo", "")
-			cmd.Flags().String("format", format, "")
-			require.NoError(t, ciReportCmd.RunE(cmd, nil))
-
-			_, err = stdout.Seek(0, io.SeekStart)
-			require.NoError(t, err)
-			report, err := io.ReadAll(stdout)
+			report, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42", "format": format})
 			require.NoError(t, err)
 			if format == "markdown" {
-				require.Contains(t, string(report), "| pentest | critical | 1 |")
+				require.Contains(t, report, "| pentest | critical | 1 |")
 				return
 			}
 
@@ -232,7 +150,7 @@ func TestCIReportPreservesPentestFindingsWithZeroCount(t *testing.T) {
 					} `json:"results"`
 				} `json:"runs"`
 			}
-			require.NoError(t, json.Unmarshal(report, &sarif))
+			require.NoError(t, json.Unmarshal([]byte(report), &sarif))
 			require.Len(t, sarif.Runs, 1)
 			require.Len(t, sarif.Runs[0].Results, 1)
 			for _, result := range sarif.Runs[0].Results {

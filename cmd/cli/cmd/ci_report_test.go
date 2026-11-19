@@ -24,12 +24,12 @@ func TestCIReportReadsEveryPageAtThePageCap(t *testing.T) {
 		}
 	})
 
-	out, err := runCI(t, ciReportCmd, map[string]string{"repo": "org/repo"})
+	out, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
 
 	require.NoError(t, err)
 	require.Contains(t, out, "| sast | critical | 3 |")
 	requests := api.requests()
-	require.Contains(t, requests, "/sast/findings?isResolved=false&limit=100&nextToken=p2&repository=org%2Frepo")
+	require.Contains(t, requests, "/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&nextToken=p2&repositoryIds=42")
 	for _, request := range requests {
 		require.Contains(t, request, "limit=100", "every request asks for the server's page cap")
 	}
@@ -52,7 +52,7 @@ func TestCIReportCountsEachFindingOnceUnderItsOwnSeverity(t *testing.T) {
 		}
 	})
 
-	markdown, err := runCI(t, ciReportCmd, map[string]string{"repo": "org/repo"})
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
 	require.NoError(t, err)
 	require.Contains(t, markdown, "| sca_dependencies | critical | 1 |")
 	require.Contains(t, markdown, "| sca_dependencies | low | 2 |")
@@ -60,7 +60,7 @@ func TestCIReportCountsEachFindingOnceUnderItsOwnSeverity(t *testing.T) {
 	require.NotContains(t, markdown, "| sca_dependencies | high |")
 	require.Len(t, api.requests(), len(allScannerEndpoints()), "one request per scanner")
 
-	sarif, err := runCI(t, ciReportCmd, map[string]string{"repo": "org/repo", "format": "sarif"})
+	sarif, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42", "format": "sarif"})
 	require.NoError(t, err)
 	var document struct {
 		Runs []struct {
@@ -85,13 +85,33 @@ func TestCIReportCountsOnlyOpenBughuntFindings(t *testing.T) {
 		]}`
 	})
 
-	markdown, err := runCI(t, ciReportCmd, map[string]string{"repo": "org/repo"})
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
 	require.NoError(t, err)
 	require.Contains(t, markdown, "| bughunt | high | 1 |")
 
-	sarif, err := runCI(t, ciReportCmd, map[string]string{"repo": "org/repo", "format": "sarif"})
+	sarif, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42", "format": "sarif"})
 	require.NoError(t, err)
 	require.Contains(t, sarif, "Open")
 	require.NotContains(t, sarif, "Allowlisted")
 	require.NotContains(t, sarif, "Fixed")
+}
+
+func TestCIReportCountsOnlyTheScopedRepository(t *testing.T) {
+	useCIEnv(t)
+	serveScannerAPI(t, func(r *http.Request) (int, string) {
+		if r.URL.Path != "/secrets/findings" {
+			return emptyFindings(r)
+		}
+		return http.StatusOK, `{"findings":[
+			{"id":"s1","repositoryId":"42"},
+			{"id":"s2","repositoryId":"99"}
+		]}`
+	})
+
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
+	require.NoError(t, err)
+	require.Contains(t, markdown, "| secrets | unknown | 1 |")
+
+	_, err = runCI(t, ciReportCmd, map[string]string{})
+	require.Equal(t, ExitUsageError, ExitCodeForError(err))
 }

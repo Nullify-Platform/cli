@@ -42,13 +42,13 @@ func runGateChecks(
 	base map[string]string,
 	checks []gateCheck,
 	threshold severityLevel,
-	repo string,
+	scope repositoryScope,
 ) []gateResult {
 	results := make([]gateResult, len(checks))
 	var wg sync.WaitGroup
 	for i, check := range checks {
 		wg.Go(func() {
-			results[i] = runGateCheck(ctx, get, base, check, threshold, repo)
+			results[i] = runGateCheck(ctx, get, base, check, threshold, scope)
 		})
 	}
 	wg.Wait()
@@ -64,15 +64,15 @@ func runGateCheck(
 	base map[string]string,
 	check gateCheck,
 	threshold severityLevel,
-	repo string,
+	scope repositoryScope,
 ) gateResult {
 	blocked := false
 	err := visitFindingPages(
 		ctx, get, check.ep.path, base,
-		scannerQueryParams(check.ep, check.severity, repo),
+		scannerQueryParams(check.ep, check.severity, scope),
 		func(page []json.RawMessage) bool {
 			blocked = slices.ContainsFunc(page, func(finding json.RawMessage) bool {
-				return blocksGate(check.ep, finding, threshold)
+				return blocksGate(check.ep, scope, finding, threshold)
 			})
 			return !blocked
 		},
@@ -81,8 +81,8 @@ func runGateCheck(
 }
 
 // blocksGate reports whether a finding fails the gate at the threshold.
-func blocksGate(ep scannerEndpoint, finding json.RawMessage, threshold severityLevel) bool {
-	return countsForScanner(ep, finding) && findingSeverity(ep, finding).meets(threshold)
+func blocksGate(ep scannerEndpoint, scope repositoryScope, finding json.RawMessage, threshold severityLevel) bool {
+	return countsForScanner(ep, scope, finding) && findingSeverity(ep, finding).meets(threshold)
 }
 
 // gateVerdict prints the result of every check and returns the gate's error.

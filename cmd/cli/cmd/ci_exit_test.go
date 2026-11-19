@@ -62,7 +62,7 @@ func TestCIGateExitsWithTheAuthCodeWhenAccessIsRefused(t *testing.T) {
 				return tt.status, `{"error":"refused"}`
 			})
 
-			_, err := runCI(t, ciGateCmd, map[string]string{"type": "secrets", "repo": "acme/app"})
+			_, err := runCI(t, ciGateCmd, map[string]string{"type": "secrets", "repository-id": "42"})
 
 			require.Equal(t, tt.exit, ExitCodeForError(err))
 		})
@@ -75,7 +75,7 @@ func TestCIReportExitsWithTheAuthCodeWhenEveryScannerRefusesAccess(t *testing.T)
 		return http.StatusForbidden, `{"error":"missing permission"}`
 	})
 
-	_, err := runCI(t, ciReportCmd, map[string]string{"repo": "acme/app"})
+	_, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
 
 	require.Equal(t, ExitAuthError, ExitCodeForError(err))
 }

@@ -66,6 +66,8 @@ var Decisions = SurfaceDecisions{
 		{Command: "nullify api context create-waf-allowlist-pr-runs-recover-by-id", Route: "POST /context/waf-allowlist-pr/runs/{runId}/recover", Evidence: "staff only: OperatorAuth (context/pkg/endpoints); a customer token gets 403"},
 	},
 	RetiredFlags: []RetiredFlag{
+		{Command: "nullify ci gate", Flag: "repo", Evidence: "the scanner finding routes have no repository-name filter, so --repo never narrowed the result; use --repository-id, which is detected in GitHub Actions, GitLab CI, Bitbucket Pipelines and Azure Pipelines"},
+		{Command: "nullify ci report", Flag: "repo", Evidence: "the scanner finding routes have no repository-name filter, so --repo never narrowed the result; use --repository-id, which is detected in GitHub Actions, GitLab CI, Bitbucket Pipelines and Azure Pipelines"},
 		{Command: "nullify api asset-graph list-reachability", Flag: "account-id", Evidence: "GET /context/asset-graph/reachability has no account filter; the flag has no effect"},
 		{Command: "nullify api asset-graph list-subgraph", Flag: "account-id", Evidence: "GET /context/asset-graph/subgraph has no account filter; the flag has no effect"},
 		{Command: "nullify api cspm list-scans", Flag: "region", Evidence: "GET /cspm/scans no longer filters by region; the flag has no effect"},

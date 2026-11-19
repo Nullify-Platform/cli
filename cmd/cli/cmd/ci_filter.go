@@ -39,15 +39,18 @@ func boolField(fields map[string]json.RawMessage, name string) (value bool, ok b
 
 // countsForScanner reports whether the gate and the report count a finding
 // of this scanner. A scanner whose list route returns closed findings too
-// has them dropped here.
-func countsForScanner(ep scannerEndpoint, finding json.RawMessage) bool {
-	return !ep.filtersOpenOnClient || isOpenFinding(finding)
+// has them dropped here, and so does a finding of another repository.
+func countsForScanner(ep scannerEndpoint, scope repositoryScope, finding json.RawMessage) bool {
+	if ep.filtersOpenOnClient && !isOpenFinding(finding) {
+		return false
+	}
+	return scope.includes(ep, finding)
 }
 
 // countedFindings returns the findings of a list that the gate and the
 // report count, in their original order.
-func countedFindings(ep scannerEndpoint, findings []json.RawMessage) []json.RawMessage {
+func countedFindings(ep scannerEndpoint, scope repositoryScope, findings []json.RawMessage) []json.RawMessage {
 	return slices.DeleteFunc(slices.Clone(findings), func(finding json.RawMessage) bool {
-		return !countsForScanner(ep, finding)
+		return !countsForScanner(ep, scope, finding)
 	})
 }

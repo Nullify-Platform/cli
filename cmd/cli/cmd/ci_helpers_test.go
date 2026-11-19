@@ -14,10 +14,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// ciPlatformEnvs are the env vars that identify a CI platform or name the
+// repository it builds. Tests clear them so the CI that runs the tests
+// cannot change what a command detects.
+var ciPlatformEnvs = []string{
+	"GITHUB_ACTIONS", "GITLAB_CI", "CIRCLECI", "BITBUCKET_BUILD_NUMBER",
+	"JENKINS_URL", "TF_BUILD", "BUILD_ID", "PROJECT_ID", "CODEBUILD_BUILD_ID",
+	"GITHUB_REPOSITORY_ID", "CI_PROJECT_ID", "BITBUCKET_REPO_UUID",
+	"BUILD_REPOSITORY_ID", "BUILD_REPOSITORY_PROVIDER",
+}
+
 // useCIEnv points the CLI at a synthetic tenant with an API token, so a CI
-// command resolves its auth without a login or a router.
+// command resolves its auth without a login or a router. It also clears
+// every CI platform variable.
 func useCIEnv(t *testing.T) {
 	t.Helper()
+	for _, name := range ciPlatformEnvs {
+		t.Setenv(name, "")
+	}
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("NULLIFY_HOST", "acme.nullify.ai")
 	t.Setenv("NULLIFY_TOKEN", "synthetic")

@@ -11,16 +11,16 @@ import (
 
 func gateRequests(severities ...string) []string {
 	want := []string{
-		"/sca/dependencies/findings?isResolved=false&limit=100&repository=acme%2Fapp",
-		"/sca/containers/findings?isResolved=false&limit=100&repository=acme%2Fapp",
-		"/secrets/findings?isResolved=false&limit=100&repository=acme%2Fapp",
-		"/dast/pentest/findings?isResolved=false&limit=100&repository=acme%2Fapp",
-		"/dast/bughunt/findings?limit=100&repository=acme%2Fapp",
+		"/sca/dependencies/findings?githubRepositoryId=42&isResolved=false&limit=100",
+		"/sca/containers/findings?githubRepositoryId=42&isResolved=false&limit=100",
+		"/secrets/findings?githubRepositoryId=42&isResolved=false&limit=100",
+		"/dast/pentest/findings?isResolved=false&limit=100",
+		"/dast/bughunt/findings?limit=100",
 	}
 	for _, severity := range severities {
 		want = append(want,
-			"/sast/findings?isResolved=false&limit=100&repository=acme%2Fapp&severity="+strings.ToUpper(severity),
-			"/cspm/findings?limit=100&repository=acme%2Fapp&severity="+strings.ToUpper(severity)+"&status=open",
+			"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity="+strings.ToUpper(severity),
+			"/cspm/findings?limit=100&severity="+strings.ToUpper(severity)+"&status=open",
 		)
 	}
 	slices.Sort(want)
@@ -39,12 +39,12 @@ func TestCIGateRequestsAndExitCodes(t *testing.T) {
 	}{
 		{name: "the default set", threshold: "high", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical", "high")},
 		{name: "every severity", threshold: "low", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical", "high", "low", "medium")},
-		{name: "a list route type", threshold: "critical", findType: "cspm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: []string{"/cspm/findings?limit=100&repository=acme%2Fapp&severity=CRITICAL&status=open"}},
+		{name: "a list route type", threshold: "critical", findType: "cspm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: []string{"/cspm/findings?limit=100&severity=CRITICAL&status=open"}},
 		{name: "scpm is not a gate type", threshold: "critical", findType: "scpm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
 		{name: "sensitive data is not a gate type", threshold: "critical", findType: "secrets_sensitive_data", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
 		{name: "a monorepo name is not a gate type", threshold: "critical", findType: "dast_pentest", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
-		{name: "findings fail the gate", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"findings":[{"id":"f1","severity":"CRITICAL"},{"id":"f2","severity":"CRITICAL"}]}`, exit: ExitFindings, requests: []string{"/sast/findings?isResolved=false&limit=100&repository=acme%2Fapp&severity=CRITICAL"}},
-		{name: "a total without findings fails closed", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"total":0}`, exit: ExitNetworkError, requests: []string{"/sast/findings?isResolved=false&limit=100&repository=acme%2Fapp&severity=CRITICAL"}},
+		{name: "findings fail the gate", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"findings":[{"id":"f1","severity":"CRITICAL"},{"id":"f2","severity":"CRITICAL"}]}`, exit: ExitFindings, requests: []string{"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=CRITICAL"}},
+		{name: "a total without findings fails closed", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"total":0}`, exit: ExitNetworkError, requests: []string{"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=CRITICAL"}},
 		{name: "a failed request exits 3", threshold: "critical", findType: "sast", status: http.StatusBadRequest, body: `{}`, exit: ExitNetworkError},
 	}
 	for _, tt := range tests {
@@ -55,7 +55,7 @@ func TestCIGateRequestsAndExitCodes(t *testing.T) {
 			_, err := runCI(t, ciGateCmd, map[string]string{
 				"severity-threshold": tt.threshold,
 				"type":               tt.findType,
-				"repo":               "acme/app",
+				"repository-id":      "42",
 			})
 
 			require.Equal(t, tt.exit, ExitCodeForError(err))
@@ -96,7 +96,7 @@ func TestCIGateAppliesTheThresholdToEveryScanner(t *testing.T) {
 			_, err := runCI(t, ciGateCmd, map[string]string{
 				"severity-threshold": tt.threshold,
 				"type":               tt.findType,
-				"repo":               "acme/app",
+				"repository-id":      "42",
 			})
 
 			require.Equal(t, tt.exit, ExitCodeForError(err))
@@ -116,7 +116,7 @@ func TestCIGateReadsLaterPages(t *testing.T) {
 	out, err := runCI(t, ciGateCmd, map[string]string{
 		"severity-threshold": "critical",
 		"type":               "sca_dependencies",
-		"repo":               "acme/app",
+		"repository-id":      "42",
 	})
 
 	require.Equal(t, ExitFindings, ExitCodeForError(err))
@@ -147,10 +147,102 @@ func TestCIGateCountsOnlyOpenBughuntFindings(t *testing.T) {
 			_, err := runCI(t, ciGateCmd, map[string]string{
 				"severity-threshold": "high",
 				"type":               "bughunt",
-				"repo":               "acme/app",
+				"repository-id":      "42",
 			})
 
 			require.Equal(t, tt.exit, ExitCodeForError(err))
 		})
 	}
+}
+
+func TestCIGateCountsOnlyTheScopedRepository(t *testing.T) {
+	tests := []struct {
+		name     string
+		findings string
+		exit     int
+	}{
+		{"another repository's finding passes", `{"id":"d1","repositoryId":"99","vulnerabilitiesMaxSeverity":"CRITICAL"}`, ExitSuccess},
+		{"this repository's finding fails", `{"id":"d1","repositoryId":"42","vulnerabilitiesMaxSeverity":"CRITICAL"}`, ExitFindings},
+		{"a finding without a repository id fails closed", `{"id":"d1","vulnerabilitiesMaxSeverity":"CRITICAL"}`, ExitFindings},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			useCIEnv(t)
+			serveScannerAPI(t, func(*http.Request) (int, string) {
+				return http.StatusOK, `{"findings":[` + tt.findings + `]}`
+			})
+
+			_, err := runCI(t, ciGateCmd, map[string]string{"type": "sca_dependencies", "repository-id": "42"})
+
+			require.Equal(t, tt.exit, ExitCodeForError(err))
+		})
+	}
+}
+
+func TestCIGateResolvesItsRepositoryScope(t *testing.T) {
+	tests := []struct {
+		name     string
+		env      map[string]string
+		flags    map[string]string
+		exit     int
+		requests []string
+	}{
+		{
+			name:     "github actions names the repository",
+			env:      map[string]string{"GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY_ID": "7"},
+			exit:     ExitSuccess,
+			requests: []string{"/secrets/findings?githubRepositoryId=7&isResolved=false&limit=100"},
+		},
+		{
+			name:     "bitbucket pipelines names the repository",
+			env:      map[string]string{"BITBUCKET_BUILD_NUMBER": "3", "BITBUCKET_REPO_UUID": "{abc-123}"},
+			exit:     ExitSuccess,
+			requests: []string{"/secrets/findings?bitbucketRepositoryId=abc-123&isResolved=false&limit=100"},
+		},
+		{
+			name:     "every repository on request",
+			flags:    map[string]string{"all-repositories": "true"},
+			exit:     ExitSuccess,
+			requests: []string{"/secrets/findings?isResolved=false&limit=100"},
+		},
+		{
+			name: "no repository is a usage error",
+			exit: ExitUsageError,
+		},
+		{
+			name:  "the retired --repo flag names no repository",
+			flags: map[string]string{"repo": "acme/app"},
+			exit:  ExitUsageError,
+		},
+		{
+			name:  "an id and every repository conflict",
+			flags: map[string]string{"repository-id": "42", "all-repositories": "true"},
+			exit:  ExitUsageError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			useCIEnv(t)
+			for name, value := range tt.env {
+				t.Setenv(name, value)
+			}
+			api := serveScannerAPI(t, emptyFindings)
+			flags := map[string]string{"type": "secrets"}
+			for name, value := range tt.flags {
+				flags[name] = value
+			}
+
+			_, err := runCI(t, ciGateCmd, flags)
+
+			require.Equal(t, tt.exit, ExitCodeForError(err))
+			require.Equal(t, tt.requests, nilIfEmpty(api.requests()))
+		})
+	}
+}
+
+func nilIfEmpty(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	return values
 }

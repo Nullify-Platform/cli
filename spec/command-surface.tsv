@@ -951,8 +951,8 @@ nullify bughunt list-suite-runs		GET /dast/bughunt/suite-runs	github-installatio
 nullify bughunt patch-allowlist	<findingId>	PATCH /dast/bughunt/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify bughunt update-config		PUT /dast/bughunt/config	data,data-file,github-installation-id	active
 nullify ci				active
-nullify ci gate			repo,severity-threshold,type	active
-nullify ci report			format,repo	active
+nullify ci gate			all-repositories,repo,repository-id,severity-threshold,type	active
+nullify ci report			all-repositories,format,repo,repository-id	active
 nullify completion	[bash|zsh|fish|powershell]			active
 nullify deps				active
 nullify deps analyze			base,fail-on,format,head,idempotency-seed,repo,wait,wait-interval,wait-timeout	active

@@ -17,14 +17,21 @@ type scannerEndpoint struct {
 	// returns allowlisted, archived, false-positive and fixed findings
 	// too, so the CLI drops them itself.
 	filtersOpenOnClient bool
+	// hasRepository marks a scanner whose findings belong to a repository,
+	// so the gate and the report scope them to one. Pentest, bughunt and
+	// CSPM findings belong to applications, hosts and cloud accounts.
+	hasRepository bool
+	// supportsRepositoryIDs marks a list route that also narrows by the
+	// provider-neutral repositoryIds parameter.
+	supportsRepositoryIDs bool
 }
 
 func allScannerEndpoints() []scannerEndpoint {
 	return []scannerEndpoint{
-		{name: "sast", path: "/sast/findings", supportsSeverity: true, supportsIsResolved: true, severityFields: []string{"severity"}},
-		{name: "sca_dependencies", path: "/sca/dependencies/findings", supportsIsResolved: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
-		{name: "sca_containers", path: "/sca/containers/findings", supportsIsResolved: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
-		{name: "secrets", path: "/secrets/findings", supportsIsResolved: true},
+		{name: "sast", path: "/sast/findings", supportsSeverity: true, supportsIsResolved: true, hasRepository: true, supportsRepositoryIDs: true, severityFields: []string{"severity"}},
+		{name: "sca_dependencies", path: "/sca/dependencies/findings", supportsIsResolved: true, hasRepository: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
+		{name: "sca_containers", path: "/sca/containers/findings", supportsIsResolved: true, hasRepository: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
+		{name: "secrets", path: "/secrets/findings", supportsIsResolved: true, hasRepository: true},
 		{name: "pentest", path: "/dast/pentest/findings", supportsIsResolved: true, severityFields: []string{"effectiveSeverity", "severity"}},
 		{name: "bughunt", path: "/dast/bughunt/findings", filtersOpenOnClient: true, severityFields: []string{"severityOverride", "severity"}},
 		{name: "cspm", path: "/cspm/findings", supportsSeverity: true, supportsOpenStatus: true, severityFields: []string{"severity"}},
