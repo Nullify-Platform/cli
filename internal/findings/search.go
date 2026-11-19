@@ -57,7 +57,7 @@ type SearchResult struct {
 // the server sent it.
 type searchPage struct {
 	Findings    []json.RawMessage `json:"findings"`
-	Total       int               `json:"total"`
+	Total       *int              `json:"total"`
 	HasMoreData bool              `json:"hasMoreData"`
 }
 
@@ -87,20 +87,17 @@ func Search(ctx context.Context, c *api.Client, opts SearchOptions) (SearchResul
 			return SearchResult{}, err
 		}
 
-		var out searchPage
-		if err := json.Unmarshal(body, &out); err != nil {
-			return SearchResult{}, fmt.Errorf("%w: %w", ErrUnreadableResponse, err)
-		}
-		if out.Findings == nil {
-			return SearchResult{}, fmt.Errorf("%w: no findings field", ErrUnreadableResponse)
+		out, err := decodeSearchPage(body)
+		if err != nil {
+			return SearchResult{}, err
 		}
 
 		if opts.Debug != nil {
-			fmt.Fprintf(opts.Debug, "[debug] POST /admin/findings page %d: %d findings, hasMoreData=%v, total=%d\n", page, len(out.Findings), out.HasMoreData, out.Total)
+			fmt.Fprintf(opts.Debug, "[debug] POST /admin/findings page %d: %d findings, hasMoreData=%v, total=%d\n", page, len(out.Findings), out.HasMoreData, *out.Total)
 		}
 
 		result.Findings = append(result.Findings, out.Findings...)
-		result.Total = out.Total
+		result.Total = *out.Total
 		hasMore = out.HasMoreData
 		if len(out.Findings) == 0 {
 			break
@@ -129,14 +126,25 @@ func Count(ctx context.Context, c *api.Client, opts SearchOptions) (int, error) 
 	if err != nil {
 		return 0, err
 	}
+	out, err := decodeSearchPage(body)
+	if err != nil {
+		return 0, err
+	}
+	return *out.Total, nil
+}
+
+func decodeSearchPage(body []byte) (searchPage, error) {
 	var out searchPage
 	if err := json.Unmarshal(body, &out); err != nil {
-		return 0, fmt.Errorf("%w: %w", ErrUnreadableResponse, err)
+		return out, fmt.Errorf("%w: %w", ErrUnreadableResponse, err)
 	}
 	if out.Findings == nil {
-		return 0, fmt.Errorf("%w: no findings field", ErrUnreadableResponse)
+		return out, fmt.Errorf("%w: no findings field", ErrUnreadableResponse)
 	}
-	return out.Total, nil
+	if out.Total == nil || *out.Total < 0 {
+		return out, fmt.Errorf("%w: missing or invalid total", ErrUnreadableResponse)
+	}
+	return out, nil
 }
 
 func (o SearchOptions) query() (models.ModelsUnifiedFindingsQuery, error) {

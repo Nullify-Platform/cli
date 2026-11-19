@@ -213,8 +213,8 @@ waitLoop:
 // verifyAuthURL is checkAuthURL, a var so tests can open a local callback.
 var verifyAuthURL = checkAuthURL
 
-// checkAuthURL refuses a sign-in URL that is not https on the domain of the
-// host the session was created at. The server builds the URL from the host
+// checkAuthURL confines sign-in to the HTTPS origin that created the session.
+// The server builds the URL from the host
 // the request reached; the URL is handed to the OS to open, and on Windows
 // the opener runs more than web URLs.
 func checkAuthURL(raw, authHost string) error {
@@ -222,18 +222,13 @@ func checkAuthURL(raw, authHost string) error {
 	if err != nil {
 		return fmt.Errorf("the server returned an invalid sign-in URL: %w", err)
 	}
-	if u.Scheme != "https" || u.User != nil || !allowedAuthURLHost(u.Hostname(), authHost) {
+	expectedHost := apiHost(authHost)
+	sameOrigin := strings.EqualFold(u.Host, expectedHost) ||
+		strings.EqualFold(u.Host, expectedHost+":443")
+	if u.Scheme != "https" || u.User != nil || !sameOrigin {
 		return fmt.Errorf("the server returned a sign-in URL that is not on %s: %q", apiHost(authHost), raw)
 	}
 	return nil
-}
-
-// allowedAuthURLHost reports whether host is the API host the login runs at
-// or another host under the same Nullify instance domain.
-func allowedAuthURLHost(host, authHost string) bool {
-	host = strings.ToLower(host)
-	domain := strings.ToLower(strings.TrimPrefix(apiHost(authHost), "api."))
-	return host == domain || strings.HasSuffix(host, "."+domain)
 }
 
 // saveTenantLogin stores a login a tenant ran itself. The query parameters it
@@ -511,28 +506,25 @@ func CheckSession(ctx context.Context, host string) error {
 // Logout after it whatever it returns.
 func RevokeLogin(ctx context.Context, host string) error {
 	host = normalizeHost(host)
-	hostCreds, authHost, ok, err := LookupCredentials(host)
-	if errors.Is(err, os.ErrNotExist) || (err == nil && !ok) {
+	authHost, err := AuthHostFor(host)
+	if err != nil {
+		return err
+	}
+	creds, err := LoadCredentials()
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 	var errs []error
-	revoked := map[string]bool{}
-	revoke := func(authHost, token string) {
-		if token == "" || revoked[token] {
-			return
-		}
-		revoked[token] = true
-		if err := revokeRefreshToken(ctx, authHost, token); err != nil {
-			errs = append(errs, err)
-		}
+	token := creds[CredentialKey(authHost)].RefreshToken
+	if token != "" {
+		errs = append(errs, revokeRefreshToken(ctx, authHost, token))
 	}
-	revoke(authHost, hostCreds.RefreshToken)
 	// A login from before the auth host was recorded sits under host itself.
-	if creds, err := LoadCredentials(); err == nil {
-		revoke(host, creds[CredentialKey(host)].RefreshToken)
+	if legacy := creds[CredentialKey(host)].RefreshToken; legacy != "" && legacy != token {
+		errs = append(errs, revokeRefreshToken(ctx, host, legacy))
 	}
 	return errors.Join(errs...)
 }

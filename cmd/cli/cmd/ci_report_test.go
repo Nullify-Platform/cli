@@ -115,3 +115,19 @@ func TestCIReportCountsOnlyTheScopedRepository(t *testing.T) {
 	_, err = runCI(t, ciReportCmd, map[string]string{})
 	require.Equal(t, ExitUsageError, ExitCodeForError(err))
 }
+
+func TestCIReportOmitsScannerWithUnreadableSecondPage(t *testing.T) {
+	useCIEnv(t)
+	serveScannerAPI(t, func(r *http.Request) (int, string) {
+		if r.URL.Path != "/sast/findings" {
+			return emptyFindings(r)
+		}
+		if r.URL.Query().Get("nextToken") == "" {
+			return http.StatusOK, `{"findings":[{"severity":"HIGH"}],"nextToken":"p2"}`
+		}
+		return http.StatusOK, `{}`
+	})
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
+	require.NoError(t, err)
+	require.NotContains(t, markdown, "| sast |")
+}

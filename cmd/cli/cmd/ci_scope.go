@@ -19,7 +19,7 @@ var (
 			"or pass --all-repositories to count every repository " +
 			"(the ID is detected in GitHub Actions, GitLab CI, Bitbucket Pipelines and Azure Pipelines)",
 	)
-	errInvalidRepositoryID        = errors.New("invalid --repository-id")
+	errInvalidRepositoryID        = errors.New("invalid repository ID")
 	errConflictingRepositoryScope = errors.New("--repository-id and --all-repositories cannot be used together")
 )
 
@@ -72,7 +72,7 @@ func resolveRepositoryScope(
 		return explicitRepositoryScope(id)
 	}
 	if detected, ok := detect(); ok {
-		return detectedRepositoryScope(detected), nil
+		return detectedRepositoryScope(detected)
 	}
 	return repositoryScope{}, errNoRepositoryScope
 }
@@ -87,31 +87,34 @@ func explicitRepositoryScope(value string) (repositoryScope, error) {
 	id := normalizeRepositoryID(value)
 	scope := repositoryScope{id: id, source: "--repository-id"}
 	switch {
-	case id == "":
-		return repositoryScope{}, fmt.Errorf("%w: the value is empty", errInvalidRepositoryID)
 	case isUUID(id):
 		scope.providerParams = []string{"bitbucketRepositoryId", id, "azureRepositoryId", id}
-		return scope, nil
-	case !isDigits(id):
-		return repositoryScope{}, fmt.Errorf(
-			"%w %q: pass the repository's ID at its git provider, not its name: "+
-				"a GitHub or GitLab numeric ID, or a Bitbucket or Azure Repos UUID",
-			errInvalidRepositoryID, value,
-		)
+	case isNumericRepositoryID(id):
+		scope.providerParams = []string{"githubRepositoryId", id}
+	default:
+		return repositoryScope{}, fmt.Errorf("%w for --repository-id %q: expected a positive numeric ID without leading zeros or a UUID", errInvalidRepositoryID, value)
 	}
-	if _, err := strconv.ParseInt(id, 10, 64); err != nil {
-		return repositoryScope{}, fmt.Errorf("%w %q: a numeric ID must fit in 64 bits", errInvalidRepositoryID, value)
-	}
-	scope.providerParams = []string{"githubRepositoryId", id}
 	return scope, nil
 }
 
-func detectedRepositoryScope(detected ci.RepositoryID) repositoryScope {
+func detectedRepositoryScope(detected ci.RepositoryID) (repositoryScope, error) {
 	scope := repositoryScope{id: normalizeRepositoryID(detected.ID), source: detected.Source}
+	switch detected.Provider {
+	case ci.GitProviderGitHub, ci.GitProviderGitLab:
+		if !isNumericRepositoryID(scope.id) {
+			return repositoryScope{}, fmt.Errorf("%w in %s: expected a positive numeric ID without leading zeros", errInvalidRepositoryID, detected.Source)
+		}
+	case ci.GitProviderBitbucket, ci.GitProviderAzure:
+		if !isUUID(scope.id) {
+			return repositoryScope{}, fmt.Errorf("%w in %s: expected a UUID", errInvalidRepositoryID, detected.Source)
+		}
+	default:
+		return repositoryScope{}, fmt.Errorf("%w: unknown provider %q", errInvalidRepositoryID, detected.Provider)
+	}
 	if name, ok := providerParamNames[detected.Provider]; ok {
 		scope.providerParams = []string{name, scope.id}
 	}
-	return scope
+	return scope, nil
 }
 
 // queryParams returns the parameters that narrow a scanner's list route to
@@ -161,8 +164,12 @@ func normalizeRepositoryID(value string) string {
 	return strings.Trim(strings.TrimSpace(value), "{}")
 }
 
-func isDigits(value string) bool {
-	return value != "" && strings.Trim(value, "0123456789") == ""
+func isNumericRepositoryID(value string) bool {
+	if value == "" || value[0] < '1' || value[0] > '9' {
+		return false
+	}
+	_, err := strconv.ParseInt(value, 10, 64)
+	return err == nil
 }
 
 // isUUID reports a value in the 8-4-4-4-12 hex form that Bitbucket and Azure

@@ -90,7 +90,10 @@ func collectFindings(
 		all = append(all, page...)
 		return true
 	})
-	return all, err
+	if err != nil {
+		return nil, err
+	}
+	return all, nil
 }
 
 // decodeFindingsPage reads one page of a scanner list route. The page must

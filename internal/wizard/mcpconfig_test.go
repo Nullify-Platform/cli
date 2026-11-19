@@ -144,3 +144,24 @@ func TestConfigureByFileShowsTheEntryWhenItRefuses(t *testing.T) {
 }
 
 func ptr(s string) *string { return &s }
+
+func TestMCPConfigPreservesInteger(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mcp.json")
+	const id = "9007199254740993"
+	require.NoError(t, os.WriteFile(path, []byte(`{"id":`+id+`}`), 0600))
+	_, err := writeMCPConfig(path, cursorFormat)
+	require.NoError(t, err)
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	require.Contains(t, string(data), id)
+}
+
+func TestMCPConfigRefusesDanglingSymlink(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mcp.json")
+	require.NoError(t, os.Symlink("missing.json", path))
+	_, err := writeMCPConfig(path, cursorFormat)
+	require.Error(t, err)
+	target, err := os.Readlink(path)
+	require.NoError(t, err)
+	require.Equal(t, "missing.json", target)
+}

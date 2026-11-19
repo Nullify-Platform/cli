@@ -30,6 +30,9 @@ func TestCount(t *testing.T) {
 			sent:     `{"query":{"page":1,"pageSize":1,"type":["Cloud"]}}`,
 		},
 		{name: "a response without findings is unreadable", response: `{"total":3}`, err: ErrUnreadableResponse},
+		{name: "missing total", response: `{"findings":[{}]}`, err: ErrUnreadableResponse},
+		{name: "null total", response: `{"findings":[],"total":null}`, err: ErrUnreadableResponse},
+		{name: "negative total", response: `{"findings":[],"total":-1}`, err: ErrUnreadableResponse},
 		{name: "an invalid status sends nothing", opts: SearchOptions{Status: "closed"}, err: ErrInvalidStatus},
 	}
 	for _, tt := range tests {

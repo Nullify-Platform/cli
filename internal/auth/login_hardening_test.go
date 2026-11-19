@@ -22,6 +22,9 @@ func TestCheckAuthURL(t *testing.T) {
 	}{
 		{name: "instance api host", authURL: "https://api.acme.nullify.ai/auth/cli/start?session_id=s1", authHost: "acme.nullify.ai"},
 		{name: "router api host", authURL: "https://api.nullify.ai/auth/cli/start?session_id=s1", authHost: "api.nullify.ai"},
+		{name: "router tenant is a different origin", authURL: "https://api.acme.nullify.ai/auth/cli/start", authHost: RouterHost, wantErr: true},
+		{name: "different port", authURL: "https://api.acme.nullify.ai:8443/auth/cli/start", authHost: "acme.nullify.ai", wantErr: true},
+		{name: "explicit https port", authURL: "https://api.acme.nullify.ai:443/auth/cli/start", authHost: "acme.nullify.ai"},
 		{name: "plain http", authURL: "http://api.acme.nullify.ai/auth/cli/start", authHost: "acme.nullify.ai", wantErr: true},
 		{name: "another instance", authURL: "https://api.other.nullify.ai/auth/cli/start", authHost: "acme.nullify.ai", wantErr: true},
 		{name: "lookalike domain", authURL: "https://api.acme.nullify.ai.example.com/auth", authHost: "acme.nullify.ai", wantErr: true},
@@ -150,6 +153,32 @@ func TestRevokeLoginSendsTheRefreshToken(t *testing.T) {
 			require.NotContains(t, creds, "acme.nullify.ai")
 		})
 	}
+}
+
+type logoutTransport func(*http.Request) (*http.Response, error)
+
+func (f logoutTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestRevokeLoginWithOnlyLegacyTenantCredential(t *testing.T) {
+	const host = "acme.nullify.ai"
+	t.Setenv("HOME", t.TempDir())
+	old := httpClient
+	t.Cleanup(func() { httpClient = old })
+	var revoked string
+	httpClient = &http.Client{Transport: logoutTransport(func(req *http.Request) (*http.Response, error) {
+		require.Equal(t, apiHost(host), req.URL.Host)
+		cookie, err := req.Cookie("refresh_token")
+		require.NoError(t, err)
+		revoked = cookie.Value
+		return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil
+	})}
+	require.NoError(t, SaveHostCredentials(host, HostCredentials{RefreshToken: "legacy"}))
+	require.NoError(t, BindTenant(host, routers[0]))
+
+	require.NoError(t, RevokeLogin(context.Background(), host))
+	require.Equal(t, "legacy", revoked)
 }
 
 func TestRevokeLoginWithoutStoredLoginDoesNothing(t *testing.T) {

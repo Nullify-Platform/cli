@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -42,7 +43,10 @@ func LatestSBOMs(
 		return nil, err
 	}
 
-	out := &models.EndpointsGetLatestSBOMsOutput{Sboms: []models.ModelsCDXGenAtCommit{}}
+	out := &models.EndpointsGetLatestSBOMsOutput{
+		Version: tree.Version,
+		Sboms:   []models.ModelsCDXGenAtCommit{},
+	}
 	for _, pc := range commits {
 		sboms, err := sbomAtCommit(ctx, c, download, repoID, pc)
 		if err != nil {
@@ -142,7 +146,14 @@ func downloadSBOM(ctx context.Context, hc *http.Client, rawURL string) (models.M
 	}
 	resp, err := hc.Do(req)
 	if err != nil {
-		return sbom, err
+		// Transport and redirect errors can contain the signed URL.
+		if ctx.Err() != nil {
+			return sbom, ctx.Err()
+		}
+		if errors.Is(err, context.DeadlineExceeded) {
+			return sbom, context.DeadlineExceeded
+		}
+		return sbom, errors.New("request to the SBOM document store failed")
 	}
 	defer func() { _ = resp.Body.Close() }()
 

@@ -195,9 +195,19 @@ func TestCIGateResolvesItsRepositoryScope(t *testing.T) {
 		},
 		{
 			name:     "bitbucket pipelines names the repository",
-			env:      map[string]string{"BITBUCKET_BUILD_NUMBER": "3", "BITBUCKET_REPO_UUID": "{abc-123}"},
+			env:      map[string]string{"BITBUCKET_BUILD_NUMBER": "3", "BITBUCKET_REPO_UUID": "{01234567-89ab-cdef-0123-456789abcdef}"},
 			exit:     ExitSuccess,
-			requests: []string{"/secrets/findings?bitbucketRepositoryId=abc-123&isResolved=false&limit=100"},
+			requests: []string{"/secrets/findings?bitbucketRepositoryId=01234567-89ab-cdef-0123-456789abcdef&isResolved=false&limit=100"},
+		},
+		{
+			name: "a padded GitHub ID fails before querying",
+			env:  map[string]string{"GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY_ID": "007"},
+			exit: ExitUsageError,
+		},
+		{
+			name: "a numeric Bitbucket ID fails before querying",
+			env:  map[string]string{"BITBUCKET_BUILD_NUMBER": "3", "BITBUCKET_REPO_UUID": "7"},
+			exit: ExitUsageError,
 		},
 		{
 			name:     "every repository on request",

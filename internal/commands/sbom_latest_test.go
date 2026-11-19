@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const sbomTree = `{"tenantId":"t","repositories":[
+const sbomTree = `{"version":"v42","tenantId":"t","repositories":[
 	{"repositoryId":"r1","projects":[
 		{"projectId":"p1","commits":["c1","c2"]},
 		{"projectId":"p2","commits":["c3"]},
@@ -84,6 +84,7 @@ func TestLatestSBOMsForEveryProject(t *testing.T) {
 		"/context/sboms/repository/r1/project/p1 from=c2 until=c2 preferUrl=true",
 		"/context/sboms/repository/r1/project/p2 from=c3 until=c3 preferUrl=true",
 	}, *reads)
+	require.Equal(t, new("v42"), got.Version)
 	require.Len(t, got.Sboms, 2)
 	require.Equal(t, "c2", got.Sboms[0].CommitSha)
 	require.Equal(t, "c3", got.Sboms[1].CommitSha)
@@ -154,4 +155,13 @@ func TestLatestSBOMsDocumentErrors(t *testing.T) {
 func TestDownloadSBOMRefusesANonHTTPSURL(t *testing.T) {
 	_, err := downloadSBOM(context.Background(), http.DefaultClient, "http://bucket.example/doc")
 	require.ErrorContains(t, err, "https")
+}
+
+func TestDownloadSBOMRedactsPresignedURL(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := downloadSBOM(ctx, http.DefaultClient,
+		"https://store.example/doc?X-Amz-Signature=sensitive")
+	require.ErrorIs(t, err, context.Canceled)
+	require.NotContains(t, err.Error(), "sensitive")
 }

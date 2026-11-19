@@ -61,13 +61,13 @@ func TestResolveRepositoryScope(t *testing.T) {
 		},
 		{
 			name:   "bitbucket pipelines",
-			detect: detected(ci.GitProviderBitbucket, "abc", "BITBUCKET_REPO_UUID"),
-			want:   repositoryScope{id: "abc", source: "BITBUCKET_REPO_UUID", providerParams: []string{"bitbucketRepositoryId", "abc"}},
+			detect: detected(ci.GitProviderBitbucket, "01234567-89ab-cdef-0123-456789abcdef", "BITBUCKET_REPO_UUID"),
+			want:   repositoryScope{id: "01234567-89ab-cdef-0123-456789abcdef", source: "BITBUCKET_REPO_UUID", providerParams: []string{"bitbucketRepositoryId", "01234567-89ab-cdef-0123-456789abcdef"}},
 		},
 		{
 			name:   "azure pipelines",
-			detect: detected(ci.GitProviderAzure, "guid", "BUILD_REPOSITORY_ID"),
-			want:   repositoryScope{id: "guid", source: "BUILD_REPOSITORY_ID", providerParams: []string{"azureRepositoryId", "guid"}},
+			detect: detected(ci.GitProviderAzure, "01234567-89ab-cdef-0123-456789abcdef", "BUILD_REPOSITORY_ID"),
+			want:   repositoryScope{id: "01234567-89ab-cdef-0123-456789abcdef", source: "BUILD_REPOSITORY_ID", providerParams: []string{"azureRepositoryId", "01234567-89ab-cdef-0123-456789abcdef"}},
 		},
 		{
 			name:   "every repository",
@@ -77,6 +77,8 @@ func TestResolveRepositoryScope(t *testing.T) {
 		},
 		{name: "no repository", detect: notDetected, wantErr: errNoRepositoryScope},
 		{name: "a blank id", id: "  ", detect: notDetected, wantErr: errInvalidRepositoryID},
+		{name: "a zero padded id cannot match stored findings", id: "0042", detect: notDetected, wantErr: errInvalidRepositoryID},
+		{name: "zero is not a repository id", id: "0", detect: notDetected, wantErr: errInvalidRepositoryID},
 		{name: "a numeric id too large for any provider", id: "99999999999999999999", detect: notDetected, wantErr: errInvalidRepositoryID},
 		{name: "a repository name is not an id", id: "acme/app", detect: notDetected, wantErr: errInvalidRepositoryID},
 		{name: "a bare name is not an id", id: "app", detect: notDetected, wantErr: errInvalidRepositoryID},

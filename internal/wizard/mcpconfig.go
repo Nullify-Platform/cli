@@ -84,7 +84,10 @@ func resolveConfigPath(path string) (string, error) {
 	case err == nil:
 		return target, nil
 	case errors.Is(err, fs.ErrNotExist):
-		return path, nil
+		if _, statErr := os.Lstat(path); errors.Is(statErr, fs.ErrNotExist) {
+			return path, nil
+		}
+		return "", fmt.Errorf("resolve %s: %w", path, err)
 	default:
 		return "", fmt.Errorf("resolve %s: %w", path, err)
 	}
@@ -110,7 +113,9 @@ func readMCPConfig(path string) (map[string]any, fs.FileMode, error) {
 	}
 
 	var config map[string]any
-	if err := json.Unmarshal(data, &config); err != nil || config == nil {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	if !json.Valid(data) || decoder.Decode(&config) != nil || config == nil {
 		return nil, 0, fmt.Errorf("%w: %s", ErrUnreadableMCPConfig, path)
 	}
 	return config, info.Mode().Perm(), nil
