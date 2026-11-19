@@ -101,10 +101,17 @@ func TestScannerSeveritiesCollapseWithoutServerSideFilter(t *testing.T) {
 	require.Equal(t, []string{""}, scannerSeverities(byName["bughunt"], threshold))
 
 	require.Equal(t,
-		"FAIL: secrets has open findings (no server-side severity filter, threshold not applied)",
-		gateFailLine(byName["secrets"], ""),
+		"FAIL: secrets has open findings (its findings carry no severity, so every open one counts)",
+		gateFailLine(gateCheck{ep: byName["secrets"]}, severityHigh),
 	)
-	require.Equal(t, "FAIL: sast has open critical findings", gateFailLine(byName["sast"], "critical"))
+	require.Equal(t,
+		"FAIL: sca_dependencies has open findings at or above high severity",
+		gateFailLine(gateCheck{ep: byName["sca_dependencies"]}, severityHigh),
+	)
+	require.Equal(t,
+		"FAIL: sast has open critical findings",
+		gateFailLine(gateCheck{ep: byName["sast"], severity: "critical"}, severityHigh),
+	)
 }
 
 func TestCIGateResponseValidation(t *testing.T) {
@@ -227,7 +234,7 @@ func TestCIReportPreservesPentestFindingsWithZeroCount(t *testing.T) {
 			}
 			require.NoError(t, json.Unmarshal(report, &sarif))
 			require.Len(t, sarif.Runs, 1)
-			require.NotEmpty(t, sarif.Runs[0].Results)
+			require.Len(t, sarif.Runs[0].Results, 1)
 			for _, result := range sarif.Runs[0].Results {
 				require.Equal(t, "error", result.Level)
 				require.Equal(t, "Critical pentest finding", result.Message.Text)

@@ -2,18 +2,13 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
-	"sync"
-	"sync/atomic"
 
 	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 var ciCmd = &cobra.Command{
@@ -27,6 +22,11 @@ var ciGateCmd = &cobra.Command{
 	Short: "Quality gate - exit non-zero if findings exceed threshold",
 	Long: `Check if security findings exceed the severity threshold and exit non-zero if they do.
 Use this in CI/CD pipelines to block deployments with critical/high findings.
+
+The threshold applies to every scanner. A finding counts when its own
+severity is at or above the threshold. Secrets findings carry no severity,
+and neither does a finding whose severity is missing or unknown, so every
+open one counts at any threshold.
 
 Exit codes:
   0 - No findings above threshold
@@ -42,109 +42,7 @@ Exit codes:
   # Check a specific repo
   nullify ci gate --repo my-org/my-repo`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-
-		authCtx, err := resolveCommandAuth(ctx)
-		if err != nil {
-			return err
-		}
-		nullifyClient := authCtx.Client()
-		queryParams := authCtx.QueryParams
-
-		severityThreshold, _ := cmd.Flags().GetString("severity-threshold")
-		findingType, _ := cmd.Flags().GetString("type")
-		repo, _ := cmd.Flags().GetString("repo")
-
-		validSeverities := []string{"critical", "high", "medium", "low"}
-		validThreshold := false
-		for _, s := range validSeverities {
-			if s == severityThreshold {
-				validThreshold = true
-				break
-			}
-		}
-		if !validThreshold {
-			err := fmt.Errorf("invalid --severity-threshold %q. Valid values: critical, high, medium, low", severityThreshold)
-			return withExitCode(1, err)
-		}
-
-		if repo == "" {
-			repo = lib.DetectRepoFromGit()
-		}
-
-		severities := severitiesAboveThreshold(severityThreshold)
-
-		endpoints := allScannerEndpoints()
-		if findingType != "" {
-			if filtered := filterEndpointsByType(endpoints, findingType); filtered != nil {
-				endpoints = filtered
-			} else {
-				fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
-			}
-		}
-
-		var findingsFound int64
-		var apiErrors int64
-		var unreadable int64
-		var mu sync.Mutex
-		g, gctx := errgroup.WithContext(ctx)
-
-		for _, ep := range endpoints {
-			for _, sev := range scannerSeverities(ep, severities) {
-				ep, sev := ep, sev
-				g.Go(func() error {
-					params := append(scannerQueryParams(ep, sev, repo), "limit", "1")
-					qs := lib.BuildQueryString(queryParams, params...)
-
-					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
-					if err != nil {
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						atomic.AddInt64(&apiErrors, 1)
-						return nil
-					}
-
-					page, err := decodeFindingsPage(body)
-					if err != nil {
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Error: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						atomic.AddInt64(&unreadable, 1)
-						return nil
-					}
-
-					if len(page.findings) > 0 {
-						atomic.AddInt64(&findingsFound, 1)
-						mu.Lock()
-						fmt.Println(gateFailLine(ep, sev))
-						mu.Unlock()
-					}
-					return nil
-				})
-			}
-		}
-
-		_ = g.Wait()
-
-		if apiErrors > 0 {
-			err := fmt.Errorf("%d scanner request(s) failed; failing the gate (cannot confirm a clean result)", apiErrors)
-			return withExitCode(ExitNetworkError, err)
-		}
-
-		if unreadable > 0 {
-			err := fmt.Errorf("%d scanner response(s) could not be read; failing the gate (cannot confirm a clean result)", unreadable)
-			return withExitCode(ExitNetworkError, err)
-		}
-
-		if findingsFound > 0 {
-			fmt.Printf("\nGate failed: open findings at or above %s severity\n", severityThreshold)
-			cmd.SilenceErrors = true
-			return withExitCode(ExitFindings, fmt.Errorf("gate failed: open findings at or above %s severity", severityThreshold))
-		}
-
-		fmt.Println("Gate passed: no findings above threshold")
-		return nil
+		return runCIGate(cmd)
 	},
 }
 
@@ -153,110 +51,15 @@ var ciReportCmd = &cobra.Command{
 	Short: "Generate a findings report (markdown or SARIF)",
 	Long: `Output a report of security findings. The default markdown format produces a
 summary table suitable for PR comments (counts by type and severity). The sarif
-format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
+format emits a SARIF v2.1.0 document for upload to code-scanning tools.
+
+Each finding is counted once, under its own severity. Findings without a
+severity, which includes every secrets finding, are counted as unknown.`,
 	Example: `  nullify ci report
   nullify ci report --repo my-org/my-repo
   nullify ci report --format sarif > nullify.sarif`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-
-		authCtx, err := resolveCommandAuth(ctx)
-		if err != nil {
-			return err
-		}
-		get := clientGetter(authCtx.Client())
-		queryParams := authCtx.QueryParams
-
-		repo, _ := cmd.Flags().GetString("repo")
-		if repo == "" {
-			repo = lib.DetectRepoFromGit()
-		}
-
-		format, _ := cmd.Flags().GetString("format")
-		switch format {
-		case "markdown", "sarif":
-		default:
-			return withExitCode(1, fmt.Errorf("invalid --format %q. Valid values: markdown, sarif", format))
-		}
-
-		endpoints := allScannerEndpoints()
-		severities := []string{"critical", "high", "medium", "low"}
-
-		type reportRow struct {
-			scanner  string
-			severity string
-			count    int
-			findings []json.RawMessage
-		}
-
-		rows := make([]reportRow, len(endpoints)*len(severities))
-		g, gctx := errgroup.WithContext(ctx)
-		var successCount int64
-		var apiErrors int64
-		var mu sync.Mutex
-
-		for i, ep := range endpoints {
-			for j, sev := range severities {
-				i, j, ep, sev := i, j, ep, sev
-				g.Go(func() error {
-					findings, err := collectFindings(gctx, get, ep.path, queryParams, scannerQueryParams(ep, sev, repo))
-					if err != nil {
-						atomic.AddInt64(&apiErrors, 1)
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to read %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						return nil
-					}
-					atomic.AddInt64(&successCount, 1)
-
-					rows[i*len(severities)+j] = reportRow{
-						scanner:  ep.name,
-						severity: sev,
-						count:    len(findings),
-						findings: findings,
-					}
-					return nil
-				})
-			}
-		}
-
-		_ = g.Wait()
-
-		if successCount == 0 {
-			return networkError("all API requests failed, cannot generate report")
-		}
-		if apiErrors > 0 {
-			fmt.Fprintf(os.Stderr, "Warning: %d API requests failed while generating the report\n", apiErrors)
-		}
-
-		if format == "sarif" {
-			all := make([]json.RawMessage, 0)
-			for _, row := range rows {
-				all = append(all, row.findings...)
-			}
-			wrapped, _ := json.Marshal(map[string]any{"findings": all, "total": len(all)})
-			sarifBytes, err := output.SARIFBytes(wrapped)
-			if err != nil {
-				return networkError("failed to build SARIF report: %w", err)
-			}
-			fmt.Println(string(sarifBytes))
-			return nil
-		}
-
-		fmt.Println("## Nullify Security Report")
-		fmt.Println()
-		fmt.Println("| Scanner | Severity | Count |")
-		fmt.Println("|---------|----------|-------|")
-
-		for _, row := range rows {
-			if row.count > 0 {
-				fmt.Printf("| %s | %s | %d |\n", row.scanner, row.severity, row.count)
-			}
-		}
-
-		fmt.Println()
-		fmt.Println("*Generated by [Nullify CLI](https://github.com/nullify-platform/cli)*")
-		return nil
+		return runCIReport(cmd)
 	},
 }
 
@@ -273,11 +76,93 @@ func init() {
 	ciReportCmd.Flags().String("format", "markdown", "Report format (markdown, sarif)")
 }
 
+func runCIGate(cmd *cobra.Command) error {
+	thresholdName, _ := cmd.Flags().GetString("severity-threshold")
+	threshold, err := parseSeverityThreshold(thresholdName)
+	if err != nil {
+		return withExitCode(1, err)
+	}
+
+	ctx := cmd.Context()
+	authCtx, err := resolveCommandAuth(ctx)
+	if err != nil {
+		return err
+	}
+
+	findingType, _ := cmd.Flags().GetString("type")
+	repo := ciRepositoryName(cmd)
+
+	checks := gateChecks(gateEndpoints(findingType), severitiesAboveThreshold(threshold.String()))
+	results := runGateChecks(ctx, clientGetter(authCtx.Client()), authCtx.QueryParams, checks, threshold, repo)
+	if err := gateVerdict(results, threshold); err != nil {
+		if ExitCodeForError(err) == ExitFindings {
+			// The FAIL lines and the summary already explain the result.
+			cmd.SilenceErrors = true
+		}
+		return err
+	}
+
+	fmt.Println("Gate passed: no findings above threshold")
+	return nil
+}
+
+func runCIReport(cmd *cobra.Command) error {
+	format, _ := cmd.Flags().GetString("format")
+	switch format {
+	case "markdown", "sarif":
+	default:
+		return withExitCode(1, fmt.Errorf("invalid --format %q. Valid values: markdown, sarif", format))
+	}
+
+	ctx := cmd.Context()
+	authCtx, err := resolveCommandAuth(ctx)
+	if err != nil {
+		return err
+	}
+
+	reports := collectScannerReports(
+		ctx, clientGetter(authCtx.Client()), authCtx.QueryParams,
+		allScannerEndpoints(), ciRepositoryName(cmd),
+	)
+	if err := checkReportReads(reports); err != nil {
+		return err
+	}
+
+	if format == "sarif" {
+		return printSARIFReport(reports)
+	}
+	printMarkdownReport(reportRows(reports))
+	return nil
+}
+
+// ciRepositoryName returns the --repo flag, or the repository of the working
+// directory when the flag is not set.
+func ciRepositoryName(cmd *cobra.Command) string {
+	repo, _ := cmd.Flags().GetString("repo")
+	if repo == "" {
+		return lib.DetectRepoFromGit()
+	}
+	return repo
+}
+
+// gateEndpoints returns the scanners the gate checks: the --type scanner, or
+// every scanner when the type is empty or unknown.
+func gateEndpoints(findingType string) []scannerEndpoint {
+	endpoints := allScannerEndpoints()
+	if findingType == "" {
+		return endpoints
+	}
+	if filtered := filterEndpointsByType(endpoints, findingType); filtered != nil {
+		return filtered
+	}
+	fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
+	return endpoints
+}
+
 func severitiesAboveThreshold(threshold string) []string {
-	all := []string{"critical", "high", "medium", "low"}
-	for i, s := range all {
+	for i, s := range thresholdNames {
 		if s == threshold {
-			return all[:i+1]
+			return thresholdNames[:i+1]
 		}
 	}
 	return []string{"critical", "high"}
@@ -320,16 +205,6 @@ func scannerLabel(ep scannerEndpoint, severity string) string {
 		return ep.name
 	}
 	return fmt.Sprintf("%s (%s)", ep.name, severity)
-}
-
-// gateFailLine reports a scanner that returned findings. Scanners with no
-// server-side severity filter say so rather than implying the threshold was
-// applied to their result.
-func gateFailLine(ep scannerEndpoint, severity string) string {
-	if severity == "" {
-		return fmt.Sprintf("FAIL: %s has open findings (no server-side severity filter, threshold not applied)", ep.name)
-	}
-	return fmt.Sprintf("FAIL: %s has open %s findings", ep.name, severity)
 }
 
 // clientGetter sends finding list requests through the authenticated client.

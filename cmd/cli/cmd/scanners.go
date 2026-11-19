@@ -1,22 +1,29 @@
 package cmd
 
+// scannerEndpoint describes one per-scanner finding list route and the
+// filters it supports.
 type scannerEndpoint struct {
 	name               string
 	path               string
 	supportsSeverity   bool
 	supportsIsResolved bool
 	supportsOpenStatus bool
+	// severityFields are the finding fields that hold its severity, in the
+	// order they are read. The first non-empty one wins, so an override is
+	// listed before the value it overrides. A scanner whose findings carry
+	// no severity has none, and its findings count at every threshold.
+	severityFields []string
 }
 
 func allScannerEndpoints() []scannerEndpoint {
 	return []scannerEndpoint{
-		{name: "sast", path: "/sast/findings", supportsSeverity: true, supportsIsResolved: true},
-		{name: "sca_dependencies", path: "/sca/dependencies/findings", supportsIsResolved: true},
-		{name: "sca_containers", path: "/sca/containers/findings", supportsIsResolved: true},
+		{name: "sast", path: "/sast/findings", supportsSeverity: true, supportsIsResolved: true, severityFields: []string{"severity"}},
+		{name: "sca_dependencies", path: "/sca/dependencies/findings", supportsIsResolved: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
+		{name: "sca_containers", path: "/sca/containers/findings", supportsIsResolved: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
 		{name: "secrets", path: "/secrets/findings", supportsIsResolved: true},
-		{name: "pentest", path: "/dast/pentest/findings", supportsIsResolved: true},
-		{name: "bughunt", path: "/dast/bughunt/findings"},
-		{name: "cspm", path: "/cspm/findings", supportsSeverity: true, supportsOpenStatus: true},
+		{name: "pentest", path: "/dast/pentest/findings", supportsIsResolved: true, severityFields: []string{"effectiveSeverity", "severity"}},
+		{name: "bughunt", path: "/dast/bughunt/findings", severityFields: []string{"severityOverride", "severity"}},
+		{name: "cspm", path: "/cspm/findings", supportsSeverity: true, supportsOpenStatus: true, severityFields: []string{"severity"}},
 	}
 }
 
