@@ -4,7 +4,6 @@ nullify api admin				active
 nullify api admin create-access-token		POST /admin/integrations/cloud/gcp/access-token	github-installation-id	active
 nullify api admin create-acknowledgment		POST /admin/privacy/acknowledgment	data,data-file,github-installation-id	active
 nullify api admin create-activate		POST /admin/users/activate	data,data-file,github-installation-id	active
-nullify api admin create-approve		POST /admin/operator/workspace-bootstrap/approve	data,data-file	active
 nullify api admin create-atlassian		POST /admin/integrations/atlassian	data,data-file,github-installation-id	active
 nullify api admin create-azure		POST /admin/integrations/azure	dry-run,github-installation-id,reconcile	active
 nullify api admin create-bulk-add-comment		POST /admin/ticketing/tickets/bulk-add-comment	data,data-file,github-installation-id	active
@@ -29,6 +28,7 @@ nullify api admin create-connections-by-id	<providerId> <capability>	POST /admin
 nullify api admin create-context-census		POST /admin/triage/context-census	data,data-file,github-installation-id	active
 nullify api admin create-credentials		POST /admin/integrations/azure/credentials	data,data-file,github-installation-id	active
 nullify api admin create-deactivate		POST /admin/users/deactivate	data,data-file,github-installation-id	active
+nullify api admin create-decision-by-id	<requestId>	POST /admin/identity/slack/link-requests/{requestId}/decision	data,data-file,github-installation-id	active
 nullify api admin create-discover		POST /admin/integrations/github-packages/discover	data,data-file,github-installation-id	active
 nullify api admin create-download		POST /admin/findings/download	data,data-file,github-installation-id	active
 nullify api admin create-events		POST /admin/events	data,data-file,github-installation-id	active
@@ -40,6 +40,7 @@ nullify api admin create-groups		POST /admin/findings/groups	data,data-file,gith
 nullify api admin create-handoff		POST /admin/identity/entra/handoff	data,data-file,github-installation-id	active
 nullify api admin create-identity-entra-connect		POST /admin/identity/entra/connect	github-installation-id	active
 nullify api admin create-identity-scim-credentials		POST /admin/identity/scim/credentials	github-installation-id	active
+nullify api admin create-identity-slack-link		POST /admin/identity/slack/link	data,data-file,github-installation-id	active
 nullify api admin create-ingest		POST /admin/context/ingest	data,data-file,github-installation-id	active
 nullify api admin create-installations		POST /admin/integrations/azure/installations	data,data-file,github-installation-id	active
 nullify api admin create-integrations-asana-ticket-config		POST /admin/integrations/asana/ticket-config	data,data-file,github-installation-id	active
@@ -56,7 +57,6 @@ nullify api admin create-integrations-gitlab-connect		POST /admin/integrations/g
 nullify api admin create-integrations-jenkins-token		POST /admin/integrations/jenkins/token	data,data-file,github-installation-id	active
 nullify api admin create-integrations-linear-ticket-config		POST /admin/integrations/linear/ticket-config	data,data-file,github-installation-id	active
 nullify api admin create-integrations-test-by-id	<providerId> <capability>	POST /admin/integrations/{providerId}/{capability}/test	github-installation-id	active
-nullify api admin create-invitation		POST /admin/operator/workspace-bootstrap/invitation	data,data-file	active
 nullify api admin create-jira		POST /admin/integrations/jira	data,data-file,github-installation-id	active
 nullify api admin create-key		POST /admin/integrations/slack/key	data,data-file,github-installation-id	active
 nullify api admin create-link		POST /admin/identity/entra/link	github-installation-id	active
@@ -65,13 +65,10 @@ nullify api admin create-merge		POST /admin/teams/merge	data,data-file,github-in
 nullify api admin create-metrics-findings		POST /admin/metrics/findings	data,data-file,github-installation-id	active
 nullify api admin create-metrics-pullrequests		POST /admin/metrics/pullrequests	data,data-file,github-installation-id	active
 nullify api admin create-network-ip-allowlist-preview		POST /admin/network/ip-allowlist/preview	data,data-file,github-installation-id	active
-nullify api admin create-operator-external-writes-initialize		POST /admin/operator/external-writes/initialize	data,data-file,github-installation-id	active
-nullify api admin create-operator-github-tenant-route		POST /admin/operator/github-tenant/route	data,data-file	active
-nullify api admin create-operator-native-tenant-route		POST /admin/operator/native-tenant/route	data,data-file	active
 nullify api admin create-organizations		POST /admin/integrations/buildkite/organizations	data,data-file,github-installation-id	active
 nullify api admin create-over-time		POST /admin/metrics/over-time	data,data-file,github-installation-id,resolution	active
 nullify api admin create-overview		POST /admin/metrics/overview	data,data-file,github-installation-id	active
-nullify api admin create-package-feeds		POST /admin/operator/package-feeds	data,data-file,github-installation-id	active
+nullify api admin create-preview		POST /admin/identity/slack/link/preview	data,data-file,github-installation-id	active
 nullify api admin create-preview-by-id	<findingType>	POST /admin/ticketing/settings/{findingType}/preview	data,data-file,github-installation-id	active
 nullify api admin create-progress		POST /admin/findings/progress	data,data-file,github-installation-id	active
 nullify api admin create-pullrequests		POST /admin/pullrequests	data,data-file,github-installation-id	active
@@ -79,10 +76,8 @@ nullify api admin create-raw		POST /admin/metrics/raw	data,data-file,github-inst
 nullify api admin create-reactivate		POST /admin/users/reactivate	data,data-file,github-installation-id	active
 nullify api admin create-recheck-by-id	<handle>	POST /admin/integrations/azure/connect/{handle}/recheck	github-installation-id	active
 nullify api admin create-refresh-ci		POST /admin/pullrequests/refresh-ci	data,data-file,github-installation-id	active
-nullify api admin create-renew		POST /admin/operator/workspace-bootstrap/renew	data,data-file	active
 nullify api admin create-repository-property-team-keys		POST /admin/repository-property-team-keys	data,data-file,github-installation-id	active
 nullify api admin create-retry-by-id	<handle>	POST /admin/integrations/azure/connect/{handle}/retry	data,data-file,github-installation-id	active
-nullify api admin create-revoke		POST /admin/operator/workspace-bootstrap/revoke	data,data-file	active
 nullify api admin create-saved-filters		POST /admin/ticketing/saved-filters	data,data-file,github-installation-id	active
 nullify api admin create-savedViews		POST /admin/ui/savedViews	data,data-file,github-installation-id	active
 nullify api admin create-service_accounts		POST /admin/service_accounts	data,data-file,github-installation-id	active
@@ -94,6 +89,7 @@ nullify api admin create-sla-breakdown		POST /admin/teams/sla-breakdown	data,dat
 nullify api admin create-support-access		POST /admin/support-access	data,data-file,github-installation-id	active
 nullify api admin create-suspend		POST /admin/integrations/azure/installations/suspend	data,data-file,github-installation-id	active
 nullify api admin create-sync		POST /admin/teams/findings/sync	data,data-file,github-installation-id	active
+nullify api admin create-sync-by-id	<provider>	POST /admin/scanners/{provider}/sync	data,data-file,github-installation-id	active
 nullify api admin create-team-sync-runs		POST /admin/team-sync-runs	data,data-file,github-installation-id	active
 nullify api admin create-teams		POST /admin/teams	data,data-file,github-installation-id	active
 nullify api admin create-teams-findings		POST /admin/teams/findings	data,data-file,github-installation-id	active
@@ -118,7 +114,9 @@ nullify api admin delete-integrations-cloud-aws-settings		DELETE /admin/integrat
 nullify api admin delete-integrations-cloud-azure-settings		DELETE /admin/integrations/cloud/azure/settings	github-installation-id	active
 nullify api admin delete-integrations-cloud-gcp-settings		DELETE /admin/integrations/cloud/gcp/settings	github-installation-id	active
 nullify api admin delete-jenkins		DELETE /admin/integrations/jenkins	github-installation-id	active
+nullify api admin delete-links	<directoryId> <slackUserId>	DELETE /admin/identity/slack/links/{directoryId}/{slackUserId}	github-installation-id	active
 nullify api admin delete-mapping	<userId>	DELETE /admin/user/mapping/{userId}	github-installation-id,hard	active
+nullify api admin delete-me	<directoryId> <slackUserId>	DELETE /admin/identity/slack/links/me/{directoryId}/{slackUserId}	github-installation-id	active
 nullify api admin delete-preferences		DELETE /admin/ui/preferences	github-installation-id	active
 nullify api admin delete-repository-property-team-keys		DELETE /admin/repository-property-team-keys	github-installation-id,key-id	active
 nullify api admin delete-saved-filters	<id>	DELETE /admin/ticketing/saved-filters/{id}	github-installation-id	active
@@ -130,13 +128,16 @@ nullify api admin delete-teams	<teamID>	DELETE /admin/teams/{teamID}	github-inst
 nullify api admin get-bulk-operations	<operationId>	GET /admin/ticketing/bulk-operations/{operationId}	github-installation-id	active
 nullify api admin get-connect	<handle>	GET /admin/integrations/azure/connect/{handle}	github-installation-id	active
 nullify api admin get-directories	<repositoryId>	GET /admin/repositories/{repositoryId}/directories	github-installation-id,path	active
+nullify api admin get-events	<kind> <id>	GET /admin/runs/{kind}/{id}/events	after,github-installation-id,limit	active
 nullify api admin get-export	<userId>	GET /admin/users/{userId}/export	format,github-installation-id	active
 nullify api admin get-finding	<findingId>	GET /admin/finding/{findingId}	github-installation-id	active
 nullify api admin get-findings	<teamID>	GET /admin/teams/{teamID}/findings	github-installation-id	active
 nullify api admin get-history	<findingType>	GET /admin/ticketing/settings/{findingType}/history	github-installation-id,limit,offset	active
 nullify api admin get-identity	<providerID> <providerUserID>	GET /admin/users/identity/{providerID}/{providerUserID}	github-installation-id	active
 nullify api admin get-install	<providerId> <capability>	GET /admin/integrations/{providerId}/{capability}/install	github-installation-id	active
+nullify api admin get-raw	<provider> <id>	GET /admin/scanners/{provider}/findings/{id}/raw	github-installation-id	active
 nullify api admin get-runs	<kind> <id>	GET /admin/runs/{kind}/{id}	github-installation-id	active
+nullify api admin get-scanners-findings	<provider>	GET /admin/scanners/{provider}/findings	after,github-installation-id	active
 nullify api admin get-team	<teamID>	GET /admin/team/{teamID}	github-installation-id	active
 nullify api admin get-tickets	<ticketId>	GET /admin/ticketing/tickets/{ticketId}	github-installation-id	active
 nullify api admin get-user	<userID>	GET /admin/user/{userID}	github-installation-id	active
@@ -154,6 +155,7 @@ nullify api admin list-atlassian		GET /admin/integrations/atlassian	github-insta
 nullify api admin list-azure		GET /admin/integrations/azure	github-installation-id	active
 nullify api admin list-buildkite		GET /admin/integrations/buildkite	github-installation-id	active
 nullify api admin list-catalog		GET /admin/integrations/catalog	github-installation-id	active
+nullify api admin list-channels		GET /admin/integrations/slack/channels	channel-id,cursor,github-installation-id	active
 nullify api admin list-checklist		GET /admin/checklist	github-installation-id	active
 nullify api admin list-circleci		GET /admin/integrations/circleci	github-installation-id	active
 nullify api admin list-connections		GET /admin/integrations/connections	capability,github-installation-id	active
@@ -168,6 +170,7 @@ nullify api admin list-forge		GET /admin/integrations/jira/forge	github-installa
 nullify api admin list-getFileContents		GET /admin/getFileContents	end-line,file-path,github-installation-id,project-id,reference,repository-id,scan-family,start-line	active
 nullify api admin list-getPullRequest		GET /admin/getPullRequest	github-installation-id,pr-id,repository-id	active
 nullify api admin list-handoff		GET /admin/identity/entra/handoff	github-installation-id	active
+nullify api admin list-identity-slack-links-me		GET /admin/identity/slack/links/me	github-installation-id	active
 nullify api admin list-inference-region		GET /admin/settings/inference-region	github-installation-id	active
 nullify api admin list-install		GET /admin/integrations/jira/install	github-installation-id,site-url	active
 nullify api admin list-installations		GET /admin/installations	github-installation-id	active
@@ -188,32 +191,28 @@ nullify api admin list-jenkins		GET /admin/integrations/jenkins	github-installat
 nullify api admin list-jira		GET /admin/integrations/jira	github-installation-id	active
 nullify api admin list-ledger		GET /admin/metrics/usage/ledger	agent,branch-type,class,cursor,finding-id,from,github-installation-id,limit,query,run-id,to	active
 nullify api admin list-linear		GET /admin/integrations/linear	github-installation-id	active
+nullify api admin list-links		GET /admin/identity/slack/links	github-installation-id	active
 nullify api admin list-manager-settings		GET /admin/manager/settings	github-installation-id	active
 nullify api admin list-mapping		GET /admin/user/mapping	github-installation-id,provider-id,user-id	active
 nullify api admin list-mappings		GET /admin/user/mappings	github-installation-id	active
 nullify api admin list-me		GET /admin/access/me	github-installation-id	active
 nullify api admin list-members		GET /admin/integrations/linear/members	github-installation-id,q,team-id	active
+nullify api admin list-native		GET /admin/scanners/native	after,github-installation-id	active
 nullify api admin list-notifications		GET /admin/integrations/notifications	github-installation-id	active
 nullify api admin list-oauth		GET /admin/integrations/linear/oauth	github-installation-id	active
-nullify api admin list-operation		GET /admin/operator/workspace-bootstrap/operation	operation-id	active
-nullify api admin list-operator-scan-scope-repositories		GET /admin/operator/scan-scope/repositories	github-installation-id	active
-nullify api admin list-operator-tenant-capabilities		GET /admin/operator/tenant-capabilities	github-installation-id	active
 nullify api admin list-orchestrator		GET /admin/scans/orchestrator	from,github-installation-id,limit,offset,scan-type,status,to	active
 nullify api admin list-org-owners		GET /admin/access/users/org-owners	github-installation-id	active
 nullify api admin list-organization		GET /admin/organization	github-installation-id,include-directory	active
-nullify api admin list-package-feeds		GET /admin/operator/package-feeds	connection-id,github-installation-id	active
 nullify api admin list-policy		GET /admin/identity/entra/policy	github-installation-id	active
 nullify api admin list-pr-gate-settings		GET /admin/pr-gate-settings	github-installation-id	active
 nullify api admin list-pullrequests		GET /admin/pullrequests	github-installation-id,id	active
 nullify api admin list-recommendations		GET /admin/repositories/recommendations	github-installation-id	active
 nullify api admin list-repositories		GET /admin/repositories	github-installation-id,ids,include-archived,include-archived-enrolled,limit,next-token,offset,search,team-i-ds	active
 nullify api admin list-repository-property-team-keys		GET /admin/repository-property-team-keys	github-installation-id	active
-nullify api admin list-requests		GET /admin/operator/workspace-bootstrap/requests	before-request-id	active
 nullify api admin list-routing-exclusions		GET /admin/config/routing-exclusions	github-installation-id	active
 nullify api admin list-saved-filters		GET /admin/ticketing/saved-filters	github-installation-id	active
 nullify api admin list-savedViews		GET /admin/ui/savedViews	github-installation-id	active
 nullify api admin list-scan-coverage		GET /admin/assessments/scan-coverage	github-installation-id,limit,offset,search,sort-by,sort-order,type	active
-nullify api admin list-scan-entitlement		GET /admin/operator/scan-entitlement	github-installation-id	active
 nullify api admin list-scan-scope		GET /admin/scan-scope	github-installation-id	active
 nullify api admin list-scim		GET /admin/identity/scim	github-installation-id	active
 nullify api admin list-security-owner		GET /admin/config/security-owner	github-installation-id	active
@@ -226,7 +225,7 @@ nullify api admin list-suggestions		GET /admin/user/mapping/suggestions	github-i
 nullify api admin list-support-access		GET /admin/support-access	github-installation-id,limit	active
 nullify api admin list-team-source-preferences		GET /admin/team-source-preferences	github-installation-id	active
 nullify api admin list-team-sync-runs		GET /admin/team-sync-runs	github-installation-id,limit,source	active
-nullify api admin list-teams		GET /admin/teams	github-installation-id,limit,next-token,offset,repository-id,search,skip-user-enrichment	active
+nullify api admin list-teams		GET /admin/teams	github-installation-id,ids,limit,next-token,offset,repository-id,search,skip-user-enrichment	active
 nullify api admin list-teams-findings		GET /admin/teams/findings	github-installation-id	active
 nullify api admin list-tenant-capabilities		GET /admin/tenant-capabilities	github-installation-id	active
 nullify api admin list-tickets		GET /admin/ticketing/tickets	board-id,closed-after,closed-before,created-after,created-before,finding-type,github-installation-id,has-sync-error,last-synced-before,limit,offset,out-of-eligibility-since-after,platform,q,saved-filter-id,source,status	active
@@ -249,15 +248,13 @@ nullify api admin update-inference-region		PUT /admin/settings/inference-region	
 nullify api admin update-ip-allowlist		PUT /admin/network/ip-allowlist	data,data-file,github-installation-id	active
 nullify api admin update-mapping	<userId>	PUT /admin/user/mapping/{userId}	data,data-file,github-installation-id	active
 nullify api admin update-notifications		PUT /admin/integrations/notifications	data,data-file,github-installation-id	active
-nullify api admin update-operator-tenant-capabilities		PUT /admin/operator/tenant-capabilities	data,data-file,github-installation-id	active
 nullify api admin update-policy		PUT /admin/identity/entra/policy	data,data-file,github-installation-id	active
 nullify api admin update-pr-gate-settings		PUT /admin/pr-gate-settings	data,data-file,github-installation-id	active
-nullify api admin update-repositories		PUT /admin/operator/scan-scope/repositories	data,data-file,github-installation-id	active
 nullify api admin update-repositories-scan-scope		PUT /admin/repositories/scan-scope	data,data-file,github-installation-id	active
+nullify api admin update-review	<provider> <id>	PUT /admin/scanners/{provider}/findings/{id}/review	data,data-file,github-installation-id	active
 nullify api admin update-roles		PUT /admin/access/users/roles	data,data-file,github-installation-id	active
 nullify api admin update-rotate	<connectionId>	PUT /admin/integrations/connections/{connectionId}/rotate	data,data-file,github-installation-id	active
 nullify api admin update-routing-exclusions		PUT /admin/config/routing-exclusions	data,data-file,github-installation-id	active
-nullify api admin update-scan-entitlement		PUT /admin/operator/scan-entitlement	data,data-file,github-installation-id	active
 nullify api admin update-scan-scope		PUT /admin/scan-scope	data,data-file,github-installation-id	active
 nullify api admin update-security-owner		PUT /admin/config/security-owner	data,data-file,github-installation-id	active
 nullify api admin update-settings		PUT /admin/manager/settings	data,data-file,github-installation-id	active
@@ -266,14 +263,14 @@ nullify api admin update-tenant-capabilities	<capability>	PUT /admin/tenant-capa
 nullify api admin update-ui-preferences		PUT /admin/ui/preferences	data,data-file,github-installation-id	active
 nullify api asset-graph				active
 nullify api asset-graph list-reachability		GET /context/asset-graph/reachability	account-id,github-installation-id,node-id,port,protocol	deprecated
-nullify api asset-graph list-search		GET /context/asset-graph/search	github-installation-id,max-results,object-types,q	deprecated
+nullify api asset-graph list-search		GET /context/asset-graph/search	account-id,exact,github-installation-id,max-results,object-types,q,region	deprecated
 nullify api asset-graph list-subgraph		GET /context/asset-graph/subgraph	account-id,depth,edge-types,github-installation-id,max-nodes,object-types,root-node-id	deprecated
 nullify api asset-graph list-summary		GET /context/asset-graph/summary	github-installation-id	deprecated
 nullify api context				active
 nullify api context create-applications		POST /context/applications	data,data-file,github-installation-id	active
+nullify api context create-check		POST /context/cloud-connector-pr/deployment/check	github-installation-id	active
 nullify api context create-cloud-connector-pr-runs		POST /context/cloud-connector-pr/runs	data,data-file,github-installation-id	active
 nullify api context create-cloud-connector-pr-runs-approve-by-id	<runId>	POST /context/cloud-connector-pr/runs/{runId}/approve	data,data-file,github-installation-id	active
-nullify api context create-cloud-connector-pr-runs-recover-by-id	<runId>	POST /context/cloud-connector-pr/runs/{runId}/recover	data,data-file,github-installation-id	active
 nullify api context create-discover-by-id	<repositoryId>	POST /context/repositories/{repositoryId}/execution-recipes/discover	data,data-file,github-installation-id	active
 nullify api context create-file		POST /context/vault/file	data,data-file,github-installation-id	active
 nullify api context create-generate		POST /context/sboms/generate	data,data-file,github-installation-id	active
@@ -282,14 +279,16 @@ nullify api context create-index		POST /context/vault/index	data,data-file,githu
 nullify api context create-memories		POST /context/memories	data,data-file,github-installation-id	active
 nullify api context create-memories-search		POST /context/memories/search	data,data-file,github-installation-id	active
 nullify api context create-onboard		POST /context/vault/onboard	data,data-file,github-installation-id	active
+nullify api context create-preview-by-id	<applicationId>	POST /context/applications/{applicationId}/folders/preview	data,data-file,github-installation-id	active
 nullify api context create-rebuild		POST /context/applications/rebuild	data,data-file,github-installation-id	active
+nullify api context create-recompute-by-id	<applicationId>	POST /context/applications/{applicationId}/folders/recompute	github-installation-id	active
 nullify api context create-replay		POST /context/sbomingestor/replay	data,data-file,github-installation-id	active
 nullify api context create-repo-scans		POST /context/repo-scans	data,data-file,github-installation-id	active
 nullify api context create-repo-scope-scans		POST /context/repo-scope/scans	data,data-file,github-installation-id,include-archived	active
-nullify api context create-reports		POST /context/reports	data,data-file,github-installation-id	active
 nullify api context create-repositories-projects-schema-trigger-by-id	<repositoryId> <projectId>	POST /context/repositories/{repositoryId}/projects/{projectId}/schema/trigger	data,data-file,github-installation-id	active
 nullify api context create-repositories-repo-context-trigger-by-id	<repositoryId>	POST /context/repositories/{repositoryId}/repo-context/trigger	data,data-file,github-installation-id	active
 nullify api context create-resolve		POST /context/sboms/resolve	data,data-file,github-installation-id	active
+nullify api context create-resource-exposure		POST /context/asset-graph/resource-exposure	data,data-file,github-installation-id	active
 nullify api context create-resync		POST /context/rag/resync	data,data-file,github-installation-id	active
 nullify api context create-retract-by-id	<memoryId>	POST /context/memories/{memoryId}/retract	data,data-file,github-installation-id	active
 nullify api context create-sboms-runs		POST /context/sboms/runs	data,data-file,github-installation-id	active
@@ -306,7 +305,7 @@ nullify api context create-start		POST /context/cloud-scan/start	account-ids,clu
 nullify api context create-vault-search		POST /context/vault/search	data,data-file,github-installation-id	active
 nullify api context create-waf-allowlist-pr-runs		POST /context/waf-allowlist-pr/runs	data,data-file,github-installation-id	active
 nullify api context create-waf-allowlist-pr-runs-approve-by-id	<runId>	POST /context/waf-allowlist-pr/runs/{runId}/approve	data,data-file,github-installation-id	active
-nullify api context create-waf-allowlist-pr-runs-recover-by-id	<runId>	POST /context/waf-allowlist-pr/runs/{runId}/recover	data,data-file,github-installation-id	active
+nullify api context create-web-services-schema-by-id	<webServiceId>	POST /context/web-services/{webServiceId}/schema	data,data-file,github-installation-id	active
 nullify api context delete-applications	<applicationId>	DELETE /context/applications/{applicationId}	github-installation-id	active
 nullify api context delete-artifacts	<artifactId>	DELETE /context/artifacts/{artifactId}	github-installation-id	active
 nullify api context delete-asset-inventory	<category> <id>	DELETE /context/asset-inventory/{category}/{id}	github-installation-id	active
@@ -352,6 +351,8 @@ nullify api context get-entrypoints	<entrypointId>	GET /context/entrypoints/{ent
 nullify api context get-exposure	<repositoryId> <projectId>	GET /context/deps/repository/{repositoryId}/project/{projectId}/exposure	ecosystem,github-installation-id,name,range	active
 nullify api context get-file	<fileId>	GET /context/vault/file/{fileId}	github-installation-id	active
 nullify api context get-findings	<memoryId>	GET /context/memories/{memoryId}/findings	github-installation-id,limit	active
+nullify api context get-folder-gaps	<repositoryId>	GET /context/repositories/{repositoryId}/folder-gaps	github-installation-id	active
+nullify api context get-folders	<applicationId>	GET /context/applications/{applicationId}/folders	github-installation-id	active
 nullify api context get-graph-gaps	<accountId>	GET /context/cloud-recon/accounts/{accountId}/graph-gaps	github-installation-id	active
 nullify api context get-graphs	<accountId>	GET /context/infrastructure/graphs/{accountId}	github-installation-id	active
 nullify api context get-history	<repositoryId> <projectId>	GET /context/deps/repository/{repositoryId}/project/{projectId}/history	ecosystem,github-installation-id,name	active
@@ -371,24 +372,25 @@ nullify api context get-observability	<id>	GET /context/asset-inventory/observab
 nullify api context get-organization-runs	<runId>	GET /context/organization/runs/{runId}	github-installation-id,include-result	active
 nullify api context get-overview	<accountId>	GET /context/cloud-recon/accounts/{accountId}/overview	github-installation-id	active
 nullify api context get-pipelines	<id>	GET /context/asset-inventory/pipelines/{id}	github-installation-id	active
-nullify api context get-project	<repositoryId> <projectId>	GET /context/sboms/repository/{repositoryId}/project/{projectId}	from-commit,from-time,github-installation-id,page,page-size,until-commit,until-time	active
+nullify api context get-project	<repositoryId> <projectId>	GET /context/sboms/repository/{repositoryId}/project/{projectId}	from-commit,from-time,github-installation-id,page,page-size,prefer-url,until-commit,until-time	active
 nullify api context get-projects	<id>	GET /context/asset-inventory/projects/{id}	github-installation-id	active
-nullify api context get-raw	<repositoryId> <projectId>	GET /context/repositories/{repositoryId}/projects/{projectId}/schema/raw	github-installation-id	active
+nullify api context get-raw	<repositoryId> <projectId>	GET /context/repositories/{repositoryId}/projects/{projectId}/schema/raw	digest,github-installation-id	active
 nullify api context get-rebuilds	<runId>	GET /context/applications/rebuilds/{runId}	github-installation-id	active
 nullify api context get-repo-scans	<scanId>	GET /context/repo-scans/{scanId}	github-installation-id	active
-nullify api context get-reports	<jobId>	GET /context/reports/{jobId}	github-installation-id	active
 nullify api context get-repos	<id>	GET /context/asset-inventory/repos/{id}	github-installation-id	active
 nullify api context get-repositories	<repositoryId>	GET /context/repositories/{repositoryId}	github-installation-id,prefer-url	active
 nullify api context get-repositories-projects	<repositoryId>	GET /context/repositories/{repositoryId}/projects	github-installation-id,include-deleted,limit,next-token	active
 nullify api context get-repositories-projects-2	<repositoryId> <projectId>	GET /context/repositories/{repositoryId}/projects/{projectId}	github-installation-id	active
 nullify api context get-repositories-projects-execution-recipe	<repositoryId> <projectId>	GET /context/repositories/{repositoryId}/projects/{projectId}/execution-recipe	allow-edits,capabilities,commit-sha,docker,github-installation-id,input-hash	active
 nullify api context get-repositories-projects-execution-recipe-versions	<repositoryId> <projectId>	GET /context/repositories/{repositoryId}/projects/{projectId}/execution-recipe/versions	github-installation-id,limit,offset	active
-nullify api context get-repositories-projects-schema	<repositoryId> <projectId>	GET /context/repositories/{repositoryId}/projects/{projectId}/schema	github-installation-id	active
+nullify api context get-repositories-projects-schema	<repositoryId> <projectId>	GET /context/repositories/{repositoryId}/projects/{projectId}/schema	api-name,github-installation-id,origin	active
 nullify api context get-sboms-repository-latest	<repositoryId>	GET /context/sboms/repository/{repositoryId}/latest	github-installation-id	active
 nullify api context get-scans	<scanId>	GET /context/repo-scope/scans/{scanId}	execution-arn,github-installation-id	active
+nullify api context get-schema	<webServiceId>	GET /context/web-services/{webServiceId}/schema	github-installation-id	active
 nullify api context get-security	<id>	GET /context/asset-inventory/security/{id}	github-installation-id	active
 nullify api context get-security-boundaries	<accountId>	GET /context/cloud-recon/accounts/{accountId}/security-boundaries	github-installation-id	active
 nullify api context get-serverless	<id>	GET /context/asset-inventory/serverless/{id}	github-installation-id	active
+nullify api context get-spec-artifacts	<artifactId>	GET /context/spec-artifacts/{artifactId}	github-installation-id	active
 nullify api context get-status	<scanId>	GET /context/cloud-scan/{scanId}/status	github-installation-id	active
 nullify api context get-storage-and-backup	<id>	GET /context/asset-inventory/storage-and-backup/{id}	github-installation-id	active
 nullify api context get-text	<documentId>	GET /context/vault/document/{documentId}/text	end-page,github-installation-id,max-chars,next-token,start-page	active
@@ -400,7 +402,7 @@ nullify api context get-validations	<repositoryId> <projectId>	GET /context/repo
 nullify api context get-versions	<memoryId>	GET /context/memories/{memoryId}/versions	github-installation-id,limit	active
 nullify api context get-waf-allowlist-pr-runs	<runId>	GET /context/waf-allowlist-pr/runs/{runId}	github-installation-id	active
 nullify api context get-waf-allowlist-pr-runs-proposal	<runId>	GET /context/waf-allowlist-pr/runs/{runId}/proposal	github-installation-id	active
-nullify api context list-active		GET /context/deps/active	cursor,direct,ecosystem,github-installation-id,name,page-size,project-id,range,repository-id,search	active
+nullify api context list-active		GET /context/deps/active	cursor,direct,ecosystem,github-installation-id,name,page-size,project-id,range,repository-id,repository-ids,search	active
 nullify api context list-ai-ml		GET /context/asset-inventory/ai-ml	account-id,active,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,region,sub-type	active
 nullify api context list-applications		GET /context/applications	github-installation-id,limit,offset,search	active
 nullify api context list-artifact-deployments		GET /context/artifact-deployments	artifact-id,cloud-resource-id,compute-type,github-installation-id,include-deleted,limit,next-token,repository-id	active
@@ -409,7 +411,7 @@ nullify api context list-artifacts		GET /context/artifacts	github-installation-i
 nullify api context list-asset-graph-summary		GET /context/asset-graph/summary	github-installation-id	active
 nullify api context list-asset-inventory		GET /context/asset-inventory	account-id,active,category,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,q,region,sub-type,updated-after	active
 nullify api context list-asset-inventory-artifacts		GET /context/asset-inventory/artifacts	account-id,active,github-installation-id,internet-reachable,limit,next-token,project-id,provider,public-facing,region,sub-type	active
-nullify api context list-attack-paths		GET /context/asset-graph/attack-paths	github-installation-id,has-critical-finding,limit,offset,terminal-node-kind	active
+nullify api context list-attack-paths		GET /context/asset-graph/attack-paths	github-installation-id,has-critical-finding,limit,node-id,offset,terminal-node-kind	active
 nullify api context list-cdn-and-dns		GET /context/asset-inventory/cdn-and-dns	account-id,active,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,region,sub-type	active
 nullify api context list-ci-cd		GET /context/asset-inventory/ci-cd	account-id,active,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,region,sub-type	active
 nullify api context list-cicd-pipelines		GET /context/cicd-pipelines	github-installation-id,include-deleted,limit,next-token,platform,project-id,repository-id	active
@@ -425,9 +427,9 @@ nullify api context list-database		GET /context/asset-inventory/database	account
 nullify api context list-deps		GET /context/deps	cursor,github-installation-id,page-size	active
 nullify api context list-endpoints		GET /context/asset-inventory/endpoints	active,aws-service,github-installation-id,host-category,host-id,limit,next-token,q,source-type	active
 nullify api context list-entrypoints		GET /context/entrypoints	github-installation-id,include-deleted,kind,limit,next-token,project-id,repository-id	active
-nullify api context list-exposure		GET /context/deps/exposure	ecosystem,github-installation-id,name,range	active
+nullify api context list-exposure		GET /context/deps/exposure	ecosystem,from,github-installation-id,name,range,repository-ids,to	active
 nullify api context list-files		GET /context/vault/files	github-installation-id,limit,offset,search	active
-nullify api context list-graphs		GET /context/infrastructure/graphs	github-installation-id	active
+nullify api context list-graphs		GET /context/infrastructure/graphs	accounts-only,gcp-admission,gcp-discovery-key,github-installation-id	active
 nullify api context list-identity		GET /context/asset-inventory/identity	account-id,active,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,region,sub-type	active
 nullify api context list-info		GET /context/infrastructure/graphs/info	github-installation-id	active
 nullify api context list-infrastructure-graphs-summary		GET /context/infrastructure/graphs/summary	github-installation-id	active
@@ -453,7 +455,7 @@ nullify api context list-repos		GET /context/asset-inventory/repos	account-id,ac
 nullify api context list-repositories		GET /context/repositories	github-installation-id,limit,next-token,sort,sort-by	active
 nullify api context list-retrieve		GET /context/asset-graph/retrieve	github-installation-id,max-results,q	active
 nullify api context list-schemas		GET /context/schemas	github-installation-id	active
-nullify api context list-search		GET /context/asset-graph/search	github-installation-id,max-results,object-types,q	active
+nullify api context list-search		GET /context/asset-graph/search	account-id,exact,github-installation-id,max-results,object-types,q,region	active
 nullify api context list-security		GET /context/asset-inventory/security	account-id,active,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,region,sub-type	active
 nullify api context list-serverless		GET /context/asset-inventory/serverless	account-id,active,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,region,sub-type	active
 nullify api context list-storage-and-backup		GET /context/asset-inventory/storage-and-backup	account-id,active,github-installation-id,internet-reachable,limit,next-token,provider,public-facing,region,sub-type	active
@@ -473,14 +475,17 @@ nullify api context patch-repo-scans	<scanId>	PATCH /context/repo-scans/{scanId}
 nullify api context patch-repositories	<repositoryId>	PATCH /context/repositories/{repositoryId}	data,data-file,github-installation-id	active
 nullify api context patch-tags	<category> <id>	PATCH /context/asset-inventory/{category}/{id}/tags	data,data-file,github-installation-id	active
 nullify api context push	[file]		branch,dry-run,environment,from-pr,name,pr-number,repository,type	active
+nullify api context update-folders	<applicationId>	PUT /context/applications/{applicationId}/folders	data,data-file,github-installation-id	active
 nullify api context update-organization		PUT /context/organization	data,data-file,github-installation-id	active
 nullify api cspm				active
+nullify api cspm create-allowlist		POST /cspm/findings/allowlist	data,data-file,github-installation-id	active
 nullify api cspm create-allowlist-by-id	<findingId>	POST /cspm/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api cspm create-archive-by-id	<findingId>	POST /cspm/findings/{findingId}/archive	data,data-file,github-installation-id	active
 nullify api cspm create-fix-by-id	<findingId>	POST /cspm/findings/{findingId}/autofix/fix	data,data-file,github-installation-id	active
 nullify api cspm create-mark-false-positive-by-id	<findingId>	POST /cspm/findings/{findingId}/mark-false-positive	data,data-file,github-installation-id	active
-nullify api cspm create-start		POST /cspm/scans/start	github-installation-id	active
+nullify api cspm create-start		POST /cspm/scans/start	data,data-file,github-installation-id	active
 nullify api cspm create-ticket-by-id	<findingId>	POST /cspm/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api cspm create-unallowlist		POST /cspm/findings/unallowlist	data,data-file,github-installation-id	active
 nullify api cspm create-unallowlist-by-id	<findingId>	POST /cspm/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
 nullify api cspm create-unarchive-by-id	<findingId>	POST /cspm/findings/{findingId}/unarchive	data,data-file,github-installation-id	active
 nullify api cspm create-unmark-false-positive-by-id	<findingId>	POST /cspm/findings/{findingId}/unmark-false-positive	data,data-file,github-installation-id	active
@@ -497,10 +502,16 @@ nullify api cspm patch-findings	<findingId>	PATCH /cspm/findings/{findingId}	dat
 nullify api dast				active
 nullify api dast create-access-validation-by-id	<webServiceId>	POST /dast/web-services/{webServiceId}/access-validation	data,data-file,github-installation-id	active
 nullify api dast create-allowlist-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
+nullify api dast create-answer-by-id	<credentialId>	POST /dast/credentials/{credentialId}/login-assist/answer	data,data-file,github-installation-id	active
 nullify api dast create-applications		POST /dast/pentest/applications	data,data-file,github-installation-id	active
 nullify api dast create-applications-2		POST /dast/applications	data,data-file,github-installation-id	active
 nullify api dast create-arm-by-id	<policyId>	POST /dast/exploit-validation/policies/{policyId}/arm	data,data-file,github-installation-id	active
+nullify api dast create-bughunt-findings-allowlist		POST /dast/bughunt/findings/allowlist	data,data-file,github-installation-id	active
+nullify api dast create-bughunt-findings-allowlist-by-id	<findingId>	POST /dast/bughunt/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api dast create-bughunt-findings-ticket-by-id	<findingId>	POST /dast/bughunt/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api dast create-bughunt-findings-unallowlist		POST /dast/bughunt/findings/unallowlist	data,data-file,github-installation-id	active
+nullify api dast create-bughunt-findings-unallowlist-by-id	<findingId>	POST /dast/bughunt/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
+nullify api dast create-bughunt-scans-archive-by-id	<scanId>	POST /dast/bughunt/scans/{scanId}/archive	github-installation-id	active
 nullify api dast create-bughunt-scans-stop-by-id	<scanId>	POST /dast/bughunt/scans/{scanId}/stop	github-installation-id	active
 nullify api dast create-credentials		POST /dast/credentials	data,data-file,github-installation-id	active
 nullify api dast create-credentials-by-id	<webServiceId>	POST /dast/web-services/{webServiceId}/credentials	data,data-file,github-installation-id	active
@@ -510,12 +521,19 @@ nullify api dast create-exploit-validation-findings-validate-by-id	<findingId>	P
 nullify api dast create-fix-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/autofix/fix	data,data-file,github-installation-id	active
 nullify api dast create-from-context		POST /dast/applications/from-context	data,data-file,github-installation-id	active
 nullify api dast create-import		POST /dast/bughunt/program/import	data,data-file,github-installation-id	active
+nullify api dast create-login-definition		POST /dast/credentials/login-definition	data,data-file,github-installation-id	active
+nullify api dast create-move-by-id	<applicationId>	POST /dast/pentest/applications/{applicationId}/move	data,data-file,github-installation-id	active
+nullify api dast create-pentest-findings-allowlist		POST /dast/pentest/findings/allowlist	data,data-file,github-installation-id	active
+nullify api dast create-pentest-findings-unallowlist		POST /dast/pentest/findings/unallowlist	data,data-file,github-installation-id	active
+nullify api dast create-pentest-scans-archive-by-id	<scanId>	POST /dast/pentest/scans/{scanId}/archive	github-installation-id	active
 nullify api dast create-pentest-scans-stop-by-id	<scanId>	POST /dast/pentest/scans/{scanId}/stop	github-installation-id	active
 nullify api dast create-policies		POST /dast/exploit-validation/policies	data,data-file,github-installation-id	active
 nullify api dast create-preflight-by-id	<applicationId>	POST /dast/pentest/applications/{applicationId}/preflight	data,data-file,github-installation-id	active
 nullify api dast create-readiness		POST /dast/applications/readiness	data,data-file,github-installation-id	active
+nullify api dast create-retry-by-id	<credentialId>	POST /dast/credentials/{credentialId}/login-assist/retry	data,data-file,github-installation-id	active
 nullify api dast create-run-now-by-id	<suite>	POST /dast/bughunt/suites/{suite}/run-now	data,data-file,github-installation-id	active
 nullify api dast create-scans		POST /dast/bughunt/scans	data,data-file,github-installation-id	active
+nullify api dast create-session-lease-by-id	<credentialId>	POST /dast/credentials/{credentialId}/session-lease	data,data-file,github-installation-id	active
 nullify api dast create-start		POST /dast/pentest/start	data,data-file,github-installation-id	active
 nullify api dast create-status-validation-by-id	<webServiceId>	POST /dast/web-services/{webServiceId}/status-validation	github-installation-id	active
 nullify api dast create-targets		POST /dast/targets	data,data-file,github-installation-id	active
@@ -534,6 +552,7 @@ nullify api dast delete-credentials	<credentialId>	DELETE /dast/credentials/{cre
 nullify api dast delete-exploit-validation-consent	<targetId>	DELETE /dast/targets/{targetId}/exploit-validation-consent	github-installation-id	active
 nullify api dast delete-pentest-findings-ticket	<findingId>	DELETE /dast/pentest/findings/{findingId}/ticket	github-installation-id	active
 nullify api dast delete-policies	<policyId>	DELETE /dast/exploit-validation/policies/{policyId}	github-installation-id	active
+nullify api dast delete-schedule	<applicationId>	DELETE /dast/pentest/applications/{applicationId}/schedule	github-installation-id	active
 nullify api dast delete-targets	<targetId>	DELETE /dast/targets/{targetId}	github-installation-id	active
 nullify api dast delete-web-services	<webServiceId>	DELETE /dast/web-services/{webServiceId}	github-installation-id	active
 nullify api dast delete-web-services-credentials	<webServiceId> <credentialId>	DELETE /dast/web-services/{webServiceId}/credentials/{credentialId}	github-installation-id	active
@@ -550,19 +569,23 @@ nullify api dast get-bughunt-scans-diff	<scanId>	GET /dast/bughunt/scans/{scanId
 nullify api dast get-bughunt-scans-findings	<scanId>	GET /dast/bughunt/scans/{scanId}/findings	github-installation-id,limit,offset	active
 nullify api dast get-bughunt-scans-logs	<scanId>	GET /dast/bughunt/scans/{scanId}/logs	github-installation-id	active
 nullify api dast get-bughunt-scans-status	<scanId>	GET /dast/bughunt/scans/{scanId}/status	github-installation-id	active
-nullify api dast get-cases	<scanId>	GET /dast/pentest/scans/{scanId}/auth-matrix/cases	github-installation-id,hide-not-run,identity,limit,offset,outcome	active
+nullify api dast get-cases	<scanId>	GET /dast/pentest/scans/{scanId}/auth-matrix/cases	cursor,github-installation-id,hide-not-run,identity,limit,offset,outcome	active
 nullify api dast get-credentials	<credentialId>	GET /dast/credentials/{credentialId}	github-installation-id	active
+nullify api dast get-credentials-login-runs	<credentialId>	GET /dast/credentials/{credentialId}/login-runs	github-installation-id,limit	active
+nullify api dast get-credentials-login-runs-2	<credentialId> <runId>	GET /dast/credentials/{credentialId}/login-runs/{runId}	github-installation-id	active
 nullify api dast get-credentials-validations	<credentialId>	GET /dast/credentials/{credentialId}/validations	github-installation-id,limit,next-token	active
 nullify api dast get-credentials-validations-status	<credentialId>	GET /dast/credentials/{credentialId}/validations/status	github-installation-id	active
 nullify api dast get-download	<scanId>	GET /dast/pentest/scans/{scanId}/report/download	github-installation-id	active
 nullify api dast get-estimate	<applicationId>	GET /dast/pentest/applications/{applicationId}/estimate	github-installation-id	active
 nullify api dast get-events	<scanId>	GET /dast/pentest/scans/{scanId}/events	after-seq,github-installation-id,limit	active
+nullify api dast get-executions	<scanId>	GET /dast/pentest/scans/{scanId}/executions	github-installation-id,limit,offset	active
 nullify api dast get-exploit-validation-consent	<targetId>	GET /dast/targets/{targetId}/exploit-validation-consent	github-installation-id	active
 nullify api dast get-exploit-validation-findings-evidence	<findingId> <evidenceId>	GET /dast/exploit-validation/findings/{findingId}/evidence/{evidenceId}	finding-type,github-installation-id	active
 nullify api dast get-full	<findingId>	GET /dast/pentest/findings/{findingId}/full	github-installation-id	active
 nullify api dast get-hypotheses	<scanId>	GET /dast/pentest/scans/{scanId}/hypotheses	github-installation-id	active
 nullify api dast get-latest	<applicationId>	GET /dast/pentest/applications/{applicationId}/preflight/latest	github-installation-id,target-id,web-service-id	active
 nullify api dast get-links	<scanId>	GET /dast/pentest/scans/{scanId}/findings/links	github-installation-id	active
+nullify api dast get-login-status	<credentialId>	GET /dast/credentials/{credentialId}/login-status	github-installation-id	active
 nullify api dast get-pentest-findings	<findingId>	GET /dast/pentest/findings/{findingId}	github-installation-id	active
 nullify api dast get-pentest-findings-events	<findingId>	GET /dast/pentest/findings/{findingId}/events	github-installation-id	active
 nullify api dast get-pentest-findings-triage	<findingId>	GET /dast/pentest/findings/{findingId}/triage	github-installation-id	active
@@ -577,8 +600,9 @@ nullify api dast get-pentest-scans-report-pdf	<scanId>	GET /dast/pentest/scans/{
 nullify api dast get-pentest-scans-status	<scanId>	GET /dast/pentest/scans/{scanId}/status	github-installation-id	active
 nullify api dast get-preflights	<preflightId>	GET /dast/pentest/preflights/{preflightId}	github-installation-id	active
 nullify api dast get-quota	<applicationId>	GET /dast/pentest/applications/{applicationId}/preflight/quota	github-installation-id	active
-nullify api dast get-report	<scanId>	GET /dast/pentest/scans/{scanId}/report	exclude,github-installation-id	active
+nullify api dast get-report	<scanId>	GET /dast/pentest/scans/{scanId}/report	exclude,github-installation-id,view	active
 nullify api dast get-runs	<runId>	GET /dast/exploit-validation/runs/{runId}	execution-arn,github-installation-id	active
+nullify api dast get-schedule	<applicationId>	GET /dast/pentest/applications/{applicationId}/schedule	github-installation-id	active
 nullify api dast get-state	<findingId>	GET /dast/pentest/findings/{findingId}/autofix/state	github-installation-id	active
 nullify api dast get-status	<findingId>	GET /dast/pentest/findings/{findingId}/autofix/status	github-installation-id	active
 nullify api dast get-status-validations	<webServiceId>	GET /dast/web-services/{webServiceId}/status-validations	github-installation-id,limit,next-token	active
@@ -598,7 +622,7 @@ nullify api dast list-credentials		GET /dast/credentials	github-installation-id,
 nullify api dast list-last		GET /dast/scans/status/last	github-installation-id	active
 nullify api dast list-mutation-warning		GET /dast/pentest/mutation-warning	github-installation-id	active
 nullify api dast list-pentest-findings		GET /dast/pentest/findings	github-installation-id,is-allowlisted,is-false-positive,is-latest,is-resolved,limit,next-token,priority-label,scan-id,sort,sort-by	active
-nullify api dast list-pentest-scans		GET /dast/pentest/scans	github-installation-id,limit,next-token,offset,search	active
+nullify api dast list-pentest-scans		GET /dast/pentest/scans	github-installation-id,limit,next-token,offset,search,started-after,started-before,statuses	active
 nullify api dast list-policies		GET /dast/exploit-validation/policies	github-installation-id	active
 nullify api dast list-sourceips		GET /dast/sourceips	github-installation-id	active
 nullify api dast list-suite-runs		GET /dast/bughunt/suite-runs	github-installation-id	active
@@ -613,19 +637,22 @@ nullify api dast update-classification	<targetId>	PUT /dast/targets/{targetId}/c
 nullify api dast update-config		PUT /dast/bughunt/config	data,data-file,github-installation-id	active
 nullify api dast update-credentials	<credentialId>	PUT /dast/credentials/{credentialId}	data,data-file,github-installation-id	active
 nullify api dast update-exploit-validation-consent	<targetId>	PUT /dast/targets/{targetId}/exploit-validation-consent	data,data-file,github-installation-id	active
+nullify api dast update-login-definition	<credentialId>	PUT /dast/credentials/{credentialId}/login-definition	data,data-file,github-installation-id	active
 nullify api dast update-mutation-consent	<applicationId>	PUT /dast/pentest/applications/{applicationId}/mutation-consent	data,data-file,github-installation-id	active
 nullify api dast update-policies	<policyId>	PUT /dast/exploit-validation/policies/{policyId}	data,data-file,github-installation-id	active
+nullify api dast update-schedule	<applicationId>	PUT /dast/pentest/applications/{applicationId}/schedule	data,data-file,github-installation-id	active
 nullify api dast update-targets	<targetId>	PUT /dast/targets/{targetId}	data,data-file,github-installation-id	active
 nullify api dast update-web-services	<webServiceId>	PUT /dast/web-services/{webServiceId}	data,data-file,github-installation-id	active
 nullify api findings				active
 nullify api findings create-feedback-by-id	<findingId>	POST /findings/{findingId}/feedback	data,data-file,github-installation-id	active
 nullify api findings get-feedback	<findingId>	GET /findings/{findingId}/feedback	github-installation-id	active
+nullify api findings get-versions	<findingId>	GET /findings/{findingId}/triage/versions	github-installation-id	active
 nullify api infrastructure				active
 nullify api infrastructure get-download	<accountId>	GET /context/infrastructure/graphs/{accountId}/download	github-installation-id	deprecated
 nullify api infrastructure get-graphs	<accountId>	GET /context/infrastructure/graphs/{accountId}	github-installation-id	deprecated
 nullify api infrastructure get-graphs-versions	<accountId>	GET /context/infrastructure/graphs/{accountId}/versions	github-installation-id	deprecated
 nullify api infrastructure get-graphs-versions-2	<accountId> <version>	GET /context/infrastructure/graphs/{accountId}/versions/{version}	github-installation-id	deprecated
-nullify api infrastructure list-graphs		GET /context/infrastructure/graphs	github-installation-id	deprecated
+nullify api infrastructure list-graphs		GET /context/infrastructure/graphs	accounts-only,gcp-admission,gcp-discovery-key,github-installation-id	deprecated
 nullify api infrastructure list-info		GET /context/infrastructure/graphs/info	github-installation-id	deprecated
 nullify api infrastructure list-summary		GET /context/infrastructure/graphs/summary	github-installation-id	deprecated
 nullify api manager				active
@@ -638,6 +665,7 @@ nullify api manager create-config		POST /manager/config	data,data-file,github-in
 nullify api manager create-daily-summary-trigger		POST /manager/daily-summary/trigger	data,data-file,github-installation-id	active
 nullify api manager create-deduplicate		POST /manager/events/deduplicate	data,data-file,github-installation-id	active
 nullify api manager create-dismiss-by-id	<actionItemId>	POST /manager/action-items/{actionItemId}/dismiss	data,data-file,github-installation-id	active
+nullify api manager create-edit-by-id	<actionItemId>	POST /manager/action-items/{actionItemId}/edit	data,data-file,github-installation-id	active
 nullify api manager create-fix-prs-nudge-by-id	<recordId>	POST /manager/fix-prs/{recordId}/nudge	data,data-file,github-installation-id	active
 nullify api manager create-generate		POST /manager/campaigns/default/generate	github-installation-id,page,page-size	active
 nullify api manager create-groundrules		POST /manager/groundrules	data,data-file,github-installation-id	active
@@ -671,6 +699,7 @@ nullify api manager get-campaigns-runs-2	<campaignId> <runId>	GET /manager/campa
 nullify api manager get-findings	<campaignId>	GET /manager/campaigns/{campaignId}/findings	github-installation-id	active
 nullify api manager get-findings-events	<findingId>	GET /manager/findings/{findingId}/events	action-types,cursor,github-installation-id,limit,statuses	active
 nullify api manager get-history	<chatID>	GET /manager/chat/sessions/{chatID}/history	github-installation-id,include-replay,page,page-size	active
+nullify api manager get-links	<actionItemId>	GET /manager/action-items/{actionItemId}/links	github-installation-id	active
 nullify api manager get-messages	<actionItemId>	GET /manager/action-items/{actionItemId}/messages	github-installation-id,include-replay,page,page-size	active
 nullify api manager get-nudge	<recordId>	GET /manager/fix-prs/{recordId}/nudge	github-installation-id	active
 nullify api manager get-preview	<campaignId>	GET /manager/campaigns/{campaignId}/preview	github-installation-id	active
@@ -692,7 +721,7 @@ nullify api manager list-identity-classifications		GET /manager/identity-classif
 nullify api manager list-latest		GET /manager/state/latest	github-installation-id	active
 nullify api manager list-metrics		GET /manager/metrics	as-of,github-installation-id	active
 nullify api manager list-plans		GET /manager/plans	campaign-id,github-installation-id,page,page-size	active
-nullify api manager list-previews		GET /manager/campaigns/previews	github-installation-id,limit,offset,page,page-size	active
+nullify api manager list-previews		GET /manager/campaigns/previews	github-installation-id,limit,mapped-findings-only,offset,page,page-size	active
 nullify api manager list-program		GET /manager/program	github-installation-id	active
 nullify api manager list-proposal		GET /manager/strategy/proposal	github-installation-id	active
 nullify api manager list-proposals		GET /manager/proposals	github-installation-id	active
@@ -724,6 +753,7 @@ nullify api orchestrator create-close-by-id	<findingID>	POST /orchestrator/findi
 nullify api orchestrator create-control-by-id	<kind> <runId>	POST /orchestrator/runs/{kind}/{runId}/control	data,data-file,github-installation-id	active
 nullify api orchestrator create-iterate-pr		POST /orchestrator/autofix/iterate-pr	data,data-file,github-installation-id	active
 nullify api orchestrator create-override		POST /orchestrator/checkruns/override	data,data-file,github-installation-id	active
+nullify api orchestrator create-override-by-id	<id>	POST /orchestrator/codereviews/{id}/override	data,data-file,github-installation-id	active
 nullify api orchestrator create-retriage		POST /orchestrator/findings/retriage	data,data-file,github-installation-id	active
 nullify api orchestrator create-reviews-by-id	<repositoryId> <number>	POST /orchestrator/repositories/{repositoryId}/pull-requests/{number}/reviews	github-installation-id	active
 nullify api orchestrator create-scans-by-id	<repositoryId>	POST /orchestrator/repositories/{repositoryId}/scans	data,data-file,github-installation-id	active
@@ -732,10 +762,11 @@ nullify api orchestrator get-autofix-iterations	<findingID>	GET /orchestrator/fi
 nullify api orchestrator get-batch	<executionId>	GET /orchestrator/autofix/batch/{executionId}	github-installation-id	active
 nullify api orchestrator get-capabilities	<kind> <runId>	GET /orchestrator/runs/{kind}/{runId}/control/capabilities	github-installation-id	active
 nullify api orchestrator get-codereviews	<id>	GET /orchestrator/codereviews/{id}	github-installation-id	active
+nullify api orchestrator get-controls	<id>	GET /orchestrator/codereviews/{id}/controls	github-installation-id	active
 nullify api orchestrator get-retriage	<activityId>	GET /orchestrator/findings/retriage/{activityId}	github-installation-id	active
 nullify api orchestrator get-scans	<repositoryId> <runId>	GET /orchestrator/repositories/{repositoryId}/scans/{runId}	github-installation-id,services	active
 nullify api orchestrator list-checkruns		GET /orchestrator/checkruns	github-installation-id,include-default-branch,max-repositories,repository-commit,repository-id,since	active
-nullify api orchestrator list-codereviews		GET /orchestrator/codereviews	blocked,github-installation-id,limit,next-token,offset,since	active
+nullify api orchestrator list-codereviews		GET /orchestrator/codereviews	blocked,branch,commit-sha,github-installation-id,include-skipped,include-unverified,limit,next-token,offset,pull-request-number,repository-id,search,since,status,until	active
 nullify api orchestrator list-requirements		GET /orchestrator/onboarding/requirements	github-installation-id	active
 nullify api orchestrator list-status		GET /orchestrator/onboarding/status	github-installation-id	active
 nullify api sast				active
@@ -743,6 +774,7 @@ nullify api sast create-allowlist		POST /sast/findings/allowlist	data,data-file,
 nullify api sast create-allowlist-by-id	<findingId>	POST /sast/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api sast create-fix-by-id	<findingId>	POST /sast/findings/{findingId}/autofix/fix	data,data-file,github-installation-id	active
 nullify api sast create-ticket-by-id	<findingId>	POST /sast/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api sast create-unallowlist		POST /sast/findings/unallowlist	data,data-file,github-installation-id	active
 nullify api sast create-unallowlist-by-id	<findingId>	POST /sast/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
 nullify api sast delete-ticket	<findingId>	DELETE /sast/findings/{findingId}/ticket	github-installation-id	active
 nullify api sast get-activity	<findingId>	GET /sast/findings/{findingId}/autofix/activity	github-installation-id,limit,since-id	active
@@ -762,13 +794,17 @@ nullify api sast list-repositories		GET /sast/repositories	github-installation-i
 nullify api sast list-scan-runs		GET /sast/scan-runs	from,github-installation-id,limit,offset,repository-id,sort,to	active
 nullify api sast patch-findings	<findingId>	PATCH /sast/findings/{findingId}	data,data-file,github-installation-id	active
 nullify api sca				active
+nullify api sca create-containers-findings-allowlist		POST /sca/containers/findings/allowlist	data,data-file,github-installation-id	active
 nullify api sca create-containers-findings-allowlist-by-id	<findingId>	POST /sca/containers/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api sca create-containers-findings-autofix-fix-by-id	<findingId>	POST /sca/containers/findings/{findingId}/autofix/fix	data,data-file,github-installation-id	active
 nullify api sca create-containers-findings-ticket-by-id	<findingId>	POST /sca/containers/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api sca create-containers-findings-unallowlist		POST /sca/containers/findings/unallowlist	data,data-file,github-installation-id	active
 nullify api sca create-containers-findings-unallowlist-by-id	<findingId>	POST /sca/containers/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
+nullify api sca create-dependencies-findings-allowlist		POST /sca/dependencies/findings/allowlist	data,data-file,github-installation-id	active
 nullify api sca create-dependencies-findings-allowlist-by-id	<findingId>	POST /sca/dependencies/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api sca create-dependencies-findings-autofix-fix-by-id	<findingId>	POST /sca/dependencies/findings/{findingId}/autofix/fix	data,data-file,github-installation-id	active
 nullify api sca create-dependencies-findings-ticket-by-id	<findingId>	POST /sca/dependencies/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api sca create-dependencies-findings-unallowlist		POST /sca/dependencies/findings/unallowlist	data,data-file,github-installation-id	active
 nullify api sca create-dependencies-findings-unallowlist-by-id	<findingId>	POST /sca/dependencies/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
 nullify api sca delete-containers-findings-ticket	<findingId>	DELETE /sca/containers/findings/{findingId}/ticket	github-installation-id	active
 nullify api sca delete-dependencies-findings-ticket	<findingId>	DELETE /sca/dependencies/findings/{findingId}/ticket	github-installation-id	active
@@ -777,7 +813,7 @@ nullify api sca get-containers-findings-autofix-activity	<findingId>	GET /sca/co
 nullify api sca get-containers-findings-autofix-state	<findingId>	GET /sca/containers/findings/{findingId}/autofix/state	github-installation-id	active
 nullify api sca get-containers-findings-autofix-status	<findingId>	GET /sca/containers/findings/{findingId}/autofix/status	github-installation-id	active
 nullify api sca get-containers-findings-events	<findingId>	GET /sca/containers/findings/{findingId}/events	github-installation-id,next-token	active
-nullify api sca get-containers-findings-triage	<findingId>	GET /sca/containers/findings/{findingId}/triage	github-installation-id	active
+nullify api sca get-containers-findings-triage	<findingId>	GET /sca/containers/findings/{findingId}/triage	cve-limit,cve-offset,cve-snapshot,github-installation-id,triage-offset,triage-snapshot	active
 nullify api sca get-containers-findings-triage-activity	<findingId>	GET /sca/containers/findings/{findingId}/triage/activity	github-installation-id,limit,since-id	active
 nullify api sca get-containers-findings-triage-status	<findingId>	GET /sca/containers/findings/{findingId}/triage/status	github-installation-id	active
 nullify api sca get-containers-findings-users	<findingId>	GET /sca/containers/findings/{findingId}/users	github-installation-id	active
@@ -786,11 +822,11 @@ nullify api sca get-dependencies-findings-autofix-activity	<findingId>	GET /sca/
 nullify api sca get-dependencies-findings-autofix-state	<findingId>	GET /sca/dependencies/findings/{findingId}/autofix/state	github-installation-id	active
 nullify api sca get-dependencies-findings-autofix-status	<findingId>	GET /sca/dependencies/findings/{findingId}/autofix/status	github-installation-id	active
 nullify api sca get-dependencies-findings-events	<findingId>	GET /sca/dependencies/findings/{findingId}/events	github-installation-id,next-token	active
-nullify api sca get-dependencies-findings-triage	<findingId>	GET /sca/dependencies/findings/{findingId}/triage	github-installation-id	active
+nullify api sca get-dependencies-findings-triage	<findingId>	GET /sca/dependencies/findings/{findingId}/triage	cve-limit,cve-offset,cve-snapshot,github-installation-id,triage-offset,triage-snapshot	active
 nullify api sca get-dependencies-findings-triage-activity	<findingId>	GET /sca/dependencies/findings/{findingId}/triage/activity	github-installation-id,limit,since-id	active
 nullify api sca get-dependencies-findings-triage-status	<findingId>	GET /sca/dependencies/findings/{findingId}/triage/status	github-installation-id	active
 nullify api sca get-dependencies-findings-users	<findingId>	GET /sca/dependencies/findings/{findingId}/users	github-installation-id,source-owner-only	active
-nullify api sca get-diff	<findingId>	GET /sca/dependencies/findings/{findingId}/autofix/cache/diff	github-installation-id	active
+nullify api sca get-diff	<findingId>	GET /sca/dependencies/findings/{findingId}/autofix/cache/diff	github-installation-id,pull-request-number	active
 nullify api sca get-findings	<cveId>	GET /sca/vulnerabilities/{cveId}/findings	branch,file-owner-name,github-installation-id,is-resolved,limit,offset,type	active
 nullify api sca get-packages	<cveId>	GET /sca/vulnerabilities/{cveId}/packages	github-installation-id	active
 nullify api sca get-repositories	<repositoryId>	GET /sca/repositories/{repositoryId}	github-installation-id	active
@@ -806,7 +842,7 @@ nullify api sca list-events		GET /sca/events	event-type,file-owner-name,finding-
 nullify api sca list-repositories		GET /sca/repositories	github-installation-id,limit,next-token	active
 nullify api sca list-scan-runs		GET /sca/scan-runs	from,github-installation-id,limit,offset,repository-id,scan-type,sort,to	active
 nullify api sca list-threat-feed		GET /sca/threat-feed	cve-id,ecosystem,github-installation-id,limit,offset,severity	active
-nullify api sca list-vulnerabilities		GET /sca/vulnerabilities	github-installation-id,kev-only,limit,offset,open-only,package,sort-by	active
+nullify api sca list-vulnerabilities		GET /sca/vulnerabilities	github-installation-id,internet-reachable-only,kev-only,limit,min-epss,offset,open-only,package,repository-id,severity,sort-by	active
 nullify api sca patch-containers-findings	<findingId>	PATCH /sca/containers/findings/{findingId}	data,data-file,github-installation-id	active
 nullify api sca patch-dependencies-findings	<findingId>	PATCH /sca/dependencies/findings/{findingId}	data,data-file,github-installation-id	active
 nullify api scpm				active
@@ -817,6 +853,7 @@ nullify api scpm create-containers-analyze		POST /scpm/containers/analyze	data,d
 nullify api scpm create-dependencies-analyze		POST /scpm/dependencies/analyze	data,data-file,github-installation-id	active
 nullify api scpm create-fix-by-id	<findingId>	POST /scpm/findings/{findingId}/autofix/fix	data,data-file,github-installation-id	active
 nullify api scpm create-ticket-by-id	<findingId>	POST /scpm/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api scpm create-unallowlist		POST /scpm/findings/unallowlist	data,data-file,github-installation-id	active
 nullify api scpm create-unallowlist-by-id	<findingId>	POST /scpm/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
 nullify api scpm create-unmark-false-positive-by-id	<findingId>	POST /scpm/findings/{findingId}/unmark-false-positive	github-installation-id	active
 nullify api scpm create-upload		POST /scpm/findings/upload	data,data-file,github-installation-id	active
@@ -838,17 +875,21 @@ nullify api scpm list-settings		GET /scpm/settings	github-installation-id	active
 nullify api scpm patch-findings	<findingId>	PATCH /scpm/findings/{findingId}	data,data-file,github-installation-id	active
 nullify api scpm update-settings		PUT /scpm/settings	data,data-file,github-installation-id	active
 nullify api secrets				active
+nullify api secrets create-credentials-findings-allowlist		POST /secrets/credentials/findings/allowlist	data,data-file,github-installation-id	active
 nullify api secrets create-credentials-findings-allowlist-batch		POST /secrets/credentials/findings/allowlist/batch	data,data-file,github-installation-id	active
 nullify api secrets create-credentials-findings-allowlist-by-id	<findingId>	POST /secrets/credentials/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api secrets create-credentials-findings-ticket-by-id	<findingId>	POST /secrets/credentials/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api secrets create-credentials-findings-unallowlist		POST /secrets/credentials/findings/unallowlist	data,data-file,github-installation-id	active
 nullify api secrets create-credentials-findings-unallowlist-by-id	<findingId>	POST /secrets/credentials/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
 nullify api secrets create-findings-allowlist-batch		POST /secrets/findings/allowlist/batch	data,data-file,github-installation-id	active
 nullify api secrets create-findings-allowlist-by-id	<findingId>	POST /secrets/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api secrets create-findings-ticket-by-id	<findingId>	POST /secrets/findings/{findingId}/ticket	data,data-file,github-installation-id	active
 nullify api secrets create-findings-unallowlist-by-id	<findingId>	POST /secrets/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
+nullify api secrets create-sensitivedata-findings-allowlist		POST /secrets/sensitivedata/findings/allowlist	data,data-file,github-installation-id	active
 nullify api secrets create-sensitivedata-findings-allowlist-batch		POST /secrets/sensitivedata/findings/allowlist/batch	data,data-file,github-installation-id	active
 nullify api secrets create-sensitivedata-findings-allowlist-by-id	<findingId>	POST /secrets/sensitivedata/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify api secrets create-sensitivedata-findings-ticket-by-id	<findingId>	POST /secrets/sensitivedata/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify api secrets create-sensitivedata-findings-unallowlist		POST /secrets/sensitivedata/findings/unallowlist	data,data-file,github-installation-id	active
 nullify api secrets create-sensitivedata-findings-unallowlist-by-id	<findingId>	POST /secrets/sensitivedata/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
 nullify api secrets delete-credentials-findings-ticket	<findingId>	DELETE /secrets/credentials/findings/{findingId}/ticket	github-installation-id	active
 nullify api secrets delete-findings-ticket	<findingId>	DELETE /secrets/findings/{findingId}/ticket	github-installation-id	active
@@ -883,7 +924,12 @@ nullify auth status				active
 nullify auth switch			installation	active
 nullify auth token				active
 nullify bughunt				active
+nullify bughunt create-bughunt-findings-allowlist		POST /dast/bughunt/findings/allowlist	data,data-file,github-installation-id	active
+nullify bughunt create-bughunt-findings-allowlist-by-id	<findingId>	POST /dast/bughunt/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify bughunt create-bughunt-findings-ticket-by-id	<findingId>	POST /dast/bughunt/findings/{findingId}/ticket	data,data-file,github-installation-id	active
+nullify bughunt create-bughunt-findings-unallowlist		POST /dast/bughunt/findings/unallowlist	data,data-file,github-installation-id	active
+nullify bughunt create-bughunt-findings-unallowlist-by-id	<findingId>	POST /dast/bughunt/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
+nullify bughunt create-bughunt-scans-archive-by-id	<scanId>	POST /dast/bughunt/scans/{scanId}/archive	github-installation-id	active
 nullify bughunt create-bughunt-scans-stop-by-id	<scanId>	POST /dast/bughunt/scans/{scanId}/stop	github-installation-id	active
 nullify bughunt create-import		POST /dast/bughunt/program/import	data,data-file,github-installation-id	active
 nullify bughunt create-run-now-by-id	<suite>	POST /dast/bughunt/suites/{suite}/run-now	data,data-file,github-installation-id	active
@@ -905,8 +951,8 @@ nullify bughunt list-suite-runs		GET /dast/bughunt/suite-runs	github-installatio
 nullify bughunt patch-allowlist	<findingId>	PATCH /dast/bughunt/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify bughunt update-config		PUT /dast/bughunt/config	data,data-file,github-installation-id	active
 nullify ci				active
-nullify ci gate			repo,severity-threshold,type	active
-nullify ci report			format,repo	active
+nullify ci gate			all-repositories,repo,repository-id,severity-threshold,type	active
+nullify ci report			all-repositories,format,repo,repository-id	active
 nullify completion	[bash|zsh|fish|powershell]			active
 nullify deps				active
 nullify deps analyze			base,fail-on,format,head,idempotency-seed,repo,wait,wait-interval,wait-timeout	active
@@ -936,6 +982,7 @@ nullify org list				active
 nullify org use	<name|id>			active
 nullify pentest			app-name,auth-config,force-pull,github-owner,github-repo,header,image-label,local,spec-path,target-host,use-host-network	active
 nullify pentest create-allowlist-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
+nullify pentest create-answer-by-id	<credentialId>	POST /dast/credentials/{credentialId}/login-assist/answer	data,data-file,github-installation-id	active
 nullify pentest create-applications		POST /dast/pentest/applications	data,data-file,github-installation-id	active
 nullify pentest create-applications-2		POST /dast/applications	data,data-file,github-installation-id	active
 nullify pentest create-credentials		POST /dast/credentials	data,data-file,github-installation-id	active
@@ -943,9 +990,16 @@ nullify pentest create-credentials-by-id	<webServiceId>	POST /dast/web-services/
 nullify pentest create-credentials-validate		POST /dast/credentials/validate	data,data-file,github-installation-id	active
 nullify pentest create-fix-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/autofix/fix	data,data-file,github-installation-id	active
 nullify pentest create-from-context		POST /dast/applications/from-context	data,data-file,github-installation-id	active
+nullify pentest create-login-definition		POST /dast/credentials/login-definition	data,data-file,github-installation-id	active
+nullify pentest create-move-by-id	<applicationId>	POST /dast/pentest/applications/{applicationId}/move	data,data-file,github-installation-id	active
+nullify pentest create-pentest-findings-allowlist		POST /dast/pentest/findings/allowlist	data,data-file,github-installation-id	active
+nullify pentest create-pentest-findings-unallowlist		POST /dast/pentest/findings/unallowlist	data,data-file,github-installation-id	active
+nullify pentest create-pentest-scans-archive-by-id	<scanId>	POST /dast/pentest/scans/{scanId}/archive	github-installation-id	active
 nullify pentest create-pentest-scans-stop-by-id	<scanId>	POST /dast/pentest/scans/{scanId}/stop	github-installation-id	active
 nullify pentest create-preflight-by-id	<applicationId>	POST /dast/pentest/applications/{applicationId}/preflight	data,data-file,github-installation-id	active
 nullify pentest create-readiness		POST /dast/applications/readiness	data,data-file,github-installation-id	active
+nullify pentest create-retry-by-id	<credentialId>	POST /dast/credentials/{credentialId}/login-assist/retry	data,data-file,github-installation-id	active
+nullify pentest create-session-lease-by-id	<credentialId>	POST /dast/credentials/{credentialId}/session-lease	data,data-file,github-installation-id	active
 nullify pentest create-start		POST /dast/pentest/start	data,data-file,github-installation-id	active
 nullify pentest create-ticket-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/ticket	data,data-file,github-installation-id	active
 nullify pentest create-unallowlist-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/unallowlist	data,data-file,github-installation-id	active
@@ -955,20 +1009,25 @@ nullify pentest delete-applications	<applicationId>	DELETE /dast/pentest/applica
 nullify pentest delete-applications-2	<applicationId>	DELETE /dast/applications/{applicationId}	github-installation-id	active
 nullify pentest delete-credentials	<credentialId>	DELETE /dast/credentials/{credentialId}	github-installation-id	active
 nullify pentest delete-pentest-findings-ticket	<findingId>	DELETE /dast/pentest/findings/{findingId}/ticket	github-installation-id	active
+nullify pentest delete-schedule	<applicationId>	DELETE /dast/pentest/applications/{applicationId}/schedule	github-installation-id	active
 nullify pentest delete-web-services-credentials	<webServiceId> <credentialId>	DELETE /dast/web-services/{webServiceId}/credentials/{credentialId}	github-installation-id	active
 nullify pentest get-activity	<findingId>	GET /dast/pentest/findings/{findingId}/autofix/activity	github-installation-id,limit,since-id	active
 nullify pentest get-applications	<applicationId>	GET /dast/pentest/applications/{applicationId}	github-installation-id	active
 nullify pentest get-applications-2	<applicationId>	GET /dast/applications/{applicationId}	github-installation-id	active
-nullify pentest get-cases	<scanId>	GET /dast/pentest/scans/{scanId}/auth-matrix/cases	github-installation-id,hide-not-run,identity,limit,offset,outcome	active
+nullify pentest get-cases	<scanId>	GET /dast/pentest/scans/{scanId}/auth-matrix/cases	cursor,github-installation-id,hide-not-run,identity,limit,offset,outcome	active
 nullify pentest get-credentials	<credentialId>	GET /dast/credentials/{credentialId}	github-installation-id	active
+nullify pentest get-credentials-login-runs	<credentialId>	GET /dast/credentials/{credentialId}/login-runs	github-installation-id,limit	active
+nullify pentest get-credentials-login-runs-2	<credentialId> <runId>	GET /dast/credentials/{credentialId}/login-runs/{runId}	github-installation-id	active
 nullify pentest get-credentials-validations	<credentialId>	GET /dast/credentials/{credentialId}/validations	github-installation-id,limit,next-token	active
 nullify pentest get-credentials-validations-status	<credentialId>	GET /dast/credentials/{credentialId}/validations/status	github-installation-id	active
 nullify pentest get-download	<scanId>	GET /dast/pentest/scans/{scanId}/report/download	github-installation-id	active
 nullify pentest get-estimate	<applicationId>	GET /dast/pentest/applications/{applicationId}/estimate	github-installation-id	active
 nullify pentest get-events	<scanId>	GET /dast/pentest/scans/{scanId}/events	after-seq,github-installation-id,limit	active
+nullify pentest get-executions	<scanId>	GET /dast/pentest/scans/{scanId}/executions	github-installation-id,limit,offset	active
 nullify pentest get-full	<findingId>	GET /dast/pentest/findings/{findingId}/full	github-installation-id	active
 nullify pentest get-latest	<applicationId>	GET /dast/pentest/applications/{applicationId}/preflight/latest	github-installation-id,target-id,web-service-id	active
 nullify pentest get-links	<scanId>	GET /dast/pentest/scans/{scanId}/findings/links	github-installation-id	active
+nullify pentest get-login-status	<credentialId>	GET /dast/credentials/{credentialId}/login-status	github-installation-id	active
 nullify pentest get-pentest-findings	<findingId>	GET /dast/pentest/findings/{findingId}	github-installation-id	active
 nullify pentest get-pentest-findings-events	<findingId>	GET /dast/pentest/findings/{findingId}/events	github-installation-id	active
 nullify pentest get-pentest-findings-triage	<findingId>	GET /dast/pentest/findings/{findingId}/triage	github-installation-id	active
@@ -982,7 +1041,8 @@ nullify pentest get-pentest-scans-report-pdf	<scanId>	GET /dast/pentest/scans/{s
 nullify pentest get-pentest-scans-status	<scanId>	GET /dast/pentest/scans/{scanId}/status	github-installation-id	active
 nullify pentest get-preflights	<preflightId>	GET /dast/pentest/preflights/{preflightId}	github-installation-id	active
 nullify pentest get-quota	<applicationId>	GET /dast/pentest/applications/{applicationId}/preflight/quota	github-installation-id	active
-nullify pentest get-report	<scanId>	GET /dast/pentest/scans/{scanId}/report	exclude,github-installation-id	active
+nullify pentest get-report	<scanId>	GET /dast/pentest/scans/{scanId}/report	exclude,github-installation-id,view	active
+nullify pentest get-schedule	<applicationId>	GET /dast/pentest/applications/{applicationId}/schedule	github-installation-id	active
 nullify pentest get-state	<findingId>	GET /dast/pentest/findings/{findingId}/autofix/state	github-installation-id	active
 nullify pentest get-status	<findingId>	GET /dast/pentest/findings/{findingId}/autofix/status	github-installation-id	active
 nullify pentest get-transactions	<scanId>	GET /dast/pentest/scans/{scanId}/logs/transactions	cursor,evidence-ref,github-installation-id,identity-id,method,path,since,stage,until	active
@@ -993,12 +1053,14 @@ nullify pentest list-budget		GET /dast/pentest/budget	github-installation-id	act
 nullify pentest list-credentials		GET /dast/credentials	github-installation-id,limit,offset,search	active
 nullify pentest list-last		GET /dast/scans/status/last	github-installation-id	active
 nullify pentest list-pentest-findings		GET /dast/pentest/findings	github-installation-id,is-allowlisted,is-false-positive,is-latest,is-resolved,limit,next-token,priority-label,scan-id,sort,sort-by	active
-nullify pentest list-pentest-scans		GET /dast/pentest/scans	github-installation-id,limit,next-token,offset,search	active
+nullify pentest list-pentest-scans		GET /dast/pentest/scans	github-installation-id,limit,next-token,offset,search,started-after,started-before,statuses	active
 nullify pentest patch-applications	<applicationId>	PATCH /dast/pentest/applications/{applicationId}	data,data-file,github-installation-id	active
 nullify pentest update-active	<credentialId>	PUT /dast/credentials/{credentialId}/active	data,data-file,github-installation-id	active
 nullify pentest update-applications	<applicationId>	PUT /dast/pentest/applications/{applicationId}	data,data-file,github-installation-id	active
 nullify pentest update-applications-2	<applicationId>	PUT /dast/applications/{applicationId}	data,data-file,github-installation-id	active
 nullify pentest update-credentials	<credentialId>	PUT /dast/credentials/{credentialId}	data,data-file,github-installation-id	active
+nullify pentest update-login-definition	<credentialId>	PUT /dast/credentials/{credentialId}/login-definition	data,data-file,github-installation-id	active
+nullify pentest update-schedule	<applicationId>	PUT /dast/pentest/applications/{applicationId}/schedule	data,data-file,github-installation-id	active
 nullify repos				active
 nullify sbom				active
 nullify sbom get			project-id,repository-id	active

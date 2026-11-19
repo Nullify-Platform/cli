@@ -1,18 +1,12 @@
 package cmd
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
-	"sync"
-	"sync/atomic"
 
-	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 var ciCmd = &cobra.Command{
@@ -27,122 +21,38 @@ var ciGateCmd = &cobra.Command{
 	Long: `Check if security findings exceed the severity threshold and exit non-zero if they do.
 Use this in CI/CD pipelines to block deployments with critical/high findings.
 
+The threshold applies to every scanner. A finding counts when its own
+severity is at or above the threshold. Secrets findings carry no severity,
+so every open one counts at any threshold, and so does a finding whose
+severity is UNKNOWN or missing. SAST and CSPM are filtered by severity on
+the server, which is also asked for their UNKNOWN findings; a SAST or CSPM
+finding with no severity value at all matches no filter and is not seen.
+The bughunt list returns closed findings too, so the gate leaves out
+bughunt findings that are fixed, allowlisted, archived, false positives or
+superseded by a later scan.
+
+` + repositoryScopeHelp + `
+
 Exit codes:
   0 - No findings above threshold
   1 - Findings above threshold found
-  2 - Authentication error
-  3 - Network/API error`,
-	Example: `  # Block on critical or high findings
+  2 - Authentication error, including a scanner that refuses access (401 or 403)
+  3 - Network/API error, or a response that could not be read
+  4 - Invalid flags or flag values`,
+	Example: `  # In GitHub Actions, GitLab CI, Bitbucket Pipelines or Azure Pipelines,
+  # block on critical or high findings of the repository being built
   nullify ci gate
 
   # Block only on critical findings
   nullify ci gate --severity-threshold critical
 
-  # Check a specific repo
-  nullify ci gate --repo my-org/my-repo`,
+  # Elsewhere, name the repository by its ID at the git provider
+  nullify ci gate --repository-id "$(gh api repos/my-org/my-repo --jq .id)"
+
+  # Count the findings of every repository
+  nullify ci gate --all-repositories`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-
-		authCtx, err := resolveCommandAuth(ctx)
-		if err != nil {
-			return err
-		}
-		nullifyClient := authCtx.Client()
-		queryParams := authCtx.QueryParams
-
-		severityThreshold, _ := cmd.Flags().GetString("severity-threshold")
-		findingType, _ := cmd.Flags().GetString("type")
-		repo, _ := cmd.Flags().GetString("repo")
-
-		validSeverities := []string{"critical", "high", "medium", "low"}
-		validThreshold := false
-		for _, s := range validSeverities {
-			if s == severityThreshold {
-				validThreshold = true
-				break
-			}
-		}
-		if !validThreshold {
-			err := fmt.Errorf("invalid --severity-threshold %q. Valid values: critical, high, medium, low", severityThreshold)
-			return withExitCode(1, err)
-		}
-
-		if repo == "" {
-			repo = lib.DetectRepoFromGit()
-		}
-
-		severities := severitiesAboveThreshold(severityThreshold)
-
-		endpoints := allScannerEndpoints()
-		if findingType != "" {
-			if filtered := filterEndpointsByType(endpoints, findingType); filtered != nil {
-				endpoints = filtered
-			} else {
-				fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
-			}
-		}
-
-		var findingsFound int64
-		var apiErrors int64
-		var unreadable int64
-		var mu sync.Mutex
-		g, gctx := errgroup.WithContext(ctx)
-
-		for _, ep := range endpoints {
-			for _, sev := range scannerSeverities(ep, severities) {
-				ep, sev := ep, sev
-				g.Go(func() error {
-					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1")...)
-
-					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
-					if err != nil {
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						atomic.AddInt64(&apiErrors, 1)
-						return nil
-					}
-
-					count, err := countFindings(body)
-					if err != nil {
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Error: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						atomic.AddInt64(&unreadable, 1)
-						return nil
-					}
-
-					if count > 0 {
-						atomic.AddInt64(&findingsFound, 1)
-						mu.Lock()
-						fmt.Println(gateFailLine(ep, sev))
-						mu.Unlock()
-					}
-					return nil
-				})
-			}
-		}
-
-		_ = g.Wait()
-
-		if apiErrors > 0 {
-			err := fmt.Errorf("%d scanner request(s) failed; failing the gate (cannot confirm a clean result)", apiErrors)
-			return withExitCode(ExitNetworkError, err)
-		}
-
-		if unreadable > 0 {
-			err := fmt.Errorf("%d scanner response(s) could not be read; failing the gate (cannot confirm a clean result)", unreadable)
-			return withExitCode(ExitNetworkError, err)
-		}
-
-		if findingsFound > 0 {
-			fmt.Printf("\nGate failed: open findings at or above %s severity\n", severityThreshold)
-			cmd.SilenceErrors = true
-			return withExitCode(ExitFindings, fmt.Errorf("gate failed: open findings at or above %s severity", severityThreshold))
-		}
-
-		fmt.Println("Gate passed: no findings above threshold")
-		return nil
+		return runCIGate(cmd)
 	},
 }
 
@@ -151,120 +61,29 @@ var ciReportCmd = &cobra.Command{
 	Short: "Generate a findings report (markdown or SARIF)",
 	Long: `Output a report of security findings. The default markdown format produces a
 summary table suitable for PR comments (counts by type and severity). The sarif
-format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
+format emits a SARIF v2.1.0 document for upload to code-scanning tools.
+
+Each finding is counted once, under its own severity. Findings without a
+severity, which includes every secrets finding, are counted as unknown.
+Closed bughunt findings are left out, as the gate leaves them out.
+
+The report covers one repository, which it finds as the gate does: see
+'nullify ci gate --help'.
+
+A scanner that cannot be read is left out of the report with a warning on
+stderr. The report fails only when no scanner can be read.
+
+Exit codes:
+  0 - Report written
+  2 - Authentication error: every scanner refused access (401 or 403)
+  3 - Network/API error: no scanner could be read
+  4 - Invalid flags or flag values`,
 	Example: `  nullify ci report
-  nullify ci report --repo my-org/my-repo
+  nullify ci report --repository-id 123456789
+  nullify ci report --all-repositories
   nullify ci report --format sarif > nullify.sarif`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-
-		authCtx, err := resolveCommandAuth(ctx)
-		if err != nil {
-			return err
-		}
-		nullifyClient := authCtx.Client()
-		queryParams := authCtx.QueryParams
-
-		repo, _ := cmd.Flags().GetString("repo")
-		if repo == "" {
-			repo = lib.DetectRepoFromGit()
-		}
-
-		format, _ := cmd.Flags().GetString("format")
-		switch format {
-		case "markdown", "sarif":
-		default:
-			return withExitCode(1, fmt.Errorf("invalid --format %q. Valid values: markdown, sarif", format))
-		}
-
-		endpoints := allScannerEndpoints()
-		severities := []string{"critical", "high", "medium", "low"}
-
-		type reportRow struct {
-			scanner  string
-			severity string
-			count    int
-			findings []json.RawMessage
-		}
-
-		rows := make([]reportRow, len(endpoints)*len(severities))
-		g, gctx := errgroup.WithContext(ctx)
-		var successCount int64
-		var apiErrors int64
-		var mu sync.Mutex
-
-		for i, ep := range endpoints {
-			for j, sev := range severities {
-				i, j, ep, sev := i, j, ep, sev
-				g.Go(func() error {
-					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1000")...)
-
-					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
-					if err != nil {
-						atomic.AddInt64(&apiErrors, 1)
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						return nil
-					}
-					count, err := countFindings(body)
-					if err != nil {
-						atomic.AddInt64(&apiErrors, 1)
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						return nil
-					}
-					atomic.AddInt64(&successCount, 1)
-
-					rows[i*len(severities)+j] = reportRow{
-						scanner:  ep.name,
-						severity: sev,
-						count:    count,
-						findings: extractFindings(body),
-					}
-					return nil
-				})
-			}
-		}
-
-		_ = g.Wait()
-
-		if successCount == 0 {
-			return networkError("all API requests failed, cannot generate report")
-		}
-		if apiErrors > 0 {
-			fmt.Fprintf(os.Stderr, "Warning: %d API requests failed while generating the report\n", apiErrors)
-		}
-
-		if format == "sarif" {
-			all := make([]json.RawMessage, 0)
-			for _, row := range rows {
-				all = append(all, row.findings...)
-			}
-			wrapped, _ := json.Marshal(map[string]any{"findings": all, "total": len(all)})
-			sarifBytes, err := output.SARIFBytes(wrapped)
-			if err != nil {
-				return networkError("failed to build SARIF report: %w", err)
-			}
-			fmt.Println(string(sarifBytes))
-			return nil
-		}
-
-		fmt.Println("## Nullify Security Report")
-		fmt.Println()
-		fmt.Println("| Scanner | Severity | Count |")
-		fmt.Println("|---------|----------|-------|")
-
-		for _, row := range rows {
-			if row.count > 0 {
-				fmt.Printf("| %s | %s | %d |\n", row.scanner, row.severity, row.count)
-			}
-		}
-
-		fmt.Println()
-		fmt.Println("*Generated by [Nullify CLI](https://github.com/nullify-platform/cli)*")
-		return nil
+		return runCIReport(cmd)
 	},
 }
 
@@ -275,17 +94,124 @@ func init() {
 
 	ciGateCmd.Flags().String("severity-threshold", "high", "Minimum severity to fail on (critical, high, medium, low)")
 	ciGateCmd.Flags().String("type", "", "Filter by finding type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm)")
-	ciGateCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
+	addRepositoryScopeFlags(ciGateCmd)
 
-	ciReportCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
 	ciReportCmd.Flags().String("format", "markdown", "Report format (markdown, sarif)")
+	addRepositoryScopeFlags(ciReportCmd)
+
+	ciGateCmd.SetFlagErrorFunc(usageFlagError)
+	ciReportCmd.SetFlagErrorFunc(usageFlagError)
+}
+
+// repositoryScopeHelp explains how the gate and the report pick their
+// repository.
+const repositoryScopeHelp = `The gate counts the findings of one repository: the one --repository-id
+names, or else the one the CI platform names. That is GITHUB_REPOSITORY_ID
+in GitHub Actions, CI_PROJECT_ID in GitLab CI, BITBUCKET_REPO_UUID in
+Bitbucket Pipelines, and BUILD_REPOSITORY_ID in Azure Pipelines for an
+Azure Repos repository. Elsewhere, such as Jenkins, CircleCI or a laptop,
+pass --repository-id, or pass --all-repositories to count every repository
+the token can read. With neither, the command exits 4 rather than count
+other repositories' findings. Pentest, bughunt and CSPM findings belong to
+applications, hosts and cloud accounts rather than repositories, so they
+are counted for the whole tenant.`
+
+func addRepositoryScopeFlags(cmd *cobra.Command) {
+	cmd.Flags().String("repository-id", "", "Repository ID at the git provider: the GitHub or GitLab numeric ID, the Bitbucket UUID or the Azure Repos GUID (detected in GitHub Actions, GitLab CI, Bitbucket Pipelines and Azure Pipelines)")
+	cmd.Flags().Bool("all-repositories", false, "Count the findings of every repository the token can read, instead of one repository")
+}
+
+// usageFlagError gives a flag the command cannot parse the usage exit code.
+func usageFlagError(_ *cobra.Command, err error) error {
+	return withExitCode(ExitUsageError, err)
+}
+
+func runCIGate(cmd *cobra.Command) error {
+	thresholdName, _ := cmd.Flags().GetString("severity-threshold")
+	threshold, err := parseSeverityThreshold(thresholdName)
+	if err != nil {
+		return withExitCode(ExitUsageError, err)
+	}
+	scope, err := scopeFromFlags(cmd)
+	if err != nil {
+		return withExitCode(ExitUsageError, err)
+	}
+
+	ctx := cmd.Context()
+	authCtx, err := resolveCommandAuth(ctx)
+	if err != nil {
+		return err
+	}
+
+	findingType, _ := cmd.Flags().GetString("type")
+	fmt.Fprintf(os.Stderr, "Scope: %s\n", scope.describe())
+
+	checks := gateChecks(gateEndpoints(findingType), severitiesAboveThreshold(threshold.String()))
+	results := runGateChecks(ctx, clientGetter(authCtx.Client()), authCtx.QueryParams, checks, threshold, scope)
+	if err := gateVerdict(results, threshold); err != nil {
+		if ExitCodeForError(err) == ExitFindings {
+			// The FAIL lines and the summary already explain the result.
+			cmd.SilenceErrors = true
+		}
+		return err
+	}
+
+	fmt.Println("Gate passed: no findings above threshold")
+	return nil
+}
+
+func runCIReport(cmd *cobra.Command) error {
+	format, _ := cmd.Flags().GetString("format")
+	switch format {
+	case "markdown", "sarif":
+	default:
+		return usageError("invalid --format %q. Valid values: markdown, sarif", format)
+	}
+	scope, err := scopeFromFlags(cmd)
+	if err != nil {
+		return withExitCode(ExitUsageError, err)
+	}
+
+	ctx := cmd.Context()
+	authCtx, err := resolveCommandAuth(ctx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stderr, "Scope: %s\n", scope.describe())
+	reports := collectScannerReports(
+		ctx, clientGetter(authCtx.Client()), authCtx.QueryParams,
+		allScannerEndpoints(), scope,
+	)
+	if err := checkReportReads(reports); err != nil {
+		return err
+	}
+
+	if format == "sarif" {
+		return printSARIFReport(reports)
+	}
+	printMarkdownReport(reportRows(reports))
+	return nil
+}
+
+// gateEndpoints returns the scanners the gate checks: the --type scanner, or
+// every scanner when the type is empty or unknown.
+func gateEndpoints(findingType string) []scannerEndpoint {
+	endpoints := allScannerEndpoints()
+	if findingType == "" {
+		return endpoints
+	}
+	if filtered := filterEndpointsByType(endpoints, findingType); filtered != nil {
+		return filtered
+	}
+	fmt.Fprintf(os.Stderr, "Warning: unknown finding type %q, scanning all types\n", findingType)
+	return endpoints
 }
 
 func severitiesAboveThreshold(threshold string) []string {
-	all := []string{"critical", "high", "medium", "low"}
-	for i, s := range all {
+	for i, s := range thresholdNames {
 		if s == threshold {
-			return all[:i+1]
+			return thresholdNames[:i+1]
 		}
 	}
 	return []string{"critical", "high"}
@@ -294,16 +220,20 @@ func severitiesAboveThreshold(threshold string) []string {
 // scannerSeverities returns the severity values to query an endpoint with. An
 // endpoint with no server-side severity filter is queried once with an empty
 // severity: fanning out over the threshold list there would issue identical
-// requests and attribute the same findings to every severity.
+// requests and attribute the same findings to every severity. An endpoint
+// that filters by severity is also asked for its UNKNOWN findings, which
+// count at every threshold and no threshold name would return.
 func scannerSeverities(ep scannerEndpoint, severities []string) []string {
 	if !ep.supportsSeverity {
 		return []string{""}
 	}
-	return severities
+	return append(slices.Clone(severities), severityUnknown.String())
 }
 
-func scannerQueryParams(ep scannerEndpoint, severity, repo, limit string) []string {
-	params := []string{"limit", limit}
+// scannerQueryParams returns the filters for one scanner list request. The
+// page size and cursor are added per page by visitFindingPages.
+func scannerQueryParams(ep scannerEndpoint, severity string, scope repositoryScope) []string {
+	params := []string{}
 	if ep.supportsSeverity && severity != "" {
 		params = append(params, "severity", strings.ToUpper(severity))
 	}
@@ -313,10 +243,7 @@ func scannerQueryParams(ep scannerEndpoint, severity, repo, limit string) []stri
 	if ep.supportsIsResolved {
 		params = append(params, "isResolved", "false")
 	}
-	if repo != "" {
-		params = append(params, "repository", repo)
-	}
-	return params
+	return append(params, scope.queryParams(ep)...)
 }
 
 // scannerLabel names a scanner/severity pair in diagnostic output. A scanner
@@ -326,69 +253,4 @@ func scannerLabel(ep scannerEndpoint, severity string) string {
 		return ep.name
 	}
 	return fmt.Sprintf("%s (%s)", ep.name, severity)
-}
-
-// gateFailLine reports a scanner that returned findings. Scanners with no
-// server-side severity filter say so rather than implying the threshold was
-// applied to their result.
-func gateFailLine(ep scannerEndpoint, severity string) string {
-	if severity == "" {
-		return fmt.Sprintf("FAIL: %s has open findings (no server-side severity filter, threshold not applied)", ep.name)
-	}
-	return fmt.Sprintf("FAIL: %s has open %s findings", ep.name, severity)
-}
-
-// errUnreadableFindings reports a findings response that does not carry the
-// scanner envelope. It is never reported as a count of zero: a gate that cannot
-// read the response must block the build rather than declare the repo clean.
-var errUnreadableFindings = errors.New("unrecognised findings response envelope")
-
-func countFindings(body string) (int, error) {
-	var envelope struct {
-		Findings json.RawMessage `json:"findings"`
-		NumItems *int            `json:"numItems"`
-	}
-	if err := json.Unmarshal([]byte(body), &envelope); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUnreadableFindings, err)
-	}
-	if len(envelope.Findings) == 0 {
-		return 0, fmt.Errorf("%w: no \"findings\" field", errUnreadableFindings)
-	}
-
-	var findings []json.RawMessage
-	if err := json.Unmarshal(envelope.Findings, &findings); err != nil {
-		return 0, fmt.Errorf("%w: \"findings\" is not an array: %w", errUnreadableFindings, err)
-	}
-	if envelope.NumItems != nil && *envelope.NumItems != 0 && *envelope.NumItems != len(findings) {
-		return 0, fmt.Errorf(
-			"%w: numItems %d does not match findings length %d",
-			errUnreadableFindings, *envelope.NumItems, len(findings),
-		)
-	}
-	return len(findings), nil
-}
-
-// extractFindings pulls the finding objects out of an API response body so they
-// can be rendered (e.g. as SARIF). It understands a top-level array as well as
-// the common {findings:[...]} and {items:[...]} envelopes.
-func extractFindings(body string) []json.RawMessage {
-	var arr []json.RawMessage
-	if err := json.Unmarshal([]byte(body), &arr); err == nil {
-		return arr
-	}
-
-	var obj struct {
-		Findings []json.RawMessage `json:"findings"`
-		Items    []json.RawMessage `json:"items"`
-	}
-	if err := json.Unmarshal([]byte(body), &obj); err == nil {
-		if obj.Findings != nil {
-			return obj.Findings
-		}
-		if obj.Items != nil {
-			return obj.Items
-		}
-	}
-
-	return nil
 }

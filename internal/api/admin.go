@@ -1788,6 +1788,274 @@ func (c *Client) DeleteAdminIdentityScimCredentialsId(ctx context.Context, in De
 	return &out, nil
 }
 
+// CreateAdminIdentitySlackLinkInput is the input for CreateAdminIdentitySlackLink — Link a Slack account.
+type CreateAdminIdentitySlackLinkInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Token string `json:"token"`
+	models.RequestScope
+}
+
+// CreateAdminIdentitySlackLink - Link a Slack account
+// POST /admin/identity/slack/link
+func (c *Client) CreateAdminIdentitySlackLink(ctx context.Context, in CreateAdminIdentitySlackLinkInput) (*models.EndpointsPostSlackLinkOutput, error) {
+	path := "/admin/identity/slack/link"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Token string `json:"token"`
+	}{
+		Token: in.Token,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSlackLinkOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminIdentitySlackLinkRequestsRequestIdDecisionInput is the input for CreateAdminIdentitySlackLinkRequestsRequestIdDecision — Approve or decline a Slack account link.
+type CreateAdminIdentitySlackLinkRequestsRequestIdDecisionInput struct {
+	RequestID string `path:"requestId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Approve *bool `json:"approve,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminIdentitySlackLinkRequestsRequestIdDecision - Approve or decline a Slack account link
+// POST /admin/identity/slack/link-requests/{requestId}/decision
+func (c *Client) CreateAdminIdentitySlackLinkRequestsRequestIdDecision(ctx context.Context, in CreateAdminIdentitySlackLinkRequestsRequestIdDecisionInput) ([]byte, error) {
+	path := "/admin/identity/slack/link-requests/{requestId}/decision"
+	path = strings.Replace(path, "{requestId}", url.PathEscape(in.RequestID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Approve *bool `json:"approve,omitempty"`
+	}{
+		Approve: in.Approve,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	return data, err
+}
+
+// CreateAdminIdentitySlackLinkPreviewInput is the input for CreateAdminIdentitySlackLinkPreview — Preview a Slack account link.
+type CreateAdminIdentitySlackLinkPreviewInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Token string `json:"token"`
+	models.RequestScope
+}
+
+// CreateAdminIdentitySlackLinkPreview - Preview a Slack account link
+// POST /admin/identity/slack/link/preview
+func (c *Client) CreateAdminIdentitySlackLinkPreview(ctx context.Context, in CreateAdminIdentitySlackLinkPreviewInput) (*models.EndpointsPostSlackLinkPreviewOutput, error) {
+	path := "/admin/identity/slack/link/preview"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Token string `json:"token"`
+	}{
+		Token: in.Token,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostSlackLinkPreviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIdentitySlackLinksInput is the input for ListAdminIdentitySlackLinks — List Slack account links.
+type ListAdminIdentitySlackLinksInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIdentitySlackLinks - List Slack account links
+// GET /admin/identity/slack/links
+func (c *Client) ListAdminIdentitySlackLinks(ctx context.Context, in ListAdminIdentitySlackLinksInput) (*models.EndpointsGetSlackLinksOutput, error) {
+	path := "/admin/identity/slack/links"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSlackLinksOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminIdentitySlackLinksMeInput is the input for ListAdminIdentitySlackLinksMe — List my Slack account links.
+type ListAdminIdentitySlackLinksMeInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIdentitySlackLinksMe - List my Slack account links
+// GET /admin/identity/slack/links/me
+func (c *Client) ListAdminIdentitySlackLinksMe(ctx context.Context, in ListAdminIdentitySlackLinksMeInput) (*models.EndpointsGetOwnSlackLinksOutput, error) {
+	path := "/admin/identity/slack/links/me"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetOwnSlackLinksOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserIdInput is the input for DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserId — Unlink one of my Slack accounts.
+type DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserIdInput struct {
+	DirectoryID string `path:"directoryId" json:"-"`
+	SlackUserID string `path:"slackUserId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserId - Unlink one of my Slack accounts
+// DELETE /admin/identity/slack/links/me/{directoryId}/{slackUserId}
+func (c *Client) DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserId(ctx context.Context, in DeleteAdminIdentitySlackLinksMeDirectoryIdSlackUserIdInput) ([]byte, error) {
+	path := "/admin/identity/slack/links/me/{directoryId}/{slackUserId}"
+	path = strings.Replace(path, "{directoryId}", url.PathEscape(in.DirectoryID), 1)
+	path = strings.Replace(path, "{slackUserId}", url.PathEscape(in.SlackUserID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	return data, err
+}
+
+// DeleteAdminIdentitySlackLinksDirectoryIdSlackUserIdInput is the input for DeleteAdminIdentitySlackLinksDirectoryIdSlackUserId — Revoke a Slack account link.
+type DeleteAdminIdentitySlackLinksDirectoryIdSlackUserIdInput struct {
+	DirectoryID string `path:"directoryId" json:"-"`
+	SlackUserID string `path:"slackUserId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// DeleteAdminIdentitySlackLinksDirectoryIdSlackUserId - Revoke a Slack account link
+// DELETE /admin/identity/slack/links/{directoryId}/{slackUserId}
+func (c *Client) DeleteAdminIdentitySlackLinksDirectoryIdSlackUserId(ctx context.Context, in DeleteAdminIdentitySlackLinksDirectoryIdSlackUserIdInput) ([]byte, error) {
+	path := "/admin/identity/slack/links/{directoryId}/{slackUserId}"
+	path = strings.Replace(path, "{directoryId}", url.PathEscape(in.DirectoryID), 1)
+	path = strings.Replace(path, "{slackUserId}", url.PathEscape(in.SlackUserID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "DELETE", fullURL, nil)
+	return data, err
+}
+
 // ListAdminInstallationsInput is the input for ListAdminInstallations — Get App Installations.
 type ListAdminInstallationsInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -4961,6 +5229,50 @@ func (c *Client) ListAdminIntegrationsSlack(ctx context.Context, in ListAdminInt
 	return &out, nil
 }
 
+// ListAdminIntegrationsSlackChannelsInput is the input for ListAdminIntegrationsSlackChannels — List Slack Channels.
+type ListAdminIntegrationsSlackChannelsInput struct {
+	ChannelID *string `url:"channelId,omitempty" json:"-"`
+	Cursor *string `url:"cursor,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminIntegrationsSlackChannels - List Slack Channels
+// GET /admin/integrations/slack/channels
+func (c *Client) ListAdminIntegrationsSlackChannels(ctx context.Context, in ListAdminIntegrationsSlackChannelsInput) (*models.EndpointsGetSlackChannelsOutput, error) {
+	path := "/admin/integrations/slack/channels"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.Cursor != nil {
+		query.Set("cursor", string(*in.Cursor))
+	}
+	if in.ChannelID != nil {
+		query.Set("channelId", string(*in.ChannelID))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSlackChannelsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminIntegrationsSlackInstallInput is the input for ListAdminIntegrationsSlackInstall — Start Slack distributed install.
 type ListAdminIntegrationsSlackInstallInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -5518,11 +5830,14 @@ func (c *Client) ListAdminManagerSettings(ctx context.Context, in ListAdminManag
 // UpdateAdminManagerSettingsInput is the input for UpdateAdminManagerSettings — Update Manager Settings.
 type UpdateAdminManagerSettingsInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AppSecTeamID *string `json:"appSecTeamId,omitempty"`
 	AutomatedThreatInvestigations *bool `json:"automatedThreatInvestigations,omitempty"`
 	BlockedActionTypes []string `json:"blockedActionTypes,omitempty"`
 	DailyUpdatesEnabled *bool `json:"dailyUpdatesEnabled,omitempty"`
 	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
 	GroundRules *string `json:"groundRules,omitempty"`
+	PrimaryContactUserID *string `json:"primaryContactUserId,omitempty"`
+	Reason *string `json:"reason,omitempty"`
 	WeeklyUpdatesEnabled *bool `json:"weeklyUpdatesEnabled,omitempty"`
 	models.RequestScope
 }
@@ -5547,18 +5862,24 @@ func (c *Client) UpdateAdminManagerSettings(ctx context.Context, in UpdateAdminM
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		AppSecTeamID *string `json:"appSecTeamId,omitempty"`
 		AutomatedThreatInvestigations *bool `json:"automatedThreatInvestigations,omitempty"`
 		BlockedActionTypes []string `json:"blockedActionTypes,omitempty"`
 		DailyUpdatesEnabled *bool `json:"dailyUpdatesEnabled,omitempty"`
 		ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
 		GroundRules *string `json:"groundRules,omitempty"`
+		PrimaryContactUserID *string `json:"primaryContactUserId,omitempty"`
+		Reason *string `json:"reason,omitempty"`
 		WeeklyUpdatesEnabled *bool `json:"weeklyUpdatesEnabled,omitempty"`
 	}{
+		AppSecTeamID: in.AppSecTeamID,
 		AutomatedThreatInvestigations: in.AutomatedThreatInvestigations,
 		BlockedActionTypes: in.BlockedActionTypes,
 		DailyUpdatesEnabled: in.DailyUpdatesEnabled,
 		ExpectedUpdatedAt: in.ExpectedUpdatedAt,
 		GroundRules: in.GroundRules,
+		PrimaryContactUserID: in.PrimaryContactUserID,
+		Reason: in.Reason,
 		WeeklyUpdatesEnabled: in.WeeklyUpdatesEnabled,
 	})
 	if err != nil {
@@ -6298,885 +6619,6 @@ func (c *Client) CreateAdminNetworkIpAllowlistPreview(ctx context.Context, in Cr
 	return &out, nil
 }
 
-// CreateAdminOperatorExternalWritesInitializeInput is the input for CreateAdminOperatorExternalWritesInitialize — Initialize External Write Defaults.
-type CreateAdminOperatorExternalWritesInitializeInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	DryRun *bool `json:"dryRun,omitempty"`
-	Reason string `json:"reason"`
-	TenantID string `json:"tenantId"`
-	models.RequestScope
-}
-
-// CreateAdminOperatorExternalWritesInitialize - Initialize External Write Defaults
-// POST /admin/operator/external-writes/initialize
-func (c *Client) CreateAdminOperatorExternalWritesInitialize(ctx context.Context, in CreateAdminOperatorExternalWritesInitializeInput) (*models.EndpointsInitializeExternalWritesOutput, error) {
-	path := "/admin/operator/external-writes/initialize"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		DryRun *bool `json:"dryRun,omitempty"`
-		Reason string `json:"reason"`
-		TenantID string `json:"tenantId"`
-	}{
-		DryRun: in.DryRun,
-		Reason: in.Reason,
-		TenantID: in.TenantID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsInitializeExternalWritesOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateAdminOperatorGithubTenantRouteInput is the input for CreateAdminOperatorGithubTenantRoute — Preview, write or inspect a GitHub tenant route born paused.
-type CreateAdminOperatorGithubTenantRouteInput struct {
-	DeploymentID *string `json:"deploymentId,omitempty"`
-	DryRun *bool `json:"dryRun,omitempty"`
-	ExpectedBaseDomain *string `json:"expectedBaseDomain,omitempty"`
-	ExpectedRegion *string `json:"expectedRegion,omitempty"`
-	ExpectedStackOwnerIds []int64 `json:"expectedStackOwnerIds,omitempty"`
-	GithubOwnerID *int64 `json:"githubOwnerId,omitempty"`
-	Inspect *bool `json:"inspect,omitempty"`
-	InstallationID *int64 `json:"installationId,omitempty"`
-	OperationID *string `json:"operationId,omitempty"`
-	PrepareBeforeInstallation *bool `json:"prepareBeforeInstallation,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-}
-
-// CreateAdminOperatorGithubTenantRoute - Preview, write or inspect a GitHub tenant route born paused
-// POST /admin/operator/github-tenant/route
-func (c *Client) CreateAdminOperatorGithubTenantRoute(ctx context.Context, in CreateAdminOperatorGithubTenantRouteInput) (*models.ServiceGitHubTenantRouteResult, error) {
-	path := "/admin/operator/github-tenant/route"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		DeploymentID *string `json:"deploymentId,omitempty"`
-		DryRun *bool `json:"dryRun,omitempty"`
-		ExpectedBaseDomain *string `json:"expectedBaseDomain,omitempty"`
-		ExpectedRegion *string `json:"expectedRegion,omitempty"`
-		ExpectedStackOwnerIds []int64 `json:"expectedStackOwnerIds,omitempty"`
-		GithubOwnerID *int64 `json:"githubOwnerId,omitempty"`
-		Inspect *bool `json:"inspect,omitempty"`
-		InstallationID *int64 `json:"installationId,omitempty"`
-		OperationID *string `json:"operationId,omitempty"`
-		PrepareBeforeInstallation *bool `json:"prepareBeforeInstallation,omitempty"`
-		Reason *string `json:"reason,omitempty"`
-	}{
-		DeploymentID: in.DeploymentID,
-		DryRun: in.DryRun,
-		ExpectedBaseDomain: in.ExpectedBaseDomain,
-		ExpectedRegion: in.ExpectedRegion,
-		ExpectedStackOwnerIds: in.ExpectedStackOwnerIds,
-		GithubOwnerID: in.GithubOwnerID,
-		Inspect: in.Inspect,
-		InstallationID: in.InstallationID,
-		OperationID: in.OperationID,
-		PrepareBeforeInstallation: in.PrepareBeforeInstallation,
-		Reason: in.Reason,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.ServiceGitHubTenantRouteResult
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateAdminOperatorNativeTenantRouteInput is the input for CreateAdminOperatorNativeTenantRoute — Preview or write a native Azure workspace route.
-type CreateAdminOperatorNativeTenantRouteInput struct {
-	Administrators []models.ServiceNativeBootstrapAdministrator `json:"administrators,omitempty"`
-	BaseDomain *string `json:"baseDomain,omitempty"`
-	DeploymentID *string `json:"deploymentId,omitempty"`
-	DirectoryID *string `json:"directoryId,omitempty"`
-	DryRun *bool `json:"dryRun,omitempty"`
-	ExpectedState *string `json:"expectedState,omitempty"`
-	Inspect *bool `json:"inspect,omitempty"`
-	OperationID *string `json:"operationId,omitempty"`
-	Operator *string `json:"operator,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-	Region *string `json:"region,omitempty"`
-	Stage *string `json:"stage,omitempty"`
-	TenantID *string `json:"tenantId,omitempty"`
-}
-
-// CreateAdminOperatorNativeTenantRoute - Preview or write a native Azure workspace route
-// POST /admin/operator/native-tenant/route
-func (c *Client) CreateAdminOperatorNativeTenantRoute(ctx context.Context, in CreateAdminOperatorNativeTenantRouteInput) (*models.ServiceNativeTenantBootstrapResult, error) {
-	path := "/admin/operator/native-tenant/route"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Administrators []models.ServiceNativeBootstrapAdministrator `json:"administrators,omitempty"`
-		BaseDomain *string `json:"baseDomain,omitempty"`
-		DeploymentID *string `json:"deploymentId,omitempty"`
-		DirectoryID *string `json:"directoryId,omitempty"`
-		DryRun *bool `json:"dryRun,omitempty"`
-		ExpectedState *string `json:"expectedState,omitempty"`
-		Inspect *bool `json:"inspect,omitempty"`
-		OperationID *string `json:"operationId,omitempty"`
-		Operator *string `json:"operator,omitempty"`
-		Reason *string `json:"reason,omitempty"`
-		Region *string `json:"region,omitempty"`
-		Stage *string `json:"stage,omitempty"`
-		TenantID *string `json:"tenantId,omitempty"`
-	}{
-		Administrators: in.Administrators,
-		BaseDomain: in.BaseDomain,
-		DeploymentID: in.DeploymentID,
-		DirectoryID: in.DirectoryID,
-		DryRun: in.DryRun,
-		ExpectedState: in.ExpectedState,
-		Inspect: in.Inspect,
-		OperationID: in.OperationID,
-		Operator: in.Operator,
-		Reason: in.Reason,
-		Region: in.Region,
-		Stage: in.Stage,
-		TenantID: in.TenantID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.ServiceNativeTenantBootstrapResult
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListAdminOperatorPackageFeedsInput is the input for ListAdminOperatorPackageFeeds — Read Staff Package Feeds.
-type ListAdminOperatorPackageFeedsInput struct {
-	ConnectionID *string `url:"connectionId,omitempty" json:"-"`
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	models.RequestScope
-}
-
-// ListAdminOperatorPackageFeeds - Read Staff Package Feeds
-// GET /admin/operator/package-feeds
-func (c *Client) ListAdminOperatorPackageFeeds(ctx context.Context, in ListAdminOperatorPackageFeedsInput) (*models.EndpointsAdminCLIPackageFeedsOutput, error) {
-	path := "/admin/operator/package-feeds"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.ConnectionID != nil {
-		query.Set("connectionId", string(*in.ConnectionID))
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsAdminCLIPackageFeedsOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateAdminOperatorPackageFeedsInput is the input for CreateAdminOperatorPackageFeeds — Control Staff Package Feed.
-type CreateAdminOperatorPackageFeedsInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	ConnectionID *string `json:"connectionId,omitempty"`
-	DisplayName *string `json:"displayName,omitempty"`
-	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-	Fields map[string]string `json:"fields,omitempty"`
-	Operation string `json:"operation"`
-	ProviderID *string `json:"providerId,omitempty"`
-	Reason string `json:"reason"`
-	models.RequestScope
-}
-
-// CreateAdminOperatorPackageFeeds - Control Staff Package Feed
-// POST /admin/operator/package-feeds
-func (c *Client) CreateAdminOperatorPackageFeeds(ctx context.Context, in CreateAdminOperatorPackageFeedsInput) (*models.EndpointsAdminCLIPackageFeedControlOutput, error) {
-	path := "/admin/operator/package-feeds"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		ConnectionID *string `json:"connectionId,omitempty"`
-		DisplayName *string `json:"displayName,omitempty"`
-		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-		Fields map[string]string `json:"fields,omitempty"`
-		Operation string `json:"operation"`
-		ProviderID *string `json:"providerId,omitempty"`
-		Reason string `json:"reason"`
-	}{
-		ConnectionID: in.ConnectionID,
-		DisplayName: in.DisplayName,
-		ExpectedRevision: in.ExpectedRevision,
-		Fields: in.Fields,
-		Operation: in.Operation,
-		ProviderID: in.ProviderID,
-		Reason: in.Reason,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsAdminCLIPackageFeedControlOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListAdminOperatorScanEntitlementInput is the input for ListAdminOperatorScanEntitlement — Read Staff Scan Entitlement.
-type ListAdminOperatorScanEntitlementInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	models.RequestScope
-}
-
-// ListAdminOperatorScanEntitlement - Read Staff Scan Entitlement
-// GET /admin/operator/scan-entitlement
-func (c *Client) ListAdminOperatorScanEntitlement(ctx context.Context, in ListAdminOperatorScanEntitlementInput) (*models.EndpointsOperatorScanEntitlementOutput, error) {
-	path := "/admin/operator/scan-entitlement"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsOperatorScanEntitlementOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// UpdateAdminOperatorScanEntitlementInput is the input for UpdateAdminOperatorScanEntitlement — Replace Staff Scan Entitlement.
-type UpdateAdminOperatorScanEntitlementInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	CodeRepositoryCap *int `json:"codeRepositoryCap,omitempty"`
-	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
-	Reason string `json:"reason"`
-	ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
-	SecretsMode *string `json:"secretsMode,omitempty"`
-	SecretsRepositoryCap *int `json:"secretsRepositoryCap,omitempty"`
-	StaffRepositoryAllowlist *bool `json:"staffRepositoryAllowlist,omitempty"`
-	TenantID string `json:"tenantId"`
-	models.RequestScope
-}
-
-// UpdateAdminOperatorScanEntitlement - Replace Staff Scan Entitlement
-// PUT /admin/operator/scan-entitlement
-func (c *Client) UpdateAdminOperatorScanEntitlement(ctx context.Context, in UpdateAdminOperatorScanEntitlementInput) (*models.EndpointsOperatorScanEntitlementOutput, error) {
-	path := "/admin/operator/scan-entitlement"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		CodeRepositoryCap *int `json:"codeRepositoryCap,omitempty"`
-		ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
-		Reason string `json:"reason"`
-		ScopingEnabled *bool `json:"scopingEnabled,omitempty"`
-		SecretsMode *string `json:"secretsMode,omitempty"`
-		SecretsRepositoryCap *int `json:"secretsRepositoryCap,omitempty"`
-		StaffRepositoryAllowlist *bool `json:"staffRepositoryAllowlist,omitempty"`
-		TenantID string `json:"tenantId"`
-	}{
-		CodeRepositoryCap: in.CodeRepositoryCap,
-		ExpectedUpdatedAt: in.ExpectedUpdatedAt,
-		Reason: in.Reason,
-		ScopingEnabled: in.ScopingEnabled,
-		SecretsMode: in.SecretsMode,
-		SecretsRepositoryCap: in.SecretsRepositoryCap,
-		StaffRepositoryAllowlist: in.StaffRepositoryAllowlist,
-		TenantID: in.TenantID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsOperatorScanEntitlementOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListAdminOperatorScanScopeRepositoriesInput is the input for ListAdminOperatorScanScopeRepositories — Read Staff Repository Scan Scopes.
-type ListAdminOperatorScanScopeRepositoriesInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	models.RequestScope
-}
-
-// ListAdminOperatorScanScopeRepositories - Read Staff Repository Scan Scopes
-// GET /admin/operator/scan-scope/repositories
-func (c *Client) ListAdminOperatorScanScopeRepositories(ctx context.Context, in ListAdminOperatorScanScopeRepositoriesInput) (*models.EndpointsOperatorRepositoryScanScopesOutput, error) {
-	path := "/admin/operator/scan-scope/repositories"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsOperatorRepositoryScanScopesOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// UpdateAdminOperatorScanScopeRepositoriesInput is the input for UpdateAdminOperatorScanScopeRepositories — Set Staff Repository Scan Limits.
-type UpdateAdminOperatorScanScopeRepositoriesInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	Reason string `json:"reason"`
-	Repositories []models.EndpointsRepositoryStaffScopeChange `json:"repositories,omitempty"`
-	TenantID string `json:"tenantId"`
-	models.RequestScope
-}
-
-// UpdateAdminOperatorScanScopeRepositories - Set Staff Repository Scan Limits
-// PUT /admin/operator/scan-scope/repositories
-func (c *Client) UpdateAdminOperatorScanScopeRepositories(ctx context.Context, in UpdateAdminOperatorScanScopeRepositoriesInput) (*models.EndpointsOperatorRepositoryStaffScopesOutput, error) {
-	path := "/admin/operator/scan-scope/repositories"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Reason string `json:"reason"`
-		Repositories []models.EndpointsRepositoryStaffScopeChange `json:"repositories,omitempty"`
-		TenantID string `json:"tenantId"`
-	}{
-		Reason: in.Reason,
-		Repositories: in.Repositories,
-		TenantID: in.TenantID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsOperatorRepositoryStaffScopesOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListAdminOperatorTenantCapabilitiesInput is the input for ListAdminOperatorTenantCapabilities — Read Staff Tenant Capabilities.
-type ListAdminOperatorTenantCapabilitiesInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	models.RequestScope
-}
-
-// ListAdminOperatorTenantCapabilities - Read Staff Tenant Capabilities
-// GET /admin/operator/tenant-capabilities
-func (c *Client) ListAdminOperatorTenantCapabilities(ctx context.Context, in ListAdminOperatorTenantCapabilitiesInput) (*models.EndpointsOperatorTenantCapabilitiesOutput, error) {
-	path := "/admin/operator/tenant-capabilities"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsOperatorTenantCapabilitiesOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// UpdateAdminOperatorTenantCapabilitiesInput is the input for UpdateAdminOperatorTenantCapabilities — Force Tenant Capability.
-type UpdateAdminOperatorTenantCapabilitiesInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	Capability string `json:"capability"`
-	ExpectedStaffUpdatedAt *string `json:"expectedStaffUpdatedAt,omitempty"`
-	LockReason *string `json:"lockReason,omitempty"`
-	Reason string `json:"reason"`
-	Repository *string `json:"repository,omitempty"`
-	SeedCustomerEnabled *bool `json:"seedCustomerEnabled,omitempty"`
-	SeedRepositoryDisabled *bool `json:"seedRepositoryDisabled,omitempty"`
-	SeedStaffIfAbsent *bool `json:"seedStaffIfAbsent,omitempty"`
-	StaffState string `json:"staffState"`
-	TenantID string `json:"tenantId"`
-	models.RequestScope
-}
-
-// UpdateAdminOperatorTenantCapabilities - Force Tenant Capability
-// PUT /admin/operator/tenant-capabilities
-func (c *Client) UpdateAdminOperatorTenantCapabilities(ctx context.Context, in UpdateAdminOperatorTenantCapabilitiesInput) (*models.EndpointsOperatorTenantCapabilityPutOutput, error) {
-	path := "/admin/operator/tenant-capabilities"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Capability string `json:"capability"`
-		ExpectedStaffUpdatedAt *string `json:"expectedStaffUpdatedAt,omitempty"`
-		LockReason *string `json:"lockReason,omitempty"`
-		Reason string `json:"reason"`
-		Repository *string `json:"repository,omitempty"`
-		SeedCustomerEnabled *bool `json:"seedCustomerEnabled,omitempty"`
-		SeedRepositoryDisabled *bool `json:"seedRepositoryDisabled,omitempty"`
-		SeedStaffIfAbsent *bool `json:"seedStaffIfAbsent,omitempty"`
-		StaffState string `json:"staffState"`
-		TenantID string `json:"tenantId"`
-	}{
-		Capability: in.Capability,
-		ExpectedStaffUpdatedAt: in.ExpectedStaffUpdatedAt,
-		LockReason: in.LockReason,
-		Reason: in.Reason,
-		Repository: in.Repository,
-		SeedCustomerEnabled: in.SeedCustomerEnabled,
-		SeedRepositoryDisabled: in.SeedRepositoryDisabled,
-		SeedStaffIfAbsent: in.SeedStaffIfAbsent,
-		StaffState: in.StaffState,
-		TenantID: in.TenantID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsOperatorTenantCapabilityPutOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateAdminOperatorWorkspaceBootstrapApproveInput is the input for CreateAdminOperatorWorkspaceBootstrapApprove — Approve an exact provisioning request.
-type CreateAdminOperatorWorkspaceBootstrapApproveInput struct {
-	Action *string `json:"action,omitempty"`
-	Confirm *bool `json:"confirm,omitempty"`
-	DeploymentID *string `json:"deploymentId,omitempty"`
-	ExpectedOperationRevision *int64 `json:"expectedOperationRevision,omitempty"`
-	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-	RequestID *string `json:"requestId,omitempty"`
-	SetupKind *string `json:"setupKind,omitempty"`
-}
-
-// CreateAdminOperatorWorkspaceBootstrapApprove - Approve an exact provisioning request
-// POST /admin/operator/workspace-bootstrap/approve
-func (c *Client) CreateAdminOperatorWorkspaceBootstrapApprove(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapApproveInput) (*models.EndpointsWorkspaceProvisioningApproveOutput, error) {
-	path := "/admin/operator/workspace-bootstrap/approve"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Action *string `json:"action,omitempty"`
-		Confirm *bool `json:"confirm,omitempty"`
-		DeploymentID *string `json:"deploymentId,omitempty"`
-		ExpectedOperationRevision *int64 `json:"expectedOperationRevision,omitempty"`
-		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-		Reason *string `json:"reason,omitempty"`
-		RequestID *string `json:"requestId,omitempty"`
-		SetupKind *string `json:"setupKind,omitempty"`
-	}{
-		Action: in.Action,
-		Confirm: in.Confirm,
-		DeploymentID: in.DeploymentID,
-		ExpectedOperationRevision: in.ExpectedOperationRevision,
-		ExpectedRevision: in.ExpectedRevision,
-		Reason: in.Reason,
-		RequestID: in.RequestID,
-		SetupKind: in.SetupKind,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsWorkspaceProvisioningApproveOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateAdminOperatorWorkspaceBootstrapInvitationInput is the input for CreateAdminOperatorWorkspaceBootstrapInvitation — Preview or issue a workspace bootstrap invitation.
-type CreateAdminOperatorWorkspaceBootstrapInvitationInput struct {
-	DeploymentID *string `json:"deploymentId,omitempty"`
-	DryRun *bool `json:"dryRun,omitempty"`
-	ExpectedDirectoryID *string `json:"expectedDirectoryId,omitempty"`
-	ExpectedState *string `json:"expectedState,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-	Recipient *string `json:"recipient,omitempty"`
-}
-
-// CreateAdminOperatorWorkspaceBootstrapInvitation - Preview or issue a workspace bootstrap invitation
-// POST /admin/operator/workspace-bootstrap/invitation
-func (c *Client) CreateAdminOperatorWorkspaceBootstrapInvitation(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapInvitationInput) (*models.EndpointsWorkspaceBootstrapOperatorOutput, error) {
-	path := "/admin/operator/workspace-bootstrap/invitation"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		DeploymentID *string `json:"deploymentId,omitempty"`
-		DryRun *bool `json:"dryRun,omitempty"`
-		ExpectedDirectoryID *string `json:"expectedDirectoryId,omitempty"`
-		ExpectedState *string `json:"expectedState,omitempty"`
-		Reason *string `json:"reason,omitempty"`
-		Recipient *string `json:"recipient,omitempty"`
-	}{
-		DeploymentID: in.DeploymentID,
-		DryRun: in.DryRun,
-		ExpectedDirectoryID: in.ExpectedDirectoryID,
-		ExpectedState: in.ExpectedState,
-		Reason: in.Reason,
-		Recipient: in.Recipient,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsWorkspaceBootstrapOperatorOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListAdminOperatorWorkspaceBootstrapOperationInput is the input for ListAdminOperatorWorkspaceBootstrapOperation — Inspect a durable workspace claim.
-type ListAdminOperatorWorkspaceBootstrapOperationInput struct {
-	OperationID *string `url:"operationId,omitempty" json:"-"`
-}
-
-// ListAdminOperatorWorkspaceBootstrapOperation - Inspect a durable workspace claim
-// GET /admin/operator/workspace-bootstrap/operation
-func (c *Client) ListAdminOperatorWorkspaceBootstrapOperation(ctx context.Context, in ListAdminOperatorWorkspaceBootstrapOperationInput) (*models.WorkspacebootstrapOperatorInspection, error) {
-	path := "/admin/operator/workspace-bootstrap/operation"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.OperationID != nil {
-		query.Set("operationId", string(*in.OperationID))
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.WorkspacebootstrapOperatorInspection
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateAdminOperatorWorkspaceBootstrapRenewInput is the input for CreateAdminOperatorWorkspaceBootstrapRenew — Preview or renew an organization-pinned workspace invitation.
-type CreateAdminOperatorWorkspaceBootstrapRenewInput struct {
-	DryRun *bool `json:"dryRun,omitempty"`
-	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-	ExpectedState *string `json:"expectedState,omitempty"`
-	OperationID *string `json:"operationId,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-}
-
-// CreateAdminOperatorWorkspaceBootstrapRenew - Preview or renew an organization-pinned workspace invitation
-// POST /admin/operator/workspace-bootstrap/renew
-func (c *Client) CreateAdminOperatorWorkspaceBootstrapRenew(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapRenewInput) (*models.WorkspacebootstrapOperatorInspection, error) {
-	path := "/admin/operator/workspace-bootstrap/renew"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		DryRun *bool `json:"dryRun,omitempty"`
-		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-		ExpectedState *string `json:"expectedState,omitempty"`
-		OperationID *string `json:"operationId,omitempty"`
-		Reason *string `json:"reason,omitempty"`
-	}{
-		DryRun: in.DryRun,
-		ExpectedRevision: in.ExpectedRevision,
-		ExpectedState: in.ExpectedState,
-		OperationID: in.OperationID,
-		Reason: in.Reason,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.WorkspacebootstrapOperatorInspection
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// ListAdminOperatorWorkspaceBootstrapRequestsInput is the input for ListAdminOperatorWorkspaceBootstrapRequests — List provisioning requests.
-type ListAdminOperatorWorkspaceBootstrapRequestsInput struct {
-	BeforeRequestID *string `url:"beforeRequestId,omitempty" json:"-"`
-}
-
-// ListAdminOperatorWorkspaceBootstrapRequests - List provisioning requests
-// GET /admin/operator/workspace-bootstrap/requests
-func (c *Client) ListAdminOperatorWorkspaceBootstrapRequests(ctx context.Context, in ListAdminOperatorWorkspaceBootstrapRequestsInput) (*models.EndpointsWorkspaceProvisioningQueueOutput, error) {
-	path := "/admin/operator/workspace-bootstrap/requests"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.BeforeRequestID != nil {
-		query.Set("beforeRequestId", string(*in.BeforeRequestID))
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsWorkspaceProvisioningQueueOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateAdminOperatorWorkspaceBootstrapRevokeInput is the input for CreateAdminOperatorWorkspaceBootstrapRevoke — Preview or revoke a workspace claim without stage receipts.
-type CreateAdminOperatorWorkspaceBootstrapRevokeInput struct {
-	DryRun *bool `json:"dryRun,omitempty"`
-	ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-	ExpectedState *string `json:"expectedState,omitempty"`
-	OperationID *string `json:"operationId,omitempty"`
-	Reason *string `json:"reason,omitempty"`
-}
-
-// CreateAdminOperatorWorkspaceBootstrapRevoke - Preview or revoke a workspace claim without stage receipts
-// POST /admin/operator/workspace-bootstrap/revoke
-func (c *Client) CreateAdminOperatorWorkspaceBootstrapRevoke(ctx context.Context, in CreateAdminOperatorWorkspaceBootstrapRevokeInput) (*models.WorkspacebootstrapOperatorInspection, error) {
-	path := "/admin/operator/workspace-bootstrap/revoke"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		DryRun *bool `json:"dryRun,omitempty"`
-		ExpectedRevision *int64 `json:"expectedRevision,omitempty"`
-		ExpectedState *string `json:"expectedState,omitempty"`
-		OperationID *string `json:"operationId,omitempty"`
-		Reason *string `json:"reason,omitempty"`
-	}{
-		DryRun: in.DryRun,
-		ExpectedRevision: in.ExpectedRevision,
-		ExpectedState: in.ExpectedState,
-		OperationID: in.OperationID,
-		Reason: in.Reason,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.WorkspacebootstrapOperatorInspection
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
 // ListAdminOrganizationInput is the input for ListAdminOrganization — Get Organization.
 type ListAdminOrganizationInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -7259,6 +6701,7 @@ type UpdateAdminPrGateSettingsInput struct {
 	AllowApprovingReviews *bool `json:"allowApprovingReviews,omitempty"`
 	AllowRequestChangesReviews *bool `json:"allowRequestChangesReviews,omitempty"`
 	CvssEnforcement *bool `json:"cvssEnforcement,omitempty"`
+	DependencyExclusions []models.DependencyexclusionRule `json:"dependencyExclusions,omitempty"`
 	Enabled bool `json:"enabled"`
 	ExpectedPrScansEnabled *bool `json:"expectedPrScansEnabled,omitempty"`
 	ExpectedPushScansEnabled *bool `json:"expectedPushScansEnabled,omitempty"`
@@ -7270,6 +6713,7 @@ type UpdateAdminPrGateSettingsInput struct {
 	PrScansEnabled *bool `json:"prScansEnabled,omitempty"`
 	PushScansEnabled *bool `json:"pushScansEnabled,omitempty"`
 	ScaBlockCvssThreshold *float64 `json:"scaBlockCvssThreshold,omitempty"`
+	SecretsEnforcement *bool `json:"secretsEnforcement,omitempty"`
 	models.RequestScope
 }
 
@@ -7296,6 +6740,7 @@ func (c *Client) UpdateAdminPrGateSettings(ctx context.Context, in UpdateAdminPr
 		AllowApprovingReviews *bool `json:"allowApprovingReviews,omitempty"`
 		AllowRequestChangesReviews *bool `json:"allowRequestChangesReviews,omitempty"`
 		CvssEnforcement *bool `json:"cvssEnforcement,omitempty"`
+		DependencyExclusions []models.DependencyexclusionRule `json:"dependencyExclusions,omitempty"`
 		Enabled bool `json:"enabled"`
 		ExpectedPrScansEnabled *bool `json:"expectedPrScansEnabled,omitempty"`
 		ExpectedPushScansEnabled *bool `json:"expectedPushScansEnabled,omitempty"`
@@ -7307,10 +6752,12 @@ func (c *Client) UpdateAdminPrGateSettings(ctx context.Context, in UpdateAdminPr
 		PrScansEnabled *bool `json:"prScansEnabled,omitempty"`
 		PushScansEnabled *bool `json:"pushScansEnabled,omitempty"`
 		ScaBlockCvssThreshold *float64 `json:"scaBlockCvssThreshold,omitempty"`
+		SecretsEnforcement *bool `json:"secretsEnforcement,omitempty"`
 	}{
 		AllowApprovingReviews: in.AllowApprovingReviews,
 		AllowRequestChangesReviews: in.AllowRequestChangesReviews,
 		CvssEnforcement: in.CvssEnforcement,
+		DependencyExclusions: in.DependencyExclusions,
 		Enabled: in.Enabled,
 		ExpectedPrScansEnabled: in.ExpectedPrScansEnabled,
 		ExpectedPushScansEnabled: in.ExpectedPushScansEnabled,
@@ -7322,6 +6769,7 @@ func (c *Client) UpdateAdminPrGateSettings(ctx context.Context, in UpdateAdminPr
 		PrScansEnabled: in.PrScansEnabled,
 		PushScansEnabled: in.PushScansEnabled,
 		ScaBlockCvssThreshold: in.ScaBlockCvssThreshold,
+		SecretsEnforcement: in.SecretsEnforcement,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -7907,6 +7355,54 @@ func (c *Client) GetAdminRunsKindId(ctx context.Context, in GetAdminRunsKindIdIn
 	return &out, nil
 }
 
+// ListAdminRunsKindIdEventsInput is the input for ListAdminRunsKindIdEvents — Get Run History.
+type ListAdminRunsKindIdEventsInput struct {
+	Kind string `path:"kind" json:"-"`
+	ID string `path:"id" json:"-"`
+	After *string `url:"after,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Limit *int `url:"limit,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminRunsKindIdEvents - Get Run History
+// GET /admin/runs/{kind}/{id}/events
+func (c *Client) ListAdminRunsKindIdEvents(ctx context.Context, in ListAdminRunsKindIdEventsInput) (*models.RunhistoryPage, error) {
+	path := "/admin/runs/{kind}/{id}/events"
+	path = strings.Replace(path, "{kind}", url.PathEscape(in.Kind), 1)
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.After != nil {
+		query.Set("after", string(*in.After))
+	}
+	if in.Limit != nil {
+		query.Set("limit", strconv.Itoa(int(*in.Limit)))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.RunhistoryPage
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListAdminScanScopeInput is the input for ListAdminScanScope — Get Scan Scope.
 type ListAdminScanScopeInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -7985,6 +7481,230 @@ func (c *Client) UpdateAdminScanScope(ctx context.Context, in UpdateAdminScanSco
 		return nil, err
 	}
 	var out models.EndpointsPutScanScopeOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminScannersNativeInput is the input for ListAdminScannersNative — Export Native Finding Evidence.
+type ListAdminScannersNativeInput struct {
+	After *string `url:"after,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminScannersNative - Export Native Finding Evidence
+// GET /admin/scanners/native
+func (c *Client) ListAdminScannersNative(ctx context.Context, in ListAdminScannersNativeInput) (*models.ScannermirrorNativePage, error) {
+	path := "/admin/scanners/native"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.After != nil {
+		query.Set("after", string(*in.After))
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.ScannermirrorNativePage
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminScannersProviderFindingsInput is the input for ListAdminScannersProviderFindings — Compare Scanner Findings.
+type ListAdminScannersProviderFindingsInput struct {
+	Provider string `path:"provider" json:"-"`
+	After *string `url:"after,omitempty" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminScannersProviderFindings - Compare Scanner Findings
+// GET /admin/scanners/{provider}/findings
+func (c *Client) ListAdminScannersProviderFindings(ctx context.Context, in ListAdminScannersProviderFindingsInput) (*models.ScannermirrorListing, error) {
+	path := "/admin/scanners/{provider}/findings"
+	path = strings.Replace(path, "{provider}", url.PathEscape(in.Provider), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	if in.After != nil {
+		query.Set("after", string(*in.After))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.ScannermirrorListing
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListAdminScannersProviderFindingsIdRawInput is the input for ListAdminScannersProviderFindingsIdRaw — Read Scanner Evidence.
+type ListAdminScannersProviderFindingsIdRawInput struct {
+	Provider string `path:"provider" json:"-"`
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListAdminScannersProviderFindingsIdRaw - Read Scanner Evidence
+// GET /admin/scanners/{provider}/findings/{id}/raw
+func (c *Client) ListAdminScannersProviderFindingsIdRaw(ctx context.Context, in ListAdminScannersProviderFindingsIdRawInput) (*models.EndpointsScannerRawOutput, error) {
+	path := "/admin/scanners/{provider}/findings/{id}/raw"
+	path = strings.Replace(path, "{provider}", url.PathEscape(in.Provider), 1)
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsScannerRawOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateAdminScannersProviderFindingsIdReviewInput is the input for UpdateAdminScannersProviderFindingsIdReview — Review Detection Gap.
+type UpdateAdminScannersProviderFindingsIdReviewInput struct {
+	Provider string `path:"provider" json:"-"`
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	EvidenceDigest *string `json:"evidenceDigest,omitempty"`
+	Note *string `json:"note,omitempty"`
+	Review *string `json:"review,omitempty"`
+	models.RequestScope
+}
+
+// UpdateAdminScannersProviderFindingsIdReview - Review Detection Gap
+// PUT /admin/scanners/{provider}/findings/{id}/review
+func (c *Client) UpdateAdminScannersProviderFindingsIdReview(ctx context.Context, in UpdateAdminScannersProviderFindingsIdReviewInput) (*models.EndpointsScannerReviewOutput, error) {
+	path := "/admin/scanners/{provider}/findings/{id}/review"
+	path = strings.Replace(path, "{provider}", url.PathEscape(in.Provider), 1)
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		EvidenceDigest *string `json:"evidenceDigest,omitempty"`
+		Note *string `json:"note,omitempty"`
+		Review *string `json:"review,omitempty"`
+	}{
+		EvidenceDigest: in.EvidenceDigest,
+		Note: in.Note,
+		Review: in.Review,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsScannerReviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateAdminScannersProviderSyncInput is the input for CreateAdminScannersProviderSync — Import Scanner Findings.
+type CreateAdminScannersProviderSyncInput struct {
+	Provider string `path:"provider" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	RunID *string `json:"runId,omitempty"`
+	models.RequestScope
+}
+
+// CreateAdminScannersProviderSync - Import Scanner Findings
+// POST /admin/scanners/{provider}/sync
+func (c *Client) CreateAdminScannersProviderSync(ctx context.Context, in CreateAdminScannersProviderSyncInput) (*models.ScannermirrorRun, error) {
+	path := "/admin/scanners/{provider}/sync"
+	path = strings.Replace(path, "{provider}", url.PathEscape(in.Provider), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		RunID *string `json:"runId,omitempty"`
+	}{
+		RunID: in.RunID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.ScannermirrorRun
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -8872,6 +8592,7 @@ func (c *Client) GetAdminTeamTeamID(ctx context.Context, in GetAdminTeamTeamIDIn
 // ListAdminTeamsInput is the input for ListAdminTeams — Get All Teams.
 type ListAdminTeamsInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Ids []string `url:"ids,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
@@ -8911,6 +8632,9 @@ func (c *Client) ListAdminTeams(ctx context.Context, in ListAdminTeamsInput) (*m
 	if in.SkipUserEnrichment != nil {
 		query.Set("skipUserEnrichment", strconv.FormatBool(*in.SkipUserEnrichment))
 	}
+	for _, v := range in.Ids {
+		query.Add("ids", string(v))
+	}
 	in.RequestScope.AddTo(query)
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
@@ -8943,6 +8667,7 @@ type CreateAdminTeamsInput struct {
 	Name string `json:"name"`
 	Privacy models.ModelsTeamPrivacy `json:"privacy"`
 	Slug string `json:"slug"`
+	TicketBoardID *string `json:"ticketBoardId,omitempty"`
 	TicketProjectProvider models.ModelsTicketProjectProvider `json:"ticketProjectProvider"`
 	models.RequestScope
 }
@@ -8978,6 +8703,7 @@ func (c *Client) CreateAdminTeams(ctx context.Context, in CreateAdminTeamsInput)
 		Name string `json:"name"`
 		Privacy models.ModelsTeamPrivacy `json:"privacy"`
 		Slug string `json:"slug"`
+		TicketBoardID *string `json:"ticketBoardId,omitempty"`
 		TicketProjectProvider models.ModelsTicketProjectProvider `json:"ticketProjectProvider"`
 	}{
 		CodeOwnerships: in.CodeOwnerships,
@@ -8991,6 +8717,7 @@ func (c *Client) CreateAdminTeams(ctx context.Context, in CreateAdminTeamsInput)
 		Name: in.Name,
 		Privacy: in.Privacy,
 		Slug: in.Slug,
+		TicketBoardID: in.TicketBoardID,
 		TicketProjectProvider: in.TicketProjectProvider,
 	})
 	if err != nil {
@@ -9379,6 +9106,7 @@ func (c *Client) DeleteAdminTeamsTeamID(ctx context.Context, in DeleteAdminTeams
 type PatchAdminTeamsTeamIDInput struct {
 	TeamID string `path:"teamID" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Actor *string `json:"actor,omitempty"`
 	AddMemberIds []string `json:"addMemberIds,omitempty"`
 	ClearLead *bool `json:"clearLead,omitempty"`
 	CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
@@ -9419,6 +9147,7 @@ func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTe
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		Actor *string `json:"actor,omitempty"`
 		AddMemberIds []string `json:"addMemberIds,omitempty"`
 		ClearLead *bool `json:"clearLead,omitempty"`
 		CodeOwnerships []models.ModelsTeamCodeOwnership `json:"codeOwnerships,omitempty"`
@@ -9436,6 +9165,7 @@ func (c *Client) PatchAdminTeamsTeamID(ctx context.Context, in PatchAdminTeamsTe
 		TicketBoardID *string `json:"ticketBoardId,omitempty"`
 		TicketProjectProvider *models.ModelsTicketProjectProvider `json:"ticketProjectProvider,omitempty"`
 	}{
+		Actor: in.Actor,
 		AddMemberIds: in.AddMemberIds,
 		ClearLead: in.ClearLead,
 		CodeOwnerships: in.CodeOwnerships,
@@ -11404,6 +11134,7 @@ func (c *Client) DeleteAdminUserMappingUserId(ctx context.Context, in DeleteAdmi
 type UpdateAdminUserMappingUserIdInput struct {
 	UserID string `path:"userId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Actor *string `json:"actor,omitempty"`
 	Azure *models.ModelsAzureUserProvider `json:"azure,omitempty"`
 	Bitbucket *models.ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
 	ClearSlack *bool `json:"clearSlack,omitempty"`
@@ -11438,6 +11169,7 @@ func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdmi
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		Actor *string `json:"actor,omitempty"`
 		Azure *models.ModelsAzureUserProvider `json:"azure,omitempty"`
 		Bitbucket *models.ModelsBitbucketUserProvider `json:"bitbucket,omitempty"`
 		ClearSlack *bool `json:"clearSlack,omitempty"`
@@ -11449,6 +11181,7 @@ func (c *Client) UpdateAdminUserMappingUserId(ctx context.Context, in UpdateAdmi
 		Slack *models.ModelsSlackUserProvider `json:"slack,omitempty"`
 		Teams *models.ModelsTeamsUserProvider `json:"teams,omitempty"`
 	}{
+		Actor: in.Actor,
 		Azure: in.Azure,
 		Bitbucket: in.Bitbucket,
 		ClearSlack: in.ClearSlack,

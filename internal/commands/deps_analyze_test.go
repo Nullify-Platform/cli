@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
@@ -57,6 +58,71 @@ func TestCheckFailOn(t *testing.T) {
 	}
 }
 
+func TestClassifyVerdict_InconclusiveIsNotMalicious(t *testing.T) {
+	worst := classifyVerdict(VerdictInconclusive, dep("x"))
+	require.Zero(t, worst.rank)
+	require.NoError(t, checkFailOn("vulnerable", worst))
+}
+
+func TestDepsGateResult(t *testing.T) {
+	answered := func(name string, status string, verdict Verdict) analyzedDep {
+		return analyzedDep{Dep: dep(name), Resp: &scpmAnalyzeResponse{JobID: "j-" + name, Status: status, Verdict: verdict}}
+	}
+	failed := func(name string) analyzedDep {
+		return analyzedDep{Dep: dep(name), Err: "scpm 500"}
+	}
+	cases := []struct {
+		name     string
+		failOn   string
+		analyzed []analyzedDep
+		wantExit int
+	}{
+		{"every dependency benign", "malicious", []analyzedDep{answered("a", "completed", VerdictBenign)}, 0},
+		{"a malicious dependency", "malicious", []analyzedDep{answered("a", "completed", VerdictMalicious)}, exitMaliciousFound},
+		{"a suspicious dependency at a suspicious gate", "suspicious", []analyzedDep{answered("a", "completed", VerdictSuspicious)}, exitSuspiciousFound},
+		{"an unrecognised verdict fails closed", "malicious", []analyzedDep{answered("a", "completed", "brand_new_label")}, exitMaliciousFound},
+		{"a completed job without a verdict is incomplete", "malicious", []analyzedDep{answered("a", "completed", "")}, exitTransientFailure},
+		{"a failed job is incomplete", "malicious", []analyzedDep{answered("a", "failed", "")}, exitTransientFailure},
+		{"a timed out job is incomplete", "malicious", []analyzedDep{answered("a", "timed_out", "")}, exitTransientFailure},
+		{"a queued job without --wait is incomplete", "malicious", []analyzedDep{answered("a", "queued", "")}, exitTransientFailure},
+		{"an inconclusive verdict is incomplete", "malicious", []analyzedDep{answered("a", "completed", VerdictInconclusive)}, exitTransientFailure},
+		{"a request that failed is incomplete", "malicious", []analyzedDep{failed("a")}, exitTransientFailure},
+		{"a verdict below the gate does not hide an incomplete one", "malicious", []analyzedDep{answered("a", "completed", VerdictSuspicious), answered("b", "completed", "")}, exitTransientFailure},
+		{"a malicious verdict outranks an incomplete one", "malicious", []analyzedDep{answered("a", "completed", ""), answered("b", "completed", VerdictMalicious)}, exitMaliciousFound},
+		{"--fail-on none never fails", "none", []analyzedDep{answered("a", "completed", ""), answered("b", "completed", VerdictMalicious)}, 0},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			err := depsGateResult(c.analyzed, c.failOn)
+			if c.wantExit == 0 {
+				require.NoError(t, err)
+				return
+			}
+			assertExitCode(t, err, c.wantExit)
+		})
+	}
+}
+
+func TestAnalyzeDep_WaitKeepsPollingACachedJobThatIsStillRunning(t *testing.T) {
+	var calls atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if calls.Add(1) < 3 {
+			_, _ = w.Write([]byte(`{"jobId":"j1","status":"queued","cacheHit":true}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"jobId":"j1","status":"completed","cacheHit":true,"verdict":"benign"}`))
+	}))
+	defer srv.Close()
+
+	client := &api.Client{BaseURL: srv.URL, HTTPClient: srv.Client()}
+	opts := depsAnalyzeOpts{Wait: true, WaitInterval: time.Millisecond, WaitTimeout: 5 * time.Second}
+	resp, err := analyzeDep(context.Background(), client, ci.NewLocal(), scpmAnalyzeRequest{Name: "x"}, opts)
+
+	require.NoError(t, err)
+	require.Equal(t, VerdictBenign, resp.Verdict)
+	require.Equal(t, int32(3), calls.Load())
+}
+
 func TestClassifyVerdict_UnknownFailsClosed(t *testing.T) {
 	worst := classifyVerdict(Verdict("brand_new_label"), dep("evil"))
 	if worst.rank != 4 {
@@ -92,21 +158,40 @@ func assertExitCode(t *testing.T, err error, want int) {
 }
 
 func TestBuildIdempotencyKey(t *testing.T) {
-	t.Setenv("NULLIFY_IDEMPOTENCY_SEED", "")
-	clearLocalEnv(t)
-	p := ci.NewLocal()
 	d := dep("lodash")
+	cases := []struct {
+		name    string
+		seed    string
+		envSeed string
+		want    string
+	}{
+		{"no seed sends no key, so scpm keys the job by tenant", "", "", ""},
+		{"an explicit seed wins", "myseed", "envseed", "myseed|npm|lodash|1.0.0"},
+		{"the environment seed is used without a flag", "", "envseed", "envseed|npm|lodash|1.0.0"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Setenv("NULLIFY_IDEMPOTENCY_SEED", c.envSeed)
+			clearLocalEnv(t)
 
-	// Default seed is provider-name scoped (stable across runs).
-	got := buildIdempotencyKey("", p, d)
-	want := "ci-OTHER|npm|lodash|1.0.0"
-	if got != want {
-		t.Errorf("default key = %q, want %q", got, want)
+			require.Equal(t, c.want, buildIdempotencyKey(c.seed, d))
+		})
 	}
-	// Explicit seed wins.
-	if got := buildIdempotencyKey("myseed", p, d); got != "myseed|npm|lodash|1.0.0" {
-		t.Errorf("explicit seed key = %q", got)
-	}
+}
+
+func TestPostSCPMAnalyzeOmitsAnEmptyIdempotencyKey(t *testing.T) {
+	var body map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		_, _ = w.Write([]byte(`{"jobId":"j1","status":"queued"}`))
+	}))
+	defer srv.Close()
+
+	client := &api.Client{BaseURL: srv.URL, HTTPClient: srv.Client()}
+	_, err := postSCPMAnalyze(context.Background(), client, ci.NewLocal(), scpmAnalyzeRequest{Ecosystem: manifest.EcosystemNPM, Name: "x", Version: "1.0.0"})
+
+	require.NoError(t, err)
+	require.NotContains(t, body, "idempotencyKey")
 }
 
 func clearLocalEnv(t *testing.T) {
@@ -141,10 +226,14 @@ func TestIsTerminal(t *testing.T) {
 		resp scpmAnalyzeResponse
 		want bool
 	}{
-		{scpmAnalyzeResponse{CacheHit: true}, true},
+		{scpmAnalyzeResponse{CacheHit: true, Status: "completed"}, true},
+		{scpmAnalyzeResponse{CacheHit: true, Status: "queued"}, false},
+		{scpmAnalyzeResponse{CacheHit: true, Status: "running"}, false},
 		{scpmAnalyzeResponse{Verdict: VerdictBenign}, true},
 		{scpmAnalyzeResponse{Status: "completed"}, true},
 		{scpmAnalyzeResponse{Status: "FAILED"}, true},
+		{scpmAnalyzeResponse{Status: "timed_out"}, true},
+		{scpmAnalyzeResponse{Status: "cancelled"}, true},
 		{scpmAnalyzeResponse{Status: "queued"}, false},
 		{scpmAnalyzeResponse{Status: "running"}, false},
 		{scpmAnalyzeResponse{}, false},
@@ -259,6 +348,63 @@ func TestResolveCommitRevisionBoundary(t *testing.T) {
 			got, err := resolveCommit(ctx, repo, tt.ref)
 			require.ErrorIs(t, err, tt.wantErr)
 			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestPostSCPMAnalyzeSendsTheClientDefaultParams(t *testing.T) {
+	tests := []struct {
+		name      string
+		params    map[string]string
+		wantQuery string
+	}{
+		{"an org query", map[string]string{"githubOwnerId": "42"}, "githubOwnerId=42"},
+		{"several org parameters", map[string]string{"azureOrganizationId": "org", "installationId": "i1"}, "azureOrganizationId=org&installationId=i1"},
+		{"no parameters", nil, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var gotPath, gotQuery string
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				gotPath, gotQuery = r.URL.Path, r.URL.RawQuery
+				_, _ = w.Write([]byte(`{"jobId":"j1","status":"queued"}`))
+			}))
+			defer srv.Close()
+
+			client := &api.Client{BaseURL: srv.URL, HTTPClient: srv.Client(), DefaultParams: tt.params}
+			_, err := postSCPMAnalyze(context.Background(), client, ci.NewLocal(), scpmAnalyzeRequest{Name: "x"})
+
+			require.NoError(t, err)
+			require.Equal(t, "/scpm/dependencies/analyze", gotPath)
+			require.Equal(t, tt.wantQuery, gotQuery)
+		})
+	}
+}
+
+func TestRunDepsAnalyzeRejectsAnUnknownFailOn(t *testing.T) {
+	cases := []struct {
+		failOn   string
+		wantExit int
+	}{
+		{"vulnerble", exitInvalidInvocation},
+		{"MALICIOUS", exitInvalidInvocation},
+		{"", exitInvalidInvocation},
+	}
+	for _, c := range cases {
+		t.Run(c.failOn, func(t *testing.T) {
+			client := &api.Client{BaseURL: "https://api.acme.nullify.ai"}
+			err := runDepsAnalyze(context.Background(), client, depsAnalyzeOpts{FailOn: c.failOn, RepoPath: t.TempDir()})
+
+			assertExitCode(t, err, c.wantExit)
+			require.ErrorContains(t, err, "--fail-on")
+		})
+	}
+}
+
+func TestValidateFailOnAcceptsEveryDocumentedValue(t *testing.T) {
+	for _, failOn := range []string{"vulnerable", "suspicious", "malicious", "none"} {
+		t.Run(failOn, func(t *testing.T) {
+			require.NoError(t, validateFailOn(failOn))
 		})
 	}
 }

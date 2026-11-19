@@ -30,11 +30,17 @@ type EndpointsGetSCAContainerFindingOutput struct {
 }
 
 type EndpointsGetSCAContainerFindingTriageOutput struct {
+	Assessment *ModelsEffectiveAssessment `json:"assessment,omitempty"`
+	CveEvidenceNextOffset *int `json:"cveEvidenceNextOffset,omitempty"`
+	CveEvidenceSnapshot *string `json:"cveEvidenceSnapshot,omitempty"`
+	CveEvidenceTotal *int `json:"cveEvidenceTotal,omitempty"`
 	Finding *ModelsTriagedContainerFinding `json:"finding,omitempty"`
 	HistoricalReportURL *string `json:"historicalReportUrl,omitempty"`
 	PresignedURL string `json:"presignedUrl"`
 	StopReason *string `json:"stopReason,omitempty"`
+	Support *ModelsAssessmentExecution `json:"support,omitempty"`
 	SupportAssessment *ModelsAssessment `json:"supportAssessment,omitempty"`
+	TriageDownload *EndpointsTriageDownloadChunk `json:"triageDownload,omitempty"`
 	TriageStatus EndpointsFindingTriageStatus `json:"triageStatus"`
 	Version *string `json:"version,omitempty"`
 	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
@@ -82,6 +88,7 @@ type EndpointsGetSCADependencyFindingFixOutput struct {
 	Explanation *string `json:"explanation,omitempty"`
 	PullRequestBody *string `json:"pullRequestBody,omitempty"`
 	PullRequestTitle *string `json:"pullRequestTitle,omitempty"`
+	Remediation *ModelsSCADependencyRemediationCoverage `json:"remediation,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -91,12 +98,18 @@ type EndpointsGetSCADependencyFindingOutput struct {
 }
 
 type EndpointsGetSCADependencyFindingTriageOutput struct {
+	Assessment *ModelsEffectiveAssessment `json:"assessment,omitempty"`
+	CveEvidenceNextOffset *int `json:"cveEvidenceNextOffset,omitempty"`
+	CveEvidenceSnapshot *string `json:"cveEvidenceSnapshot,omitempty"`
+	CveEvidenceTotal *int `json:"cveEvidenceTotal,omitempty"`
 	Finding *ModelsTriagedDependencyFinding `json:"finding,omitempty"`
 	HasCurrentExploitProof *bool `json:"hasCurrentExploitProof,omitempty"`
 	HistoricalReportURL *string `json:"historicalReportUrl,omitempty"`
 	PresignedURL string `json:"presignedUrl"`
 	StopReason *string `json:"stopReason,omitempty"`
+	Support *ModelsAssessmentExecution `json:"support,omitempty"`
 	SupportAssessment *ModelsAssessment `json:"supportAssessment,omitempty"`
+	TriageDownload *EndpointsTriageDownloadChunk `json:"triageDownload,omitempty"`
 	TriageStatus EndpointsFindingTriageStatus `json:"triageStatus"`
 	Version *string `json:"version,omitempty"`
 	VulnManagementFrameworks *FrameworksVulnManagementFrameworks `json:"vulnManagementFrameworks,omitempty"`
@@ -154,10 +167,12 @@ type EndpointsGetSCAThreatFeedThreatOutput struct {
 
 type EndpointsGetSCAVulnerabilitiesOutput struct {
 	EvaluatedAt *string `json:"evaluatedAt,omitempty"`
+	InternetReachableFilterApplied bool `json:"internetReachableFilterApplied"`
 	KevOverlayApplied bool `json:"kevOverlayApplied"`
 	NextOffset *int `json:"nextOffset,omitempty"`
 	RepositoriesInScope bool `json:"repositoriesInScope"`
 	ReviewedRepositoryCount int `json:"reviewedRepositoryCount"`
+	RiskFiltersApplied bool `json:"riskFiltersApplied"`
 	TotalCount int `json:"totalCount"`
 	Vulnerabilities []EndpointsSCAVulnerabilityFleetEntry `json:"vulnerabilities,omitempty"`
 }
@@ -201,6 +216,28 @@ type EndpointsPatchSCADependencyFindingInput struct {
 type EndpointsPatchSCADependencyFindingOutput struct {
 	Finding ModelsSCADependencyFinding `json:"finding"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostAllowListSCAContainerFindingBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListSCAContainerFindingBatchOutput struct {
+	Allowlisted []string `json:"allowlisted,omitempty"`
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+}
+
+type EndpointsPostAllowListSCADependencyFindingBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListSCADependencyFindingBatchOutput struct {
+	Allowlisted []string `json:"allowlisted,omitempty"`
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
 }
 
 type EndpointsPostAllowlistSCAContainerFindingInput struct {
@@ -262,12 +299,32 @@ type EndpointsPostSCADependencyFindingFixOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostUnallowListSCAContainerFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListSCAContainerFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
+type EndpointsPostUnallowListSCADependencyFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListSCADependencyFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
 type EndpointsPostUnallowlistSCAContainerFindingInput struct {
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 }
 
 type EndpointsPostUnallowlistSCADependencyFindingInput struct {
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 }
 
 type EndpointsSCAThreatFeedAffectedPackage struct {
@@ -349,9 +406,11 @@ type EndpointsSCAVulnerabilityExposure struct {
 
 type EndpointsSCAVulnerabilityFleetEntry struct {
 	CveID string `json:"cveId"`
+	EpssKnown bool `json:"epssKnown"`
 	FindingCount int `json:"findingCount"`
 	FirstSeenAt *string `json:"firstSeenAt,omitempty"`
 	HasFix bool `json:"hasFix"`
+	InternetReachableCount int `json:"internetReachableCount"`
 	Kev bool `json:"kev"`
 	KevUnknown *bool `json:"kevUnknown,omitempty"`
 	MaxCvss *float64 `json:"maxCvss,omitempty"`
@@ -426,6 +485,14 @@ type EndpointsTriageActivityLogEntry struct {
 	Metadata *string `json:"metadata,omitempty"`
 }
 
+type EndpointsTriageDownloadChunk struct {
+	Data *string `json:"data,omitempty"`
+	NextOffset *int `json:"nextOffset,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+	Snapshot *string `json:"snapshot,omitempty"`
+	TotalBytes *int `json:"totalBytes,omitempty"`
+}
+
 type EndpointsTriageStatusOutput struct {
 	CurrentActivity *string `json:"currentActivity,omitempty"`
 	CurrentPhase *string `json:"currentPhase,omitempty"`
@@ -436,11 +503,16 @@ type EndpointsTriageStatusOutput struct {
 
 type ModelsAssessment struct {
 	Complete *bool `json:"complete,omitempty"`
-	ContainerCoverage *ModelsTriageContainerAssessment `json:"containerCoverage,omitempty"`
 	ExecutionFailed *bool `json:"executionFailed,omitempty"`
 	Recovery *string `json:"recovery,omitempty"`
 	ReportedUnknowns []string `json:"reportedUnknowns,omitempty"`
 	RequiredEvidence []string `json:"requiredEvidence,omitempty"`
+}
+
+type ModelsAssessmentExecution struct {
+	EffectiveAssessment *ModelsEffectiveAssessment `json:"effectiveAssessment,omitempty"`
+	LatestExecution *ModelsLatestExecution `json:"latestExecution,omitempty"`
+	Message *string `json:"message,omitempty"`
 }
 
 type ModelsCVE struct {
@@ -461,6 +533,7 @@ type ModelsCVE struct {
 	Priority ModelsPriorityLabel `json:"priority"`
 	ReachabilityConfidence *ModelsCVEReachConfidence `json:"reachabilityConfidence,omitempty"`
 	ReachabilityEvidence *string `json:"reachabilityEvidence,omitempty"`
+	ReachabilityKnown *bool `json:"reachabilityKnown,omitempty"`
 	ReachabilityMethod *ModelsCVEReachMethod `json:"reachabilityMethod,omitempty"`
 	Reachable *bool `json:"reachable,omitempty"`
 	Severity ModelsSeverity `json:"severity"`
@@ -568,6 +641,7 @@ type ModelsDistro struct {
 }
 
 type ModelsDossier struct {
+	ContainerInputKinds []string `json:"container_input_kinds,omitempty"`
 	Coverage *ModelsDossierCoverage `json:"coverage,omitempty"`
 	Cves []ModelsCVEDigest `json:"cves,omitempty"`
 	Deptree *ModelsDepTreeFacts `json:"deptree,omitempty"`
@@ -609,6 +683,13 @@ const (
 	ModelsDossierTierManual ModelsDossierTier = "MANUAL"
 )
 
+type ModelsEffectiveAssessment struct {
+	AssessedAt *string `json:"assessedAt,omitempty"`
+	PredatesLatestExecution *bool `json:"predatesLatestExecution,omitempty"`
+	ReportID *string `json:"reportId,omitempty"`
+	SourceAttemptID *string `json:"sourceAttemptId,omitempty"`
+}
+
 type ModelsImageMetadata struct {
 	Digest string `json:"digest"`
 	Distro ModelsDistro `json:"distro"`
@@ -622,10 +703,19 @@ type ModelsImageMetadata struct {
 type ModelsInstanceReachabilityEvidence string
 
 const (
+	ModelsInstanceReachabilityEvidenceUnrecorded ModelsInstanceReachabilityEvidence = "unrecorded"
 	ModelsInstanceReachabilityEvidenceReachable ModelsInstanceReachabilityEvidence = "reachable"
 	ModelsInstanceReachabilityEvidenceNotObserved ModelsInstanceReachabilityEvidence = "not_observed"
 	ModelsInstanceReachabilityEvidenceUnsupported ModelsInstanceReachabilityEvidence = "unsupported"
 )
+
+type ModelsLatestExecution struct {
+	EndedAt *string `json:"endedAt,omitempty"`
+	FailureReason *string `json:"failureReason,omitempty"`
+	ID *string `json:"id,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
 
 type ModelsOSVReachability struct {
 	Analysed *bool `json:"analysed,omitempty"`
@@ -685,7 +775,6 @@ type ModelsSCAContainerfileArtifact struct {
 }
 
 type ModelsSCAContainerfileFinding struct {
-	AiDevTitle string `json:"aiDevTitle"`
 	AiTitle string `json:"aiTitle"`
 	AllowlistReason string `json:"allowlistReason"`
 	AutoFixCurrentActivity *string `json:"autoFixCurrentActivity,omitempty"`
@@ -767,7 +856,6 @@ type ModelsSCAContainerfileFinding struct {
 }
 
 type ModelsSCAContainerfileFindingPreview struct {
-	AiDevTitle string `json:"aiDevTitle"`
 	AiTitle string `json:"aiTitle"`
 	AllowlistReason string `json:"allowlistReason"`
 	AutoFixEndTime *string `json:"autoFixEndTime,omitempty"`
@@ -829,6 +917,7 @@ type ModelsSCAContainerfileSuggestion struct {
 
 type ModelsSCAContainerfileVulnerability struct {
 	Artifact ModelsSCAContainerfileArtifact `json:"artifact"`
+	CanonicalAliases []string `json:"canonicalAliases,omitempty"`
 	Cves ModelsCVE `json:"cves"`
 	Fixed string `json:"fixed"`
 	HasFix bool `json:"hasFix"`
@@ -836,7 +925,6 @@ type ModelsSCAContainerfileVulnerability struct {
 }
 
 type ModelsSCADependencyFinding struct {
-	AiDevTitle string `json:"aiDevTitle"`
 	AiTitle string `json:"aiTitle"`
 	AllowlistReason string `json:"allowlistReason"`
 	AutoFixCurrentActivity *string `json:"autoFixCurrentActivity,omitempty"`
@@ -870,6 +958,7 @@ type ModelsSCADependencyFinding struct {
 	ImpactLabel string `json:"impactLabel"`
 	InstallationID string `json:"installationId"`
 	InstanceAssessments []ModelsSCADependencyInstanceAssessment `json:"instanceAssessments,omitempty"`
+	InstanceScope *ModelsSCADependencyInstanceScope `json:"instanceScope,omitempty"`
 	Instances []ModelsSCADependencyInstance `json:"instances,omitempty"`
 	IsAllowlisted bool `json:"isAllowlisted"`
 	IsArchived bool `json:"isArchived"`
@@ -904,6 +993,7 @@ type ModelsSCADependencyFinding struct {
 	ReachableSuggestedVersion *string `json:"reachableSuggestedVersion,omitempty"`
 	Repository string `json:"repository"`
 	RepositoryID string `json:"repositoryId"`
+	ResolutionCause *string `json:"resolutionCause,omitempty"`
 	ResolvedAt *string `json:"resolvedAt,omitempty"`
 	ResolvedWithoutLockfile *bool `json:"resolvedWithoutLockfile,omitempty"`
 	SeverityConfidence string `json:"severityConfidence"`
@@ -935,7 +1025,6 @@ type ModelsSCADependencyFinding struct {
 }
 
 type ModelsSCADependencyFindingPreview struct {
-	AiDevTitle string `json:"aiDevTitle"`
 	AiTitle string `json:"aiTitle"`
 	AllowlistReason string `json:"allowlistReason"`
 	AutoFixEndTime *string `json:"autoFixEndTime,omitempty"`
@@ -1006,6 +1095,7 @@ type ModelsSCADependencyInstance struct {
 	IsReachabilitySupported bool `json:"isReachabilitySupported"`
 	Line *int `json:"line,omitempty"`
 	PackageFilePath *string `json:"packageFilePath,omitempty"`
+	ReachabilityRecorded bool `json:"reachabilityRecorded"`
 	Version string `json:"version"`
 }
 
@@ -1023,6 +1113,7 @@ type ModelsSCADependencyInstanceAssessment struct {
 	MaxSeverity *ModelsSeverity `json:"maxSeverity,omitempty"`
 	PackageFilePath *string `json:"packageFilePath,omitempty"`
 	ReachabilityEvidence ModelsInstanceReachabilityEvidence `json:"reachabilityEvidence"`
+	ReachabilityRecorded bool `json:"reachabilityRecorded"`
 	Representative bool `json:"representative"`
 	SupportsPriority bool `json:"supportsPriority"`
 	Version string `json:"version"`
@@ -1036,6 +1127,43 @@ type ModelsSCADependencyInstanceScope struct {
 	Reachable int `json:"reachable"`
 	Versions int `json:"versions"`
 }
+
+type ModelsSCADependencyRemediationCoverage struct {
+	Complete bool `json:"complete"`
+	Covered []ModelsSCADependencyInstanceAssessment `json:"covered,omitempty"`
+	FixVersion *string `json:"fixVersion,omitempty"`
+	Unaffected int `json:"unaffected"`
+	Uncovered []ModelsSCADependencyRemediationGap `json:"uncovered,omitempty"`
+}
+
+type ModelsSCADependencyRemediationGap struct {
+	AdvisoryPriority *string `json:"advisoryPriority,omitempty"`
+	Affected bool `json:"affected"`
+	AffectedAdvisoryIds []string `json:"affectedAdvisoryIds,omitempty"`
+	AffectedCveIds []string `json:"affectedCveIds,omitempty"`
+	FilePath string `json:"filePath"`
+	FixVersion *string `json:"fixVersion,omitempty"`
+	HasReachableCVEs bool `json:"hasReachableCVEs"`
+	IsDirect bool `json:"isDirect"`
+	IsReachabilitySupported bool `json:"isReachabilitySupported"`
+	Line *int `json:"line,omitempty"`
+	MaxSeverity *string `json:"maxSeverity,omitempty"`
+	PackageFilePath *string `json:"packageFilePath,omitempty"`
+	ReachabilityEvidence string `json:"reachabilityEvidence"`
+	ReachabilityRecorded bool `json:"reachabilityRecorded"`
+	Reason ModelsSCADependencyRemediationGapReason `json:"reason"`
+	Representative bool `json:"representative"`
+	SupportsPriority bool `json:"supportsPriority"`
+	Version string `json:"version"`
+	VersionUnknown *bool `json:"versionUnknown,omitempty"`
+}
+
+type ModelsSCADependencyRemediationGapReason string
+
+const (
+	ModelsSCADependencyRemediationGapReasonFileUnchanged ModelsSCADependencyRemediationGapReason = "file_unchanged"
+	ModelsSCADependencyRemediationGapReasonVersionInsufficient ModelsSCADependencyRemediationGapReason = "version_insufficient"
+)
 
 type ModelsSCADependencyVulnerability struct {
 	Cves []ModelsCVE `json:"cves,omitempty"`

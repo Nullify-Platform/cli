@@ -141,8 +141,18 @@ type EndpointsPostCreateTicketSASTFindingOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostUnallowListSASTFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListSASTFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
 type EndpointsPostUnallowlistSASTFindingInput struct {
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 }
 
 type EndpointsSCAScanRunOutcome struct {
@@ -197,6 +207,8 @@ const (
 	ModelsFixSourceManualPr ModelsFixSource = "manual_pr"
 	ModelsFixSourceAiCodeReview ModelsFixSource = "ai_code_review"
 	ModelsFixSourceAutoResolved ModelsFixSource = "auto_resolved"
+	ModelsFixSourceAdvisoryWithdrawn ModelsFixSource = "advisory_withdrawn"
+	ModelsFixSourceAdvisoryNotApplicable ModelsFixSource = "advisory_not_applicable"
 )
 
 type ModelsSASTEventInterface struct {
@@ -209,7 +221,6 @@ type ModelsSASTEventInterface struct {
 
 type ModelsSASTFinding struct {
 	AiConfidence *float64 `json:"aiConfidence,omitempty"`
-	AiDevTitle *string `json:"aiDevTitle,omitempty"`
 	AiGenerated *bool `json:"aiGenerated,omitempty"`
 	AiSignalCategory *string `json:"aiSignalCategory,omitempty"`
 	AiTitle *string `json:"aiTitle,omitempty"`
@@ -325,7 +336,6 @@ type ModelsSASTFinding struct {
 }
 
 type ModelsSASTFindingPreview struct {
-	AiDevTitle string `json:"aiDevTitle"`
 	AiGenerated bool `json:"aiGenerated"`
 	AiTitle string `json:"aiTitle"`
 	AllowlistReason string `json:"allowlistReason"`
@@ -383,12 +393,14 @@ type ModelsSASTFindingPreview struct {
 }
 
 type ModelsSCAScanCoverageGap struct {
+	Cause *string `json:"cause,omitempty"`
 	Ecosystems []string `json:"ecosystems,omitempty"`
 	PackageAuth []ModelsSBOMPackageAuth `json:"packageAuth,omitempty"`
 	Reason *string `json:"reason,omitempty"`
 	Scope *string `json:"scope,omitempty"`
 	Side *string `json:"side,omitempty"`
 	Source *string `json:"source,omitempty"`
+	Standing *bool `json:"standing,omitempty"`
 	Status *string `json:"status,omitempty"`
 	Suspect *ModelsSCASuspectSBOM `json:"suspect,omitempty"`
 	TouchedByChange *bool `json:"touchedByChange,omitempty"`

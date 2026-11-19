@@ -113,14 +113,14 @@ func init() {
 
 // summarizeFindingsResponse extracts a human-readable summary from a findings
 // API response. The count is not reported: status requests limit=1, so
-// countFindings is capped at 1 and any number printed here would understate a
-// tenant's real backlog by orders of magnitude.
+// a page holds at most one finding and any number printed here would
+// understate a tenant's real backlog by orders of magnitude.
 func summarizeFindingsResponse(body string) string {
-	count, err := countFindings(body)
+	page, err := decodeFindingsPage(body)
 	if err != nil {
 		return "unreadable response"
 	}
-	if count > 0 {
+	if len(page.findings) > 0 {
 		return "findings present"
 	}
 	return "no findings"

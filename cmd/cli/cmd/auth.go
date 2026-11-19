@@ -50,9 +50,19 @@ var loginCmd = &cobra.Command{
 	},
 }
 
-// resolveLoginHost returns the --host flag, else the configured host, else the router host.
+// resolveLoginHost returns the --host flag, else NULLIFY_HOST, else the
+// configured host, else the router host: the order every other command uses.
 func resolveLoginHost() (string, error) {
 	loginHost := host
+	if loginHost == "" {
+		if envHost := os.Getenv("NULLIFY_HOST"); envHost != "" {
+			sanitized, err := lib.SanitizeNullifyHost(envHost)
+			if err != nil {
+				return "", fmt.Errorf("invalid NULLIFY_HOST %q - must be nullify.ai or <your-instance>.nullify.ai", envHost)
+			}
+			return sanitized, nil
+		}
+	}
 	if loginHost == "" {
 		cfg, err := auth.LoadConfig()
 		if err == nil && cfg.Host != "" {
@@ -93,6 +103,11 @@ var logoutCmd = &cobra.Command{
 		authHost, err := auth.AuthHostFor(logoutHost)
 		if err != nil {
 			return fmt.Errorf("logout failed: %w", err)
+		}
+		// The local credentials go whatever the server says: a logout that
+		// left them behind because the network was down would be worse.
+		if err := auth.RevokeLogin(cmd.Context(), logoutHost); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not revoke the login at %s, so its refresh token stays valid until it expires: %v\n", authHost, err)
 		}
 		if err := auth.Logout(logoutHost); err != nil {
 			return fmt.Errorf("logout failed: %w", err)
@@ -376,11 +391,22 @@ func init() {
 	_ = switchCmd.Flags().MarkHidden("installation")
 }
 
+// resolveHostForAuth returns the --host flag, else NULLIFY_HOST, else the
+// configured host. An invalid host is an error, never a reason to use another
+// one: logout would clear a login the user did not name.
 func resolveHostForAuth() (string, error) {
 	if host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(host)
 		if err != nil {
 			return "", fmt.Errorf("invalid host %q", host)
+		}
+		return sanitized, nil
+	}
+
+	if envHost := os.Getenv("NULLIFY_HOST"); envHost != "" {
+		sanitized, err := lib.SanitizeNullifyHost(envHost)
+		if err != nil {
+			return "", fmt.Errorf("invalid NULLIFY_HOST %q", envHost)
 		}
 		return sanitized, nil
 	}
@@ -393,5 +419,5 @@ func resolveHostForAuth() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("no host configured. Use --host or run 'nullify auth login'")
+	return "", fmt.Errorf("no host configured. Use --host, set NULLIFY_HOST or run 'nullify auth login'")
 }

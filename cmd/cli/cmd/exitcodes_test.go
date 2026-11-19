@@ -23,6 +23,7 @@ func TestExitCodeForError(t *testing.T) {
 		{"plain error", errors.New("boom"), 1},
 		{"auth error", authError("nope"), ExitAuthError},
 		{"network error", networkError("nope"), ExitNetworkError},
+		{"usage error", usageError("nope"), ExitUsageError},
 		{"findings error", withExitCode(ExitFindings, errors.New("nope")), ExitFindings},
 		{"explicit code 1", withExitCode(1, errors.New("x")), 1},
 		{"wrapped coded error", fmt.Errorf("ctx: %w", authError("nope")), ExitAuthError},

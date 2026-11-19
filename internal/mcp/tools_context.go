@@ -16,15 +16,16 @@ import (
 func registerContextTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
 		readOnlyTool("list_repositories",
-			mcp.WithDescription("List repositories Nullify monitors for the authenticated installation."),
+			mcp.WithDescription("List repositories Nullify monitors for the authenticated installation. A result with a nextToken has more repositories: pass it as next_token to read the next page."),
 			mcp.WithNumber("limit", mcp.Description("Max results")),
+			mcp.WithString("next_token", mcp.Description("The nextToken of the previous page, to read the page after it")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			in := api.ListContextRepositoriesInput{}
-			if n := getIntArg(req.GetArguments(), "limit", 0); n > 0 {
-				in.Limit = &n
-			}
-			return wrapTyped(c.ListContextRepositories(ctx, in))
+			args := req.GetArguments()
+			return wrapTyped(c.ListContextRepositories(ctx, api.ListContextRepositoriesInput{
+				Limit:     optionalLimit(getIntArg(args, "limit", 0)),
+				NextToken: optionalString(getStringArg(args, "next_token")),
+			}))
 		},
 	)
 
@@ -46,11 +47,9 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			// list_applications has no limit field on the spec input; the limit
-			// arg is kept for compatibility with the prior tool shape but is
-			// silently ignored — the endpoint returns the full set.
-			_ = req
-			return wrapTyped(c.ListContextApplications(ctx, api.ListContextApplicationsInput{}))
+			return wrapTyped(c.ListContextApplications(ctx, api.ListContextApplicationsInput{
+				Limit: optionalLimit(getIntArg(req.GetArguments(), "limit", 0)),
+			}))
 		},
 	)
 

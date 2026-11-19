@@ -270,14 +270,22 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 }
 
 func TestDashboardURL(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
 	tests := map[string]string{
-		"nullify.ai":          "https://app.nullify.ai",
-		"acme.nullify.ai":     "https://acme.nullify.ai",
-		"api.acme.nullify.ai": "https://acme.nullify.ai",
+		"nullify.ai":            "https://app.nullify.ai",
+		"router.dev.nullify.ai": "https://app.router.dev.nullify.ai",
+		"acme.nullify.ai":       "https://app.acme.nullify.ai",
+		"api.acme.nullify.ai":   "https://app.acme.nullify.ai",
 	}
 	for commandHost, want := range tests {
 		require.Equal(t, want, dashboardURL(commandHost), commandHost)
 	}
+
+	router, ok := auth.RouterFor("nullify.ai")
+	require.True(t, ok)
+	require.NoError(t, auth.BindTenant("bound.nullify.ai", router))
+	require.Equal(t, "https://app.nullify.ai", dashboardURL("bound.nullify.ai"),
+		"an instance bound to the router uses the router's dashboard")
 }
 
 // A router login's MCP server sends requests to the selected data host and
@@ -294,10 +302,10 @@ func TestMCPClientUsesAuthHostForTokensAndDataHostForRequests(t *testing.T) {
 		DataHost:    "acme.nullify.ai",
 	}))
 
-	apiClient, _, _, err := mcpServeConfig(context.Background(), "r", "default")
+	apiClient, _, _, err := mcpServeConfig(context.Background(), "default")
 	require.NoError(t, err)
 	require.Equal(t, "https://api.acme.nullify.ai", apiClient.BaseURL)
-	require.Equal(t, map[string]string{"repository": "r"}, apiClient.DefaultParams)
+	require.Empty(t, apiClient.DefaultParams, "no handler reads a repository query parameter")
 
 	tokenProvider, refreshProvider := mcpTokenProviders(auth.RouterHost)
 	token, err := tokenProvider(context.Background())
@@ -390,4 +398,17 @@ func TestFixDeadlineCancelsCredentialRefresh(t *testing.T) {
 			}
 		})
 	}
+}
+
+// An API token with no host names the setting it needs, not a login.
+func TestAPITokenWithoutHostNamesNullifyHost(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	resetCommandFlags(t)
+	t.Setenv("NULLIFY_HOST", "")
+	t.Setenv("NULLIFY_TOKEN", "machine-token")
+
+	_, err := resolveCommandHosts(context.Background())
+
+	require.ErrorIs(t, err, errNoHost)
+	require.ErrorContains(t, err, "NULLIFY_HOST")
 }

@@ -43,7 +43,7 @@ type ToolEntry struct {
 func ToolSurface() []ToolEntry {
 	entries := map[string]*ToolEntry{}
 	for _, set := range ValidToolSets() {
-		s := NewServer(nil, ToolSet(set), Orgs{})
+		s := NewServer(nil, ToolSet(set), Orgs{}, Defaults{})
 
 		for name, tool := range s.ListTools() {
 			if entries[name] == nil {

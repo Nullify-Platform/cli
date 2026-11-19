@@ -56,15 +56,26 @@ Pre-configure your instance during install:
 curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh -s -- --host api.acme.nullify.ai
 ```
 
+Pin a release, for example in CI:
+
+```sh
+curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh -s -- --version v0.28.0
+```
+
+The installer writes `nullify` to `/usr/local/bin` when it can, otherwise to `~/.local/bin`. Without `--version` it asks the GitHub API for the latest release; set `GITHUB_TOKEN` to avoid that API's rate limit on shared CI runners. Unknown options are an error, and `--help` lists the options.
+
 ### Go
 
 ```sh
 go install github.com/nullify-platform/cli/cmd/cli@latest
+mv "$(go env GOPATH)/bin/cli" "$(go env GOPATH)/bin/nullify"
 ```
+
+`go install` names the binary `cli`, after its directory, and puts it in `$(go env GOPATH)/bin` (or `$GOBIN` when set). Rename it to `nullify`, as above, so the commands in this README work.
 
 ### Windows
 
-Download the latest `.zip` for your architecture from [GitHub Releases](https://github.com/Nullify-Platform/cli/releases) and add the binary to your `PATH`.
+Download `nullify_windows_amd64.zip` from [GitHub Releases](https://github.com/Nullify-Platform/cli/releases), unpack it and add `nullify.exe` to your `PATH`. Windows on Arm runs the same build. In Git Bash, the install script above works too.
 
 ### Verify
 
@@ -72,7 +83,11 @@ Download the latest `.zip` for your architecture from [GitHub Releases](https://
 nullify --version
 ```
 
-The installer verifies SHA-256 checksums automatically. Binaries are available for Linux, macOS, and Windows on both amd64 and arm64.
+The installer verifies SHA-256 checksums automatically and refuses an archive without one. Binaries are available for Linux and macOS on amd64 and arm64, and for Windows on amd64. A `go install` build reports its module version.
+
+### Upgrade
+
+`nullify update` checks for a newer release and prints the installer command pinned to it (on Windows, the steps for the zip). It does not change the installed binary itself.
 
 ## Quick Start
 
@@ -150,8 +165,12 @@ Your login and your selected organization carry over. If you used an API token a
 ```sh
 export NULLIFY_HOST=api.acme.nullify.ai
 export NULLIFY_TOKEN=your-token-here
-export NULLIFY_ORG=acme-web   # optional: organization to run as, by name or id
+export NULLIFY_ORG=acme-web              # optional: organization to run as, by name or id
+export NULLIFY_GITHUB_OWNER_ID=12345678  # optional: organization to run as, by GitHub owner id
+export NULLIFY_HTTP_TIMEOUT=120s         # optional: API request timeout as a Go duration (default 30s)
 ```
+
+`NULLIFY_HOST` applies when `--host` is not passed (see [Configuration](#configuration)), and `NULLIFY_ORG` and `NULLIFY_GITHUB_OWNER_ID` when `--org` is not (see [Organizations](#organizations)). Raise `NULLIFY_HTTP_TIMEOUT` for slow calls such as starting a scan or an autofix.
 
 ### Multiple Instances
 
@@ -182,6 +201,13 @@ nullify auth switch
 | `nullify findings get` / `triage` | Read a finding or its AI triage |
 | `nullify findings create-ticket` / `delete-ticket` | Manage the ticket of a finding |
 | `nullify findings feedback` / `get-feedback` | Record or read feedback on a finding of any type |
+| `nullify fix <finding-id>` | Generate an autofix for a finding and wait for it (`--create-pr` reports the pull request it opened, `--no-wait` returns at once) |
+| `nullify findings fix-status` / `fix-diff` | Read the state and pull requests of a finding's autofix run, or the change it proposes |
+| `nullify repos` | List every monitored repository |
+| `nullify sbom get` | Get the latest SBOM of each project in a repository, or of one with `--project-id` |
+| `nullify threat list` / `get` / `create` | List, read or create threat investigations (`--severity` takes `critical`, `high`, `medium`, `low` or `informational`) |
+| `nullify open` | Open the Nullify dashboard in your browser |
+
 ### Authentication
 
 | Command | Description |
@@ -192,6 +218,7 @@ nullify auth switch
 | `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
 | `nullify auth switch` | Switch active instance or list configured instances |
 | `nullify auth config` | Print the effective host, auth host, data host, and organization as JSON |
+| `nullify whoami` | Show the host, the auth source (a login, an API token or a GitHub Actions token), and the organization commands run as |
 | `nullify org list` | List the organizations you can use, and which one commands run as and why |
 | `nullify org use <name\|id>` | Remember the organization commands run as (and, through the Nullify router, its instance) |
 
@@ -202,13 +229,20 @@ nullify auth switch
 | `nullify pentest` | Run DAST pentest scans (cloud or local via Docker) |
 | `nullify bughunt` | Cloud-based automated bug hunting |
 | `nullify secrets scan-file` | Local secret scan of a single file or stdin buffer; no API call or network access |
+| `nullify scan start` / `status <scanId>` | Start a cloud scan, or check the status of one |
+| `nullify scan runs` | List a repository's scan runs (`--type` takes `sast`, `sca`, `sca_dependencies`, `sca_containers` or `secrets`) |
 
 ### CI/CD
 
 | Command | Description |
 |---------|-------------|
-| `nullify ci gate` | Quality gate — exits non-zero when findings exceed threshold |
-| `nullify ci report` | Generate a markdown summary for PR comments |
+| `nullify ci gate` | Quality gate for the repository being built — exits non-zero when its open findings meet the severity threshold |
+| `nullify ci report` | Markdown (or `--format sarif`) summary of the repository's open findings, for PR comments |
+| `nullify deps analyze` | Malware gate for dependencies (exit 20 on a suspicious package, 30 on a malicious one) |
+
+`ci gate` and `ci report` cover one repository. They read its ID from GitHub Actions (`GITHUB_REPOSITORY_ID`), GitLab CI (`CI_PROJECT_ID`), Bitbucket Pipelines (`BITBUCKET_REPO_UUID`) or Azure Pipelines with Azure Repos (`BUILD_REPOSITORY_ID`). Elsewhere, pass `--repository-id <provider repository ID>`, or `--all-repositories` to gate on every repository; with neither, they exit 4. `--severity-threshold` applies to every scanner; secrets findings, and findings of unknown severity, count at any threshold. Pentest, bug hunt and cloud findings have no repository, so they count in every repository's gate. Exit codes: 0 pass, 1 findings at or above the threshold, 2 authentication failed or a scanner refused access, 3 an API or network failure, 4 invalid flags or no repository ID.
+
+`deps analyze` fails (exit 1) when a dependency has no verdict yet, so a pass always means every dependency was judged benign. Pass `--wait` to wait for verdicts, or `--fail-on=none` to queue analyses without gating.
 
 ### Tooling
 
@@ -216,6 +250,9 @@ nullify auth switch
 |---------|-------------|
 | `nullify mcp serve` | Start the MCP server for AI coding tools |
 | `nullify completion` | Generate shell completions (bash, zsh, fish, powershell) |
+| `nullify api` | Direct API access, one command per API route (see [Command stability](#command-stability)) |
+| `nullify update` | Check for a newer release and print how to install it |
+| `nullify version` | Show the version, commit, build date, Go version, and platform |
 
 ## Findings
 
@@ -249,7 +286,7 @@ The output reports `total`, `returned` and `truncated`:
 | `truncated` true, exit 0 | More findings exist; raise `--limit` |
 | Exit 3 | An API or network failure, including no access (401 or 403) |
 
-Act on a finding. Allowlisting needs a reason and an explicit type: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise. The server may not record the type for `bughunt`, `sca_dependencies`, `sca_containers` and `secrets_sensitive_data` yet. For these types the command writes a warning to stderr and adds a `warning` field to the result. The reason is recorded. For a CSPM false positive, use `findings mark-false-positive`: allowlisting with `UserFalsePositive` does not set `is_false_positive` on a CSPM finding.
+Act on a finding. Allowlisting needs a reason and an explicit type: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise. The server records the reason and the type for every finding type. For a CSPM false positive, use `findings mark-false-positive`: allowlisting with `UserFalsePositive` does not set `is_false_positive` on a CSPM finding.
 
 ```sh
 nullify findings mark-false-positive abc123 --type cspm --reason "Bucket is public by design"
@@ -336,24 +373,26 @@ Add a security report to your pull request:
 
 ## MCP Server
 
-The CLI includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server with 50+ tools, giving AI coding assistants full access to your security data. Capabilities include:
+The CLI includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server with about 50 tools, giving AI coding assistants access to your security data. Capabilities include:
 
-- **Query** — findings, repositories, SBOMs, cloud accounts, metrics, trends
-- **Triage** — allowlist, archive or mark false positive across every finding type, including CSPM, reopen, and record feedback
-- **Remediate** — start AI-powered fixes, then follow them with `nullify_get_fix_status` and `nullify_get_fix_diff`
-- **Track** — campaigns, action items, SLA policies, code reviews
+- **Query**: findings, repositories, applications, SBOMs and dependencies, scan runs, cloud scans, metrics and trends
+- **Triage**: allowlist and unallowlist a finding of any type, and record feedback. Archive, unarchive and mark false positive are for CSPM findings only, and unmark false positive covers CSPM and SCPM findings.
+- **Remediate**: start AI-powered fixes, then follow them with `nullify_get_fix_status` and `nullify_get_fix_diff`
+- **Track**: campaigns, action items, SLA policies and threat investigations
 
 `nullify mcp serve --tools findings-write` adds the tools that the default set leaves out: archive, unarchive, mark and unmark false positive, and delete ticket. `--tools all` also has them. Every tool that changes state carries the destructive annotation, so a client can ask a person first. `spec/mcp-tools.tsv` lists every tool, its access and its tool sets.
 
 ### Setup
 
-Add the following to your MCP config file:
+`nullify init` configures each client it finds. To do it yourself:
 
-| Tool | Config path |
-|------|-------------|
-| Claude Code | `.mcp.json` (project root) or `~/.claude.json` (user) |
-| Cursor | `.cursor/mcp.json` |
-| VS Code | `.vscode/mcp.json` |
+| Tool | How to add the server |
+|------|-----------------------|
+| Claude Code | `claude mcp add --scope user nullify -- nullify mcp serve`, or `.mcp.json` in the project root with the `mcpServers` snippet below |
+| Cursor | `.cursor/mcp.json` with the `mcpServers` snippet below |
+| VS Code | `.vscode/mcp.json` with the `servers` snippet below |
+
+Claude Code (`.mcp.json`) and Cursor (`.cursor/mcp.json`):
 
 ```json
 {
@@ -366,7 +405,21 @@ Add the following to your MCP config file:
 }
 ```
 
-One server serves one instance. When your login covers several organizations there, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them; every result says which organization it ran as. Without the argument a call uses the default the server settled when it started (`--org`, then the same order as the CLI); `nullify org use` in a terminal does not change a running server. If that leaves several organizations, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization:
+VS Code (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "nullify": {
+      "type": "stdio",
+      "command": "nullify",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+One server serves one instance. When your login covers several organizations there, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them; every result says which organization it ran as. Without the argument a call uses the default the server settled when it started (`--org`, then the same order as the CLI); `nullify org use` in a terminal does not change a running server. If that leaves several organizations, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization (VS Code puts the same entries under `servers`, each with `"type": "stdio"`):
 
 ```json
 {
@@ -386,17 +439,19 @@ One server serves one instance. When your login covers several organizations the
 With Claude Code:
 
 ```sh
-claude mcp add nullify-acme-web -- nullify mcp serve --org acme-web
+claude mcp add --scope user nullify-acme-web -- nullify mcp serve --org acme-web
 ```
 
-Scope findings to a specific repository with `--repo`:
+### Default repository
+
+Findings searches and metrics default to one repository: the one that `--repo` names (owner/name preferred), or else the repository of the git remote in the directory where the server starts. `nullify_search_findings`, `get_critical_path` and `get_security_posture_summary` filter to it for every finding type that can belong to a repository; cloud and bug hunt findings have none, so they are not filtered. The metrics tools and the `nullify://posture` resource filter to it as well, which leaves cloud and bug hunt findings out of them. A call that names a repository searches that one instead, and `nullify_search_findings` with `repository` set to `*` searches every repository. A result that the default filtered says so.
 
 ```json
 {
   "mcpServers": {
     "nullify": {
       "command": "nullify",
-      "args": ["mcp", "serve", "--repo", "my-repo"]
+      "args": ["mcp", "serve", "--repo", "acme/my-repo"]
     }
   }
 }
@@ -434,7 +489,7 @@ When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.
 
 ## Requirements
 
-- **macOS, Linux, or Windows** (amd64 or arm64)
+- **macOS or Linux** (amd64 or arm64), or **Windows** (amd64, which Windows on Arm also runs)
 - **Docker** — required only for local pentest scans (`--local`)
 - A [Nullify](https://nullify.ai) instance — [request access](https://nullify.ai)
 

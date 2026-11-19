@@ -381,6 +381,176 @@ func (c *Client) ListContextApplicationsApplicationIdExecutionRecipe(ctx context
 	return &out, nil
 }
 
+// ListContextApplicationsApplicationIdFoldersInput is the input for ListContextApplicationsApplicationIdFolders — List application folders.
+type ListContextApplicationsApplicationIdFoldersInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextApplicationsApplicationIdFolders - List application folders
+// GET /context/applications/{applicationId}/folders
+func (c *Client) ListContextApplicationsApplicationIdFolders(ctx context.Context, in ListContextApplicationsApplicationIdFoldersInput) (*models.EndpointsApplicationFoldersOutput, error) {
+	path := "/context/applications/{applicationId}/folders"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsApplicationFoldersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// UpdateContextApplicationsApplicationIdFoldersInput is the input for UpdateContextApplicationsApplicationIdFolders — Edit application folders.
+type UpdateContextApplicationsApplicationIdFoldersInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Folders models.EndpointsApplicationFolderEdit `json:"folders"`
+	models.RequestScope
+}
+
+// UpdateContextApplicationsApplicationIdFolders - Edit application folders
+// PUT /context/applications/{applicationId}/folders
+func (c *Client) UpdateContextApplicationsApplicationIdFolders(ctx context.Context, in UpdateContextApplicationsApplicationIdFoldersInput) (*models.EndpointsRepairApplicationOutput, error) {
+	path := "/context/applications/{applicationId}/folders"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Folders models.EndpointsApplicationFolderEdit `json:"folders"`
+	}{
+		Folders: in.Folders,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "PUT", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsRepairApplicationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextApplicationsApplicationIdFoldersPreviewInput is the input for CreateContextApplicationsApplicationIdFoldersPreview — Preview application folder changes.
+type CreateContextApplicationsApplicationIdFoldersPreviewInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Folders models.EndpointsApplicationFolderEdit `json:"folders"`
+	models.RequestScope
+}
+
+// CreateContextApplicationsApplicationIdFoldersPreview - Preview application folder changes
+// POST /context/applications/{applicationId}/folders/preview
+func (c *Client) CreateContextApplicationsApplicationIdFoldersPreview(ctx context.Context, in CreateContextApplicationsApplicationIdFoldersPreviewInput) (*models.EndpointsFolderPreviewOutput, error) {
+	path := "/context/applications/{applicationId}/folders/preview"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Folders models.EndpointsApplicationFolderEdit `json:"folders"`
+	}{
+		Folders: in.Folders,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsFolderPreviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextApplicationsApplicationIdFoldersRecomputeInput is the input for CreateContextApplicationsApplicationIdFoldersRecompute — Resume application membership recompute.
+type CreateContextApplicationsApplicationIdFoldersRecomputeInput struct {
+	ApplicationID string `path:"applicationId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateContextApplicationsApplicationIdFoldersRecompute - Resume application membership recompute
+// POST /context/applications/{applicationId}/folders/recompute
+func (c *Client) CreateContextApplicationsApplicationIdFoldersRecompute(ctx context.Context, in CreateContextApplicationsApplicationIdFoldersRecomputeInput) (*models.EndpointsRecomputeApplicationFoldersOutput, error) {
+	path := "/context/applications/{applicationId}/folders/recompute"
+	path = strings.Replace(path, "{applicationId}", url.PathEscape(in.ApplicationID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsRecomputeApplicationFoldersOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextApplicationsApplicationIdSchemaInput is the input for ListContextApplicationsApplicationIdSchema — Get Application Schema.
 type ListContextApplicationsApplicationIdSchemaInput struct {
 	ApplicationID string `path:"applicationId" json:"-"`
@@ -670,6 +840,7 @@ type ListContextAssetGraphAttackPathsInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	HasCriticalFinding *bool `url:"hasCriticalFinding,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
+	NodeID *string `url:"nodeId,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	TerminalNodeKind *models.EndpointsAttackPathTerminalNodeKind `url:"terminalNodeKind,omitempty" json:"-"`
 	models.RequestScope
@@ -689,6 +860,9 @@ func (c *Client) ListContextAssetGraphAttackPaths(ctx context.Context, in ListCo
 	}
 	if in.HasCriticalFinding != nil {
 		query.Set("hasCriticalFinding", strconv.FormatBool(*in.HasCriticalFinding))
+	}
+	if in.NodeID != nil {
+		query.Set("nodeId", string(*in.NodeID))
 	}
 	if in.Limit != nil {
 		query.Set("limit", strconv.Itoa(int(*in.Limit)))
@@ -897,6 +1071,51 @@ func (c *Client) ListContextAssetGraphReachability(ctx context.Context, in ListC
 	return &out, nil
 }
 
+// CreateContextAssetGraphResourceExposureInput is the input for CreateContextAssetGraphResourceExposure — List Asset Graph Resource Exposure.
+type CreateContextAssetGraphResourceExposureInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Resources []models.EndpointsAssetGraphResourceRef `json:"resources,omitempty"`
+	models.RequestScope
+}
+
+// CreateContextAssetGraphResourceExposure - List Asset Graph Resource Exposure
+// POST /context/asset-graph/resource-exposure
+func (c *Client) CreateContextAssetGraphResourceExposure(ctx context.Context, in CreateContextAssetGraphResourceExposureInput) (*models.EndpointsListAssetGraphResourceExposureOutput, error) {
+	path := "/context/asset-graph/resource-exposure"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Resources []models.EndpointsAssetGraphResourceRef `json:"resources,omitempty"`
+	}{
+		Resources: in.Resources,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsListAssetGraphResourceExposureOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // ListContextAssetGraphRetrieveInput is the input for ListContextAssetGraphRetrieve — Retrieve Asset Graph Nodes.
 type ListContextAssetGraphRetrieveInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -943,10 +1162,13 @@ func (c *Client) ListContextAssetGraphRetrieve(ctx context.Context, in ListConte
 
 // ListContextAssetGraphSearchInput is the input for ListContextAssetGraphSearch — Search Asset Graph.
 type ListContextAssetGraphSearchInput struct {
+	AccountID *string `url:"accountId,omitempty" json:"-"`
+	Exact *bool `url:"exact,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	MaxResults *int `url:"maxResults,omitempty" json:"-"`
 	ObjectTypes []string `url:"objectTypes,omitempty" json:"-"`
 	Q *string `url:"q,omitempty" json:"-"`
+	Region *string `url:"region,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -967,6 +1189,15 @@ func (c *Client) ListContextAssetGraphSearch(ctx context.Context, in ListContext
 	}
 	if in.MaxResults != nil {
 		query.Set("maxResults", strconv.Itoa(int(*in.MaxResults)))
+	}
+	if in.Exact != nil {
+		query.Set("exact", strconv.FormatBool(*in.Exact))
+	}
+	if in.AccountID != nil {
+		query.Set("accountId", string(*in.AccountID))
+	}
+	if in.Region != nil {
+		query.Set("region", string(*in.Region))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -4044,6 +4275,42 @@ func (c *Client) GetContextCicdPipelinesPipelineId(ctx context.Context, in GetCo
 	return &out, nil
 }
 
+// CreateContextCloudConnectorPrDeploymentCheckInput is the input for CreateContextCloudConnectorPrDeploymentCheck — Check AWS connector deployment.
+type CreateContextCloudConnectorPrDeploymentCheckInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// CreateContextCloudConnectorPrDeploymentCheck - Check AWS connector deployment
+// POST /context/cloud-connector-pr/deployment/check
+func (c *Client) CreateContextCloudConnectorPrDeploymentCheck(ctx context.Context, in CreateContextCloudConnectorPrDeploymentCheckInput) (*models.EndpointsContextCheckCloudConnectorDeploymentOutput, error) {
+	path := "/context/cloud-connector-pr/deployment/check"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "POST", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsContextCheckCloudConnectorDeploymentOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateContextCloudConnectorPrRunsInput is the input for CreateContextCloudConnectorPrRuns — Start Cloud Connector PR Run.
 type CreateContextCloudConnectorPrRunsInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -4209,56 +4476,6 @@ func (c *Client) ListContextCloudConnectorPrRunsRunIdProposal(ctx context.Contex
 		return nil, err
 	}
 	var out models.EndpointsContextGetCloudConnectorProposalOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// CreateContextCloudConnectorPrRunsRunIdRecoverInput is the input for CreateContextCloudConnectorPrRunsRunIdRecover — Recover unresolved connector publication.
-type CreateContextCloudConnectorPrRunsRunIdRecoverInput struct {
-	RunID string `path:"runId" json:"-"`
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
-	Digest string `json:"digest"`
-	models.RequestScope
-}
-
-// CreateContextCloudConnectorPrRunsRunIdRecover - Recover unresolved connector publication
-// POST /context/cloud-connector-pr/runs/{runId}/recover
-func (c *Client) CreateContextCloudConnectorPrRunsRunIdRecover(ctx context.Context, in CreateContextCloudConnectorPrRunsRunIdRecoverInput) (*models.EndpointsContextRecoverCloudConnectorProposalOutput, error) {
-	path := "/context/cloud-connector-pr/runs/{runId}/recover"
-	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
-		Digest string `json:"digest"`
-	}{
-		ConfirmNoPullRequest: in.ConfirmNoPullRequest,
-		Digest: in.Digest,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsContextRecoverCloudConnectorProposalOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -5182,6 +5399,7 @@ type ListContextDepsActiveInput struct {
 	ProjectID *string `url:"projectId,omitempty" json:"-"`
 	Range *string `url:"range,omitempty" json:"-"`
 	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
 	Search *string `url:"search,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -5224,6 +5442,9 @@ func (c *Client) ListContextDepsActive(ctx context.Context, in ListContextDepsAc
 	}
 	if in.Range != nil {
 		query.Set("range", string(*in.Range))
+	}
+	for _, v := range in.RepositoryIds {
+		query.Add("repositoryIds", string(v))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -5402,9 +5623,12 @@ func (c *Client) ListContextDepsDependentsBomRef(ctx context.Context, in ListCon
 // ListContextDepsExposureInput is the input for ListContextDepsExposure — Global package exposure by version filter (semver or hash).
 type ListContextDepsExposureInput struct {
 	Ecosystem *string `url:"ecosystem,omitempty" json:"-"`
+	From *string `url:"from,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Name *string `url:"name,omitempty" json:"-"`
 	Range *string `url:"range,omitempty" json:"-"`
+	RepositoryIds []string `url:"repositoryIds,omitempty" json:"-"`
+	To *string `url:"to,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -5428,6 +5652,15 @@ func (c *Client) ListContextDepsExposure(ctx context.Context, in ListContextDeps
 	}
 	if in.Range != nil {
 		query.Set("range", string(*in.Range))
+	}
+	for _, v := range in.RepositoryIds {
+		query.Add("repositoryIds", string(v))
+	}
+	if in.From != nil {
+		query.Set("from", string(*in.From))
+	}
+	if in.To != nil {
+		query.Set("to", string(*in.To))
 	}
 	in.RequestScope.AddTo(query)
 
@@ -5867,6 +6100,9 @@ func (c *Client) GetContextEntrypointsEntrypointId(ctx context.Context, in GetCo
 
 // ListContextInfrastructureGraphsInput is the input for ListContextInfrastructureGraphs — List Infrastructure Graphs.
 type ListContextInfrastructureGraphsInput struct {
+	AccountsOnly *bool `url:"accountsOnly,omitempty" json:"-"`
+	GcpAdmission *bool `url:"gcpAdmission,omitempty" json:"-"`
+	GcpDiscoveryKey *string `url:"gcpDiscoveryKey,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -5879,6 +6115,15 @@ func (c *Client) ListContextInfrastructureGraphs(ctx context.Context, in ListCon
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.GcpAdmission != nil {
+		query.Set("gcpAdmission", strconv.FormatBool(*in.GcpAdmission))
+	}
+	if in.AccountsOnly != nil {
+		query.Set("accountsOnly", strconv.FormatBool(*in.AccountsOnly))
+	}
+	if in.GcpDiscoveryKey != nil {
+		query.Set("gcpDiscoveryKey", string(*in.GcpDiscoveryKey))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -7472,92 +7717,6 @@ func (c *Client) GetContextRepoScopeScansScanId(ctx context.Context, in GetConte
 	return &out, nil
 }
 
-// CreateContextReportsInput is the input for CreateContextReports — Create Report Generation Job.
-type CreateContextReportsInput struct {
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	Packages []models.EndpointsPackageFilter `json:"packages,omitempty"`
-	Repositories []string `json:"repositories,omitempty"`
-	models.RequestScope
-}
-
-// CreateContextReports - Create Report Generation Job
-// POST /context/reports
-func (c *Client) CreateContextReports(ctx context.Context, in CreateContextReportsInput) (*models.EndpointsPostReportOutput, error) {
-	path := "/context/reports"
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		Packages []models.EndpointsPackageFilter `json:"packages,omitempty"`
-		Repositories []string `json:"repositories,omitempty"`
-	}{
-		Packages: in.Packages,
-		Repositories: in.Repositories,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsPostReportOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
-// GetContextReportsJobIdInput is the input for GetContextReportsJobId — Get Report Status.
-type GetContextReportsJobIdInput struct {
-	JobID string `path:"jobId" json:"-"`
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	models.RequestScope
-}
-
-// GetContextReportsJobId - Get Report Status
-// GET /context/reports/{jobId}
-func (c *Client) GetContextReportsJobId(ctx context.Context, in GetContextReportsJobIdInput) (*models.EndpointsGetReportStatusOutput, error) {
-	path := "/context/reports/{jobId}"
-	path = strings.Replace(path, "{jobId}", url.PathEscape(in.JobID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	data, err := c.do(ctx, "GET", fullURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsGetReportStatusOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
 // ListContextRepositoriesInput is the input for ListContextRepositories — Get Contexts of Repositories.
 type ListContextRepositoriesInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -7774,6 +7933,44 @@ func (c *Client) CreateContextRepositoriesRepositoryIdExecutionRecipesDiscover(c
 		return nil, err
 	}
 	var out models.EndpointsStartRepositoryExecutionRecipeDiscoveryOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextRepositoriesRepositoryIdFolderGapsInput is the input for ListContextRepositoriesRepositoryIdFolderGaps — Count unowned findings in a repository.
+type ListContextRepositoriesRepositoryIdFolderGapsInput struct {
+	RepositoryID string `path:"repositoryId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextRepositoriesRepositoryIdFolderGaps - Count unowned findings in a repository
+// GET /context/repositories/{repositoryId}/folder-gaps
+func (c *Client) ListContextRepositoriesRepositoryIdFolderGaps(ctx context.Context, in ListContextRepositoriesRepositoryIdFolderGapsInput) (*models.EndpointsApplicationFolderGapsOutput, error) {
+	path := "/context/repositories/{repositoryId}/folder-gaps"
+	path = strings.Replace(path, "{repositoryId}", url.PathEscape(in.RepositoryID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsApplicationFolderGapsOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -8131,7 +8328,9 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdExecutionRe
 type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	ApiName *string `url:"apiName,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Origin *string `url:"origin,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -8145,6 +8344,12 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchema(ctx 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.ApiName != nil {
+		query.Set("apiName", string(*in.ApiName))
+	}
+	if in.Origin != nil {
+		query.Set("origin", string(*in.Origin))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -8172,8 +8377,10 @@ type CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Basis *string `json:"basis,omitempty"`
 	Content string `json:"content"`
 	Format models.ModelsSchemaFormat `json:"format"`
+	RepairDefects *bool `json:"repairDefects,omitempty"`
 	Type models.ModelsSchemaType `json:"type"`
 	models.RequestScope
 }
@@ -8200,12 +8407,16 @@ func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchema(ct
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		Basis *string `json:"basis,omitempty"`
 		Content string `json:"content"`
 		Format models.ModelsSchemaFormat `json:"format"`
+		RepairDefects *bool `json:"repairDefects,omitempty"`
 		Type models.ModelsSchemaType `json:"type"`
 	}{
+		Basis: in.Basis,
 		Content: in.Content,
 		Format: in.Format,
+		RepairDefects: in.RepairDefects,
 		Type: in.Type,
 	})
 	if err != nil {
@@ -8266,6 +8477,7 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaMetad
 type ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRawInput struct {
 	RepositoryID string `path:"repositoryId" json:"-"`
 	ProjectID string `path:"projectId" json:"-"`
+	Digest *string `url:"digest,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	models.RequestScope
 }
@@ -8280,6 +8492,9 @@ func (c *Client) ListContextRepositoriesRepositoryIdProjectsProjectIdSchemaRaw(c
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.Digest != nil {
+		query.Set("digest", string(*in.Digest))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -8308,6 +8523,9 @@ type CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTriggerInput st
 	ProjectID string `path:"projectId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Branch *string `json:"branch,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	RequireSchema *bool `json:"requireSchema,omitempty"`
 	models.RequestScope
 }
 
@@ -8334,8 +8552,14 @@ func (c *Client) CreateContextRepositoriesRepositoryIdProjectsProjectIdSchemaTri
 
 	bodyBytes, err := json.Marshal(struct {
 		Branch *string `json:"branch,omitempty"`
+		Force *bool `json:"force,omitempty"`
+		Reason *string `json:"reason,omitempty"`
+		RequireSchema *bool `json:"requireSchema,omitempty"`
 	}{
 		Branch: in.Branch,
+		Force: in.Force,
+		Reason: in.Reason,
+		RequireSchema: in.RequireSchema,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal body: %w", err)
@@ -8510,7 +8734,7 @@ func (c *Client) DeleteContextSboms(ctx context.Context, in DeleteContextSbomsIn
 	return &out, nil
 }
 
-// CreateContextSbomsGenerateInput is the input for CreateContextSbomsGenerate — Generate SBOM.
+// CreateContextSbomsGenerateInput is the input for CreateContextSbomsGenerate — Run Commit Pipelines.
 type CreateContextSbomsGenerateInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	CloneURL *string `json:"cloneUrl,omitempty"`
@@ -8520,7 +8744,7 @@ type CreateContextSbomsGenerateInput struct {
 	models.RequestScope
 }
 
-// CreateContextSbomsGenerate - Generate SBOM
+// CreateContextSbomsGenerate - Run Commit Pipelines
 // POST /context/sboms/generate
 func (c *Client) CreateContextSbomsGenerate(ctx context.Context, in CreateContextSbomsGenerateInput) (*models.EndpointsPostSBOMGenerateOutput, error) {
 	path := "/context/sboms/generate"
@@ -8611,6 +8835,7 @@ type GetContextSbomsRepositoryRepositoryIdProjectProjectIdInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
+	PreferURL *bool `url:"preferUrl,omitempty" json:"-"`
 	UntilCommit *string `url:"untilCommit,omitempty" json:"-"`
 	UntilTime *string `url:"untilTime,omitempty" json:"-"`
 	models.RequestScope
@@ -8644,6 +8869,9 @@ func (c *Client) GetContextSbomsRepositoryRepositoryIdProjectProjectId(ctx conte
 	}
 	if in.UntilTime != nil {
 		query.Set("untilTime", string(*in.UntilTime))
+	}
+	if in.PreferURL != nil {
+		query.Set("preferUrl", strconv.FormatBool(*in.PreferURL))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -9239,6 +9467,44 @@ func (c *Client) CreateContextSetupRecommendationsPentestTargetsRecommendationId
 		return nil, err
 	}
 	var out models.EndpointsDecideSetupPentestTargetRecommendationOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// GetContextSpecArtifactsArtifactIdInput is the input for GetContextSpecArtifactsArtifactId — Get Spec Artifact.
+type GetContextSpecArtifactsArtifactIdInput struct {
+	ArtifactID string `path:"artifactId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// GetContextSpecArtifactsArtifactId - Get Spec Artifact
+// GET /context/spec-artifacts/{artifactId}
+func (c *Client) GetContextSpecArtifactsArtifactId(ctx context.Context, in GetContextSpecArtifactsArtifactIdInput) (*models.EndpointsGetSpecArtifactOutput, error) {
+	path := "/context/spec-artifacts/{artifactId}"
+	path = strings.Replace(path, "{artifactId}", url.PathEscape(in.ArtifactID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetSpecArtifactOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -9874,56 +10140,6 @@ func (c *Client) ListContextWafAllowlistPrRunsRunIdProposal(ctx context.Context,
 	return &out, nil
 }
 
-// CreateContextWafAllowlistPrRunsRunIdRecoverInput is the input for CreateContextWafAllowlistPrRunsRunIdRecover — Recover unresolved WAF allowlist publication.
-type CreateContextWafAllowlistPrRunsRunIdRecoverInput struct {
-	RunID string `path:"runId" json:"-"`
-	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
-	Digest string `json:"digest"`
-	models.RequestScope
-}
-
-// CreateContextWafAllowlistPrRunsRunIdRecover - Recover unresolved WAF allowlist publication
-// POST /context/waf-allowlist-pr/runs/{runId}/recover
-func (c *Client) CreateContextWafAllowlistPrRunsRunIdRecover(ctx context.Context, in CreateContextWafAllowlistPrRunsRunIdRecoverInput) (*models.EndpointsContextRecoverCloudConnectorProposalOutput, error) {
-	path := "/context/waf-allowlist-pr/runs/{runId}/recover"
-	path = strings.Replace(path, "{runId}", url.PathEscape(in.RunID), 1)
-
-	query := url.Values{}
-	for k, v := range c.DefaultParams {
-		query.Set(k, v)
-	}
-	if in.GithubInstallationID != nil {
-		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
-	}
-	in.RequestScope.AddTo(query)
-
-	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
-	if len(query) > 0 {
-		fullURL += "?" + query.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(struct {
-		ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
-		Digest string `json:"digest"`
-	}{
-		ConfirmNoPullRequest: in.ConfirmNoPullRequest,
-		Digest: in.Digest,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("marshal body: %w", err)
-	}
-	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	var out models.EndpointsContextRecoverCloudConnectorProposalOutput
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
-	}
-	return &out, nil
-}
-
 // ListContextWafAllowlistPrStatusInput is the input for ListContextWafAllowlistPrStatus — Get WAF Allowlist PR Status.
 type ListContextWafAllowlistPrStatusInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -9954,6 +10170,103 @@ func (c *Client) ListContextWafAllowlistPrStatus(ctx context.Context, in ListCon
 		return nil, err
 	}
 	var out models.EndpointsContextGetCloudConnectorPRStatusOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListContextWebServicesWebServiceIdSchemaInput is the input for ListContextWebServicesWebServiceIdSchema — Get Web Service Schema.
+type ListContextWebServicesWebServiceIdSchemaInput struct {
+	WebServiceID string `path:"webServiceId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListContextWebServicesWebServiceIdSchema - Get Web Service Schema
+// GET /context/web-services/{webServiceId}/schema
+func (c *Client) ListContextWebServicesWebServiceIdSchema(ctx context.Context, in ListContextWebServicesWebServiceIdSchemaInput) (*models.EndpointsGetProjectSchemaOutput, error) {
+	path := "/context/web-services/{webServiceId}/schema"
+	path = strings.Replace(path, "{webServiceId}", url.PathEscape(in.WebServiceID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetProjectSchemaOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateContextWebServicesWebServiceIdSchemaInput is the input for CreateContextWebServicesWebServiceIdSchema — Upload Web Service Schema.
+type CreateContextWebServicesWebServiceIdSchemaInput struct {
+	WebServiceID string `path:"webServiceId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Basis *string `json:"basis,omitempty"`
+	Content string `json:"content"`
+	Format models.ModelsSchemaFormat `json:"format"`
+	RepairDefects *bool `json:"repairDefects,omitempty"`
+	Type models.ModelsSchemaType `json:"type"`
+	models.RequestScope
+}
+
+// CreateContextWebServicesWebServiceIdSchema - Upload Web Service Schema
+// POST /context/web-services/{webServiceId}/schema
+func (c *Client) CreateContextWebServicesWebServiceIdSchema(ctx context.Context, in CreateContextWebServicesWebServiceIdSchemaInput) (*models.EndpointsPostWebServiceSchemaOutput, error) {
+	path := "/context/web-services/{webServiceId}/schema"
+	path = strings.Replace(path, "{webServiceId}", url.PathEscape(in.WebServiceID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Basis *string `json:"basis,omitempty"`
+		Content string `json:"content"`
+		Format models.ModelsSchemaFormat `json:"format"`
+		RepairDefects *bool `json:"repairDefects,omitempty"`
+		Type models.ModelsSchemaType `json:"type"`
+	}{
+		Basis: in.Basis,
+		Content: in.Content,
+		Format: in.Format,
+		RepairDefects: in.RepairDefects,
+		Type: in.Type,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostWebServiceSchemaOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}

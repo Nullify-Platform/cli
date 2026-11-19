@@ -51,12 +51,12 @@ func TestFindingTools(t *testing.T) {
 			requests: []capturedReq{{"POST", "/cspm/findings/f1/unallowlist", []byte(`{"unallowlistReason":"reopen"}`)}},
 		},
 		{
-			name: "allowlist bughunt keeps the PATCH body", tool: "nullify_allowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "allowlist_type": "UserOther", "reason": "r"},
-			requests: []capturedReq{{"PATCH", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allow":true,"reason":"r"}`)}},
+			name: "allowlist bughunt sends the type", tool: "nullify_allowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "allowlist_type": "UserOther", "reason": "r"},
+			requests: []capturedReq{{"POST", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allowlistReason":"r","allowlistType":"UserOther"}`)}},
 		},
 		{
 			name: "unallowlist bughunt", tool: "nullify_unallowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "reason": "r"},
-			requests: []capturedReq{{"PATCH", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allow":false,"reason":"r"}`)}},
+			requests: []capturedReq{{"POST", "/dast/bughunt/findings/f1/unallowlist", []byte(`{"unallowlistReason":"r"}`)}},
 		},
 		{
 			name: "archive cspm", tool: "nullify_archive_finding", args: map[string]any{"type": "cspm", "id": "f1"},
@@ -90,7 +90,7 @@ func TestFindingTools(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ft := &fakeTransport{}
 			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
-			registerUnifiedTools(s, testClient(ft))
+			registerUnifiedTools(s, testClient(ft), Defaults{})
 			registerOptInFindingTools(s, testClient(ft))
 
 			result := callFindingTool(t, s, tt.tool, tt.args)
@@ -128,7 +128,7 @@ func TestSearchToolReportsCompleteness(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ft := &fakeTransport{respond: func(capturedReq) (int, string) { return 200, tt.body }}
 			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
-			registerUnifiedTools(s, testClient(ft))
+			registerUnifiedTools(s, testClient(ft), Defaults{})
 
 			result := callFindingTool(t, s, "nullify_search_findings", tt.args)
 
@@ -156,7 +156,7 @@ func TestFixToolStartsTheRunAndReturns(t *testing.T) {
 		return 200, `{"autoFixState":"in_progress_requested","runId":"r1"}`
 	}}
 	s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
-	registerUnifiedTools(s, testClient(ft))
+	registerUnifiedTools(s, testClient(ft), Defaults{})
 
 	result := callFindingTool(t, s, "nullify_fix_finding", map[string]any{"type": "sast", "id": "f1"})
 
@@ -181,7 +181,7 @@ func TestFindingsForRepo(t *testing.T) {
 				return 200, `{"findings":[{}],"total":9,"hasMoreData":true}`
 			}}
 			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
-			registerCompositeTools(s, testClient(ft))
+			registerCompositeTools(s, testClient(ft), Defaults{})
 
 			result := callFindingTool(t, s, "get_findings_for_repo", map[string]any{"repository": "acme/app", "limit": 1})
 

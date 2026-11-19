@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -26,12 +27,29 @@ func configPath() (string, error) {
 	return filepath.Join(dir, "config.json"), nil
 }
 
+// ensureConfigDir creates ~/.nullify with mode 0700, and tightens an
+// existing one to 0700: it holds tokens, and MkdirAll leaves the mode of a
+// directory that already exists alone. A symlink to a directory, as dotfile
+// managers make, is followed and its target tightened.
 func ensureConfigDir() error {
 	dir, err := configDir()
 	if err != nil {
 		return err
 	}
-	return os.MkdirAll(dir, 0700)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return err
+	}
+	info, err := os.Stat(dir)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("%s must be a directory - move the file away and try again", dir)
+	}
+	if info.Mode().Perm()&0077 != 0 {
+		return os.Chmod(dir, 0700)
+	}
+	return nil
 }
 
 func LoadConfig() (*Config, error) {

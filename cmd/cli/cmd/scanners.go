@@ -1,22 +1,40 @@
 package cmd
 
+// scannerEndpoint describes one per-scanner finding list route and the
+// filters it supports.
 type scannerEndpoint struct {
 	name               string
 	path               string
 	supportsSeverity   bool
 	supportsIsResolved bool
 	supportsOpenStatus bool
+	// severityFields are the finding fields that hold its severity, in the
+	// order they are read. The first non-empty one wins, so an override is
+	// listed before the value it overrides. A scanner whose findings carry
+	// no severity has none, and its findings count at every threshold.
+	severityFields []string
+	// filtersOpenOnClient marks a list route with no lifecycle filter. It
+	// returns allowlisted, archived, false-positive and fixed findings
+	// too, so the CLI drops them itself.
+	filtersOpenOnClient bool
+	// hasRepository marks a scanner whose findings belong to a repository,
+	// so the gate and the report scope them to one. Pentest, bughunt and
+	// CSPM findings belong to applications, hosts and cloud accounts.
+	hasRepository bool
+	// supportsRepositoryIDs marks a list route that also narrows by the
+	// provider-neutral repositoryIds parameter.
+	supportsRepositoryIDs bool
 }
 
 func allScannerEndpoints() []scannerEndpoint {
 	return []scannerEndpoint{
-		{name: "sast", path: "/sast/findings", supportsSeverity: true, supportsIsResolved: true},
-		{name: "sca_dependencies", path: "/sca/dependencies/findings", supportsIsResolved: true},
-		{name: "sca_containers", path: "/sca/containers/findings", supportsIsResolved: true},
-		{name: "secrets", path: "/secrets/findings", supportsIsResolved: true},
-		{name: "pentest", path: "/dast/pentest/findings", supportsIsResolved: true},
-		{name: "bughunt", path: "/dast/bughunt/findings"},
-		{name: "cspm", path: "/cspm/findings", supportsSeverity: true, supportsOpenStatus: true},
+		{name: "sast", path: "/sast/findings", supportsSeverity: true, supportsIsResolved: true, hasRepository: true, supportsRepositoryIDs: true, severityFields: []string{"severity"}},
+		{name: "sca_dependencies", path: "/sca/dependencies/findings", supportsIsResolved: true, hasRepository: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
+		{name: "sca_containers", path: "/sca/containers/findings", supportsIsResolved: true, hasRepository: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
+		{name: "secrets", path: "/secrets/findings", supportsIsResolved: true, hasRepository: true},
+		{name: "pentest", path: "/dast/pentest/findings", supportsIsResolved: true, severityFields: []string{"effectiveSeverity", "severity"}},
+		{name: "bughunt", path: "/dast/bughunt/findings", filtersOpenOnClient: true, severityFields: []string{"severityOverride", "severity"}},
+		{name: "cspm", path: "/cspm/findings", supportsSeverity: true, supportsOpenStatus: true, severityFields: []string{"severity"}},
 	}
 }
 

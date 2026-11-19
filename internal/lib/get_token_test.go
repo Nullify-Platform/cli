@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -129,8 +128,22 @@ func TestGitHubTokenExchangeDoesNotFollowRedirects(t *testing.T) {
 	t.Setenv("GITHUB_ACTIONS", "true")
 	t.Setenv("GITHUB_REPOSITORY", "acme/repo")
 
-	_, err := GetNullifyToken(context.Background(), strings.TrimPrefix(srv.URL, "https://"), "", "gh-token")
+	oldURL := githubTokenURL
+	githubTokenURL = func(string) string { return srv.URL + "/auth/github_token" }
+	t.Cleanup(func() { githubTokenURL = oldURL })
+
+	_, err := GetNullifyToken(context.Background(), "acme.nullify.ai", "", "gh-token")
 	require.Error(t, err)
 	require.True(t, exchanged.Load(), "the exchange never reached the server")
 	require.False(t, followed.Load(), "the exchange followed a redirect")
+}
+
+// The bare instance name resolves to the marketing site, not the API, so the
+// exchange must go to the api. host whichever form the host was given in.
+func TestGitHubTokenExchangeTargetsTheAPIHost(t *testing.T) {
+	for _, host := range []string{"acme.nullify.ai", "api.acme.nullify.ai"} {
+		t.Run(host, func(t *testing.T) {
+			require.Equal(t, "https://api.acme.nullify.ai/auth/github_token", githubTokenURL(host))
+		})
+	}
 }

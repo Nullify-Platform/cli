@@ -120,12 +120,28 @@ func TestVerbRun(t *testing.T) {
 			requests: []request{{"POST", "/sast/findings/f1/allowlist", `{"allowlistReason":"public by design","allowlistType":"UserFalsePositive"}`}},
 		},
 		{
-			name: "bughunt allowlist keeps the PATCH body", verb: "allowlist", findType: "bughunt", id: "f1", params: falsePositive,
-			requests: []request{{"PATCH", "/dast/bughunt/findings/f1/allowlist", `{"allow":true,"reason":"public by design"}`}},
+			name: "bughunt allowlist sends the type", verb: "allowlist", findType: "bughunt", id: "f1", params: falsePositive,
+			requests: []request{{"POST", "/dast/bughunt/findings/f1/allowlist", `{"allowlistReason":"public by design","allowlistType":"UserFalsePositive"}`}},
 		},
 		{
-			name: "bughunt unallowlist sends allow false", verb: "unallowlist", findType: "bughunt", id: "f1", params: Params{Reason: "reopen"},
-			requests: []request{{"PATCH", "/dast/bughunt/findings/f1/allowlist", `{"allow":false,"reason":"reopen"}`}},
+			name: "bughunt unallowlist sends the reason", verb: "unallowlist", findType: "bughunt", id: "f1", params: Params{Reason: "reopen"},
+			requests: []request{{"POST", "/dast/bughunt/findings/f1/unallowlist", `{"unallowlistReason":"reopen"}`}},
+		},
+		{
+			name: "secrets allowlist uses the credential route", verb: "allowlist", findType: "secrets", id: "f1", params: falsePositive,
+			requests: []request{{"POST", "/secrets/credentials/findings/f1/allowlist", `{"allowlistReason":"public by design","allowlistType":"UserFalsePositive"}`}},
+		},
+		{
+			name: "secrets triage uses the credential route", verb: "triage", findType: "secrets", id: "f1",
+			requests: []request{{"GET", "/secrets/credentials/findings/f1/triage", ""}},
+		},
+		{
+			name: "secrets create ticket uses the credential route", verb: "create-ticket", findType: "secrets", id: "f1",
+			requests: []request{{"POST", "/secrets/credentials/findings/f1/ticket", `{}`}},
+		},
+		{
+			name: "secrets delete ticket uses the credential route", verb: "delete-ticket", findType: "secrets", id: "f1",
+			requests: []request{{"DELETE", "/secrets/credentials/findings/f1/ticket", ""}},
 		},
 		{
 			name: "alias reaches the same type", verb: "get", findType: "sca", id: "f1",
@@ -1058,12 +1074,12 @@ func TestSensitiveDataVerbsUseTheirRoutes(t *testing.T) {
 		{name: "triage", verb: "triage", findType: "secrets_sensitive_data", request: request{"GET", base + "/triage", ""}},
 		{name: "allowlist", verb: "allowlist", findType: "secrets_sensitive_data", params: falsePositive, request: request{"POST", base + "/allowlist", `{"allowlistReason":"test data","allowlistType":"UserFalsePositive"}`}},
 		{name: "unallowlist", verb: "unallowlist", findType: "secrets_sensitive_data", params: Params{Reason: "real"}, request: request{"POST", base + "/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
-		{name: "credential unallowlist names a type", verb: "unallowlist", findType: "secrets", params: Params{Reason: "real"}, request: request{"POST", "/secrets/findings/f1/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
+		{name: "credential unallowlist names a type", verb: "unallowlist", findType: "secrets", params: Params{Reason: "real"}, request: request{"POST", "/secrets/credentials/findings/f1/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
 		{name: "create ticket", verb: "create-ticket", findType: "secrets_sensitive_data", request: request{"POST", base + "/ticket", `{}`}},
 		{name: "delete ticket", verb: "delete-ticket", findType: "secrets_sensitive_data", request: request{"DELETE", base + "/ticket", ""}},
 		{name: "row type of a sensitive-data finding", verb: "get", findType: "SecretsSensitiveData", request: request{"GET", base, ""}},
-		{name: "row type of a credential", verb: "get", findType: "SecretsCredentials", request: request{"GET", "/secrets/findings/f1", ""}},
-		{name: "secrets keeps the credential routes", verb: "get", findType: "secrets", request: request{"GET", "/secrets/findings/f1", ""}},
+		{name: "row type of a credential", verb: "get", findType: "SecretsCredentials", request: request{"GET", "/secrets/credentials/findings/f1", ""}},
+		{name: "secrets uses the canonical credential routes", verb: "get", findType: "secrets", request: request{"GET", "/secrets/credentials/findings/f1", ""}},
 		{name: "row type of a cloud finding", verb: "get", findType: "Cloud", request: request{"GET", "/cspm/findings/f1", ""}},
 	}
 	for _, tt := range tests {
@@ -1078,7 +1094,9 @@ func TestSensitiveDataVerbsUseTheirRoutes(t *testing.T) {
 	}
 }
 
-func TestAllowlistTypeWarning(t *testing.T) {
+// Every type's server now records the allowlist type and the unallowlist
+// reason, so a verb returns the response as the server sent it.
+func TestVerbReturnsTheResponseAsSent(t *testing.T) {
 	falsePositive := Params{Reason: "r", AllowlistType: "UserFalsePositive"}
 
 	tests := []struct {
@@ -1087,18 +1105,13 @@ func TestAllowlistTypeWarning(t *testing.T) {
 		findType string
 		params   Params
 		response string
-		want     string
 	}{
-		{name: "bughunt warns", verb: "allowlist", findType: "bughunt", params: falsePositive, response: `{"success":true}`, want: `{"success":true,"warning":"` + AllowlistTypeWarning + `"}`},
-		{name: "sca dependencies warns and keeps the response", verb: "allowlist", findType: "sca_dependencies", params: falsePositive, response: `{"a":1}`, want: `{"a":1,"warning":"` + AllowlistTypeWarning + `"}`},
-		{name: "sensitive data warns", verb: "allowlist", findType: "secrets_sensitive_data", params: falsePositive, response: `{}`, want: `{"warning":"` + AllowlistTypeWarning + `"}`},
-		{name: "cspm unallowlist says the reason is not recorded", verb: "unallowlist", findType: "cspm", params: Params{Reason: "r"}, response: `{}`, want: `{"warning":"` + UnallowlistReasonWarning + `"}`},
-		{name: "pentest unallowlist records the reason", verb: "unallowlist", findType: "pentest", params: Params{Reason: "r"}, response: `{}`, want: `{}`},
-		{name: "sca containers warns", verb: "allowlist", findType: "sca_containers", params: falsePositive, response: `{}`, want: `{"warning":"` + AllowlistTypeWarning + `"}`},
-		{name: "a response that is not an object is kept", verb: "allowlist", findType: "sca", params: falsePositive, response: `done`, want: `{"response":"done","warning":"` + AllowlistTypeWarning + `"}`},
-		{name: "cspm records the type", verb: "allowlist", findType: "cspm", params: falsePositive, response: `{}`, want: `{}`},
-		{name: "secrets records the type", verb: "allowlist", findType: "secrets", params: falsePositive, response: `{}`, want: `{}`},
-		{name: "unallowlist has no type", verb: "unallowlist", findType: "sca", params: Params{Reason: "r"}, response: `{}`, want: `{}`},
+		{name: "bughunt allowlist", verb: "allowlist", findType: "bughunt", params: falsePositive, response: `{"success":true}`},
+		{name: "sca dependencies allowlist", verb: "allowlist", findType: "sca_dependencies", params: falsePositive, response: `{"a":1}`},
+		{name: "sca containers allowlist", verb: "allowlist", findType: "sca_containers", params: falsePositive, response: `{}`},
+		{name: "sensitive data allowlist", verb: "allowlist", findType: "secrets_sensitive_data", params: falsePositive, response: `{}`},
+		{name: "cspm unallowlist", verb: "unallowlist", findType: "cspm", params: Params{Reason: "r"}, response: `{}`},
+		{name: "an empty response is an empty object", verb: "allowlist", findType: "sca", params: falsePositive, response: ``},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1107,7 +1120,12 @@ func TestAllowlistTypeWarning(t *testing.T) {
 			got, err := verbNamed(t, tt.verb).Run(context.Background(), clientFor(ft), tt.findType, "f1", tt.params)
 
 			require.ErrorIs(t, err, nil)
-			require.JSONEq(t, tt.want, string(got))
+			want := tt.response
+			if want == "" {
+				want = `{}`
+			}
+			require.JSONEq(t, want, string(got))
+			require.NotContains(t, string(got), "warning")
 		})
 	}
 }

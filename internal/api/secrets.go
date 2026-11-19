@@ -97,6 +97,57 @@ func (c *Client) ListSecretsCredentialsFindings(ctx context.Context, in ListSecr
 	return &out, nil
 }
 
+// CreateSecretsCredentialsFindingsAllowlistInput is the input for CreateSecretsCredentialsFindingsAllowlist — Allowlist Credential Findings.
+type CreateSecretsCredentialsFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateSecretsCredentialsFindingsAllowlist - Allowlist Credential Findings
+// POST /secrets/credentials/findings/allowlist
+func (c *Client) CreateSecretsCredentialsFindingsAllowlist(ctx context.Context, in CreateSecretsCredentialsFindingsAllowlistInput) (*models.EndpointsPostAllowListSecretsCredentialFindingsOutput, error) {
+	path := "/secrets/credentials/findings/allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType string `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowListSecretsCredentialFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateSecretsCredentialsFindingsAllowlistBatchInput is the input for CreateSecretsCredentialsFindingsAllowlistBatch — Allowlist Batch of Credential Findings.
 type CreateSecretsCredentialsFindingsAllowlistBatchInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -219,6 +270,54 @@ func (c *Client) ListSecretsCredentialsFindingsDetailed(ctx context.Context, in 
 		return nil, err
 	}
 	var out models.EndpointsGetSecretsFindingsDetailedOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateSecretsCredentialsFindingsUnallowlistInput is the input for CreateSecretsCredentialsFindingsUnallowlist — Unallowlist Credential Findings.
+type CreateSecretsCredentialsFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateSecretsCredentialsFindingsUnallowlist - Unallowlist Credential Findings
+// POST /secrets/credentials/findings/unallowlist
+func (c *Client) CreateSecretsCredentialsFindingsUnallowlist(ctx context.Context, in CreateSecretsCredentialsFindingsUnallowlistInput) (*models.EndpointsPostUnallowListSecretsCredentialFindingBatchOutput, error) {
+	path := "/secrets/credentials/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListSecretsCredentialFindingBatchOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -561,8 +660,8 @@ func (c *Client) ListSecretsCredentialsFindingsFindingIdTriage(ctx context.Conte
 type CreateSecretsCredentialsFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
-	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	UnallowlistType *models.ModelsAllowlistType `json:"unallowlistType,omitempty"`
 	models.RequestScope
 }
 
@@ -590,8 +689,8 @@ func (c *Client) CreateSecretsCredentialsFindingsFindingIdUnallowlist(ctx contex
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
-		UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+		UnallowlistType *models.ModelsAllowlistType `json:"unallowlistType,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 		UnallowlistType: in.UnallowlistType,
@@ -1332,8 +1431,8 @@ func (c *Client) ListSecretsFindingsFindingIdTriage(ctx context.Context, in List
 type CreateSecretsFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
-	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	UnallowlistType *models.ModelsAllowlistType `json:"unallowlistType,omitempty"`
 	models.RequestScope
 }
 
@@ -1361,8 +1460,8 @@ func (c *Client) CreateSecretsFindingsFindingIdUnallowlist(ctx context.Context, 
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
-		UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+		UnallowlistType *models.ModelsAllowlistType `json:"unallowlistType,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 		UnallowlistType: in.UnallowlistType,
@@ -1551,6 +1650,57 @@ func (c *Client) ListSecretsSensitivedataFindings(ctx context.Context, in ListSe
 	return &out, nil
 }
 
+// CreateSecretsSensitivedataFindingsAllowlistInput is the input for CreateSecretsSensitivedataFindingsAllowlist — Allowlist Sensitive Data Findings.
+type CreateSecretsSensitivedataFindingsAllowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	models.RequestScope
+}
+
+// CreateSecretsSensitivedataFindingsAllowlist - Allowlist Sensitive Data Findings
+// POST /secrets/sensitivedata/findings/allowlist
+func (c *Client) CreateSecretsSensitivedataFindingsAllowlist(ctx context.Context, in CreateSecretsSensitivedataFindingsAllowlistInput) (*models.EndpointsPostAllowListSecretsSensitiveDataFindingsOutput, error) {
+	path := "/secrets/sensitivedata/findings/allowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AllowlistReason string `json:"allowlistReason"`
+		AllowlistType string `json:"allowlistType"`
+		FindingIds []string `json:"findingIds,omitempty"`
+	}{
+		AllowlistReason: in.AllowlistReason,
+		AllowlistType: in.AllowlistType,
+		FindingIds: in.FindingIds,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostAllowListSecretsSensitiveDataFindingsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateSecretsSensitivedataFindingsAllowlistBatchInput is the input for CreateSecretsSensitivedataFindingsAllowlistBatch — Allowlist Batch of Sensitive Data Findings.
 type CreateSecretsSensitivedataFindingsAllowlistBatchInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
@@ -1593,6 +1743,54 @@ func (c *Client) CreateSecretsSensitivedataFindingsAllowlistBatch(ctx context.Co
 	}
 	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
 	return data, err
+}
+
+// CreateSecretsSensitivedataFindingsUnallowlistInput is the input for CreateSecretsSensitivedataFindingsUnallowlist — Unallowlist Sensitive Data Findings.
+type CreateSecretsSensitivedataFindingsUnallowlistInput struct {
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	models.RequestScope
+}
+
+// CreateSecretsSensitivedataFindingsUnallowlist - Unallowlist Sensitive Data Findings
+// POST /secrets/sensitivedata/findings/unallowlist
+func (c *Client) CreateSecretsSensitivedataFindingsUnallowlist(ctx context.Context, in CreateSecretsSensitivedataFindingsUnallowlistInput) (*models.EndpointsPostUnallowListSecretsSensitiveDataFindingBatchOutput, error) {
+	path := "/secrets/sensitivedata/findings/unallowlist"
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		FindingIds []string `json:"findingIds,omitempty"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	}{
+		FindingIds: in.FindingIds,
+		UnallowlistReason: in.UnallowlistReason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostUnallowListSecretsSensitiveDataFindingBatchOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
 }
 
 // GetSecretsSensitivedataFindingsFindingIdInput is the input for GetSecretsSensitivedataFindingsFindingId — Get Sensitive Data Finding.
@@ -1883,8 +2081,8 @@ func (c *Client) ListSecretsSensitivedataFindingsFindingIdTriage(ctx context.Con
 type CreateSecretsSensitivedataFindingsFindingIdUnallowlistInput struct {
 	FindingID string `path:"findingId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
-	UnallowlistReason string `json:"unallowlistReason"`
-	UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	UnallowlistType *models.ModelsAllowlistType `json:"unallowlistType,omitempty"`
 	models.RequestScope
 }
 
@@ -1912,8 +2110,8 @@ func (c *Client) CreateSecretsSensitivedataFindingsFindingIdUnallowlist(ctx cont
 	}
 
 	bodyBytes, err := json.Marshal(struct {
-		UnallowlistReason string `json:"unallowlistReason"`
-		UnallowlistType models.ModelsAllowlistType `json:"unallowlistType"`
+		UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+		UnallowlistType *models.ModelsAllowlistType `json:"unallowlistType,omitempty"`
 	}{
 		UnallowlistReason: in.UnallowlistReason,
 		UnallowlistType: in.UnallowlistType,

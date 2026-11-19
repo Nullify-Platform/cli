@@ -106,10 +106,32 @@ type EndpointsPostAllowListSecretsCredentialFindingInput struct {
 	AllowlistType ModelsAllowlistType `json:"allowlistType"`
 }
 
+type EndpointsPostAllowListSecretsCredentialFindingsInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListSecretsCredentialFindingsOutput struct {
+	Allowlisted []string `json:"allowlisted,omitempty"`
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+}
+
 type EndpointsPostAllowListSecretsFindingBatchInput struct {
 	AllowlistReason string `json:"allowlistReason"`
 	AllowlistType ModelsAllowlistType `json:"allowlistType"`
 	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListSecretsSensitiveDataFindingsInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListSecretsSensitiveDataFindingsOutput struct {
+	Allowlisted []string `json:"allowlisted,omitempty"`
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
 }
 
 type EndpointsPostAllowlistSecretsSensitiveDataFindingBatchInput struct {
@@ -149,18 +171,37 @@ type EndpointsPostCreateTicketSecretsSensitiveDataFindingOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostUnallowListSecretsCredentialFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListSecretsCredentialFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
 type EndpointsPostUnallowListSecretsFindingInput struct {
-	UnallowlistReason string `json:"unallowlistReason"`
-	UnallowlistType ModelsAllowlistType `json:"unallowlistType"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	UnallowlistType *ModelsAllowlistType `json:"unallowlistType,omitempty"`
+}
+
+type EndpointsPostUnallowListSecretsSensitiveDataFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListSecretsSensitiveDataFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
 }
 
 type EndpointsPostUnallowlistSecretsSensitiveDataFindingInput struct {
-	UnallowlistReason string `json:"unallowlistReason"`
-	UnallowlistType ModelsAllowlistType `json:"unallowlistType"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+	UnallowlistType *ModelsAllowlistType `json:"unallowlistType,omitempty"`
 }
 
 type ModelsSecretsCredentialsFinding struct {
-	AiDevTitle *string `json:"aiDevTitle,omitempty"`
 	AiTitle *string `json:"aiTitle,omitempty"`
 	AllowlistReason *string `json:"allowlistReason,omitempty"`
 	AllowlistType *ModelsAllowlistType `json:"allowlistType,omitempty"`
@@ -168,6 +209,7 @@ type ModelsSecretsCredentialsFinding struct {
 	ArchivedTraceID *string `json:"archivedTraceId,omitempty"`
 	Author string `json:"author"`
 	Branch string `json:"branch"`
+	BudgetExhausted *bool `json:"budgetExhausted,omitempty"`
 	Commit string `json:"commit"`
 	CreatedAt string `json:"createdAt"`
 	DeletedAt *string `json:"deletedAt,omitempty"`
@@ -243,7 +285,6 @@ type ModelsSecretsCredentialsFinding struct {
 }
 
 type ModelsSecretsCredentialsFindingPreview struct {
-	AiDevTitle string `json:"aiDevTitle"`
 	AiTitle string `json:"aiTitle"`
 	AllowlistReason *string `json:"allowlistReason,omitempty"`
 	AllowlistType *ModelsAllowlistType `json:"allowlistType,omitempty"`
@@ -385,6 +426,8 @@ type ModelsSecretsSensitiveDataFinding struct {
 	ResolvedAt *string `json:"resolvedAt,omitempty"`
 	ScannedCommitSha *string `json:"scannedCommitSha,omitempty"`
 	SecretValue *string `json:"secretValue,omitempty"`
+	SourceBlobSha *string `json:"sourceBlobSha,omitempty"`
+	SourceComparisonPending *bool `json:"sourceComparisonPending,omitempty"`
 	TenantID string `json:"tenantId"`
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	TimestampUnix int64 `json:"timestampUnix"`

@@ -1,0 +1,133 @@
+package cmd
+
+import (
+	"encoding/json"
+	"net/http"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestCIReportReadsEveryPageAtThePageCap(t *testing.T) {
+	useCIEnv(t)
+	api := serveScannerAPI(t, func(r *http.Request) (int, string) {
+		if r.URL.Path != "/sast/findings" {
+			return emptyFindings(r)
+		}
+		switch r.URL.Query().Get("nextToken") {
+		case "":
+			return http.StatusOK, `{"findings":[{"id":"f1","severity":"CRITICAL"},{"id":"f2","severity":"CRITICAL"}],"numItems":2,"nextToken":"p2"}`
+		case "p2":
+			return http.StatusOK, `{"findings":[{"id":"f3","severity":"CRITICAL"}],"numItems":1,"nextToken":""}`
+		default:
+			return http.StatusNotFound, `{"error":"no such page"}`
+		}
+	})
+
+	out, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
+
+	require.NoError(t, err)
+	require.Contains(t, out, "| sast | critical | 3 |")
+	requests := api.requests()
+	require.Contains(t, requests, "/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&nextToken=p2&repositoryIds=42")
+	for _, request := range requests {
+		require.Contains(t, request, "limit=100", "every request asks for the server's page cap")
+	}
+}
+
+func TestCIReportCountsEachFindingOnceUnderItsOwnSeverity(t *testing.T) {
+	useCIEnv(t)
+	api := serveScannerAPI(t, func(r *http.Request) (int, string) {
+		switch r.URL.Path {
+		case "/sca/dependencies/findings":
+			return http.StatusOK, `{"findings":[
+				{"id":"d1","aiTitle":"Critical dependency","vulnerabilitiesMaxSeverity":"CRITICAL"},
+				{"id":"d2","aiTitle":"Low dependency","vulnerabilitiesMaxSeverity":"LOW"},
+				{"id":"d3","aiTitle":"Another low dependency","vulnerabilitiesMaxSeverity":"LOW"}
+			],"numItems":3}`
+		case "/secrets/findings":
+			return http.StatusOK, `{"findings":[{"id":"s1","aiTitle":"Leaked key"}],"numItems":1}`
+		default:
+			return emptyFindings(r)
+		}
+	})
+
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
+	require.NoError(t, err)
+	require.Contains(t, markdown, "| sca_dependencies | critical | 1 |")
+	require.Contains(t, markdown, "| sca_dependencies | low | 2 |")
+	require.Contains(t, markdown, "| secrets | unknown | 1 |")
+	require.NotContains(t, markdown, "| sca_dependencies | high |")
+	require.Len(t, api.requests(), len(allScannerEndpoints()), "one request per scanner")
+
+	sarif, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42", "format": "sarif"})
+	require.NoError(t, err)
+	var document struct {
+		Runs []struct {
+			Results []json.RawMessage `json:"results"`
+		} `json:"runs"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(sarif), &document))
+	require.Len(t, document.Runs, 1)
+	require.Len(t, document.Runs[0].Results, 4, "each finding appears once")
+}
+
+func TestCIReportCountsOnlyOpenBughuntFindings(t *testing.T) {
+	useCIEnv(t)
+	serveScannerAPI(t, func(r *http.Request) (int, string) {
+		if r.URL.Path != "/dast/bughunt/findings" {
+			return emptyFindings(r)
+		}
+		return http.StatusOK, `{"findings":[
+			{"id":"b1","title":"Open","severity":"HIGH","isLatest":true},
+			{"id":"b2","title":"Allowlisted","severity":"HIGH","isAllowlisted":true},
+			{"id":"b3","title":"Fixed","severity":"HIGH","isFixed":true}
+		]}`
+	})
+
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
+	require.NoError(t, err)
+	require.Contains(t, markdown, "| bughunt | high | 1 |")
+
+	sarif, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42", "format": "sarif"})
+	require.NoError(t, err)
+	require.Contains(t, sarif, "Open")
+	require.NotContains(t, sarif, "Allowlisted")
+	require.NotContains(t, sarif, "Fixed")
+}
+
+func TestCIReportCountsOnlyTheScopedRepository(t *testing.T) {
+	useCIEnv(t)
+	serveScannerAPI(t, func(r *http.Request) (int, string) {
+		if r.URL.Path != "/secrets/findings" {
+			return emptyFindings(r)
+		}
+		return http.StatusOK, `{"findings":[
+			{"id":"s1","repositoryId":"42"},
+			{"id":"s2","repositoryId":"99"}
+		]}`
+	})
+
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
+	require.NoError(t, err)
+	require.Contains(t, markdown, "| secrets | unknown | 1 |")
+
+	_, err = runCI(t, ciReportCmd, map[string]string{})
+	require.Equal(t, ExitUsageError, ExitCodeForError(err))
+}
+
+func TestCIReportOmitsScannerWithUnreadableSecondPage(t *testing.T) {
+	useCIEnv(t)
+	serveScannerAPI(t, func(r *http.Request) (int, string) {
+		if r.URL.Path != "/sast/findings" {
+			return emptyFindings(r)
+		}
+		if r.URL.Query().Get("nextToken") == "" {
+			return http.StatusOK, `{"findings":[{"severity":"HIGH"}],"nextToken":"p2"}`
+		}
+		return http.StatusOK, `{}`
+	})
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42"})
+	require.NoError(t, err)
+	require.NotContains(t, markdown, "| sast |")
+}

@@ -7,7 +7,8 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Version is set at build time via ldflags.
+// Version is set at build time via ldflags. When it is not, version.go fills
+// it in from the build info, so it is never empty.
 var Version string
 
 // Field is a type alias for zap.Field so callers use logger.Field transparently.

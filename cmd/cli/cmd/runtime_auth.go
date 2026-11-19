@@ -93,6 +93,11 @@ func resolveCommandToken(ctx context.Context) (*commandAuthContext, error) {
 // resolveCommandHosts sets the auth and data hosts for the command host.
 func resolveCommandHosts(ctx context.Context) (*commandAuthContext, error) {
 	commandHost, err := resolveHostE(ctx)
+	if errors.Is(err, errNoHost) && usesMachineToken() {
+		// An API token never signs in, so 'nullify auth login' is the wrong
+		// advice: the token needs the instance it belongs to.
+		return nil, authError("%w: an API token needs its instance - set --host or NULLIFY_HOST to <instance>.nullify.ai", errNoHost)
+	}
 	if err != nil {
 		return nil, err
 	}

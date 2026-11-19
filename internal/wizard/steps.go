@@ -3,15 +3,12 @@ package wizard
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/terminal"
 )
 
@@ -108,7 +105,8 @@ func RepoStep() Step {
 	}
 }
 
-// MCPConfigStep detects AI tools and generates MCP configuration files.
+// MCPConfigStep detects AI tools and adds the nullify MCP server to the config
+// that each one reads.
 func MCPConfigStep() Step {
 	return Step{
 		Name: "Configure MCP for AI tools",
@@ -116,99 +114,14 @@ func MCPConfigStep() Step {
 			return false // always offer to configure
 		},
 		Execute: func(ctx context.Context) error {
-			configured := false
-
-			projectRoot, err := os.Getwd()
+			env, err := systemMCPEnv()
 			if err != nil {
-				return fmt.Errorf("failed to get working directory: %w", err)
+				return err
 			}
-
-			// Check for Cursor
-			cursorDir := filepath.Join(projectRoot, ".cursor")
-			if _, err := os.Stat(cursorDir); err == nil {
-				cursorConfig := filepath.Join(cursorDir, "mcp.json")
-				if err := writeMCPConfig(cursorConfig); err != nil {
-					logger.L(ctx).Warn("failed to write Cursor MCP config", logger.Err(err))
-				} else {
-					fmt.Printf("  Configured MCP for Cursor (%s)\n", cursorConfig)
-					configured = true
-				}
-			}
-
-			// Check for Claude Code
-			home, _ := os.UserHomeDir()
-			claudeDir := filepath.Join(home, ".claude")
-			if _, err := os.Stat(claudeDir); err == nil {
-				configPath := filepath.Join(claudeDir, "mcp.json")
-				if err := writeMCPConfig(configPath); err != nil {
-					logger.L(ctx).Warn("failed to write Claude MCP config", logger.Err(err))
-				} else {
-					fmt.Printf("  Configured MCP for Claude Code (%s)\n", configPath)
-					configured = true
-				}
-			}
-
-			// Check for VS Code
-			vscodeDir := filepath.Join(projectRoot, ".vscode")
-			if _, err := os.Stat(vscodeDir); err == nil {
-				vscodeConfig := filepath.Join(vscodeDir, "mcp.json")
-				if err := writeMCPConfig(vscodeConfig); err != nil {
-					logger.L(ctx).Warn("failed to write VS Code MCP config", logger.Err(err))
-				} else {
-					fmt.Printf("  Configured MCP for VS Code (%s)\n", vscodeConfig)
-					configured = true
-				}
-			}
-
-			if !configured {
-				fmt.Println("  No AI tools detected. You can manually configure MCP by running 'nullify mcp serve'.")
-			}
-
+			configureMCPClients(ctx, os.Stdout, env)
 			return nil
 		},
 	}
-}
-
-type mcpServerConfig struct {
-	Command string   `json:"command"`
-	Args    []string `json:"args"`
-}
-
-func writeMCPConfig(path string) error {
-	// Read existing config if present
-	existing := map[string]any{}
-	if data, err := os.ReadFile(path); err == nil {
-		_ = json.Unmarshal(data, &existing)
-	}
-
-	mcpServers, ok := existing["mcpServers"].(map[string]any)
-	if !ok || mcpServers == nil {
-		mcpServers = make(map[string]any)
-	}
-
-	// Only add nullify if not already configured
-	if _, ok := mcpServers["nullify"]; ok {
-		return nil
-	}
-
-	mcpServers["nullify"] = mcpServerConfig{
-		Command: "nullify",
-		Args:    []string{"mcp", "serve"},
-	}
-	existing["mcpServers"] = mcpServers
-
-	data, err := json.MarshalIndent(existing, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	// Ensure directory exists
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0700); err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, append(data, '\n'), 0600)
 }
 
 // SummaryStep reads host/token from config at execution time and displays next steps.

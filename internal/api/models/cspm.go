@@ -18,6 +18,13 @@ type EndpointsAutofixActivityLogEntry struct {
 	Metadata *string `json:"metadata,omitempty"`
 }
 
+type EndpointsAutofixBlockReason string
+
+const (
+	// (skipped value "" — no representable Go identifier)
+	EndpointsAutofixBlockReasonNotPushWorkflow EndpointsAutofixBlockReason = "not_push_workflow"
+)
+
 type EndpointsAutofixCoordination struct {
 	Entries []EndpointsAutofixPRCoordination `json:"entries,omitempty"`
 	Unavailable bool `json:"unavailable"`
@@ -42,6 +49,24 @@ type EndpointsAutofixPRCoordination struct {
 	RetryAllowed bool `json:"retryAllowed"`
 	State string `json:"state"`
 }
+
+type EndpointsAutofixPreview struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	StartedAt string `json:"startedAt"`
+	State EndpointsAutofixPreviewState `json:"state"`
+	VerdictExplanation *string `json:"verdictExplanation,omitempty"`
+	VerdictReason *ModelsAutofixFailureReason `json:"verdictReason,omitempty"`
+}
+
+type EndpointsAutofixPreviewState string
+
+const (
+	EndpointsAutofixPreviewStateRunning EndpointsAutofixPreviewState = "running"
+	EndpointsAutofixPreviewStateAvailable EndpointsAutofixPreviewState = "available"
+	EndpointsAutofixPreviewStateNotFixable EndpointsAutofixPreviewState = "not_fixable"
+	EndpointsAutofixPreviewStateUnavailable EndpointsAutofixPreviewState = "unavailable"
+	EndpointsAutofixPreviewStateFailed EndpointsAutofixPreviewState = "failed"
+)
 
 type EndpointsAvailableAction struct {
 	Body map[string]json.RawMessage `json:"body,omitempty"`
@@ -101,6 +126,7 @@ type EndpointsGetCSPMScanOutput struct {
 type EndpointsGetCSPMScansOutput struct {
 	NextToken *string `json:"nextToken,omitempty"`
 	NumItems int `json:"numItems"`
+	OpenFindings int `json:"openFindings"`
 	Scans []ModelsCSPMScanPreview `json:"scans,omitempty"`
 	TotalCount int `json:"totalCount"`
 	Version string `json:"version"`
@@ -125,6 +151,17 @@ type EndpointsPatchCSPMFindingInput struct {
 
 type EndpointsPatchCSPMFindingOutput struct {
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPostAllowListCSPMFindingBatchInput struct {
+	AllowlistReason string `json:"allowlistReason"`
+	AllowlistType string `json:"allowlistType"`
+	FindingIds []string `json:"findingIds,omitempty"`
+}
+
+type EndpointsPostAllowListCSPMFindingBatchOutput struct {
+	Allowlisted []string `json:"allowlisted,omitempty"`
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
 }
 
 type EndpointsPostAllowlistCSPMFindingInput struct {
@@ -183,6 +220,16 @@ type EndpointsPostMarkFalsePositiveCSPMFindingOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostUnallowListCSPMFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListCSPMFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
 type EndpointsPostUnallowlistCSPMFindingInput struct {
 	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 	UserCanonicalID *string `json:"userCanonicalId,omitempty"`
@@ -219,6 +266,10 @@ type EndpointsPullRequestSummary struct {
 	RecordID *string `json:"recordId,omitempty"`
 	Status *ModelsPullRequestState `json:"status,omitempty"`
 	URL *string `json:"url,omitempty"`
+}
+
+type EndpointsStartCSPMScanInput struct {
+	Scope *ModelsCSPMScanScope `json:"scope,omitempty"`
 }
 
 type EndpointsStartCSPMScanOutput struct {
@@ -287,7 +338,6 @@ const (
 type ModelsCSPMFinding struct {
 	AccountID *string `json:"accountId,omitempty"`
 	AccountName *string `json:"accountName,omitempty"`
-	AiDevTitle *string `json:"aiDevTitle,omitempty"`
 	AiTitle *string `json:"aiTitle,omitempty"`
 	AllowlistReason *string `json:"allowlistReason,omitempty"`
 	AllowlistType *ModelsAllowlistType `json:"allowlistType,omitempty"`
@@ -330,7 +380,9 @@ type ModelsCSPMFinding struct {
 	IsFixed *bool `json:"isFixed,omitempty"`
 	IsLatest *bool `json:"isLatest,omitempty"`
 	IsResolved bool `json:"isResolved"`
+	LastSeenAt *string `json:"lastSeenAt,omitempty"`
 	Message *string `json:"message,omitempty"`
+	NotReverified *bool `json:"notReverified,omitempty"`
 	Platform string `json:"platform"`
 	PriorityLabel *ModelsPriorityLabel `json:"priorityLabel,omitempty"`
 	PriorityLabelReason *string `json:"priorityLabelReason,omitempty"`
@@ -362,7 +414,10 @@ type ModelsCSPMFinding struct {
 	TriageDurationSeconds int `json:"triageDurationSeconds"`
 	TriageEnd *string `json:"triageEnd,omitempty"`
 	TriageLlmCostUsd *float64 `json:"triageLlmCostUsd,omitempty"`
+	TriageRemediationIac *string `json:"triageRemediationIac,omitempty"`
+	TriageRemediationSteps *string `json:"triageRemediationSteps,omitempty"`
 	TriageStart *string `json:"triageStart,omitempty"`
+	TriageStopReason *string `json:"triageStopReason,omitempty"`
 	TriageTokenCount *int `json:"triageTokenCount,omitempty"`
 	TriageTraceID *string `json:"triageTraceId,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
@@ -372,7 +427,6 @@ type ModelsCSPMFinding struct {
 type ModelsCSPMFindingPreview struct {
 	AccountID *string `json:"accountId,omitempty"`
 	AccountName *string `json:"accountName,omitempty"`
-	AiDevTitle *string `json:"aiDevTitle,omitempty"`
 	AiTitle *string `json:"aiTitle,omitempty"`
 	AllowlistReason *string `json:"allowlistReason,omitempty"`
 	AllowlistType *ModelsAllowlistType `json:"allowlistType,omitempty"`
@@ -388,7 +442,9 @@ type ModelsCSPMFindingPreview struct {
 	IsFixed *bool `json:"isFixed,omitempty"`
 	IsLatest *bool `json:"isLatest,omitempty"`
 	IsResolved bool `json:"isResolved"`
+	LastSeenAt *string `json:"lastSeenAt,omitempty"`
 	Message *string `json:"message,omitempty"`
+	NotReverified *bool `json:"notReverified,omitempty"`
 	PriorityLabel *ModelsPriorityLabel `json:"priorityLabel,omitempty"`
 	PriorityOverride *ModelsPriorityLabel `json:"priorityOverride,omitempty"`
 	PriorityScore *int `json:"priorityScore,omitempty"`
@@ -467,6 +523,13 @@ type ModelsCSPMScanPreview struct {
 	TriageDeferredCount *int `json:"triageDeferredCount,omitempty"`
 	TriageEligibleCount *int `json:"triageEligibleCount,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
+type ModelsCSPMScanScope struct {
+	AccountID string `json:"accountId"`
+	CloudProvider ModelsCloudProvider `json:"cloudProvider"`
+	ResourceArns []string `json:"resourceArns,omitempty"`
+	RuleIds []string `json:"ruleIds,omitempty"`
 }
 
 type ModelsCSPMScanSummary struct {
@@ -568,6 +631,14 @@ type ModelsCustomerQuestionSet struct {
 	Questions []ModelsCustomerQuestion `json:"questions,omitempty"`
 }
 
+type ModelsFindingBatchFailureCode string
+
+const (
+	ModelsFindingBatchFailureCodeNotFound ModelsFindingBatchFailureCode = "not_found"
+	ModelsFindingBatchFailureCodeInternalError ModelsFindingBatchFailureCode = "internal_error"
+	ModelsFindingBatchFailureCodeNotAttempted ModelsFindingBatchFailureCode = "not_attempted"
+)
+
 type ModelsTriageAgentConfidence string
 
 const (
@@ -639,6 +710,17 @@ const (
 	ModelsTriageComplianceImpactConfidenceLow ModelsTriageComplianceImpactConfidence = "LOW"
 	ModelsTriageComplianceImpactConfidenceMedium ModelsTriageComplianceImpactConfidence = "MEDIUM"
 )
+
+type ModelsTriageContainerAssessment struct {
+	AssessedCVEs *int `json:"assessedCVEs,omitempty"`
+	Batches []ModelsTriageContainerAssessmentBatchesElem `json:"batches,omitempty"`
+	FailureReasons []string `json:"failureReasons,omitempty"`
+	InputHash *string `json:"inputHash,omitempty"`
+	Status *ModelsTriageContainerAssessmentStatus `json:"status,omitempty"`
+	TotalCVEs *int `json:"totalCVEs,omitempty"`
+	UnassessedCVEs []string `json:"unassessedCVEs,omitempty"`
+	UnassessedCount *int `json:"unassessedCount,omitempty"`
+}
 
 type ModelsTriageContainerAssessmentBatchesElem struct {
 	CompletedCVEs []string `json:"completedCVEs,omitempty"`
@@ -1348,6 +1430,7 @@ const (
 	ModelsTriageStopReasonReachabilityUnproven ModelsTriageStopReason = "reachability_unproven"
 	ModelsTriageStopReasonReachabilityUnprovenRetried ModelsTriageStopReason = "reachability_unproven_retried"
 	ModelsTriageStopReasonRefusal ModelsTriageStopReason = "refusal"
+	ModelsTriageStopReasonScopeChanged ModelsTriageStopReason = "scope_changed"
 	ModelsTriageStopReasonTenantBudget ModelsTriageStopReason = "tenant_budget"
 	ModelsTriageStopReasonWallTimeout ModelsTriageStopReason = "wall_timeout"
 )

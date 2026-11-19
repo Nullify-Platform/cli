@@ -1,16 +1,9 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
-	"io"
 	"net/http"
-	"os"
-	"strings"
-	"sync/atomic"
 	"testing"
-
-	"github.com/spf13/cobra"
 
 	"github.com/stretchr/testify/require"
 )
@@ -36,53 +29,25 @@ func TestSeveritiesAboveThreshold(t *testing.T) {
 }
 
 func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
-	byName := map[string]scannerEndpoint{}
-	for _, ep := range allScannerEndpoints() {
-		byName[ep.name] = ep
-	}
-
+	scope := repositoryScope{id: "42", source: "--repository-id", providerParams: []string{"githubRepositoryId", "42"}}
 	tests := []struct {
 		scanner  string
 		expected []string
 	}{
-		{
-			scanner:  "sast",
-			expected: []string{"limit", "1", "severity", "CRITICAL", "isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "cspm",
-			expected: []string{"limit", "1", "severity", "CRITICAL", "status", "open", "repository", "org/repo"},
-		},
-		{
-			scanner:  "sca_dependencies",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "sca_containers",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "secrets",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "pentest",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
-		},
-		{
-			scanner:  "bughunt",
-			expected: []string{"limit", "1", "repository", "org/repo"},
-		},
+		{scanner: "sast", expected: []string{"severity", "CRITICAL", "isResolved", "false", "githubRepositoryId", "42", "repositoryIds", "42"}},
+		{scanner: "cspm", expected: []string{"severity", "CRITICAL", "status", "open"}},
+		{scanner: "sca_dependencies", expected: []string{"isResolved", "false", "githubRepositoryId", "42"}},
+		{scanner: "sca_containers", expected: []string{"isResolved", "false", "githubRepositoryId", "42"}},
+		{scanner: "secrets", expected: []string{"isResolved", "false", "githubRepositoryId", "42"}},
+		{scanner: "pentest", expected: []string{"isResolved", "false"}},
+		{scanner: "bughunt", expected: []string{}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.scanner, func(t *testing.T) {
-			ep, ok := byName[tt.scanner]
-			require.True(t, ok)
-
+			ep := scannerByName(t, tt.scanner)
 			severities := scannerSeverities(ep, []string{"critical", "high"})
-			params := scannerQueryParams(ep, severities[0], "org/repo", "1")
-			require.Equal(t, tt.expected, params)
+			require.Equal(t, tt.expected, scannerQueryParams(ep, severities[0], scope))
 		})
 	}
 }
@@ -95,112 +60,28 @@ func TestScannerSeveritiesCollapseWithoutServerSideFilter(t *testing.T) {
 
 	threshold := []string{"critical", "high"}
 
-	require.Equal(t, threshold, scannerSeverities(byName["sast"], threshold))
-	require.Equal(t, threshold, scannerSeverities(byName["cspm"], threshold))
+	withUnknown := []string{"critical", "high", "unknown"}
+	require.Equal(t, withUnknown, scannerSeverities(byName["sast"], threshold))
+	require.Equal(t, withUnknown, scannerSeverities(byName["cspm"], threshold))
+	require.Equal(t, []string{"critical", "high"}, threshold, "the caller's slice is not changed")
 	require.Equal(t, []string{""}, scannerSeverities(byName["secrets"], threshold))
 	require.Equal(t, []string{""}, scannerSeverities(byName["bughunt"], threshold))
 
 	require.Equal(t,
-		"FAIL: secrets has open findings (no server-side severity filter, threshold not applied)",
-		gateFailLine(byName["secrets"], ""),
+		"FAIL: secrets has open findings (its findings carry no severity, so every open one counts)",
+		gateFailLine(gateCheck{ep: byName["secrets"]}, severityHigh),
 	)
-	require.Equal(t, "FAIL: sast has open critical findings", gateFailLine(byName["sast"], "critical"))
-}
-
-func TestCountFindings(t *testing.T) {
-	tests := []struct {
-		name     string
-		body     string
-		expected int
-	}{
-		{
-			name:     "sast envelope",
-			body:     `{"version":"1","findings":[{"id":"f1"}],"numItems":1,"nextToken":""}`,
-			expected: 1,
-		},
-		{
-			name:     "sca dependencies envelope",
-			body:     `{"version":"1","findings":[{"id":"f1"},{"id":"f2"}],"numItems":2,"nextToken":"abc"}`,
-			expected: 2,
-		},
-		{
-			name:     "sca containers envelope",
-			body:     `{"findings":[{"id":"f1"}],"numItems":1,"nextToken":""}`,
-			expected: 1,
-		},
-		{
-			name:     "secrets envelope",
-			body:     `{"findings":[],"numItems":0,"nextToken":""}`,
-			expected: 0,
-		},
-		{
-			name:     "pentest envelope",
-			body:     `{"findings":[{"id":"f1"},{"id":"f2"},{"id":"f3"}],"numItems":0,"nextToken":""}`,
-			expected: 3,
-		},
-		{
-			name:     "bughunt envelope omits numItems",
-			body:     `{"findings":[{"id":"f1"},{"id":"f2"}]}`,
-			expected: 2,
-		},
-		{
-			name:     "cspm envelope omits empty nextToken",
-			body:     `{"findings":[{"id":"f1"}],"numItems":1,"version":"1"}`,
-			expected: 1,
-		},
-		{
-			name:     "nil findings slice serialises as null",
-			body:     `{"findings":null,"numItems":0,"nextToken":""}`,
-			expected: 0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := countFindings(tt.body)
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, result)
-		})
-	}
-}
-
-func TestCountFindingsRejectsUnknownEnvelopes(t *testing.T) {
-	tests := []struct {
-		name string
-		body string
-	}{
-		{name: "invalid json", body: `not json`},
-		{name: "empty object", body: `{}`},
-		{name: "bare array", body: `[{"id":"f1"}]`},
-		{name: "items envelope", body: `{"items":[{"id":"f1"}]}`},
-		{name: "total envelope", body: `{"total":42}`},
-		{name: "findings is not an array", body: `{"findings":{"id":"f1"}}`},
-		{name: "empty body", body: ``},
-		{name: "object with zero count", body: `{"findings":{},"numItems":0}`},
-		{name: "boolean with zero count", body: `{"findings":false,"numItems":0}`},
-		{name: "negative count", body: `{"findings":[],"numItems":-1}`},
-		{name: "understated positive count", body: `{"findings":[{"id":"f1"},{"id":"f2"}],"numItems":1}`},
-		{name: "overstated count", body: `{"findings":[],"numItems":1}`},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			count, err := countFindings(tt.body)
-			require.ErrorIs(t, err, errUnreadableFindings)
-			require.Zero(t, count)
-		})
-	}
+	require.Equal(t,
+		"FAIL: sca_dependencies has open findings at or above high severity",
+		gateFailLine(gateCheck{ep: byName["sca_dependencies"]}, severityHigh),
+	)
+	require.Equal(t,
+		"FAIL: sast has open critical findings",
+		gateFailLine(gateCheck{ep: byName["sast"], severity: "critical"}, severityHigh),
+	)
 }
 
 func TestCIGateResponseValidation(t *testing.T) {
-	t.Setenv("NULLIFY_HOST", "review.nullify.ai")
-	t.Setenv("NULLIFY_TOKEN", "synthetic-token")
-	originalHost, originalToken, originalGithub := host, nullifyToken, githubToken
-	host, nullifyToken, githubToken = "review.nullify.ai", "synthetic-token", ""
-	t.Cleanup(func() {
-		host, nullifyToken, githubToken = originalHost, originalToken, originalGithub
-	})
-
 	tests := []struct {
 		name     string
 		scanner  string
@@ -220,83 +101,49 @@ func TestCIGateResponseValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			originalTransport := http.DefaultTransport
-			t.Cleanup(func() { http.DefaultTransport = originalTransport })
-			var calls atomic.Int64
-			http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-				calls.Add(1)
+			useCIEnv(t)
+			api := serveScannerAPI(t, func(req *http.Request) (int, string) {
 				if tt.scanner == "cspm" {
 					query := req.URL.Query()
-					if query.Get("status") != "open" || query.Get("severity") != "CRITICAL" {
+					severity := query.Get("severity")
+					if query.Get("status") != "open" || (severity != "CRITICAL" && severity != "UNKNOWN") {
 						t.Errorf("unexpected CSPM filters: %s", req.URL.RawQuery)
 					}
 				}
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       io.NopCloser(strings.NewReader(tt.body)),
-					Header:     make(http.Header),
-					Request:    req,
-				}, nil
+				return http.StatusOK, tt.body
 			})
 
-			cmd := &cobra.Command{}
-			cmd.SetContext(context.Background())
-			cmd.Flags().String("severity-threshold", "critical", "")
-			cmd.Flags().String("type", tt.scanner, "")
-			cmd.Flags().String("repo", "org/repo", "")
-			err := ciGateCmd.RunE(cmd, nil)
+			_, err := runCI(t, ciGateCmd, map[string]string{
+				"severity-threshold": "critical",
+				"type":               tt.scanner,
+				"repository-id":      "42",
+			})
 
 			require.Equal(t, tt.wantExit, ExitCodeForError(err))
-			require.Equal(t, int64(1), calls.Load())
+			wantRequests := 1
+			if scannerByName(t, tt.scanner).supportsSeverity {
+				wantRequests = 2 // CRITICAL and UNKNOWN
+			}
+			require.Len(t, api.requests(), wantRequests)
 		})
 	}
 }
 
 func TestCIReportPreservesPentestFindingsWithZeroCount(t *testing.T) {
-	t.Setenv("NULLIFY_HOST", "review.nullify.ai")
-	t.Setenv("NULLIFY_TOKEN", "synthetic-token")
-	originalHost, originalToken, originalGithub := host, nullifyToken, githubToken
-	host, nullifyToken, githubToken = "review.nullify.ai", "synthetic-token", ""
-	t.Cleanup(func() {
-		host, nullifyToken, githubToken = originalHost, originalToken, originalGithub
-	})
-
-	originalTransport := http.DefaultTransport
-	t.Cleanup(func() { http.DefaultTransport = originalTransport })
-	http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-		body := `{"findings":[],"numItems":0}`
+	useCIEnv(t)
+	serveScannerAPI(t, func(req *http.Request) (int, string) {
 		if req.URL.Path == "/dast/pentest/findings" {
-			body = `{"findings":[{"id":"pentest-1","title":"Critical pentest finding","severity":"CRITICAL"}],"groups":null,"numItems":0,"nextToken":""}`
+			return http.StatusOK, `{"findings":[{"id":"pentest-1","title":"Critical pentest finding","severity":"CRITICAL"}],"groups":null,"numItems":0,"nextToken":""}`
 		}
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Body:       io.NopCloser(strings.NewReader(body)),
-			Header:     make(http.Header),
-			Request:    req,
-		}, nil
+		return emptyFindings(req)
 	})
 
 	for _, format := range []string{"markdown", "sarif"} {
 		t.Run(format, func(t *testing.T) {
-			stdout, err := os.CreateTemp(t.TempDir(), "report")
-			require.NoError(t, err)
-			t.Cleanup(func() { _ = stdout.Close() })
-			originalStdout := os.Stdout
-			os.Stdout = stdout
-			t.Cleanup(func() { os.Stdout = originalStdout })
-
-			cmd := &cobra.Command{}
-			cmd.SetContext(context.Background())
-			cmd.Flags().String("repo", "org/repo", "")
-			cmd.Flags().String("format", format, "")
-			require.NoError(t, ciReportCmd.RunE(cmd, nil))
-
-			_, err = stdout.Seek(0, io.SeekStart)
-			require.NoError(t, err)
-			report, err := io.ReadAll(stdout)
+			report, err := runCI(t, ciReportCmd, map[string]string{"repository-id": "42", "format": format})
 			require.NoError(t, err)
 			if format == "markdown" {
-				require.Contains(t, string(report), "| pentest | critical | 1 |")
+				require.Contains(t, report, "| pentest | critical | 1 |")
 				return
 			}
 
@@ -310,9 +157,9 @@ func TestCIReportPreservesPentestFindingsWithZeroCount(t *testing.T) {
 					} `json:"results"`
 				} `json:"runs"`
 			}
-			require.NoError(t, json.Unmarshal(report, &sarif))
+			require.NoError(t, json.Unmarshal([]byte(report), &sarif))
 			require.Len(t, sarif.Runs, 1)
-			require.NotEmpty(t, sarif.Runs[0].Results)
+			require.Len(t, sarif.Runs[0].Results, 1)
 			for _, result := range sarif.Runs[0].Results {
 				require.Equal(t, "error", result.Level)
 				require.Equal(t, "Critical pentest finding", result.Message.Text)

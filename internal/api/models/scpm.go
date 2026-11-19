@@ -234,8 +234,18 @@ type EndpointsPostGetUploadSCPMFindingsURLOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostUnallowListSCPMFindingBatchInput struct {
+	FindingIds []string `json:"findingIds,omitempty"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
+}
+
+type EndpointsPostUnallowListSCPMFindingBatchOutput struct {
+	Failures []ModelsFindingBatchFailure `json:"failures,omitempty"`
+	Unallowlisted []string `json:"unallowlisted,omitempty"`
+}
+
 type EndpointsPostUnallowlistSCPMFindingInput struct {
-	UnallowlistReason string `json:"unallowlistReason"`
+	UnallowlistReason *string `json:"unallowlistReason,omitempty"`
 }
 
 type EndpointsPostUnmarkFalsePositiveSCPMFindingOutput struct {
@@ -270,7 +280,6 @@ type ModelsSCPMEventInterface struct {
 }
 
 type ModelsSCPMFinding struct {
-	AiDevTitle *string `json:"aiDevTitle,omitempty"`
 	AiTitle *string `json:"aiTitle,omitempty"`
 	AllowlistReason *string `json:"allowlistReason,omitempty"`
 	AllowlistType *string `json:"allowlistType,omitempty"`
@@ -344,6 +353,8 @@ type ModelsSCPMFinding struct {
 	Ticket *ModelsTicketProvider `json:"ticket,omitempty"`
 	TicketState *string `json:"ticketState,omitempty"`
 	Title *string `json:"title,omitempty"`
+	TriageAgentVersion *string `json:"triageAgentVersion,omitempty"`
+	TriageStopReason *string `json:"triageStopReason,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 	UserNotes *string `json:"userNotes,omitempty"`
 	Workflow *string `json:"workflow,omitempty"`

@@ -348,6 +348,52 @@ type EndpointsAiMlAssetView struct {
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
+type EndpointsApplicationFolderEdit struct {
+	Exclude []EndpointsApplicationFolderRef `json:"exclude,omitempty"`
+	ExpectedUpdatedAt *string `json:"expectedUpdatedAt,omitempty"`
+	Own []EndpointsApplicationFolderRef `json:"own,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Reset []EndpointsApplicationFolderRef `json:"reset,omitempty"`
+}
+
+type EndpointsApplicationFolderGapsOutput struct {
+	RepositoryID string `json:"repositoryId"`
+	UnownedFindings *int `json:"unownedFindings,omitempty"`
+}
+
+type EndpointsApplicationFolderRef struct {
+	Path *string `json:"path,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsApplicationFolderState struct {
+	CreatedBy *string `json:"createdBy,omitempty"`
+	Mode string `json:"mode"`
+	Path *string `json:"path,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+}
+
+type EndpointsApplicationFoldersOutput struct {
+	EffectiveFolders []EndpointsEffectiveFolder `json:"effectiveFolders,omitempty"`
+	ExpectedUpdatedAt string `json:"expectedUpdatedAt"`
+	Folders []EndpointsApplicationFolderState `json:"folders,omitempty"`
+	MembershipPending *bool `json:"membershipPending,omitempty"`
+}
+
+type EndpointsApplicationOverrideState struct {
+	Description *string `json:"description,omitempty"`
+	Name *string `json:"name,omitempty"`
+	Tags []string `json:"tags,omitempty"`
+}
+
+type EndpointsApplicationSchemaComponent struct {
+	Name *string `json:"name,omitempty"`
+	ProjectID string `json:"projectId"`
+	Provenance SchemautilsSpecProvenance `json:"provenance"`
+	RepositoryID string `json:"repositoryId"`
+}
+
 type EndpointsArtifactDeploymentSummary struct {
 	AccountID *string `json:"accountId,omitempty"`
 	ArtifactID *string `json:"artifactId,omitempty"`
@@ -507,6 +553,30 @@ type EndpointsAssetGraphNodeSummary struct {
 	ObjectType string `json:"objectType"`
 	Region *string `json:"region,omitempty"`
 	SubType *string `json:"subType,omitempty"`
+}
+
+type EndpointsAssetGraphResourceExposure struct {
+	EntryNodeKind *string `json:"entryNodeKind,omitempty"`
+	EvaluatedAt *string `json:"evaluatedAt,omitempty"`
+	HasCriticalFinding *bool `json:"hasCriticalFinding,omitempty"`
+	Hops *int `json:"hops,omitempty"`
+	Key string `json:"key"`
+	MaxFindingSeverity *string `json:"maxFindingSeverity,omitempty"`
+	NodeID *string `json:"nodeId,omitempty"`
+	NodeKind *string `json:"nodeKind,omitempty"`
+	PathCount *int `json:"pathCount,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	Status EndpointsReachabilityStatus `json:"status"`
+}
+
+type EndpointsAssetGraphResourceRef struct {
+	AccountID *string `json:"accountId,omitempty"`
+	AccountName *string `json:"accountName,omitempty"`
+	Key string `json:"key"`
+	Region *string `json:"region,omitempty"`
+	ResourceArn *string `json:"resourceArn,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	ResourceType string `json:"resourceType"`
 }
 
 type EndpointsAssetGraphRetrievedNode struct {
@@ -963,6 +1033,25 @@ type EndpointsCloudConnectorAutomationProposal struct {
 	PreparedAt *string `json:"preparedAt,omitempty"`
 	RunID *string `json:"runId,omitempty"`
 	StaleReason *string `json:"staleReason,omitempty"`
+}
+
+type EndpointsCloudConnectorDeployment struct {
+	Accounts []EndpointsCloudConnectorDeploymentAccount `json:"accounts,omitempty"`
+	CheckedAt *string `json:"checkedAt,omitempty"`
+	MergedAt *string `json:"mergedAt,omitempty"`
+	NextCheckAt *string `json:"nextCheckAt,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	RoleName *string `json:"roleName,omitempty"`
+	RunID string `json:"runId"`
+	State string `json:"state"`
+}
+
+type EndpointsCloudConnectorDeploymentAccount struct {
+	AccountID string `json:"accountId"`
+	AccountName *string `json:"accountName,omitempty"`
+	Evidence *string `json:"evidence,omitempty"`
+	RoleName string `json:"roleName"`
+	Status string `json:"status"`
 }
 
 type EndpointsCloudConnectorPRRecord struct {
@@ -1497,6 +1586,10 @@ type EndpointsContextApproveWAFAllowlistProposalInput struct {
 	Digest string `json:"digest"`
 }
 
+type EndpointsContextCheckCloudConnectorDeploymentOutput struct {
+	Deployment *EndpointsCloudConnectorDeployment `json:"deployment,omitempty"`
+}
+
 type EndpointsContextGetCloudConnectorPRRunOutput struct {
 	Pr *EndpointsCloudConnectorPRRecord `json:"pr,omitempty"`
 	Run EndpointsRunStatus `json:"run"`
@@ -1506,6 +1599,7 @@ type EndpointsContextGetCloudConnectorPRRunOutput struct {
 
 type EndpointsContextGetCloudConnectorPRStatusOutput struct {
 	Automation *EndpointsCloudConnectorAutomation `json:"automation,omitempty"`
+	Deployment *EndpointsCloudConnectorDeployment `json:"deployment,omitempty"`
 	Pr *EndpointsCloudConnectorPRRecord `json:"pr,omitempty"`
 	PreparationAvailable *bool `json:"preparationAvailable,omitempty"`
 	Run *EndpointsCloudConnectorPRRunStatus `json:"run,omitempty"`
@@ -1519,21 +1613,6 @@ type EndpointsContextGetCloudScanStatusOutput struct {
 	OverallStatus string `json:"overallStatus"`
 	Providers []EndpointsProviderScanStatus `json:"providers,omitempty"`
 	ScanID string `json:"scanId"`
-}
-
-type EndpointsContextRecoverCloudConnectorProposalInput struct {
-	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
-	Digest string `json:"digest"`
-}
-
-type EndpointsContextRecoverCloudConnectorProposalOutput struct {
-	PrURL *string `json:"prUrl,omitempty"`
-	Recovered bool `json:"recovered"`
-}
-
-type EndpointsContextRecoverWAFAllowlistProposalInput struct {
-	ConfirmNoPullRequest bool `json:"confirmNoPullRequest"`
-	Digest string `json:"digest"`
 }
 
 type EndpointsContextStartCloudConnectorPRRunInput struct {
@@ -1764,6 +1843,17 @@ type EndpointsDockerHubDetailsView struct {
 type EndpointsDockerImageDetailsView struct {
 }
 
+type EndpointsEditApplicationFoldersInput struct {
+	Folders EndpointsApplicationFolderEdit `json:"folders"`
+}
+
+type EndpointsEffectiveFolder struct {
+	AlsoOwnedBy []string `json:"alsoOwnedBy,omitempty"`
+	Path *string `json:"path,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	Source string `json:"source"`
+}
+
 type EndpointsEndpointsAssetView struct {
 	AwsService *string `json:"awsService,omitempty"`
 	BodyType *string `json:"bodyType,omitempty"`
@@ -1804,6 +1894,19 @@ type EndpointsEntrypointSummary struct {
 }
 
 type EndpointsExecutableDetailsView struct {
+}
+
+type EndpointsFolderPreview struct {
+	FindingsIn *int `json:"findingsIn,omitempty"`
+	FindingsOut *int `json:"findingsOut,omitempty"`
+	Mode string `json:"mode"`
+	Path *string `json:"path,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	TooLarge *bool `json:"tooLarge,omitempty"`
+}
+
+type EndpointsFolderPreviewOutput struct {
+	Folders []EndpointsFolderPreview `json:"folders,omitempty"`
 }
 
 type EndpointsGCPAPIGatewayDetailsView struct {
@@ -1983,6 +2086,7 @@ type EndpointsGetApplicationRebuildOutput struct {
 }
 
 type EndpointsGetApplicationSchemaOutput struct {
+	Components []EndpointsApplicationSchemaComponent `json:"components,omitempty"`
 	Format ModelsSchemaFormat `json:"format"`
 	Schema string `json:"schema"`
 	Type ModelsSchemaType `json:"type"`
@@ -2013,6 +2117,8 @@ type EndpointsGetArtifactsAssetOutput struct {
 
 type EndpointsGetAssetGraphAttackPathsOutput struct {
 	AttackPaths []EndpointsAttackPathDTO `json:"attackPaths,omitempty"`
+	GraphSyncedAt *string `json:"graphSyncedAt,omitempty"`
+	PathsComputedAt *string `json:"pathsComputedAt,omitempty"`
 	Truncated *bool `json:"truncated,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
@@ -2043,8 +2149,11 @@ type EndpointsGetAssetGraphNodesOutput struct {
 }
 
 type EndpointsGetAssetGraphReachabilityOutput struct {
+	GraphSyncedAt *string `json:"graphSyncedAt,omitempty"`
 	IsInternetFacing bool `json:"isInternetFacing"`
 	Path []EndpointsReachabilityPathDTO `json:"path,omitempty"`
+	Status EndpointsReachabilityStatus `json:"status"`
+	StatusReason *string `json:"statusReason,omitempty"`
 	TargetNodeFound bool `json:"targetNodeFound"`
 	TargetNodeID string `json:"targetNodeId"`
 	TargetNodeKind *string `json:"targetNodeKind,omitempty"`
@@ -2089,6 +2198,7 @@ type EndpointsGetAssetGraphSummaryOutput struct {
 	MergedGraphExpiresAt *string `json:"mergedGraphExpiresAt,omitempty"`
 	MergedGraphNodeCount *int `json:"mergedGraphNodeCount,omitempty"`
 	MergedGraphURL *string `json:"mergedGraphUrl,omitempty"`
+	PendingAccounts []string `json:"pendingAccounts,omitempty"`
 	RepoContextGraphs []EndpointsAssetGraphComponent `json:"repoContextGraphs,omitempty"`
 	TotalInfraEdges int `json:"totalInfraEdges"`
 	TotalInfraNodes int `json:"totalInfraNodes"`
@@ -2273,6 +2383,7 @@ type EndpointsGetEntrypointOutput struct {
 
 type EndpointsGetExposureOutput struct {
 	NumItems int `json:"numItems"`
+	RangeComparisonSupported bool `json:"rangeComparisonSupported"`
 	Version string `json:"version"`
 	Windows []ModelsDependencyWindow `json:"windows,omitempty"`
 }
@@ -2305,6 +2416,7 @@ type EndpointsGetInfrastructureGraphSummaryOutput struct {
 	Graphs []EndpointsInfrastructureGraphDownloadInfo `json:"graphs,omitempty"`
 	IntegrationStatus EndpointsIntegrationStatus `json:"integrationStatus"`
 	LastUpdated string `json:"lastUpdated"`
+	PendingAccounts []string `json:"pendingAccounts,omitempty"`
 	TotalEdgeCount int `json:"totalEdgeCount"`
 	TotalNodeCount int `json:"totalNodeCount"`
 	Version *string `json:"version,omitempty"`
@@ -2442,11 +2554,17 @@ type EndpointsGetProjectOutput struct {
 }
 
 type EndpointsGetProjectSchemaMetadataOutput struct {
+	Actor *string `json:"actor,omitempty"`
+	Digest string `json:"digest"`
 	DownloadURL string `json:"downloadUrl"`
 	Format ModelsSchemaFormat `json:"format"`
+	Lifecycle string `json:"lifecycle"`
 	NumEndpoints int `json:"numEndpoints"`
+	PreviousDigest *string `json:"previousDigest,omitempty"`
 	Provenance *EndpointsSchemaProvenance `json:"provenance,omitempty"`
+	PublishedAt *string `json:"publishedAt,omitempty"`
 	Size int `json:"size"`
+	Source string `json:"source"`
 	Type ModelsSchemaType `json:"type"`
 	Version *string `json:"version,omitempty"`
 }
@@ -2454,6 +2572,7 @@ type EndpointsGetProjectSchemaMetadataOutput struct {
 type EndpointsGetProjectSchemaOutput struct {
 	Format ModelsSchemaFormat `json:"format"`
 	Schema string `json:"schema"`
+	SpecProvenance *SchemautilsSpecProvenance `json:"specProvenance,omitempty"`
 	Type ModelsSchemaType `json:"type"`
 	Version *string `json:"version,omitempty"`
 }
@@ -2473,6 +2592,7 @@ type EndpointsGetProjectsAssetOutput struct {
 type EndpointsGetRepoScanOutput struct {
 	Run *EndpointsRunStatus `json:"run,omitempty"`
 	Scan EndpointsRepoScanSummary `json:"scan"`
+	SpecAttempts []EndpointsSpecAttemptSummary `json:"specAttempts,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -2482,13 +2602,6 @@ type EndpointsGetRepoScopeScanOutput struct {
 	Run EndpointsRunStatus `json:"run"`
 	SupersededBy *string `json:"supersededBy,omitempty"`
 	Uncovered []string `json:"uncovered,omitempty"`
-	Version *string `json:"version,omitempty"`
-}
-
-type EndpointsGetReportStatusOutput struct {
-	Error *string `json:"error,omitempty"`
-	Status *string `json:"status,omitempty"`
-	URL *string `json:"url,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -2507,6 +2620,7 @@ type EndpointsGetRepositoriesOutput struct {
 }
 
 type EndpointsGetRepositoryOutput struct {
+	CloudInputState *EndpointsRepositoryCloudInputStateProof `json:"cloudInputState,omitempty"`
 	Repository RepocontextRepoContext `json:"repository"`
 	URL *string `json:"url,omitempty"`
 	Version *string `json:"version,omitempty"`
@@ -2514,6 +2628,7 @@ type EndpointsGetRepositoryOutput struct {
 
 type EndpointsGetSBOMSOutput struct {
 	Sboms []ModelsCDXGenAtCommit `json:"sboms,omitempty"`
+	Urls []EndpointsSBOMDocumentURL `json:"urls,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
 
@@ -2534,6 +2649,23 @@ type EndpointsGetServerlessAssetOutput struct {
 	Asset EndpointsServerlessAssetView `json:"asset"`
 	Details EndpointsServerlessAssetDetailsView `json:"details"`
 	Version string `json:"version"`
+}
+
+type EndpointsGetSpecArtifactOutput struct {
+	AttemptID *string `json:"attemptId,omitempty"`
+	Content string `json:"content"`
+	CreatedAt string `json:"createdAt"`
+	Format ModelsSchemaFormat `json:"format"`
+	ID string `json:"id"`
+	OperationCount int `json:"operationCount"`
+	OwnerKind string `json:"ownerKind"`
+	ProjectID *string `json:"projectId,omitempty"`
+	Provenance SchemautilsSpecProvenance `json:"provenance"`
+	PublicationDecision string `json:"publicationDecision"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	Type ModelsSchemaType `json:"type"`
+	Version *string `json:"version,omitempty"`
+	WebServiceID *string `json:"webServiceId,omitempty"`
 }
 
 type EndpointsGetStorageAndBackupAssetOutput struct {
@@ -2687,6 +2819,11 @@ type EndpointsInfrastructureAccountInfo struct {
 	Services []string `json:"services,omitempty"`
 }
 
+type EndpointsInfrastructureCloudAccount struct {
+	AccountID string `json:"accountId"`
+	Provider string `json:"provider"`
+}
+
 type EndpointsInfrastructureCrossAccountConnection struct {
 	ConnectionCount int `json:"connectionCount"`
 	ConnectionType string `json:"connectionType"`
@@ -2724,6 +2861,7 @@ type EndpointsInfrastructureGraphDownloadInfo struct {
 	NodeCount int `json:"nodeCount"`
 	Region *string `json:"region,omitempty"`
 	Version *string `json:"version,omitempty"`
+	WithheldClusters []string `json:"withheldClusters,omitempty"`
 }
 
 type EndpointsInfrastructureGraphInfo struct {
@@ -2916,6 +3054,17 @@ type EndpointsListArtifactsOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsListAssetGraphResourceExposureInput struct {
+	Resources []EndpointsAssetGraphResourceRef `json:"resources,omitempty"`
+}
+
+type EndpointsListAssetGraphResourceExposureOutput struct {
+	GraphSyncedAt *string `json:"graphSyncedAt,omitempty"`
+	RebuildStartedAt *string `json:"rebuildStartedAt,omitempty"`
+	Results []EndpointsAssetGraphResourceExposure `json:"results,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
 type EndpointsListAssetInventoryOutput struct {
 	Assets []EndpointsUnifiedAssetView `json:"assets,omitempty"`
 	NextToken *string `json:"nextToken,omitempty"`
@@ -3007,7 +3156,11 @@ type EndpointsListInfrastructureGraphVersionsOutput struct {
 }
 
 type EndpointsListInfrastructureGraphsOutput struct {
+	Accounts []EndpointsInfrastructureCloudAccount `json:"accounts,omitempty"`
 	Count int `json:"count"`
+	FailedAccounts []string `json:"failedAccounts,omitempty"`
+	GcpAdmission *ModelsGCPProjectAdmission `json:"gcpAdmission,omitempty"`
+	GcpDiscovery *ModelsGCPProjectDiscoverySnapshot `json:"gcpDiscovery,omitempty"`
 	Graphs []EndpointsInfrastructureGraphSummary `json:"graphs,omitempty"`
 	Version *string `json:"version,omitempty"`
 }
@@ -3329,12 +3482,6 @@ type EndpointsOtherArtifactDetailsView struct {
 type EndpointsOtherRegistryDetailsView struct {
 }
 
-type EndpointsPackageFilter struct {
-	Ecosystem string `json:"ecosystem"`
-	Package string `json:"package"`
-	Version string `json:"version"`
-}
-
 type EndpointsPatchAssetFlagsInput struct {
 	IsInternetReachable bool `json:"isInternetReachable"`
 	IsPublicFacing bool `json:"isPublicFacing"`
@@ -3544,8 +3691,10 @@ type EndpointsPostMemoryOutput struct {
 }
 
 type EndpointsPostProjectSchemaInput struct {
+	Basis *string `json:"basis,omitempty"`
 	Content string `json:"content"`
 	Format ModelsSchemaFormat `json:"format"`
+	RepairDefects *bool `json:"repairDefects,omitempty"`
 	Type ModelsSchemaType `json:"type"`
 }
 
@@ -3561,16 +3710,6 @@ type EndpointsPostRAGResyncInput struct {
 type EndpointsPostRAGResyncOutput struct {
 	Message string `json:"message"`
 	Success bool `json:"success"`
-}
-
-type EndpointsPostReportInput struct {
-	Packages []EndpointsPackageFilter `json:"packages,omitempty"`
-	Repositories []string `json:"repositories,omitempty"`
-}
-
-type EndpointsPostReportOutput struct {
-	JobID string `json:"jobId"`
-	Version *string `json:"version,omitempty"`
 }
 
 type EndpointsPostSBOMGenerateInput struct {
@@ -3687,6 +3826,24 @@ type EndpointsPostVaultOnboardOutput struct {
 	Success bool `json:"success"`
 }
 
+type EndpointsPostWebServiceSchemaInput struct {
+	Basis *string `json:"basis,omitempty"`
+	Content string `json:"content"`
+	Format ModelsSchemaFormat `json:"format"`
+	RepairDefects *bool `json:"repairDefects,omitempty"`
+	Type ModelsSchemaType `json:"type"`
+}
+
+type EndpointsPostWebServiceSchemaOutput struct {
+	Digest string `json:"digest"`
+	Message string `json:"message"`
+	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsPreviewApplicationFoldersInput struct {
+	Folders EndpointsApplicationFolderEdit `json:"folders"`
+}
+
 type EndpointsProjectWithoutLockfile struct {
 	Ecosystem *string `json:"ecosystem,omitempty"`
 	ProjectID *string `json:"projectId,omitempty"`
@@ -3743,6 +3900,19 @@ type EndpointsReachabilityPathDTO struct {
 	NodeIds []string `json:"nodeIds,omitempty"`
 }
 
+type EndpointsReachabilityStatus string
+
+const (
+	EndpointsReachabilityStatusReachable EndpointsReachabilityStatus = "reachable"
+	EndpointsReachabilityStatusNotReachable EndpointsReachabilityStatus = "not_reachable"
+	EndpointsReachabilityStatusUndecidedCap EndpointsReachabilityStatus = "undecided_cap"
+	EndpointsReachabilityStatusUndecidedGap EndpointsReachabilityStatus = "undecided_gap"
+	EndpointsReachabilityStatusNodeMissing EndpointsReachabilityStatus = "node_missing"
+	EndpointsReachabilityStatusNotApplicableKind EndpointsReachabilityStatus = "not_applicable_kind"
+	EndpointsReachabilityStatusNodeAmbiguous EndpointsReachabilityStatus = "node_ambiguous"
+	EndpointsReachabilityStatusNotEvaluated EndpointsReachabilityStatus = "not_evaluated"
+)
+
 type EndpointsRebuildApplicationsInput struct {
 	Force bool `json:"force"`
 	ProviderOwnerID string `json:"providerOwnerId"`
@@ -3752,6 +3922,23 @@ type EndpointsRebuildApplicationsOutput struct {
 	RunID *string `json:"runId,omitempty"`
 	Status string `json:"status"`
 	Version *string `json:"version,omitempty"`
+}
+
+type EndpointsRecomputeApplicationFoldersOutput struct {
+	MembershipPending *bool `json:"membershipPending,omitempty"`
+}
+
+type EndpointsRepairApplicationOutput struct {
+	After ModelsApplication `json:"after"`
+	AfterEffectiveFolders []EndpointsEffectiveFolder `json:"afterEffectiveFolders,omitempty"`
+	AfterFolders []EndpointsApplicationFolderState `json:"afterFolders,omitempty"`
+	AfterOverrides EndpointsApplicationOverrideState `json:"afterOverrides"`
+	AuditID string `json:"auditId"`
+	Before ModelsApplication `json:"before"`
+	BeforeEffectiveFolders []EndpointsEffectiveFolder `json:"beforeEffectiveFolders,omitempty"`
+	BeforeFolders []EndpointsApplicationFolderState `json:"beforeFolders,omitempty"`
+	BeforeOverrides EndpointsApplicationOverrideState `json:"beforeOverrides"`
+	MembershipPending *bool `json:"membershipPending,omitempty"`
 }
 
 type EndpointsRepoContextProjectDetailsView struct {
@@ -3832,6 +4019,11 @@ type EndpointsReposAssetView struct {
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
+type EndpointsRepositoryCloudInputStateProof struct {
+	ContextVersion string `json:"contextVersion"`
+	Fingerprint string `json:"fingerprint"`
+}
+
 type EndpointsRepositoryWithoutLockfile struct {
 	DepCount *int64 `json:"depCount,omitempty"`
 	Ecosystems []string `json:"ecosystems,omitempty"`
@@ -3860,6 +4052,11 @@ type EndpointsRunStatus struct {
 	StartedAt *string `json:"startedAt,omitempty"`
 	State EndpointsRunState `json:"state"`
 	Terminal *bool `json:"terminal,omitempty"`
+}
+
+type EndpointsSBOMDocumentURL struct {
+	CommitSha string `json:"commitSha"`
+	URL string `json:"url"`
 }
 
 type EndpointsSBOMIngestReplayInput struct {
@@ -4094,6 +4291,31 @@ type EndpointsSetupRecommendationEvidence struct {
 	Source string `json:"source"`
 }
 
+type EndpointsSpecAttemptSummary struct {
+	ArtifactIds []string `json:"artifactIds,omitempty"`
+	Disposition *string `json:"disposition,omitempty"`
+	ExecutionName *string `json:"executionName,omitempty"`
+	ID string `json:"id"`
+	Mode string `json:"mode"`
+	ProjectID string `json:"projectId"`
+	Reason *string `json:"reason,omitempty"`
+	ReasonCode *string `json:"reasonCode,omitempty"`
+	RepositoryID string `json:"repositoryId"`
+	RequestedCommit *string `json:"requestedCommit,omitempty"`
+	Requests []EndpointsSpecRequestSummary `json:"requests,omitempty"`
+	RequireSchema *bool `json:"requireSchema,omitempty"`
+	Status string `json:"status"`
+}
+
+type EndpointsSpecRequestSummary struct {
+	Actor *string `json:"actor,omitempty"`
+	Decision string `json:"decision"`
+	ID string `json:"id"`
+	RequireSchema *bool `json:"requireSchema,omitempty"`
+	Trigger string `json:"trigger"`
+	TriggerRef *string `json:"triggerRef,omitempty"`
+}
+
 type EndpointsStartRepositoryExecutionRecipeDiscoveryInput struct {
 	Branch *string `json:"branch,omitempty"`
 	ProjectIds []string `json:"projectIds,omitempty"`
@@ -4159,14 +4381,21 @@ type EndpointsStorageAndBackupAssetView struct {
 
 type EndpointsTriggerProjectSchemaInput struct {
 	Branch *string `json:"branch,omitempty"`
+	Force *bool `json:"force,omitempty"`
+	Reason *string `json:"reason,omitempty"`
+	RequireSchema *bool `json:"requireSchema,omitempty"`
 }
 
 type EndpointsTriggerProjectSchemaOutput struct {
+	AttemptID *string `json:"attemptId,omitempty"`
 	Branch *string `json:"branch,omitempty"`
 	CommitSha string `json:"commitSha"`
+	Decision *string `json:"decision,omitempty"`
 	ExecutionArn *string `json:"executionArn,omitempty"`
 	ProjectID string `json:"projectId"`
+	Reason *string `json:"reason,omitempty"`
 	RepositoryID string `json:"repositoryId"`
+	RequestID *string `json:"requestId,omitempty"`
 	RunID string `json:"runId"`
 	Version *string `json:"version,omitempty"`
 }
@@ -4302,6 +4531,53 @@ const (
 	GraphBuildArtifactTypeVirtualMachineImage GraphBuildArtifactType = "VIRTUAL_MACHINE_IMAGE"
 	GraphBuildArtifactTypeWasmModules GraphBuildArtifactType = "WASM_MODULES"
 	GraphBuildArtifactTypeWebComponents GraphBuildArtifactType = "WEB_COMPONENTS"
+)
+
+type GraphCVEAssessment struct {
+	ArtifactDigest *string `json:"artifactDigest,omitempty"`
+	ArtifactIdentity *string `json:"artifactIdentity,omitempty"`
+	Confidence *GraphCVEAssessmentConfidence `json:"confidence,omitempty"`
+	CveNodeID *string `json:"cveNodeId,omitempty"`
+	EvidenceNodeIds []string `json:"evidenceNodeIds,omitempty"`
+	Explanation *string `json:"explanation,omitempty"`
+	FindingID *string `json:"findingId,omitempty"`
+	ID *string `json:"id,omitempty"`
+	InputIdentity *string `json:"inputIdentity,omitempty"`
+	InvestigationState *GraphCVEAssessmentInvestigationState `json:"investigationState,omitempty"`
+	LatestAttemptState *string `json:"latestAttemptState,omitempty"`
+	PackageNodeID *string `json:"packageNodeId,omitempty"`
+	Path []GraphEdge `json:"path,omitempty"`
+	Reachability *GraphCVEAssessmentReachability `json:"reachability,omitempty"`
+	RepositoryID *string `json:"repositoryId,omitempty"`
+	Revision *string `json:"revision,omitempty"`
+	Severity *string `json:"severity,omitempty"`
+	SourceReportID *string `json:"sourceReportId,omitempty"`
+	Unknowns []string `json:"unknowns,omitempty"`
+}
+
+type GraphCVEAssessmentConfidence string
+
+const (
+	GraphCVEAssessmentConfidenceHigh GraphCVEAssessmentConfidence = "HIGH"
+	GraphCVEAssessmentConfidenceLow GraphCVEAssessmentConfidence = "LOW"
+	GraphCVEAssessmentConfidenceMedium GraphCVEAssessmentConfidence = "MEDIUM"
+)
+
+type GraphCVEAssessmentInvestigationState string
+
+const (
+	GraphCVEAssessmentInvestigationStateAssessed GraphCVEAssessmentInvestigationState = "ASSESSED"
+	GraphCVEAssessmentInvestigationStateFailed GraphCVEAssessmentInvestigationState = "FAILED"
+	GraphCVEAssessmentInvestigationStateInterrupted GraphCVEAssessmentInvestigationState = "INTERRUPTED"
+	GraphCVEAssessmentInvestigationStateUnassessed GraphCVEAssessmentInvestigationState = "UNASSESSED"
+)
+
+type GraphCVEAssessmentReachability string
+
+const (
+	GraphCVEAssessmentReachabilityReachable GraphCVEAssessmentReachability = "reachable"
+	GraphCVEAssessmentReachabilityUnknown GraphCVEAssessmentReachability = "unknown"
+	GraphCVEAssessmentReachabilityUnreachable GraphCVEAssessmentReachability = "unreachable"
 )
 
 type GraphCodeArtifactType string
@@ -4965,6 +5241,7 @@ type ModelsDependencyWindow struct {
 	Name string `json:"name"`
 	ProjectID string `json:"projectId"`
 	ProjectName *string `json:"projectName,omitempty"`
+	RangeUnverified *bool `json:"rangeUnverified,omitempty"`
 	RepoID string `json:"repoId"`
 	RepositoryName *string `json:"repositoryName,omitempty"`
 	ResolvedWithoutLockfile *bool `json:"resolvedWithoutLockfile,omitempty"`
@@ -5164,6 +5441,17 @@ type ModelsFrontendAssets struct {
 	ApiEndpoints []string `json:"apiEndpoints,omitempty"`
 	ExposedValues *int `json:"exposedValues,omitempty"`
 	Routes []string `json:"routes,omitempty"`
+}
+
+type ModelsGCPProjectAdmission struct {
+	Configured bool `json:"configured"`
+	ProjectIds []string `json:"projectIds,omitempty"`
+}
+
+type ModelsGCPProjectDiscoverySnapshot struct {
+	IdentityKey string `json:"identityKey"`
+	ProjectIds []string `json:"projectIds,omitempty"`
+	ScanID string `json:"scanId"`
 }
 
 type ModelsIdentitySubType string
@@ -5743,6 +6031,7 @@ type ModelsSBOMProject struct {
 	Commits []string `json:"commits,omitempty"`
 	ProjectID string `json:"projectId"`
 	ProjectName *string `json:"projectName,omitempty"`
+	Superseded *bool `json:"superseded,omitempty"`
 }
 
 type ModelsSBOMProvenance struct {
@@ -5759,6 +6048,7 @@ type ModelsSBOMRepository struct {
 }
 
 type ModelsSBOMScope struct {
+	Cause *string `json:"cause,omitempty"`
 	Dir *string `json:"dir,omitempty"`
 	Ecosystems []string `json:"ecosystems,omitempty"`
 	Path *string `json:"path,omitempty"`
@@ -6567,6 +6857,7 @@ type RepocontextIaCCloudLink struct {
 	CloudSubType *string `json:"cloudSubType,omitempty"`
 	Confidence *RepocontextConfidence `json:"confidence,omitempty"`
 	DeclarationID *string `json:"declarationId,omitempty"`
+	Environments []string `json:"environments,omitempty"`
 	Evidence []RepocontextRepoContextEvidence `json:"evidence,omitempty"`
 	File *string `json:"file,omitempty"`
 	Line *int `json:"line,omitempty"`
@@ -6578,6 +6869,7 @@ type RepocontextIaCCloudLink struct {
 	RootDir *string `json:"rootDir,omitempty"`
 	Source *RepocontextIaCCloudLinkSource `json:"source,omitempty"`
 	Status *RepocontextIaCCloudLinkStatus `json:"status,omitempty"`
+	VarFiles []string `json:"varFiles,omitempty"`
 }
 
 type RepocontextIaCCloudLinkMatchMethod string
@@ -7848,3 +8140,27 @@ const (
 	RepocontextTrustedServiceTypeRabbitmq RepocontextTrustedServiceType = "RABBITMQ"
 	RepocontextTrustedServiceTypeRedis RepocontextTrustedServiceType = "REDIS"
 )
+
+type SchemautilsOperationTrust struct {
+	Asserted *bool `json:"asserted,omitempty"`
+	AuthenticationUnknown *bool `json:"authenticationUnknown,omitempty"`
+	Citation *string `json:"citation,omitempty"`
+	MountedPath *string `json:"mountedPath,omitempty"`
+	OtherBases []string `json:"otherBases,omitempty"`
+	Source *string `json:"source,omitempty"`
+}
+
+type SchemautilsSpecProvenance struct {
+	ActorKind *string `json:"actorKind,omitempty"`
+	ApiName *string `json:"apiName,omitempty"`
+	ApiOrigin *string `json:"apiOrigin,omitempty"`
+	ArtifactID *string `json:"artifactId,omitempty"`
+	Basis *string `json:"basis,omitempty"`
+	Digest *string `json:"digest,omitempty"`
+	Operations map[string]SchemautilsOperationTrust `json:"operations,omitempty"`
+	Origin *string `json:"origin,omitempty"`
+	Pipeline *string `json:"pipeline,omitempty"`
+	Refresh *string `json:"refresh,omitempty"`
+	SourceCommit *string `json:"sourceCommit,omitempty"`
+	Validation *string `json:"validation,omitempty"`
+}

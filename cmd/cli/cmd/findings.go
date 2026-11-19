@@ -188,7 +188,7 @@ func newFindingVerbCommand(verb findings.Verb) *cobra.Command {
 			if err != nil {
 				return findingsError(err)
 			}
-			return reportVerb(cmd, verb, findingType, data)
+			return output.Print(cmd, data)
 		},
 	}
 
@@ -203,13 +203,6 @@ func newFindingVerbCommand(verb findings.Verb) *cobra.Command {
 		_ = cmd.MarkFlagRequired("reason")
 	}
 	return cmd
-}
-
-func reportVerb(cmd *cobra.Command, verb findings.Verb, findingType string, data []byte) error {
-	if warning := verb.Warning(findingType); warning != "" {
-		fmt.Fprintln(cmd.ErrOrStderr(), "Warning: "+warning)
-	}
-	return output.Print(cmd, data)
 }
 
 func newFindingFeedbackCommand() *cobra.Command {

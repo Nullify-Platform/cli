@@ -125,6 +125,7 @@ type CreateOrchestratorAutofixIteratePrInput struct {
 	OwnerProvider models.ModelsOwnerProvider `json:"ownerProvider"`
 	PullRequest models.ModelsGitPullRequestProvider `json:"pullRequest"`
 	Reason *string `json:"reason,omitempty"`
+	RepairInstructions *string `json:"repairInstructions,omitempty"`
 	Repository models.ModelsGitRepositoryProvider `json:"repository"`
 	models.RequestScope
 }
@@ -152,11 +153,13 @@ func (c *Client) CreateOrchestratorAutofixIteratePr(ctx context.Context, in Crea
 		OwnerProvider models.ModelsOwnerProvider `json:"ownerProvider"`
 		PullRequest models.ModelsGitPullRequestProvider `json:"pullRequest"`
 		Reason *string `json:"reason,omitempty"`
+		RepairInstructions *string `json:"repairInstructions,omitempty"`
 		Repository models.ModelsGitRepositoryProvider `json:"repository"`
 	}{
 		OwnerProvider: in.OwnerProvider,
 		PullRequest: in.PullRequest,
 		Reason: in.Reason,
+		RepairInstructions: in.RepairInstructions,
 		Repository: in.Repository,
 	})
 	if err != nil {
@@ -286,11 +289,20 @@ func (c *Client) CreateOrchestratorCheckrunsOverride(ctx context.Context, in Cre
 // ListOrchestratorCodereviewsInput is the input for ListOrchestratorCodereviews — Get Code Reviews.
 type ListOrchestratorCodereviewsInput struct {
 	Blocked *bool `url:"blocked,omitempty" json:"-"`
+	Branch *string `url:"branch,omitempty" json:"-"`
+	CommitSha *string `url:"commitSha,omitempty" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	IncludeSkipped *bool `url:"includeSkipped,omitempty" json:"-"`
+	IncludeUnverified *bool `url:"includeUnverified,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
 	NextToken *string `url:"nextToken,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
+	PullRequestNumber *int `url:"pullRequestNumber,omitempty" json:"-"`
+	RepositoryID *string `url:"repositoryId,omitempty" json:"-"`
+	Search *string `url:"search,omitempty" json:"-"`
 	Since *string `url:"since,omitempty" json:"-"`
+	Status *string `url:"status,omitempty" json:"-"`
+	Until *string `url:"until,omitempty" json:"-"`
 	models.RequestScope
 }
 
@@ -302,6 +314,30 @@ func (c *Client) ListOrchestratorCodereviews(ctx context.Context, in ListOrchest
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
 		query.Set(k, v)
+	}
+	if in.IncludeUnverified != nil {
+		query.Set("includeUnverified", strconv.FormatBool(*in.IncludeUnverified))
+	}
+	if in.Search != nil {
+		query.Set("search", string(*in.Search))
+	}
+	if in.RepositoryID != nil {
+		query.Set("repositoryId", string(*in.RepositoryID))
+	}
+	if in.Branch != nil {
+		query.Set("branch", string(*in.Branch))
+	}
+	if in.CommitSha != nil {
+		query.Set("commitSha", string(*in.CommitSha))
+	}
+	if in.PullRequestNumber != nil {
+		query.Set("pullRequestNumber", strconv.Itoa(int(*in.PullRequestNumber)))
+	}
+	if in.Status != nil {
+		query.Set("status", string(*in.Status))
+	}
+	if in.Until != nil {
+		query.Set("until", string(*in.Until))
 	}
 	if in.NextToken != nil {
 		query.Set("nextToken", string(*in.NextToken))
@@ -317,6 +353,9 @@ func (c *Client) ListOrchestratorCodereviews(ctx context.Context, in ListOrchest
 	}
 	if in.Since != nil {
 		query.Set("since", string(*in.Since))
+	}
+	if in.IncludeSkipped != nil {
+		query.Set("includeSkipped", strconv.FormatBool(*in.IncludeSkipped))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
@@ -371,6 +410,91 @@ func (c *Client) GetOrchestratorCodereviewsId(ctx context.Context, in GetOrchest
 		return nil, err
 	}
 	var out models.EndpointsGetCodeReviewOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListOrchestratorCodereviewsIdControlsInput is the input for ListOrchestratorCodereviewsIdControls — Get current code review controls.
+type ListOrchestratorCodereviewsIdControlsInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListOrchestratorCodereviewsIdControls - Get current code review controls
+// GET /orchestrator/codereviews/{id}/controls
+func (c *Client) ListOrchestratorCodereviewsIdControls(ctx context.Context, in ListOrchestratorCodereviewsIdControlsInput) (*models.EndpointsGetCodeReviewControlsOutput, error) {
+	path := "/orchestrator/codereviews/{id}/controls"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetCodeReviewControlsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// CreateOrchestratorCodereviewsIdOverrideInput is the input for CreateOrchestratorCodereviewsIdOverride — Withdraw Nullify change requests.
+type CreateOrchestratorCodereviewsIdOverrideInput struct {
+	ID string `path:"id" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	Reason string `json:"reason"`
+	models.RequestScope
+}
+
+// CreateOrchestratorCodereviewsIdOverride - Withdraw Nullify change requests
+// POST /orchestrator/codereviews/{id}/override
+func (c *Client) CreateOrchestratorCodereviewsIdOverride(ctx context.Context, in CreateOrchestratorCodereviewsIdOverrideInput) (*models.EndpointsPostCodeReviewOverrideOutput, error) {
+	path := "/orchestrator/codereviews/{id}/override"
+	path = strings.Replace(path, "{id}", url.PathEscape(in.ID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		Reason string `json:"reason"`
+	}{
+		Reason: in.Reason,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsPostCodeReviewOverrideOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}

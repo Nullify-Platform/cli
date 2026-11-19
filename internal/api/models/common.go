@@ -10,13 +10,18 @@ type EndpointsAutofixStatusOutput struct {
 	AutofixVerdictExplanation *string `json:"autofixVerdictExplanation,omitempty"`
 	AutofixVerdictReason *ModelsAutofixFailureReason `json:"autofixVerdictReason,omitempty"`
 	AvailableActions []EndpointsAvailableAction `json:"availableActions,omitempty"`
+	BlockMessage *string `json:"blockMessage,omitempty"`
+	BlockReason *EndpointsAutofixBlockReason `json:"blockReason,omitempty"`
 	Coordination *EndpointsAutofixCoordination `json:"coordination,omitempty"`
 	CurrentActivity *string `json:"currentActivity,omitempty"`
 	CurrentPhase *ModelsAutofixPhase `json:"currentPhase,omitempty"`
 	IsAutoFixable *bool `json:"isAutoFixable,omitempty"`
 	Iterations *EndpointsIterationSummary `json:"iterations,omitempty"`
 	LastActivityAt *string `json:"lastActivityAt,omitempty"`
+	LastFailureDeterministic *bool `json:"lastFailureDeterministic,omitempty"`
+	LastFailureReason *string `json:"lastFailureReason,omitempty"`
 	Outcome *EndpointsAutofixOutcome `json:"outcome,omitempty"`
+	Preview *EndpointsAutofixPreview `json:"preview,omitempty"`
 	PullRequestState *ModelsPullRequestState `json:"pullRequestState,omitempty"`
 	PullRequestURL *string `json:"pullRequestUrl,omitempty"`
 	PullRequests []EndpointsPullRequestSummary `json:"pullRequests,omitempty"`
@@ -31,7 +36,6 @@ type EndpointsFindingTriageStatus string
 const (
 	EndpointsFindingTriageStatusPending EndpointsFindingTriageStatus = "pending"
 	EndpointsFindingTriageStatusCompleted EndpointsFindingTriageStatus = "completed"
-	EndpointsFindingTriageStatusIncomplete EndpointsFindingTriageStatus = "incomplete"
 	EndpointsFindingTriageStatusFailed EndpointsFindingTriageStatus = "failed"
 )
 
@@ -152,6 +156,7 @@ const (
 	EventsEventTypeDastPentestScanCompleted EventsEventType = "dast-pentest-scan-completed"
 	EventsEventTypeDastPentestScanFailed EventsEventType = "dast-pentest-scan-failed"
 	EventsEventTypeDastPentestStageTransition EventsEventType = "dast-pentest-stage-transition"
+	EventsEventTypeDastPentestSourceGap EventsEventType = "dast-pentest-source-gap"
 	EventsEventTypeBotInteraction EventsEventType = "bot-interaction"
 	EventsEventTypeBotInteractionIssueDashboardReply EventsEventType = "bot-interaction-issue-dashboard-reply"
 	EventsEventTypeBotInteractionPullRequestDiscussionReply EventsEventType = "bot-interaction-pull-request-discussion-reply"
@@ -201,6 +206,7 @@ const (
 	EventsEventTypeManagerActionPrComment EventsEventType = "manager-action-pr-comment"
 	EventsEventTypeManagerActionPrClose EventsEventType = "manager-action-pr-close"
 	EventsEventTypeManagerActionPrReassign EventsEventType = "manager-action-pr-reassign"
+	EventsEventTypeManagerActionPrRepair EventsEventType = "manager-action-pr-repair"
 	EventsEventTypeManagerActionPrRebase EventsEventType = "manager-action-pr-rebase"
 	EventsEventTypeManagerActionMessageUser EventsEventType = "manager-action-message-user"
 	EventsEventTypeManagerActionMessageChannel EventsEventType = "manager-action-message-channel"
@@ -224,6 +230,7 @@ const (
 	EventsEventTypeOrchestratorRetriageRequested EventsEventType = "orchestrator-retriage-requested"
 	EventsEventTypeOrchestratorRetriageQueued EventsEventType = "orchestrator-retriage-queued"
 	EventsEventTypeOrchestratorCheckRunOverridden EventsEventType = "orchestrator-check-run-overridden"
+	EventsEventTypeOrchestratorReviewOverridden EventsEventType = "orchestrator-review-overridden"
 	EventsEventTypePipelineTriggered EventsEventType = "pipeline-triggered"
 	EventsEventTypePipelineFinished EventsEventType = "pipeline-finished"
 	EventsEventTypePipelineFailed EventsEventType = "pipeline-failed"
@@ -325,9 +332,12 @@ type FrameworksVulnManagementFrameworks struct {
 }
 
 type GraphGraph struct {
+	CveAssessments []GraphCVEAssessment `json:"cveAssessments,omitempty"`
 	Edges []GraphEdge `json:"edges,omitempty"`
+	InvestigationStopReason *string `json:"investigationStopReason,omitempty"`
 	Nodes []json.RawMessage `json:"nodes,omitempty"`
 	PathAssessment *GraphPathAssessment `json:"pathAssessment,omitempty"`
+	StorageVersion *string `json:"storageVersion,omitempty"`
 }
 
 type LanguageCodeLanguage string
@@ -437,7 +447,10 @@ const (
 	ModelsAutofixFailureReasonMultipleSourceFiles ModelsAutofixFailureReason = "MULTIPLE_SOURCE_FILES"
 	ModelsAutofixFailureReasonNoFixAvailable ModelsAutofixFailureReason = "NO_FIX_AVAILABLE"
 	ModelsAutofixFailureReasonNoPatchedVersion ModelsAutofixFailureReason = "NO_PATCHED_VERSION"
+	ModelsAutofixFailureReasonLockedPlatformConflict ModelsAutofixFailureReason = "LOCKED_PLATFORM_CONFLICT"
 	ModelsAutofixFailureReasonPrCreateFailed ModelsAutofixFailureReason = "PR_CREATE_FAILED"
+	ModelsAutofixFailureReasonNoVerifiedTarget ModelsAutofixFailureReason = "NO_VERIFIED_TARGET"
+	ModelsAutofixFailureReasonRegistryConnectionRequired ModelsAutofixFailureReason = "REGISTRY_CONNECTION_REQUIRED"
 )
 
 type ModelsCandidate struct {
@@ -521,6 +534,11 @@ type ModelsExploitEvidenceAttachment struct {
 type ModelsFileOwner struct {
 	Name string `json:"name"`
 	Type ModelsOwnerType `json:"type"`
+}
+
+type ModelsFindingBatchFailure struct {
+	Code ModelsFindingBatchFailureCode `json:"code"`
+	FindingID string `json:"findingId"`
 }
 
 type ModelsFindingProgress struct {
@@ -743,6 +761,7 @@ const (
 	ModelsProviderIDNucleus ModelsProviderID = "Nucleus"
 	ModelsProviderIDPhoenix ModelsProviderID = "Phoenix"
 	ModelsProviderIDWiz ModelsProviderID = "Wiz"
+	ModelsProviderIDOrca ModelsProviderID = "Orca"
 	ModelsProviderIDEmail ModelsProviderID = "Email"
 	ModelsProviderIDWebhook ModelsProviderID = "Webhook"
 	ModelsProviderIDPagerduty ModelsProviderID = "PagerDuty"
@@ -787,6 +806,8 @@ type ModelsPullRequestInfo struct {
 	HasCustomerCommit *bool `json:"hasCustomerCommit,omitempty"`
 	HasCustomerFeedback *bool `json:"hasCustomerFeedback,omitempty"`
 	ID int `json:"id"`
+	IdleSince *string `json:"idleSince,omitempty"`
+	LastEventAt *string `json:"lastEventAt,omitempty"`
 	LastReviewedAt *string `json:"lastReviewedAt,omitempty"`
 	Link string `json:"link"`
 	MergedAt *string `json:"mergedAt,omitempty"`
@@ -933,7 +954,6 @@ type ModelsTriage struct {
 	Description *string `json:"description,omitempty"`
 	DescriptionSummary *string `json:"descriptionSummary,omitempty"`
 	DevDescription *string `json:"devDescription,omitempty"`
-	DevTitle *string `json:"devTitle,omitempty"`
 	DismissalBasis *string `json:"dismissalBasis,omitempty"`
 	DismissalEvidence *string `json:"dismissalEvidence,omitempty"`
 	Evidence *GraphGraph `json:"evidence,omitempty"`
@@ -962,17 +982,6 @@ type ModelsTriage struct {
 	Title *string `json:"title,omitempty"`
 	VerdictHoldReason *string `json:"verdictHoldReason,omitempty"`
 	Version *int `json:"version,omitempty"`
-}
-
-type ModelsTriageContainerAssessment struct {
-	AssessedCVEs *int `json:"assessedCVEs,omitempty"`
-	Batches []ModelsTriageContainerAssessmentBatchesElem `json:"batches,omitempty"`
-	FailureReasons []string `json:"failureReasons,omitempty"`
-	InputHash *string `json:"inputHash,omitempty"`
-	Status *ModelsTriageContainerAssessmentStatus `json:"status,omitempty"`
-	TotalCVEs *int `json:"totalCVEs,omitempty"`
-	UnassessedCVEs []string `json:"unassessedCVEs,omitempty"`
-	UnassessedCount *int `json:"unassessedCount,omitempty"`
 }
 
 type ModelsTriageSeverityConfidence string

@@ -117,3 +117,44 @@ func (c *Client) CreateFindingsFindingIdFeedback(ctx context.Context, in CreateF
 	}
 	return &out, nil
 }
+
+// ListFindingsFindingIdTriageVersionsInput is the input for ListFindingsFindingIdTriageVersions — List a finding's triage versions.
+type ListFindingsFindingIdTriageVersionsInput struct {
+	FindingID string `path:"findingId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// SetFindingID sets the finding that the request targets.
+func (in *ListFindingsFindingIdTriageVersionsInput) SetFindingID(id string) { in.FindingID = id }
+
+// ListFindingsFindingIdTriageVersions - List a finding's triage versions
+// GET /findings/{findingId}/triage/versions
+func (c *Client) ListFindingsFindingIdTriageVersions(ctx context.Context, in ListFindingsFindingIdTriageVersionsInput) (*models.EndpointsGetFindingTriageVersionsOutput, error) {
+	path := "/findings/{findingId}/triage/versions"
+	path = strings.Replace(path, "{findingId}", url.PathEscape(in.FindingID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetFindingTriageVersionsOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}

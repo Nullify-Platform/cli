@@ -131,9 +131,14 @@ func TestSanitizeNullifyHost(t *testing.T) {
 			expectedHost: "nullify.ai",
 		},
 		{
-			name:         "tenant host is not the router",
+			name:         "tenant dashboard host is not the router",
 			inputHost:    "app.acme.nullify.ai",
-			expectedHost: "app.acme.nullify.ai",
+			expectedHost: "acme.nullify.ai",
+		},
+		{
+			name:         "pasted tenant dashboard URL",
+			inputHost:    "https://app.acme.nullify.ai/findings?tab=open",
+			expectedHost: "acme.nullify.ai",
 		},
 		{
 			name:         "input host with invalid scheme delimiter",

@@ -41,6 +41,7 @@ type EndpointsCheckRunResponse struct {
 	ID string `json:"id"`
 	IsDefaultBranch bool `json:"isDefaultBranch"`
 	Overridable bool `json:"overridable"`
+	PassedWithFindings *bool `json:"passedWithFindings,omitempty"`
 	PullRequest *ModelsGitPullRequestProvider `json:"pullRequest,omitempty"`
 	PullRequestNumber *int64 `json:"pullRequestNumber,omitempty"`
 	PullRequestTitle *string `json:"pullRequestTitle,omitempty"`
@@ -56,28 +57,72 @@ type EndpointsCheckRunResponse struct {
 	Summary *string `json:"summary,omitempty"`
 }
 
+type EndpointsCodeReviewCheck struct {
+	Conclusion string `json:"conclusion"`
+	GateResult *string `json:"gateResult,omitempty"`
+	Name string `json:"name"`
+	OverriddenAt *string `json:"overriddenAt,omitempty"`
+	OverriddenBy *string `json:"overriddenBy,omitempty"`
+}
+
+type EndpointsCodeReviewScan struct {
+	CompletedAt *string `json:"completedAt,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	FixedFindingsCount *int `json:"fixedFindingsCount,omitempty"`
+	ID string `json:"id"`
+	LiveFindingsCount *int `json:"liveFindingsCount,omitempty"`
+	NewFindingsCount *int `json:"newFindingsCount,omitempty"`
+	ScanType string `json:"scanType"`
+	StartedAt string `json:"startedAt"`
+	Status *string `json:"status,omitempty"`
+}
+
+type EndpointsCodeReviewStage struct {
+	Coverage *string `json:"coverage,omitempty"`
+	CoverageNote *string `json:"coverageNote,omitempty"`
+	FinishedAt *string `json:"finishedAt,omitempty"`
+	LiveFindingsCount *int `json:"liveFindingsCount,omitempty"`
+	ScanRunIds []string `json:"scanRunIds,omitempty"`
+	Stage *string `json:"stage,omitempty"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	State *string `json:"state,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
 type EndpointsCodeReviewsResponse struct {
 	BlockingFindings *int `json:"blockingFindings,omitempty"`
 	Branch string `json:"branch"`
 	CheckName *string `json:"checkName,omitempty"`
 	CheckOverriddenAt *string `json:"checkOverriddenAt,omitempty"`
 	CheckOverriddenBy *string `json:"checkOverriddenBy,omitempty"`
+	Checks []EndpointsCodeReviewCheck `json:"checks,omitempty"`
 	CommitSha string `json:"commitSha"`
 	CompletedAt *string `json:"completedAt,omitempty"`
+	DispatchedAt *string `json:"dispatchedAt,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	FormalReviewBlockingCount *int `json:"formalReviewBlockingCount,omitempty"`
+	FormalReviewState *string `json:"formalReviewState,omitempty"`
+	FormalReviewUpdatedAt *string `json:"formalReviewUpdatedAt,omitempty"`
 	GateMode *string `json:"gateMode,omitempty"`
 	GatePolicy *string `json:"gatePolicy,omitempty"`
 	GateResult *string `json:"gateResult,omitempty"`
 	ID string `json:"id"`
 	IncompleteScanners []string `json:"incompleteScanners,omitempty"`
 	IsDefaultBranch bool `json:"isDefaultBranch"`
+	Phase *string `json:"phase,omitempty"`
 	ProcessedFindings *int `json:"processedFindings,omitempty"`
 	PullRequest *ModelsGitPullRequestProvider `json:"pullRequest,omitempty"`
 	Repository *ModelsGitRepositoryProvider `json:"repository,omitempty"`
 	RepositoryID string `json:"repositoryId"`
+	ReusedRunID *string `json:"reusedRunId,omitempty"`
 	ScanConclusion *string `json:"scanConclusion,omitempty"`
+	ScanIdentityVersion *int `json:"scanIdentityVersion,omitempty"`
+	Scans []EndpointsCodeReviewScan `json:"scans,omitempty"`
 	SkippedScanners []string `json:"skippedScanners,omitempty"`
+	Stages []EndpointsCodeReviewStage `json:"stages,omitempty"`
 	StartedAt string `json:"startedAt"`
 	Status string `json:"status"`
+	TargetBranch *string `json:"targetBranch,omitempty"`
 	TotalFindings *int `json:"totalFindings,omitempty"`
 }
 
@@ -115,8 +160,24 @@ type EndpointsGetCheckRunsOutput struct {
 	Partial bool `json:"partial"`
 	RepositoriesRead int `json:"repositoriesRead"`
 	ScopeTruncated bool `json:"scopeTruncated"`
+	UnreadableReasons map[string]string `json:"unreadableReasons,omitempty"`
 	UnreadableRepositories []string `json:"unreadableRepositories,omitempty"`
 	UnreadableRepositoryIds []string `json:"unreadableRepositoryIds,omitempty"`
+}
+
+type EndpointsGetCodeReviewControlsOutput struct {
+	BlockingReviewCount int `json:"blockingReviewCount"`
+	CurrentHead bool `json:"currentHead"`
+	FormalReviewsSupported bool `json:"formalReviewsSupported"`
+	HeadReviewID *string `json:"headReviewId,omitempty"`
+	HeadSha *string `json:"headSha,omitempty"`
+	PullRequestOpen bool `json:"pullRequestOpen"`
+	PullRequestState *string `json:"pullRequestState,omitempty"`
+	PullRequestTitle *string `json:"pullRequestTitle,omitempty"`
+	ReadError *string `json:"readError,omitempty"`
+	WithdrawalAuditPending bool `json:"withdrawalAuditPending"`
+	WithdrawnAt *string `json:"withdrawnAt,omitempty"`
+	WithdrawnBy *string `json:"withdrawnBy,omitempty"`
 }
 
 type EndpointsGetCodeReviewOutput struct {
@@ -125,6 +186,7 @@ type EndpointsGetCodeReviewOutput struct {
 }
 
 type EndpointsGetCodeReviewsOutput struct {
+	FiltersApplied *bool `json:"filtersApplied,omitempty"`
 	NextToken *string `json:"nextToken,omitempty"`
 	NumItems int `json:"numItems"`
 	Reviews []EndpointsCodeReviewsResponse `json:"reviews,omitempty"`
@@ -204,9 +266,11 @@ type EndpointsOnboardingStatusResponse struct {
 	CompletedSteps []string `json:"completedSteps,omitempty"`
 	CompletionType *string `json:"completionType,omitempty"`
 	CurrentPhase *string `json:"currentPhase,omitempty"`
+	CurrentStage *string `json:"currentStage,omitempty"`
 	CurrentStep *int `json:"currentStep,omitempty"`
 	ErrorMessage *string `json:"errorMessage,omitempty"`
 	ExecutionArn *string `json:"executionArn,omitempty"`
+	ExecutionStarted *bool `json:"executionStarted,omitempty"`
 	FailedStep *string `json:"failedStep,omitempty"`
 	IsOnboarded bool `json:"isOnboarded"`
 	LastCompletedStep *string `json:"lastCompletedStep,omitempty"`
@@ -236,7 +300,7 @@ type EndpointsPostBatchAutofixInput struct {
 }
 
 type EndpointsPostBatchAutofixOutput struct {
-	ExecutionArn string `json:"executionArn"`
+	ExecutionArn *string `json:"executionArn,omitempty"`
 	ExecutionID string `json:"executionId"`
 	Message string `json:"message"`
 	Version *string `json:"version,omitempty"`
@@ -269,10 +333,25 @@ type EndpointsPostCloseFindingTicketOutput struct {
 	Version *string `json:"version,omitempty"`
 }
 
+type EndpointsPostCodeReviewOverrideInput struct {
+	Reason string `json:"reason"`
+}
+
+type EndpointsPostCodeReviewOverrideOutput struct {
+	AuditAttempted bool `json:"auditAttempted"`
+	AuditRecorded bool `json:"auditRecorded"`
+	Dismissed bool `json:"dismissed"`
+	HeadChanged bool `json:"headChanged"`
+	Message string `json:"message"`
+	Partial bool `json:"partial"`
+	Uncleared int `json:"uncleared"`
+}
+
 type EndpointsPostIterateAutofixPRInput struct {
 	OwnerProvider ModelsOwnerProvider `json:"ownerProvider"`
 	PullRequest ModelsGitPullRequestProvider `json:"pullRequest"`
 	Reason *string `json:"reason,omitempty"`
+	RepairInstructions *string `json:"repairInstructions,omitempty"`
 	Repository ModelsGitRepositoryProvider `json:"repository"`
 }
 
@@ -383,6 +462,7 @@ type EndpointsStartOnboardingInput struct {
 
 type EndpointsStartOnboardingOutput struct {
 	ExecutionArn *string `json:"executionArn,omitempty"`
+	ExecutionStarted *bool `json:"executionStarted,omitempty"`
 	Message string `json:"message"`
 	Version *string `json:"version,omitempty"`
 }
@@ -506,6 +586,7 @@ type ModelsCommit struct {
 }
 
 type ModelsGitBuild struct {
+	PublisherIdentityKnown *bool `json:"publisherIdentityKnown,omitempty"`
 }
 
 type ModelsGitBuildProvider struct {
@@ -641,6 +722,7 @@ type ModelsRetriageMessage struct {
 	Author *ModelsUser `json:"author,omitempty"`
 	CloneURL *string `json:"cloneUrl,omitempty"`
 	Comment *ModelsChatCommentReference `json:"comment,omitempty"`
+	ContextMemoryIds []string `json:"contextMemoryIds,omitempty"`
 	ContextPresignedURL *string `json:"contextPresignedURL,omitempty"`
 	Entrypoints map[string][]string `json:"entrypoints,omitempty"`
 	GitBuildProvider *ModelsGitBuildProvider `json:"gitBuildProvider,omitempty"`
@@ -665,6 +747,8 @@ type ModelsRetriageRequester string
 
 const (
 	ModelsRetriageRequesterHuman ModelsRetriageRequester = "human"
+	ModelsRetriageRequesterContextUpdate ModelsRetriageRequester = "context_update"
+	ModelsRetriageRequesterExploitVerdict ModelsRetriageRequester = "exploit_verdict"
 )
 
 type ModelsRetriageTriggerSource string

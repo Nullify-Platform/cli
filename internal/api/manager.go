@@ -496,10 +496,126 @@ func (c *Client) CreateManagerActionItemsActionItemIdDismiss(ctx context.Context
 	return &out, nil
 }
 
+// CreateManagerActionItemsActionItemIdEditInput is the input for CreateManagerActionItemsActionItemIdEdit — Edit Action Item.
+type CreateManagerActionItemsActionItemIdEditInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	AddFindings []models.EndpointsActionItemFindingRef `json:"addFindings,omitempty"`
+	AddLinks []models.EndpointsActionItemLinkRef `json:"addLinks,omitempty"`
+	ClearTeam *bool `json:"clearTeam,omitempty"`
+	DeliveryMode *string `json:"deliveryMode,omitempty"`
+	DetailedQuestion *string `json:"detailedQuestion,omitempty"`
+	Expiry *models.EndpointsActionItemExpiryEdit `json:"expiry,omitempty"`
+	RemoveFindings []models.EndpointsActionItemFindingRef `json:"removeFindings,omitempty"`
+	RemoveLinks []models.EndpointsActionItemLinkRef `json:"removeLinks,omitempty"`
+	Revision string `json:"revision"`
+	TeamID *string `json:"teamId,omitempty"`
+	Title *string `json:"title,omitempty"`
+	models.RequestScope
+}
+
+// CreateManagerActionItemsActionItemIdEdit - Edit Action Item
+// POST /manager/action-items/{actionItemId}/edit
+func (c *Client) CreateManagerActionItemsActionItemIdEdit(ctx context.Context, in CreateManagerActionItemsActionItemIdEditInput) (*models.EndpointsEditActionItemOutput, error) {
+	path := "/manager/action-items/{actionItemId}/edit"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(struct {
+		AddFindings []models.EndpointsActionItemFindingRef `json:"addFindings,omitempty"`
+		AddLinks []models.EndpointsActionItemLinkRef `json:"addLinks,omitempty"`
+		ClearTeam *bool `json:"clearTeam,omitempty"`
+		DeliveryMode *string `json:"deliveryMode,omitempty"`
+		DetailedQuestion *string `json:"detailedQuestion,omitempty"`
+		Expiry *models.EndpointsActionItemExpiryEdit `json:"expiry,omitempty"`
+		RemoveFindings []models.EndpointsActionItemFindingRef `json:"removeFindings,omitempty"`
+		RemoveLinks []models.EndpointsActionItemLinkRef `json:"removeLinks,omitempty"`
+		Revision string `json:"revision"`
+		TeamID *string `json:"teamId,omitempty"`
+		Title *string `json:"title,omitempty"`
+	}{
+		AddFindings: in.AddFindings,
+		AddLinks: in.AddLinks,
+		ClearTeam: in.ClearTeam,
+		DeliveryMode: in.DeliveryMode,
+		DetailedQuestion: in.DetailedQuestion,
+		Expiry: in.Expiry,
+		RemoveFindings: in.RemoveFindings,
+		RemoveLinks: in.RemoveLinks,
+		Revision: in.Revision,
+		TeamID: in.TeamID,
+		Title: in.Title,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal body: %w", err)
+	}
+	data, err := c.do(ctx, "POST", fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsEditActionItemOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// ListManagerActionItemsActionItemIdLinksInput is the input for ListManagerActionItemsActionItemIdLinks — Get Action Item Links.
+type ListManagerActionItemsActionItemIdLinksInput struct {
+	ActionItemID string `path:"actionItemId" json:"-"`
+	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	models.RequestScope
+}
+
+// ListManagerActionItemsActionItemIdLinks - Get Action Item Links
+// GET /manager/action-items/{actionItemId}/links
+func (c *Client) ListManagerActionItemsActionItemIdLinks(ctx context.Context, in ListManagerActionItemsActionItemIdLinksInput) (*models.EndpointsGetActionItemLinksOutput, error) {
+	path := "/manager/action-items/{actionItemId}/links"
+	path = strings.Replace(path, "{actionItemId}", url.PathEscape(in.ActionItemID), 1)
+
+	query := url.Values{}
+	for k, v := range c.DefaultParams {
+		query.Set(k, v)
+	}
+	if in.GithubInstallationID != nil {
+		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))
+	}
+	in.RequestScope.AddTo(query)
+
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL, path)
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	data, err := c.do(ctx, "GET", fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	var out models.EndpointsGetActionItemLinksOutput
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+	return &out, nil
+}
+
 // CreateManagerActionItemsActionItemIdMapUserInput is the input for CreateManagerActionItemsActionItemIdMapUser — Map User For Action Item.
 type CreateManagerActionItemsActionItemIdMapUserInput struct {
 	ActionItemID string `path:"actionItemId" json:"-"`
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
+	ConfirmToken *string `json:"confirmToken,omitempty"`
 	MessageUserID *string `json:"messageUserId,omitempty"`
 	ServiceAccount *bool `json:"serviceAccount,omitempty"`
 	models.RequestScope
@@ -526,9 +642,11 @@ func (c *Client) CreateManagerActionItemsActionItemIdMapUser(ctx context.Context
 	}
 
 	bodyBytes, err := json.Marshal(struct {
+		ConfirmToken *string `json:"confirmToken,omitempty"`
 		MessageUserID *string `json:"messageUserId,omitempty"`
 		ServiceAccount *bool `json:"serviceAccount,omitempty"`
 	}{
+		ConfirmToken: in.ConfirmToken,
 		MessageUserID: in.MessageUserID,
 		ServiceAccount: in.ServiceAccount,
 	})
@@ -1070,6 +1188,7 @@ func (c *Client) ListManagerCampaignsMetricsRefresh(ctx context.Context, in List
 type ListManagerCampaignsPreviewsInput struct {
 	GithubInstallationID *int64 `url:"githubInstallationId,omitempty" json:"-"`
 	Limit *int `url:"limit,omitempty" json:"-"`
+	MappedFindingsOnly *bool `url:"mappedFindingsOnly,omitempty" json:"-"`
 	Offset *int `url:"offset,omitempty" json:"-"`
 	Page *int `url:"page,omitempty" json:"-"`
 	PageSize *int `url:"pageSize,omitempty" json:"-"`
@@ -1096,6 +1215,9 @@ func (c *Client) ListManagerCampaignsPreviews(ctx context.Context, in ListManage
 	}
 	if in.Offset != nil {
 		query.Set("offset", strconv.Itoa(int(*in.Offset)))
+	}
+	if in.MappedFindingsOnly != nil {
+		query.Set("mappedFindingsOnly", strconv.FormatBool(*in.MappedFindingsOnly))
 	}
 	if in.GithubInstallationID != nil {
 		query.Set("githubInstallationId", strconv.FormatInt(*in.GithubInstallationID, 10))

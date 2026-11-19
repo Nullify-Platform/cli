@@ -152,6 +152,9 @@ func fakeRouterLogin(t *testing.T) func(w http.ResponseWriter, r *http.Request, 
 func stubBrowser(t *testing.T) {
 	t.Helper()
 	var wg sync.WaitGroup
+	oldVerify := verifyAuthURL
+	verifyAuthURL = func(string, string) error { return nil }
+	t.Cleanup(func() { verifyAuthURL = oldVerify })
 	old := openBrowser
 	openBrowser = func(url string) error {
 		wg.Add(1)

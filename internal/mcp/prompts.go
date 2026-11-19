@@ -134,7 +134,8 @@ func registerPrompts(s *server.MCPServer) {
 			return promptResult(
 				"Repository investigation",
 				"Investigate the security posture of the "+repo+" repository. "+
-					"Call nullify_search_findings for each finding type (sast, sca_dependencies, sca_containers, secrets, pentest, bughunt, cspm) with repository="+repo+". "+
+					"Call nullify_search_findings for each finding type that can belong to a repository (sast, sca_dependencies, sca_containers, secrets, pentest, scpm) with repository="+repo+". "+
+					"Cloud (cspm) and bug hunt (bughunt) findings have no repository, so a repository search never returns them: leave them out. "+
 					"Summarize the findings by type and severity, identify the most critical issues, and recommend a prioritized remediation plan.",
 			), nil
 		},

@@ -503,6 +503,24 @@ func TestWhoamiReportsHostsAndOrg(t *testing.T) {
 	require.Contains(t, info["org"], "acme-payments")
 }
 
+// whoami with an API token and no stored login reports the token, which is
+// what every other command signs in with, instead of "no credentials".
+func TestWhoamiReportsAnAPIToken(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	resetCommandFlags(t)
+	t.Setenv("NULLIFY_HOST", "acme.nullify.ai")
+	t.Setenv("NULLIFY_TOKEN", "machine-token")
+	t.Setenv("NULLIFY_GITHUB_OWNER_ID", "")
+
+	whoamiCmd.SetContext(context.Background())
+	out := captureStdout(t, func() { require.NoError(t, whoamiCmd.RunE(whoamiCmd, nil)) })
+	var info map[string]any
+	require.NoError(t, json.Unmarshal([]byte(out), &info), out)
+	require.Equal(t, true, info["authenticated"], out)
+	require.Equal(t, "api_token", info["auth"])
+	require.NotContains(t, info, "error")
+}
+
 // auth status and auth config report an invalid NULLIFY_HOST or config host
 // as an error, not as "no host configured".
 func TestAuthStatusReportsAnInvalidEnvOrConfigHost(t *testing.T) {

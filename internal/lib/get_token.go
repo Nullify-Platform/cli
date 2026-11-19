@@ -24,6 +24,14 @@ type githubToken struct {
 	Token string `json:"accessToken"`
 }
 
+// githubTokenURL is the exchange endpoint on the instance's API host. The
+// bare instance name ("acme.nullify.ai") is not the API: it points at the
+// marketing site, so the exchange must name "api.acme.nullify.ai". It is a
+// var so tests can point it at a local server.
+var githubTokenURL = func(nullifyHost string) string {
+	return "https://api." + strings.TrimPrefix(nullifyHost, "api.") + "/auth/github_token"
+}
+
 // GetNullifyToken resolves a token from the first source that provides one:
 // the --nullify-token flag, NULLIFY_TOKEN, a GitHub Actions token exchange, or
 // the stored credentials.
@@ -103,7 +111,7 @@ func resolveNullifyToken(
 		if err != nil {
 			return "", err
 		}
-		tokenURL := fmt.Sprintf("https://%s/auth/github_token", nullifyHost)
+		tokenURL := githubTokenURL(nullifyHost)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, bytes.NewReader(reqBody))
 		if err != nil {

@@ -11,8 +11,8 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerUnifiedTools(s *server.MCPServer, c *api.Client) {
-	registerSearchTool(s, c)
+func registerUnifiedTools(s *server.MCPServer, c *api.Client, d Defaults) {
+	registerSearchTool(s, c, d)
 	registerFindingEventsTool(s, c)
 	for _, verb := range findings.Verbs {
 		if !verb.OptIn {
@@ -37,7 +37,10 @@ const findingsSearchScope = "The search returns triaged findings only: a finding
 // repositoryFilterHelp describes how the unified search matches a repository.
 const repositoryFilterHelp = "Repository, owner/name preferred. It must match the stored name exactly, so a wrong name returns nothing. A bare name misses pentest findings that hold the full name. Cloud and bug hunt findings have no repository, so this filter excludes them."
 
-func registerSearchTool(s *server.MCPServer, c *api.Client) {
+// repositoryDefaultHelp describes the default of the search's repository filter.
+const repositoryDefaultHelp = " When it is omitted, a server started with --repo or inside a git repository searches that repository, except for cloud and bug hunt findings. Pass " + allRepositories + " to search every repository."
+
+func registerSearchTool(s *server.MCPServer, c *api.Client, d Defaults) {
 	s.AddTool(
 		readOnlyTool(
 			"nullify_search_findings",
@@ -45,27 +48,30 @@ func registerSearchTool(s *server.MCPServer, c *api.Client) {
 			mcp.WithString("type", mcp.Description("Finding type to search"), mcp.Enum(findings.AcceptedNames(func(findings.Type) bool { return true })...)),
 			mcp.WithString("severity", mcp.Description("Filter by severity"), mcp.Enum("critical", "high", "medium", "low")),
 			mcp.WithString("status", mcp.Description("Filter by status"), mcp.Enum(findings.Statuses...)),
-			mcp.WithString("repository", mcp.Description(repositoryFilterHelp)),
+			mcp.WithString("repository", mcp.Description(repositoryFilterHelp+repositoryDefaultHelp)),
 			mcp.WithString("from", mcp.Description("Only findings at or after this RFC 3339 time, such as 2026-11-01T00:00:00Z. Any other format is an error.")),
 			mcp.WithString("to", mcp.Description("Only findings at or before this RFC 3339 time, such as 2026-11-01T00:00:00Z. Any other format is an error.")),
 			mcp.WithNumber("limit", mcp.Description("Max total findings across pages (default 100)")),
 		),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			args := request.GetArguments()
+			var apiTypes []string
+			if name := getStringArg(args, "type"); name != "" {
+				types, err := findings.APITypesFor(name)
+				if err != nil {
+					return toolError(err), nil
+				}
+				apiTypes = types
+			}
+			explicit := getStringArg(args, "repository")
 			opts := findings.SearchOptions{
+				APITypes:   apiTypes,
 				Severity:   getStringArg(args, "severity"),
-				Repository: getStringArg(args, "repository"),
+				Repository: d.searchRepository(explicit, apiTypes),
 				Status:     getStringArg(args, "status"),
 				From:       getStringArg(args, "from"),
 				To:         getStringArg(args, "to"),
 				Limit:      getIntArg(args, "limit", 100),
-			}
-			if name := getStringArg(args, "type"); name != "" {
-				apiTypes, err := findings.APITypesFor(name)
-				if err != nil {
-					return toolError(err), nil
-				}
-				opts.APITypes = apiTypes
 			}
 
 			result, err := findings.Search(ctx, c, opts)
@@ -76,7 +82,7 @@ func registerSearchTool(s *server.MCPServer, c *api.Client) {
 			if err != nil {
 				return toolError(err), nil
 			}
-			return toolResult(string(out)), nil
+			return withNote(toolResult(string(out)), defaultRepositoryNote(explicit, opts.Repository)), nil
 		},
 	)
 }
@@ -187,6 +193,15 @@ func registerFixTool(s *server.MCPServer, c *api.Client) {
 			return toolResult(string(out)), nil
 		},
 	)
+}
+
+// defaultRepositoryNote returns the note for a search that the default
+// repository filtered, and "" when the caller chose the filter or none applied.
+func defaultRepositoryNote(explicit, applied string) string {
+	if explicit != "" || applied == "" {
+		return ""
+	}
+	return repositoryNote(applied)
 }
 
 // wrapRaw converts an API response into an MCP tool result.
