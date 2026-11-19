@@ -43,9 +43,18 @@ func init() {
 	rootCmd.AddCommand(openCmd)
 }
 
+// dashboardURL is the dashboard for commandHost. An instance's dashboard is
+// app.<instance>: the bare instance name points at the marketing site. An
+// instance that signs in through a router shares that router's dashboard,
+// since it may have no dashboard host of its own.
 func dashboardURL(commandHost string) string {
-	if auth.IsRouterHost(commandHost) {
-		return auth.RouterAppURL
+	if router, ok := auth.RouterFor(commandHost); ok {
+		return router.AppURL
 	}
-	return "https://" + strings.TrimPrefix(commandHost, "api.")
+	if authHost, err := auth.AuthHostFor(commandHost); err == nil {
+		if router, ok := auth.RouterFor(authHost); ok {
+			return router.AppURL
+		}
+	}
+	return "https://app." + strings.TrimPrefix(commandHost, "api.")
 }

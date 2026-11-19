@@ -270,14 +270,22 @@ func TestResolveCommandAuthHosts(t *testing.T) {
 }
 
 func TestDashboardURL(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
 	tests := map[string]string{
-		"nullify.ai":          "https://app.nullify.ai",
-		"acme.nullify.ai":     "https://acme.nullify.ai",
-		"api.acme.nullify.ai": "https://acme.nullify.ai",
+		"nullify.ai":            "https://app.nullify.ai",
+		"router.dev.nullify.ai": "https://app.router.dev.nullify.ai",
+		"acme.nullify.ai":       "https://app.acme.nullify.ai",
+		"api.acme.nullify.ai":   "https://app.acme.nullify.ai",
 	}
 	for commandHost, want := range tests {
 		require.Equal(t, want, dashboardURL(commandHost), commandHost)
 	}
+
+	router, ok := auth.RouterFor("nullify.ai")
+	require.True(t, ok)
+	require.NoError(t, auth.BindTenant("bound.nullify.ai", router))
+	require.Equal(t, "https://app.nullify.ai", dashboardURL("bound.nullify.ai"),
+		"an instance bound to the router uses the router's dashboard")
 }
 
 // A router login's MCP server sends requests to the selected data host and

@@ -14,6 +14,7 @@ import (
 //   - "acme" → "api.acme.nullify.ai"
 //   - "acme.nullify.ai" → "api.acme.nullify.ai"
 //   - "api.acme.nullify.ai" → "api.acme.nullify.ai"
+//   - "app.acme.nullify.ai" (the dashboard) → "api.acme.nullify.ai"
 //   - "nullify.ai", "app.nullify.ai" or "api.nullify.ai" → "api.nullify.ai"
 //     (and likewise for the dev router, router.dev.nullify.ai)
 func ParseCustomerDomain(input string) (string, error) {
@@ -36,9 +37,11 @@ func ParseCustomerDomain(input string) (string, error) {
 		return hostname, nil
 	}
 
-	// Has .nullify.ai suffix but no api. prefix
+	// Has .nullify.ai suffix but no api. prefix. A pasted dashboard host
+	// (app.acme.nullify.ai) names the same instance as its API host
+	// (api.acme.nullify.ai): the two are siblings under the instance.
 	if strings.HasSuffix(hostname, ".nullify.ai") {
-		return "api." + hostname, nil
+		return "api." + strings.TrimPrefix(hostname, "app."), nil
 	}
 
 	// Just the customer name
