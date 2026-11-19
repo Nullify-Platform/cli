@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+
+	"github.com/nullify-platform/cli/internal/apierror"
 )
 
 // Org is one organization a request can be scoped to on an API host. Key and
@@ -115,7 +117,7 @@ func fetchOrgs(ctx context.Context, listHost, token string) ([]Org, error) {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
 		err := fmt.Errorf("list organizations on %s: status %d: %s", apiHost(listHost), resp.StatusCode, string(body))
-		if resp.StatusCode == http.StatusUnauthorized {
+		if resp.StatusCode == http.StatusUnauthorized || apierror.IsGatewayForbidden(resp.StatusCode, body) {
 			err = fmt.Errorf("%w: %w", ErrTokenRejected, err)
 		}
 		return nil, err

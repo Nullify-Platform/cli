@@ -9,6 +9,7 @@ import (
 	"maps"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
@@ -30,7 +31,24 @@ var authBaseURL = func(host string) string { return "https://" + apiHost(host) }
 func authClient() *http.Client {
 	c := *httpClient
 	c.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	c.Transport = userAgentTransport{next: c.Transport}
 	return &c
+}
+
+// userAgentTransport names the CLI and its version on the auth requests, as
+// the API client does on every other request.
+type userAgentTransport struct {
+	next http.RoundTripper
+}
+
+func (t userAgentTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	r = r.Clone(r.Context())
+	r.Header.Set("User-Agent", "Nullify-CLI/"+logger.Version)
+	next := t.next
+	if next == nil {
+		next = http.DefaultTransport
+	}
+	return next.RoundTrip(r)
 }
 
 type cliSessionResponse struct {
@@ -82,7 +100,39 @@ func Login(ctx context.Context, host string, picker InstallationPicker) error {
 	if onRouter {
 		return saveRouterLogin(ctx, router, tenant, tokenResp, picker)
 	}
-	return saveTenantLogin(host, tokenResp)
+	org, err := pickTenantOrg(ctx, host, tokenResp.AccessToken, picker)
+	if err != nil {
+		return err
+	}
+	if err := saveTenantLogin(host, tokenResp); err != nil {
+		return err
+	}
+	if org == nil {
+		return nil
+	}
+	if err := RememberOrg(*org); err != nil {
+		return fmt.Errorf("signed in, but could not save %s as the organization - run 'nullify org use %s': %w", org.Name, org.Name, err)
+	}
+	fmt.Printf("Using %s on %s\n", org, org.DataHost())
+	return nil
+}
+
+// pickTenantOrg finds the org --org names on an instance that signs in
+// itself, before the login is saved, so a wrong name saves nothing. It
+// returns nil when --org is not set: the instance's default org applies.
+func pickTenantOrg(ctx context.Context, host, token string, picker InstallationPicker) (*Org, error) {
+	if picker.Name == "" {
+		return nil, nil
+	}
+	list, err := ListOrgs(ctx, host, host, token)
+	if err != nil {
+		return nil, fmt.Errorf("signed in, but could not list the organizations on %s to choose %q: %w", host, picker.Name, err)
+	}
+	org, err := findInstallation(list.Orgs, picker.Name)
+	if err != nil {
+		return nil, err
+	}
+	return &org, nil
 }
 
 func browserLogin(ctx context.Context, authHost string) (*cliTokenResponse, error) {
@@ -103,13 +153,17 @@ func browserLogin(ctx context.Context, authHost string) (*cliTokenResponse, erro
 	mux := http.NewServeMux()
 	mux.Handle("/callback", newLoginCallbackHandler(sessionResp.SessionID, sessionCh))
 
-	server := &http.Server{Handler: mux}
+	server := &http.Server{Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	go func() {
 		if serveErr := server.Serve(listener); serveErr != nil && serveErr != http.ErrServerClosed {
 			errCh <- serveErr
 		}
 	}()
 	defer server.Close()
+
+	if err := verifyAuthURL(sessionResp.AuthURL, authHost); err != nil {
+		return nil, err
+	}
 
 	fmt.Printf("\nOpening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", sessionResp.AuthURL)
@@ -150,7 +204,36 @@ waitLoop:
 	if tokenResp.Error != "" {
 		return nil, fmt.Errorf("authentication failed: %s", tokenResp.Error)
 	}
+	if tokenResp.AccessToken == "" || tokenResp.ExpiresIn <= 0 {
+		return nil, errors.New("authentication failed: the server returned no usable token")
+	}
 	return tokenResp, nil
+}
+
+// verifyAuthURL is checkAuthURL, a var so tests can open a local callback.
+var verifyAuthURL = checkAuthURL
+
+// checkAuthURL refuses a sign-in URL that is not https on the domain of the
+// host the session was created at. The server builds the URL from the host
+// the request reached; the URL is handed to the OS to open, and on Windows
+// the opener runs more than web URLs.
+func checkAuthURL(raw, authHost string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("the server returned an invalid sign-in URL: %w", err)
+	}
+	if u.Scheme != "https" || u.User != nil || !allowedAuthURLHost(u.Hostname(), authHost) {
+		return fmt.Errorf("the server returned a sign-in URL that is not on %s: %q", apiHost(authHost), raw)
+	}
+	return nil
+}
+
+// allowedAuthURLHost reports whether host is the API host the login runs at
+// or another host under the same Nullify instance domain.
+func allowedAuthURLHost(host, authHost string) bool {
+	host = strings.ToLower(host)
+	domain := strings.ToLower(strings.TrimPrefix(apiHost(authHost), "api."))
+	return host == domain || strings.HasSuffix(host, "."+domain)
 }
 
 // saveTenantLogin stores a login a tenant ran itself. The query parameters it
@@ -422,6 +505,58 @@ func CheckSession(ctx context.Context, host string) error {
 	return err
 }
 
+// RevokeLogin asks the auth host to revoke the refresh tokens stored for
+// host, so a copied credentials file stops working at logout instead of
+// living out the refresh token's lifetime. It changes nothing locally: call
+// Logout after it whatever it returns.
+func RevokeLogin(ctx context.Context, host string) error {
+	host = normalizeHost(host)
+	hostCreds, authHost, ok, err := LookupCredentials(host)
+	if errors.Is(err, os.ErrNotExist) || (err == nil && !ok) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	var errs []error
+	revoked := map[string]bool{}
+	revoke := func(authHost, token string) {
+		if token == "" || revoked[token] {
+			return
+		}
+		revoked[token] = true
+		if err := revokeRefreshToken(ctx, authHost, token); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	revoke(authHost, hostCreds.RefreshToken)
+	// A login from before the auth host was recorded sits under host itself.
+	if creds, err := LoadCredentials(); err == nil {
+		revoke(host, creds[CredentialKey(host)].RefreshToken)
+	}
+	return errors.Join(errs...)
+}
+
+// revokeRefreshToken calls GET /auth/logout with the refresh token as its
+// cookie, which revokes it at Cognito.
+func revokeRefreshToken(ctx context.Context, authHost, token string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, authBaseURL(authHost)+"/auth/logout", nil)
+	if err != nil {
+		return err
+	}
+	req.AddCookie(&http.Cookie{Name: "refresh_token", Value: token})
+
+	resp, err := authClient().Do(req)
+	if err != nil {
+		return fmt.Errorf("revoke the login at %s: %w", apiHost(authHost), err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return fmt.Errorf("revoke the login at %s: status %d", apiHost(authHost), resp.StatusCode)
+	}
+	return nil
+}
+
 // Logout removes the credentials that serve host. On a router tenant those
 // are the router login, shared with every other tenant signed in through it.
 func Logout(host string) error {
@@ -464,8 +599,23 @@ func GetValidToken(ctx context.Context, host string) (string, error) {
 	return refreshOnce(ctx, host, false)
 }
 
+// expiryLeeway is how long before its recorded expiry a refreshable token
+// counts as expired. It is longer than the MCP server's token cache, so a
+// token the cache serves for its whole lifetime is never past its expiry.
+const expiryLeeway = 6 * time.Minute
+
+// expired reports whether hostCreds' token should be replaced. Only a token
+// that can be refreshed is replaced early: one with no refresh token is used
+// until it really expires, since nothing can replace it.
 func expired(hostCreds HostCredentials) bool {
-	return hostCreds.ExpiresAt > 0 && time.Now().Unix() > hostCreds.ExpiresAt
+	if hostCreds.ExpiresAt <= 0 {
+		return false
+	}
+	now := time.Now()
+	if hostCreds.RefreshToken != "" {
+		now = now.Add(expiryLeeway)
+	}
+	return now.Unix() >= hostCreds.ExpiresAt
 }
 
 // ErrNotRefreshable reports that the stored credentials for a host carry no

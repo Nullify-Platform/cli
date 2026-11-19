@@ -104,6 +104,11 @@ var logoutCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("logout failed: %w", err)
 		}
+		// The local credentials go whatever the server says: a logout that
+		// left them behind because the network was down would be worse.
+		if err := auth.RevokeLogin(cmd.Context(), logoutHost); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not revoke the login at %s, so its refresh token stays valid until it expires: %v\n", authHost, err)
+		}
 		if err := auth.Logout(logoutHost); err != nil {
 			return fmt.Errorf("logout failed: %w", err)
 		}

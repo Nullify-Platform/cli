@@ -399,3 +399,16 @@ func TestFixDeadlineCancelsCredentialRefresh(t *testing.T) {
 		})
 	}
 }
+
+// An API token with no host names the setting it needs, not a login.
+func TestAPITokenWithoutHostNamesNullifyHost(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	resetCommandFlags(t)
+	t.Setenv("NULLIFY_HOST", "")
+	t.Setenv("NULLIFY_TOKEN", "machine-token")
+
+	_, err := resolveCommandHosts(context.Background())
+
+	require.ErrorIs(t, err, errNoHost)
+	require.ErrorContains(t, err, "NULLIFY_HOST")
+}

@@ -334,3 +334,57 @@ func TestForceRefreshKeepsCacheOnEmptyToken(t *testing.T) {
 		t.Errorf("cachedToken = %q, want the previous token kept", tr.cachedToken)
 	}
 }
+
+// Tenant APIs sit behind an API Gateway authorizer, which denies an expired
+// or revoked token with its own 403 {"message":"Forbidden"}. That 403 gets a
+// refresh and one retry; a handler's 403 is passed through untouched, body
+// and all.
+func TestGatewayForbiddenRefreshesAndHandlerForbiddenDoesNot(t *testing.T) {
+	tests := []struct {
+		name        string
+		staleBody   string
+		wantStatus  int
+		wantRefresh int
+		wantBody    string
+	}{
+		{name: "authorizer deny", staleBody: `{"message":"Forbidden"}`, wantStatus: 200, wantRefresh: 1},
+		{name: "handler permission error", staleBody: `{"error":"missing permission"}`, wantStatus: 403, wantBody: `{"error":"missing permission"}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			refreshCalls := 0
+			tp := func() (string, error) { refreshCalls++; return "fresh", nil }
+			inner := rtFunc(func(r *http.Request) (*http.Response, error) {
+				if r.Header.Get("Authorization") == "Bearer fresh" {
+					return newResp(http.StatusOK, nil), nil
+				}
+				return &http.Response{
+					StatusCode: http.StatusForbidden,
+					Header:     http.Header{"Content-Type": []string{"application/json"}},
+					Body:       io.NopCloser(strings.NewReader(tt.staleBody)),
+					Request:    r,
+				}, nil
+			})
+			tr := newRefreshingTransport("stale", tp, inner)
+
+			req, _ := http.NewRequest(http.MethodGet, "https://api.acme.nullify.ai/", nil)
+			resp, err := tr.RoundTrip(req)
+			if err != nil {
+				t.Fatalf("unexpected err: %v", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("status = %d, want %d", resp.StatusCode, tt.wantStatus)
+			}
+			if refreshCalls != tt.wantRefresh {
+				t.Errorf("refreshCalls = %d, want %d", refreshCalls, tt.wantRefresh)
+			}
+			if tt.wantBody != "" {
+				body, _ := io.ReadAll(resp.Body)
+				if string(body) != tt.wantBody {
+					t.Errorf("body = %q, want %q passed through", body, tt.wantBody)
+				}
+			}
+		})
+	}
+}

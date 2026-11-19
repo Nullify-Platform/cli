@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nullify-platform/cli/internal/apierror"
 	"github.com/nullify-platform/cli/internal/logger"
 )
 
@@ -253,9 +254,10 @@ func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, 
 	}
 
 	// The cached token can be invalid before its TTL elapses (revocation, server
-	// session kill, clock skew). On a 401, force a refresh and retry once before
-	// surfacing the failure.
-	if resp.StatusCode == http.StatusUnauthorized {
+	// session kill, clock skew). On a rejected token, force a refresh and retry
+	// once before surfacing the failure.
+	resp, rejected := tokenRejected(resp)
+	if rejected {
 		if newToken := t.forceRefresh(req.Context(), token); newToken != "" && newToken != token {
 			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4<<10))
 			resp.Body.Close()
@@ -268,4 +270,28 @@ func (t *refreshingAuthTransport) RoundTrip(req *http.Request) (*http.Response, 
 	}
 
 	return resp, nil
+}
+
+// tokenRejected reports whether resp rejects the request's token: a 401, or
+// API Gateway's own 403, which tenant APIs send for an expired or revoked
+// token. A 403 body is read to tell the two kinds of 403 apart, and resp is
+// returned with its body intact for the caller.
+func tokenRejected(resp *http.Response) (*http.Response, bool) {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return resp, true
+	}
+	if resp.StatusCode != http.StatusForbidden {
+		return resp, false
+	}
+	peek, err := io.ReadAll(io.LimitReader(resp.Body, 4<<10))
+	resp.Body = readCloser{Reader: io.MultiReader(bytes.NewReader(peek), resp.Body), Closer: resp.Body}
+	if err != nil {
+		return resp, false
+	}
+	return resp, apierror.IsGatewayForbidden(resp.StatusCode, peek)
+}
+
+type readCloser struct {
+	io.Reader
+	io.Closer
 }
