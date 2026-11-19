@@ -78,9 +78,9 @@ var Decisions = SurfaceDecisions{
 		{Command: "nullify pentest", Flag: "github-repo", Evidence: "the command requests an assessment of an application configured in Nullify, which holds the API schema, credentials and repository"},
 		{Command: "nullify pentest", Flag: "header", Evidence: "the command requests an assessment of an application configured in Nullify, which holds the API schema, credentials and repository"},
 		{Command: "nullify pentest", Flag: "spec-path", Evidence: "the command requests an assessment of an application configured in Nullify, which holds the API schema, credentials and repository"},
-		{Command: "nullify pentest", Flag: "force-pull", Evidence: "the API does not accept results from a local scan"},
-		{Command: "nullify pentest", Flag: "image-label", Evidence: "the API does not accept results from a local scan"},
-		{Command: "nullify pentest", Flag: "local", Evidence: "the API does not accept results from a local scan"},
-		{Command: "nullify pentest", Flag: "use-host-network", Evidence: "the API does not accept results from a local scan"},
+		{Command: "nullify pentest", Flag: "force-pull", Evidence: "the removed Docker workflow used retired external scan routes"},
+		{Command: "nullify pentest", Flag: "image-label", Evidence: "the removed Docker workflow used retired external scan routes"},
+		{Command: "nullify pentest", Flag: "local", Evidence: "the removed Docker workflow used retired external scan routes"},
+		{Command: "nullify pentest", Flag: "use-host-network", Evidence: "the removed Docker workflow used retired external scan routes"},
 	},
 }
