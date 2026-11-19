@@ -8,13 +8,18 @@ BINARY_NAME="nullify"
 
 usage() {
   cat <<'EOF'
-Usage: install.sh [--host <instance>]
+Usage: install.sh [--host <instance>] [--version <tag>]
 
-Installs the latest Nullify CLI release.
+Installs the Nullify CLI. Without --version it installs the latest release.
 
 Options:
   --host <instance>  Save your Nullify instance, for example acme.nullify.ai
+  --version <tag>    Install this release instead of the latest, for example v1.2.3
   -h, --help         Show this help
+
+Environment:
+  GITHUB_TOKEN       If set, sent to the GitHub API when looking up the latest
+                     release, so shared CI IPs are not rate limited
 EOF
 }
 
@@ -47,9 +52,39 @@ detect_arch() {
   esac
 }
 
+# Succeed when an option value is present and is not another option.
+is_option_value() {
+  [ -n "$1" ] && [ "${1#-}" = "$1" ]
+}
+
+# Print a release tag in the v1.2.3 or v1.2.3-rc.1 form, adding the leading
+# v when it is missing. Fail on anything else, so the tag is safe in a URL.
+normalize_version() {
+  tag="$1"
+  case "$tag" in
+    *[!0-9A-Za-z.-]*) return 1 ;;
+  esac
+  case "$tag" in
+    v*) ;;
+    *) tag="v${tag}" ;;
+  esac
+  printf '%s\n' "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' || return 1
+  echo "$tag"
+}
+
+# GET a GitHub API URL. GITHUB_TOKEN, when set, goes in a curl config read
+# from stdin, so it never appears in the process list or the output.
+github_api_get() {
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    printf 'header = "Authorization: Bearer %s"\n' "$GITHUB_TOKEN" | curl -sSfL --config - "$1"
+  else
+    curl -sSfL "$1"
+  fi
+}
+
 # Get latest release version from GitHub API
 get_latest_version() {
-  version=$(curl -sSfL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')
+  version=$(github_api_get "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')
   if [ -z "$version" ]; then
     echo "Failed to determine latest version" >&2
     exit 1
@@ -104,10 +139,11 @@ verify_checksum() {
 main() {
   # Parse arguments
   NULLIFY_HOST=""
+  requested_version=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --host)
-        if [ $# -lt 2 ] || [ -z "$2" ] || [ "${2#-}" != "$2" ]; then
+        if [ $# -lt 2 ] || ! is_option_value "$2"; then
           usage_error "--host needs a value, for example --host acme.nullify.ai"
         fi
         NULLIFY_HOST="$2"
@@ -117,6 +153,20 @@ main() {
         NULLIFY_HOST="${1#*=}"
         if [ -z "$NULLIFY_HOST" ]; then
           usage_error "--host needs a value, for example --host=acme.nullify.ai"
+        fi
+        shift
+        ;;
+      --version)
+        if [ $# -lt 2 ] || ! is_option_value "$2"; then
+          usage_error "--version needs a release tag, for example --version v1.2.3"
+        fi
+        requested_version="$2"
+        shift 2
+        ;;
+      --version=*)
+        requested_version="${1#*=}"
+        if [ -z "$requested_version" ]; then
+          usage_error "--version needs a release tag, for example --version=v1.2.3"
         fi
         shift
         ;;
@@ -130,9 +180,16 @@ main() {
     esac
   done
 
+  if [ -n "$requested_version" ]; then
+    version=$(normalize_version "$requested_version") ||
+      usage_error "--version must be a release tag such as v1.2.3 or v1.2.3-rc.1, not: ${requested_version}"
+  fi
+
   os=$(detect_os)
   arch=$(detect_arch)
-  version=$(get_latest_version)
+  if [ -z "$requested_version" ]; then
+    version=$(get_latest_version)
+  fi
 
   echo "Installing Nullify CLI ${version} for ${os}/${arch}..."
 
@@ -158,7 +215,11 @@ main() {
 
   # Download archive and checksums
   echo "Downloading ${download_url}..."
-  curl -sSfL -o "${tmp_dir}/${archive_name}" "$download_url"
+  if ! curl -sSfL -o "${tmp_dir}/${archive_name}" "$download_url"; then
+    echo "Error: could not download ${archive_name} for ${version}." >&2
+    echo "Check that the release exists: https://github.com/${REPO}/releases/tag/${version}" >&2
+    exit 1
+  fi
   curl -sSfL -o "${tmp_dir}/checksums.txt" "$checksums_url"
 
   # Verify checksum
