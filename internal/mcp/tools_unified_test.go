@@ -51,12 +51,12 @@ func TestFindingTools(t *testing.T) {
 			requests: []capturedReq{{"POST", "/cspm/findings/f1/unallowlist", []byte(`{"unallowlistReason":"reopen"}`)}},
 		},
 		{
-			name: "allowlist bughunt keeps the PATCH body", tool: "nullify_allowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "allowlist_type": "UserOther", "reason": "r"},
-			requests: []capturedReq{{"PATCH", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allow":true,"reason":"r"}`)}},
+			name: "allowlist bughunt sends the type", tool: "nullify_allowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "allowlist_type": "UserOther", "reason": "r"},
+			requests: []capturedReq{{"POST", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allowlistReason":"r","allowlistType":"UserOther"}`)}},
 		},
 		{
 			name: "unallowlist bughunt", tool: "nullify_unallowlist_finding", args: map[string]any{"type": "bughunt", "id": "f1", "reason": "r"},
-			requests: []capturedReq{{"PATCH", "/dast/bughunt/findings/f1/allowlist", []byte(`{"allow":false,"reason":"r"}`)}},
+			requests: []capturedReq{{"POST", "/dast/bughunt/findings/f1/unallowlist", []byte(`{"unallowlistReason":"r"}`)}},
 		},
 		{
 			name: "archive cspm", tool: "nullify_archive_finding", args: map[string]any{"type": "cspm", "id": "f1"},

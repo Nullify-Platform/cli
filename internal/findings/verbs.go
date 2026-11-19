@@ -21,16 +21,9 @@ var (
 	ErrInvalidVerdict       = errors.New("invalid feedback verdict")
 )
 
-// AllowlistTypeWarning is the warning for a type with AllowlistTypeUnrecorded.
-const AllowlistTypeWarning = "The server may not record the allowlist type for this finding type yet. The reason is recorded."
-
-// UnallowlistReasonWarning is the warning for a type with UnallowlistReasonUnrecorded.
-const UnallowlistReasonWarning = "The server does not record the reason for this finding type. The finding is re-opened."
-
 // AllowlistTypes are the allowlist types that a user can submit. Friendly commands
-// and MCP tools require one for every finding type, so that the interface is the
-// same for all of them. Type.AllowlistTypeUnrecorded marks the types for which the
-// server may not record it.
+// and MCP tools require one for every finding type, and the server of every type
+// records it.
 var AllowlistTypes = []string{
 	string(models.ModelsAllowlistTypeUserfixed),
 	string(models.ModelsAllowlistTypeUserassumerisk),
@@ -203,40 +196,7 @@ func (v Verb) Run(ctx context.Context, c *api.Client, typeName, findingID string
 		}
 	}
 
-	data, err := action(ctx, c, findingID, body)
-	if err != nil {
-		return nil, err
-	}
-	if warning := v.Warning(typeName); warning != "" {
-		return addWarning(data, warning)
-	}
-	return data, nil
-}
-
-// Warning returns what a successful run of the verb for the type must tell the
-// caller, or an empty string.
-func (v Verb) Warning(typeName string) string {
-	t, err := Lookup(typeName)
-	switch {
-	case err != nil:
-		return ""
-	case v.NeedsAllowlistType && t.AllowlistTypeUnrecorded:
-		return AllowlistTypeWarning
-	case v.Name == "unallowlist" && t.UnallowlistReasonUnrecorded:
-		return UnallowlistReasonWarning
-	}
-	return ""
-}
-
-// addWarning adds a warning field to a response. The write has already happened,
-// so a response that is not a JSON object is kept as a string in a response field.
-func addWarning(data json.RawMessage, warning string) (json.RawMessage, error) {
-	fields := map[string]any{}
-	if err := json.Unmarshal(data, &fields); err != nil {
-		fields = map[string]any{"response": string(data)}
-	}
-	fields["warning"] = warning
-	return json.Marshal(fields)
+	return action(ctx, c, findingID, body)
 }
 
 // Types returns the finding types that support the verb.
@@ -250,19 +210,13 @@ func (v Verb) TypeValues() []string {
 	return AcceptedNames(func(t Type) bool { return v.method(t) != nil })
 }
 
-func allowlistBody(t Type, p Params) ([]byte, error) {
-	if t.AllowOnPatch {
-		return json.Marshal(map[string]any{"allow": true, "reason": p.Reason})
-	}
+func allowlistBody(_ Type, p Params) ([]byte, error) {
 	return json.Marshal(map[string]string{"allowlistReason": p.Reason, "allowlistType": p.AllowlistType})
 }
 
 // unallowlistBody always names the type UserOther, as the dashboard does. The
 // secrets routes require the field and the input of every other type drops it.
-func unallowlistBody(t Type, p Params) ([]byte, error) {
-	if t.AllowOnPatch {
-		return json.Marshal(map[string]any{"allow": false, "reason": p.Reason})
-	}
+func unallowlistBody(_ Type, p Params) ([]byte, error) {
 	return json.Marshal(map[string]string{"unallowlistReason": p.Reason, "unallowlistType": string(models.ModelsAllowlistTypeUserother)})
 }
 

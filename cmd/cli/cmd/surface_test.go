@@ -305,31 +305,3 @@ func TestFixCommandSurvivesATokenExpiry(t *testing.T) {
 		})
 	}
 }
-
-func TestReportVerbWarnsOnStderr(t *testing.T) {
-	tests := []struct {
-		name     string
-		findType string
-		want     string
-	}{
-		{name: "the type may not be recorded", findType: "bughunt", want: "Warning: " + findings.AllowlistTypeWarning + "\n"},
-		{name: "the type is recorded", findType: "cspm", want: ""},
-	}
-
-	var allowlist findings.Verb
-	for _, verb := range findings.Verbs {
-		if verb.Name == "allowlist" {
-			allowlist = verb
-		}
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var stderr bytes.Buffer
-			cmd := &cobra.Command{Use: "allowlist"}
-			cmd.SetErr(&stderr)
-
-			require.ErrorIs(t, reportVerb(cmd, allowlist, tt.findType, []byte(`{}`)), nil)
-			require.Equal(t, tt.want, stderr.String())
-		})
-	}
-}

@@ -120,8 +120,6 @@ jobs:
               echo '```'
             fi
             echo
-            echo "\`AllowlistTypeUnrecorded\` is on the \`bughunt\`, \`sca_dependencies\`, \`sca_containers\` and \`secrets_sensitive_data\` rows in \`internal/findings/types.go\`. If this bundle includes monorepo #17588, remove it from the SCA and sensitive-data rows. Keep it on \`bughunt\` unless the bundle adds an allowlist type input for bug hunt."
-            echo
             echo "This pull request needs a person to review and merge it. A merge to main releases to customers."
           } > "$RUNNER_TEMP/body.md"
           rm -f surface.log
