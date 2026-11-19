@@ -38,7 +38,9 @@ func NewServer(apiClient *api.Client, toolSet ToolSet, orgs Orgs, defaults Defau
 		"Nullify",
 		logger.Version,
 		server.WithToolCapabilities(true),
-		server.WithResourceCapabilities(true, false),
+		// The server never sends resource updates, so it does not offer
+		// subscriptions.
+		server.WithResourceCapabilities(false, false),
 		server.WithPromptCapabilities(true),
 		server.WithToolHandlerMiddleware(orgMiddleware(orgs)),
 		server.WithResourceHandlerMiddleware(resourceOrgMiddleware(orgs)),

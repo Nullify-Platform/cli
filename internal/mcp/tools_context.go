@@ -46,11 +46,9 @@ func registerContextTools(s *server.MCPServer, c *api.Client) {
 			mcp.WithNumber("limit", mcp.Description("Max results")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			// list_applications has no limit field on the spec input; the limit
-			// arg is kept for compatibility with the prior tool shape but is
-			// silently ignored — the endpoint returns the full set.
-			_ = req
-			return wrapTyped(c.ListContextApplications(ctx, api.ListContextApplicationsInput{}))
+			return wrapTyped(c.ListContextApplications(ctx, api.ListContextApplicationsInput{
+				Limit: optionalLimit(getIntArg(req.GetArguments(), "limit", 0)),
+			}))
 		},
 	)
 
