@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -25,7 +26,9 @@ type capturedReq struct {
 type fakeTransport struct {
 	mu       sync.Mutex
 	requests []capturedReq
-	respond  func(capturedReq) (int, string)
+	// queries holds the query of each request, in the order of requests.
+	queries []url.Values
+	respond func(capturedReq) (int, string)
 }
 
 func (f *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -36,6 +39,7 @@ func (f *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	cr := capturedReq{method: req.Method, path: req.URL.Path, body: b}
 	f.mu.Lock()
 	f.requests = append(f.requests, cr)
+	f.queries = append(f.queries, req.URL.Query())
 	f.mu.Unlock()
 
 	status, body := 200, "{}"
