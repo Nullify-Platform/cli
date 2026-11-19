@@ -89,9 +89,9 @@ func TestMCPServeOnARouterLogin(t *testing.T) {
 	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "error")
 	require.NoError(t, err)
 
-	apiClient, toolSet, orgs, err := mcpServeConfig(ctx, "widgets", "default")
+	apiClient, toolSet, orgs, err := mcpServeConfig(ctx, "default")
 	require.NoError(t, err, "serve starts with two orgs and no org chosen")
-	s := mcp.NewServer(apiClient, toolSet, orgs)
+	s := mcp.NewServer(apiClient, toolSet, orgs, mcp.Defaults{})
 
 	call := func(args map[string]any) string {
 		msg, err := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
@@ -145,9 +145,9 @@ func TestMCPServeOrgFlagIsTheDefault(t *testing.T) {
 
 	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "error")
 	require.NoError(t, err)
-	apiClient, toolSet, orgs, err := mcpServeConfig(ctx, "", "default")
+	apiClient, toolSet, orgs, err := mcpServeConfig(ctx, "default")
 	require.NoError(t, err)
-	s := mcp.NewServer(apiClient, toolSet, orgs)
+	s := mcp.NewServer(apiClient, toolSet, orgs, mcp.Defaults{})
 
 	for _, args := range []map[string]any{nil, {"org": "acme-web"}} {
 		msg, err := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
@@ -180,9 +180,9 @@ func startMCP(t *testing.T, fake *fakeNullify) (context.Context, *server.MCPServ
 	t.Cleanup(func() { http.DefaultTransport = old })
 	ctx, err := logger.ConfigureDevelopmentLogger(context.Background(), "error")
 	require.NoError(t, err)
-	apiClient, toolSet, orgs, err := mcpServeConfig(ctx, "", "default")
+	apiClient, toolSet, orgs, err := mcpServeConfig(ctx, "default")
 	require.NoError(t, err)
-	return ctx, mcp.NewServer(apiClient, toolSet, orgs)
+	return ctx, mcp.NewServer(apiClient, toolSet, orgs, mcp.Defaults{})
 }
 
 // The default a server runs calls as is settled from what it started with:
@@ -484,6 +484,28 @@ func TestMCPMachineTokenDefaultDoesNotListOrgs(t *testing.T) {
 				"Bearer machine-token " + tt.id,
 				"Bearer machine-token " + tt.id,
 			}, fake.apiCalls)
+		})
+	}
+}
+
+func TestMCPDefaultRepository(t *testing.T) {
+	detected := func() string { return "acme/widgets" }
+	nothing := func() string { return "" }
+
+	tests := []struct {
+		name   string
+		flag   string
+		detect func() string
+		want   string
+	}{
+		{name: "the flag wins", flag: "acme/gadgets", detect: detected, want: "acme/gadgets"},
+		{name: "the git remote is the fallback", detect: detected, want: "acme/widgets"},
+		{name: "a blank flag is no flag", flag: "  ", detect: detected, want: "acme/widgets"},
+		{name: "no repository means every repository", detect: nothing},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, mcp.Defaults{Repository: tt.want}, mcpDefaults(tt.flag, tt.detect))
 		})
 	}
 }

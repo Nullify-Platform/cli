@@ -14,15 +14,16 @@ import (
 )
 
 // ServeWithClient runs the MCP server over stdio, driving the generated
-// api.Client. The client's default query params carry fixed scope such as
-// --repo; each call's org comes from orgs and travels in the request context,
-// so apiClient's HTTP client must route through ScopeTransport.
-func ServeWithClient(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs) error {
-	return serveWithClientIO(ctx, apiClient, toolSet, orgs, os.Stdin, os.Stdout)
+// api.Client. Each call's org comes from orgs and travels in the request
+// context, so apiClient's HTTP client must route through ScopeTransport.
+// defaults, such as the repository of --repo, apply to calls that do not set
+// them.
+func ServeWithClient(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs, defaults Defaults) error {
+	return serveWithClientIO(ctx, apiClient, toolSet, orgs, defaults, os.Stdin, os.Stdout)
 }
 
-func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs, stdin io.Reader, stdout io.Writer) error {
-	s := NewServer(apiClient, toolSet, orgs)
+func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolSet, orgs Orgs, defaults Defaults, stdin io.Reader, stdout io.Writer) error {
+	s := NewServer(apiClient, toolSet, orgs, defaults)
 
 	logger.L(ctx).Debug("starting MCP server over stdio", logger.String("toolSet", string(toolSet)))
 
@@ -32,7 +33,7 @@ func serveWithClientIO(ctx context.Context, apiClient *api.Client, toolSet ToolS
 
 // NewServer builds the MCP server: the tool set, list_organizations, an
 // optional org argument on every other tool, and the resources and prompts.
-func NewServer(apiClient *api.Client, toolSet ToolSet, orgs Orgs) *server.MCPServer {
+func NewServer(apiClient *api.Client, toolSet ToolSet, orgs Orgs, defaults Defaults) *server.MCPServer {
 	s := server.NewMCPServer(
 		"Nullify",
 		logger.Version,
@@ -43,10 +44,10 @@ func NewServer(apiClient *api.Client, toolSet ToolSet, orgs Orgs) *server.MCPSer
 		server.WithResourceHandlerMiddleware(resourceOrgMiddleware(orgs)),
 	)
 
-	registerTools(s, apiClient, toolSet)
+	registerTools(s, apiClient, toolSet, defaults)
 	addOrgArgument(s)
 	registerOrgTools(s, orgs)
-	registerResources(s, apiClient)
+	registerResources(s, apiClient, defaults)
 	registerPrompts(s)
 	return s
 }
@@ -54,41 +55,41 @@ func NewServer(apiClient *api.Client, toolSet ToolSet, orgs Orgs) *server.MCPSer
 // registerTools selects which tools to expose. The default set is deliberately
 // lean (the core find→investigate→scan→threat→remediate workflow) to keep the
 // toolset small enough for reliable LLM selection; broader sets are opt-in.
-func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet) {
+func registerTools(s *server.MCPServer, c *api.Client, toolSet ToolSet, d Defaults) {
 	switch toolSet {
 	case ToolSetMinimal:
-		registerCompositeTools(s, c)
+		registerCompositeTools(s, c, d)
 
 	case ToolSetFindings:
-		registerUnifiedTools(s, c)
-		registerCompositeTools(s, c)
+		registerUnifiedTools(s, c, d)
+		registerCompositeTools(s, c, d)
 
 	case ToolSetFindingsWrite:
-		registerUnifiedTools(s, c)
+		registerUnifiedTools(s, c, d)
 		registerOptInFindingTools(s, c)
-		registerCompositeTools(s, c)
+		registerCompositeTools(s, c, d)
 
 	case ToolSetAdmin:
-		registerAdminTools(s, c)
+		registerAdminTools(s, c, d)
 		registerContextTools(s, c)
 		registerManagerTools(s, c)
-		registerCompositeTools(s, c)
+		registerCompositeTools(s, c, d)
 
 	case ToolSetAll:
-		registerUnifiedTools(s, c)
+		registerUnifiedTools(s, c, d)
 		registerOptInFindingTools(s, c)
-		registerCompositeTools(s, c)
+		registerCompositeTools(s, c, d)
 		registerContextTools(s, c)
 		registerManagerTools(s, c)
-		registerAdminTools(s, c)
+		registerAdminTools(s, c, d)
 		registerScanTools(s, c)
 		registerThreatTools(s, c)
 		registerCSPMTools(s, c)
 		registerPentestTools(s, c)
 
 	default: // ToolSetDefault — lean
-		registerUnifiedTools(s, c)
-		registerCompositeTools(s, c)
+		registerUnifiedTools(s, c, d)
+		registerCompositeTools(s, c, d)
 		registerContextTools(s, c)
 		registerScanTools(s, c)
 		registerThreatTools(s, c)

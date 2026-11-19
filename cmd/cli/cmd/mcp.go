@@ -38,12 +38,13 @@ var mcpServeCmd = &cobra.Command{
 
 		repoFlag, _ := cmd.Flags().GetString("repo")
 		toolsFlag, _ := cmd.Flags().GetString("tools")
-		apiClient, toolSet, orgs, err := mcpServeConfig(ctx, repoFlag, toolsFlag)
+		apiClient, toolSet, orgs, err := mcpServeConfig(ctx, toolsFlag)
 		if err != nil {
 			return err
 		}
 
-		if err := mcp.ServeWithClient(ctx, apiClient, toolSet, orgs); err != nil {
+		defaults := mcpDefaults(repoFlag, lib.DetectRepoFullNameFromGit)
+		if err := mcp.ServeWithClient(ctx, apiClient, toolSet, orgs, defaults); err != nil {
 			return fmt.Errorf("MCP server error: %w", err)
 		}
 		return nil
@@ -116,17 +117,12 @@ func (d *mcpDefault) availableOn(host string, list auth.OrgList) error {
 // mcpServeConfig resolves the hosts and token, never an org: a login may
 // cover several orgs, and each tool call picks one (its org argument, else
 // the default the server started with).
-func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Client, mcp.ToolSet, mcp.Orgs, error) {
+func mcpServeConfig(ctx context.Context, toolsFlag string) (*api.Client, mcp.ToolSet, mcp.Orgs, error) {
 	authCtx, err := resolveCommandToken(ctx)
 	if err != nil {
 		return nil, "", mcp.Orgs{}, err
 	}
 	dataHost := authCtx.DataHost
-
-	queryParams := map[string]string{}
-	if repo := resolveRepo(repoFlag); repo != "" {
-		queryParams["repository"] = repo
-	}
 
 	toolSet := mcp.ToolSet(toolsFlag)
 	if !slices.Contains(mcp.ValidToolSets(), toolsFlag) {
@@ -167,7 +163,7 @@ func mcpServeConfig(ctx context.Context, repoFlag, toolsFlag string) (*api.Clien
 	// RoundTrip injects (and rotates) the Authorization header after
 	// api.Client.do sets it, so the static value in api.Client is
 	// overridden on every request.
-	apiClient := api.NewClient(dataHost, "", queryParams, api.WithHTTPClient(httpClient))
+	apiClient := api.NewClient(dataHost, "", map[string]string{}, api.WithHTTPClient(httpClient))
 
 	startInputs := orgInputsFor(dataHost, orgFlag, "--org")
 	def := &mcpDefault{}
@@ -340,7 +336,7 @@ func init() {
 	rootCmd.AddCommand(mcpCmd)
 	mcpCmd.AddCommand(mcpServeCmd)
 
-	mcpServeCmd.Flags().String("repo", "", "Repository name to scope findings to (auto-detected from git remote if not set)")
+	mcpServeCmd.Flags().String("repo", "", "Repository (owner/name preferred) that findings searches and metrics default to; detected from the git remote if not set")
 	mcpServeCmd.Flags().String("tools", "default", "Tool set to register ("+strings.Join(mcp.ValidToolSets(), ", ")+")")
 }
 
@@ -364,11 +360,13 @@ func mcpTokenProviders(authHost string) (client.ContextTokenProvider, client.Con
 	return tokenProvider, refreshProvider
 }
 
-// resolveRepo determines the repository name from the flag or git config.
-func resolveRepo(flagValue string) string {
-	if flagValue != "" {
-		return flagValue
+// mcpDefaults returns the defaults that the server applies to calls: the
+// repository of --repo, otherwise the owner/name of the git remote that detect
+// reads.
+func mcpDefaults(repoFlag string, detect func() string) mcp.Defaults {
+	repo := strings.TrimSpace(repoFlag)
+	if repo == "" {
+		repo = detect()
 	}
-
-	return lib.DetectRepoFromGit()
+	return mcp.Defaults{Repository: repo}
 }

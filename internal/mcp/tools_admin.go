@@ -28,18 +28,21 @@ func metricsSort() []map[string]map[string]json.RawMessage {
 }
 
 // metricsOverviewInput builds the typed input for CreateAdminMetricsOverview.
-func metricsOverviewInput() api.CreateAdminMetricsOverviewInput {
+// repository is the filter values of one repository, or nil for every one.
+func metricsOverviewInput(repository []string) api.CreateAdminMetricsOverviewInput {
 	return api.CreateAdminMetricsOverviewInput{
 		Query: models.ModelsUnifiedFindingsQuery{
 			Sort:       metricsSort(),
 			IsArchived: boolPtr(false),
+			Repository: repository,
 		},
 	}
 }
 
 // metricsOverTimeInput builds the typed input for CreateAdminMetricsOverTime
-// covering the requested rolling window.
-func metricsOverTimeInput(period string) api.CreateAdminMetricsOverTimeInput {
+// covering the requested rolling window. repository is the filter values of
+// one repository, or nil for every one.
+func metricsOverTimeInput(period string, repository []string) api.CreateAdminMetricsOverTimeInput {
 	now := time.Now().UTC()
 	var from time.Time
 	switch period {
@@ -60,22 +63,23 @@ func metricsOverTimeInput(period string) api.CreateAdminMetricsOverTimeInput {
 			IsArchived: boolPtr(false),
 			FromDate:   &fromStr,
 			ToDate:     &toStr,
+			Repository: repository,
 		},
 	}
 }
 
-func registerAdminTools(s *server.MCPServer, c *api.Client) {
+func registerAdminTools(s *server.MCPServer, c *api.Client, d Defaults) {
 	s.AddTool(
 		readOnlyTool("get_metrics_overview",
 			mcp.WithDescription("Get a high-level security posture overview: counts of findings by severity and type."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			out, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput())
+			out, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput(d.metricsRepository()))
 			if err != nil {
 				return toolError(err), nil
 			}
 			b, _ := json.Marshal(out)
-			return toolResult(string(b)), nil
+			return withNote(toolResult(string(b)), d.metricsRepositoryNote()), nil
 		},
 	)
 
@@ -89,12 +93,12 @@ func registerAdminTools(s *server.MCPServer, c *api.Client) {
 			if period == "" {
 				period = "30d"
 			}
-			out, err := c.CreateAdminMetricsOverTime(ctx, metricsOverTimeInput(period))
+			out, err := c.CreateAdminMetricsOverTime(ctx, metricsOverTimeInput(period, d.metricsRepository()))
 			if err != nil {
 				return toolError(err), nil
 			}
 			b, _ := json.Marshal(out)
-			return toolResult(string(b)), nil
+			return withNote(toolResult(string(b)), d.metricsRepositoryNote()), nil
 		},
 	)
 

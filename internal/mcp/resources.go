@@ -10,7 +10,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerResources(s *server.MCPServer, c *api.Client) {
+func registerResources(s *server.MCPServer, c *api.Client, d Defaults) {
 	s.AddResource(
 		mcplib.Resource{
 			URI:         "nullify://posture",
@@ -19,7 +19,7 @@ func registerResources(s *server.MCPServer, c *api.Client) {
 			MIMEType:    "application/json",
 		},
 		func(ctx context.Context, request mcplib.ReadResourceRequest) ([]mcplib.ResourceContents, error) {
-			out, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput())
+			out, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput(d.metricsRepository()))
 			if err != nil {
 				return nil, err
 			}

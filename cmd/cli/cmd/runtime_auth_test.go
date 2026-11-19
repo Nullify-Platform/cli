@@ -302,10 +302,10 @@ func TestMCPClientUsesAuthHostForTokensAndDataHostForRequests(t *testing.T) {
 		DataHost:    "acme.nullify.ai",
 	}))
 
-	apiClient, _, _, err := mcpServeConfig(context.Background(), "r", "default")
+	apiClient, _, _, err := mcpServeConfig(context.Background(), "default")
 	require.NoError(t, err)
 	require.Equal(t, "https://api.acme.nullify.ai", apiClient.BaseURL)
-	require.Equal(t, map[string]string{"repository": "r"}, apiClient.DefaultParams)
+	require.Empty(t, apiClient.DefaultParams, "no handler reads a repository query parameter")
 
 	tokenProvider, refreshProvider := mcpTokenProviders(auth.RouterHost)
 	token, err := tokenProvider(context.Background())

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -18,17 +19,35 @@ import (
 )
 
 // scopeRecorder is a fake Nullify API that answers every call with an empty
-// object and records each request's query.
+// object, or an empty findings page for a findings search, and records each
+// request's query and body.
 type scopeRecorder struct {
 	mu      sync.Mutex
 	queries []url.Values
+	bodies  map[string][]string
 }
 
 func (r *scopeRecorder) handler(w http.ResponseWriter, req *http.Request) {
+	body, _ := io.ReadAll(req.Body)
 	r.mu.Lock()
 	r.queries = append(r.queries, req.URL.Query())
+	if r.bodies == nil {
+		r.bodies = map[string][]string{}
+	}
+	r.bodies[req.URL.Path] = append(r.bodies[req.URL.Path], string(body))
 	r.mu.Unlock()
+	if req.URL.Path == "/admin/findings" {
+		_, _ = w.Write([]byte(`{"findings":[],"total":0,"hasMoreData":false}`))
+		return
+	}
 	_, _ = w.Write([]byte(`{}`))
+}
+
+// bodiesTo returns the bodies of the requests to path, in order.
+func (r *scopeRecorder) bodiesTo(path string) []string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return append([]string(nil), r.bodies[path]...)
 }
 
 func (r *scopeRecorder) seen() []url.Values {
@@ -64,16 +83,24 @@ func orgsFor(byName map[string]string, def string) Orgs {
 	}
 }
 
+// testRepository is the repository that the test server starts for.
+const testRepository = "acme/widgets"
+
 func newTestServer(t *testing.T, orgs Orgs) (*server.MCPServer, *scopeRecorder) {
+	t.Helper()
+	return newTestServerWith(t, orgs, ToolSetDefault, Defaults{Repository: testRepository})
+}
+
+func newTestServerWith(t *testing.T, orgs Orgs, toolSet ToolSet, defaults Defaults) (*server.MCPServer, *scopeRecorder) {
 	t.Helper()
 	rec := &scopeRecorder{}
 	srv := httptest.NewServer(http.HandlerFunc(rec.handler))
 	t.Cleanup(srv.Close)
 
-	c := api.NewClient("acme.nullify.ai", "tok", map[string]string{"repository": "widgets"},
+	c := api.NewClient("acme.nullify.ai", "tok", map[string]string{},
 		api.WithHTTPClient(&http.Client{Transport: ScopeTransport(srv.Client().Transport)}))
 	c.BaseURL = srv.URL
-	return NewServer(c, ToolSetDefault, orgs), rec
+	return NewServer(c, toolSet, orgs, defaults), rec
 }
 
 type rpcResult struct {
@@ -164,7 +191,7 @@ func TestOneOrgNeedsNoArgument(t *testing.T) {
 	seen := rec.seen()
 	require.Len(t, seen, 1)
 	require.Equal(t, "2002002", seen[0].Get("githubOwnerId"))
-	require.Equal(t, "widgets", seen[0].Get("repository"), "fixed scope survives")
+	require.Empty(t, seen[0].Get("repository"), "the default repository is not a query parameter, which no handler reads")
 }
 
 func TestSeveralOrgsAndNoArgumentReturnsTheChoices(t *testing.T) {

@@ -83,7 +83,7 @@ var scannerListers = []scannerLister{
 	},
 }
 
-func registerCompositeTools(s *server.MCPServer, c *api.Client) {
+func registerCompositeTools(s *server.MCPServer, c *api.Client, d Defaults) {
 	s.AddTool(
 		readOnlyTool("get_security_posture_summary",
 			mcp.WithDescription("High-level security posture across all scanner types. Typically the first tool to call to understand overall state."),
@@ -160,9 +160,10 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 				apiTypes := findings.Types[sc.name].APITypes
 				for _, sev := range []string{"critical", "high"} {
 					result, err := findings.Search(ctx, c, findings.SearchOptions{
-						APITypes: apiTypes,
-						Severity: sev,
-						Limit:    limit,
+						APITypes:   apiTypes,
+						Severity:   sev,
+						Repository: d.searchRepository("", apiTypes),
+						Limit:      limit,
 					})
 					if err != nil {
 						parts = append(parts, fmt.Sprintf("--- %s (%s) ---\nError: %v", sc.name, sev, err))
@@ -175,10 +176,11 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 					parts = append(parts, fmt.Sprintf("--- %s (%s) ---\n%s", sc.name, sev, string(b)))
 				}
 			}
+			note := d.fanOutNote()
 			if len(parts) == 0 {
-				return toolResult("No critical or high severity findings found."), nil
+				return withNote(toolResult("No critical or high severity findings found."), note), nil
 			}
-			return toolResult(strings.Join(parts, "\n\n")), nil
+			return withNote(toolResult(strings.Join(parts, "\n\n")), note), nil
 		},
 	)
 
@@ -192,17 +194,17 @@ func registerCompositeTools(s *server.MCPServer, c *api.Client) {
 			if period == "" {
 				period = "30d"
 			}
-			overview, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput())
+			overview, err := c.CreateAdminMetricsOverview(ctx, metricsOverviewInput(d.metricsRepository()))
 			if err != nil {
 				return toolError(err), nil
 			}
-			overTime, err := c.CreateAdminMetricsOverTime(ctx, metricsOverTimeInput(period))
+			overTime, err := c.CreateAdminMetricsOverTime(ctx, metricsOverTimeInput(period, d.metricsRepository()))
 			if err != nil {
 				return toolError(err), nil
 			}
 			ovBytes, _ := json.Marshal(overview)
 			otBytes, _ := json.Marshal(overTime)
-			return toolResult(fmt.Sprintf("--- Current Overview ---\n%s\n\n--- Trends (%s) ---\n%s", string(ovBytes), period, string(otBytes))), nil
+			return withNote(toolResult(fmt.Sprintf("--- Current Overview ---\n%s\n\n--- Trends (%s) ---\n%s", string(ovBytes), period, string(otBytes))), d.metricsRepositoryNote()), nil
 		},
 	)
 }

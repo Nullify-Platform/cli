@@ -118,7 +118,7 @@ func Search(ctx context.Context, c *api.Client, opts SearchOptions) (SearchResul
 func (o SearchOptions) query() (models.ModelsUnifiedFindingsQuery, error) {
 	query := models.ModelsUnifiedFindingsQuery{Type: o.APITypes}
 	if o.Repository != "" {
-		query.Repository = repositoryNames(o.Repository)
+		query.Repository = RepositoryFilter(o.Repository)
 	}
 	if o.Severity != "" {
 		query.Severity = []string{strings.ToUpper(o.Severity)}
@@ -165,10 +165,11 @@ func checkFilterTime(name, value string) error {
 	return fmt.Errorf("%w for %s: %q, use RFC 3339 such as 2026-11-01T00:00:00Z", ErrInvalidTime, name, value)
 }
 
-// repositoryNames returns the filter values for a repository. The server matches
-// them exactly: most findings hold the bare name, and a pentest finding holds the
-// full name if it has one. With only one of the two, the other findings do not match.
-func repositoryNames(repo string) []string {
+// RepositoryFilter returns the values of the "repository" filter of a unified
+// findings query for a repository. The server matches them exactly: most findings
+// hold the bare name, and a pentest finding holds the full name if it has one.
+// With only one of the two, the other findings do not match.
+func RepositoryFilter(repo string) []string {
 	name := repo[strings.LastIndex(repo, "/")+1:]
 	if name == repo {
 		return []string{repo}
