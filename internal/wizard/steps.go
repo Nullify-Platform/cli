@@ -3,15 +3,15 @@ package wizard
 import (
 	"bufio"
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/nullify-platform/cli/internal/auth"
 	"github.com/nullify-platform/cli/internal/lib"
-	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/terminal"
 )
 
@@ -117,6 +117,7 @@ func MCPConfigStep() Step {
 		},
 		Execute: func(ctx context.Context) error {
 			configured := false
+			out := os.Stdout
 
 			projectRoot, err := os.Getwd()
 			if err != nil {
@@ -126,38 +127,20 @@ func MCPConfigStep() Step {
 			// Check for Cursor
 			cursorDir := filepath.Join(projectRoot, ".cursor")
 			if _, err := os.Stat(cursorDir); err == nil {
-				cursorConfig := filepath.Join(cursorDir, "mcp.json")
-				if err := writeMCPConfig(cursorConfig); err != nil {
-					logger.L(ctx).Warn("failed to write Cursor MCP config", logger.Err(err))
-				} else {
-					fmt.Printf("  Configured MCP for Cursor (%s)\n", cursorConfig)
-					configured = true
-				}
+				configured = configureByFile(out, "Cursor", filepath.Join(cursorDir, "mcp.json"), legacyMCPFormat) || configured
 			}
 
 			// Check for Claude Code
 			home, _ := os.UserHomeDir()
 			claudeDir := filepath.Join(home, ".claude")
 			if _, err := os.Stat(claudeDir); err == nil {
-				configPath := filepath.Join(claudeDir, "mcp.json")
-				if err := writeMCPConfig(configPath); err != nil {
-					logger.L(ctx).Warn("failed to write Claude MCP config", logger.Err(err))
-				} else {
-					fmt.Printf("  Configured MCP for Claude Code (%s)\n", configPath)
-					configured = true
-				}
+				configured = configureByFile(out, "Claude Code", filepath.Join(claudeDir, "mcp.json"), legacyMCPFormat) || configured
 			}
 
 			// Check for VS Code
 			vscodeDir := filepath.Join(projectRoot, ".vscode")
 			if _, err := os.Stat(vscodeDir); err == nil {
-				vscodeConfig := filepath.Join(vscodeDir, "mcp.json")
-				if err := writeMCPConfig(vscodeConfig); err != nil {
-					logger.L(ctx).Warn("failed to write VS Code MCP config", logger.Err(err))
-				} else {
-					fmt.Printf("  Configured MCP for VS Code (%s)\n", vscodeConfig)
-					configured = true
-				}
+				configured = configureByFile(out, "VS Code", filepath.Join(vscodeDir, "mcp.json"), legacyMCPFormat) || configured
 			}
 
 			if !configured {
@@ -169,46 +152,39 @@ func MCPConfigStep() Step {
 	}
 }
 
-type mcpServerConfig struct {
-	Command string   `json:"command"`
-	Args    []string `json:"args"`
+// legacyMCPFormat is the mcpServers entry that every client was given before.
+var legacyMCPFormat = mcpConfigFormat{
+	key:   "mcpServers",
+	entry: map[string]any{"command": "nullify", "args": []string{"mcp", "serve"}},
 }
 
-func writeMCPConfig(path string) error {
-	// Read existing config if present
-	existing := map[string]any{}
-	if data, err := os.ReadFile(path); err == nil {
-		_ = json.Unmarshal(data, &existing)
+// configureByFile adds the nullify entry to one client's config file, tells
+// the person what happened, and reports whether the client is configured. A
+// file that cannot be changed safely is left alone, and the person is shown the
+// entry to add by hand.
+func configureByFile(out io.Writer, client, path string, format mcpConfigFormat) bool {
+	added, err := writeMCPConfig(path, format)
+	switch {
+	case errors.Is(err, ErrUnreadableMCPConfig):
+		fmt.Fprintf(out, "  Did not configure %s: %s is not plain JSON (it may hold comments or a trailing comma), so it was left unchanged. Add this entry to it by hand:\n%s\n",
+			client, path, indent(format.snippet(), "    "))
+		return false
+	case err != nil:
+		fmt.Fprintf(out, "  Did not configure %s: %v. Add this entry to %s by hand:\n%s\n",
+			client, err, path, indent(format.snippet(), "    "))
+		return false
+	case !added:
+		fmt.Fprintf(out, "  %s already has a nullify MCP server (%s)\n", client, path)
+		return true
+	default:
+		fmt.Fprintf(out, "  Configured MCP for %s (%s)\n", client, path)
+		return true
 	}
+}
 
-	mcpServers, ok := existing["mcpServers"].(map[string]any)
-	if !ok || mcpServers == nil {
-		mcpServers = make(map[string]any)
-	}
-
-	// Only add nullify if not already configured
-	if _, ok := mcpServers["nullify"]; ok {
-		return nil
-	}
-
-	mcpServers["nullify"] = mcpServerConfig{
-		Command: "nullify",
-		Args:    []string{"mcp", "serve"},
-	}
-	existing["mcpServers"] = mcpServers
-
-	data, err := json.MarshalIndent(existing, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	// Ensure directory exists
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0700); err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, append(data, '\n'), 0600)
+// indent prefixes every line of text with prefix.
+func indent(text, prefix string) string {
+	return prefix + strings.ReplaceAll(text, "\n", "\n"+prefix)
 }
 
 // SummaryStep reads host/token from config at execution time and displays next steps.
