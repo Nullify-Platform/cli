@@ -47,31 +47,31 @@ func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
 	}{
 		{
 			scanner:  "sast",
-			expected: []string{"limit", "1", "severity", "CRITICAL", "isResolved", "false", "repository", "org/repo"},
+			expected: []string{"severity", "CRITICAL", "isResolved", "false", "repository", "org/repo"},
 		},
 		{
 			scanner:  "cspm",
-			expected: []string{"limit", "1", "severity", "CRITICAL", "status", "open", "repository", "org/repo"},
+			expected: []string{"severity", "CRITICAL", "status", "open", "repository", "org/repo"},
 		},
 		{
 			scanner:  "sca_dependencies",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+			expected: []string{"isResolved", "false", "repository", "org/repo"},
 		},
 		{
 			scanner:  "sca_containers",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+			expected: []string{"isResolved", "false", "repository", "org/repo"},
 		},
 		{
 			scanner:  "secrets",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+			expected: []string{"isResolved", "false", "repository", "org/repo"},
 		},
 		{
 			scanner:  "pentest",
-			expected: []string{"limit", "1", "isResolved", "false", "repository", "org/repo"},
+			expected: []string{"isResolved", "false", "repository", "org/repo"},
 		},
 		{
 			scanner:  "bughunt",
-			expected: []string{"limit", "1", "repository", "org/repo"},
+			expected: []string{"repository", "org/repo"},
 		},
 	}
 
@@ -81,7 +81,7 @@ func TestScannerQueryParamsMatchEndpointFilters(t *testing.T) {
 			require.True(t, ok)
 
 			severities := scannerSeverities(ep, []string{"critical", "high"})
-			params := scannerQueryParams(ep, severities[0], "org/repo", "1")
+			params := scannerQueryParams(ep, severities[0], "org/repo")
 			require.Equal(t, tt.expected, params)
 		})
 	}
@@ -105,91 +105,6 @@ func TestScannerSeveritiesCollapseWithoutServerSideFilter(t *testing.T) {
 		gateFailLine(byName["secrets"], ""),
 	)
 	require.Equal(t, "FAIL: sast has open critical findings", gateFailLine(byName["sast"], "critical"))
-}
-
-func TestCountFindings(t *testing.T) {
-	tests := []struct {
-		name     string
-		body     string
-		expected int
-	}{
-		{
-			name:     "sast envelope",
-			body:     `{"version":"1","findings":[{"id":"f1"}],"numItems":1,"nextToken":""}`,
-			expected: 1,
-		},
-		{
-			name:     "sca dependencies envelope",
-			body:     `{"version":"1","findings":[{"id":"f1"},{"id":"f2"}],"numItems":2,"nextToken":"abc"}`,
-			expected: 2,
-		},
-		{
-			name:     "sca containers envelope",
-			body:     `{"findings":[{"id":"f1"}],"numItems":1,"nextToken":""}`,
-			expected: 1,
-		},
-		{
-			name:     "secrets envelope",
-			body:     `{"findings":[],"numItems":0,"nextToken":""}`,
-			expected: 0,
-		},
-		{
-			name:     "pentest envelope",
-			body:     `{"findings":[{"id":"f1"},{"id":"f2"},{"id":"f3"}],"numItems":0,"nextToken":""}`,
-			expected: 3,
-		},
-		{
-			name:     "bughunt envelope omits numItems",
-			body:     `{"findings":[{"id":"f1"},{"id":"f2"}]}`,
-			expected: 2,
-		},
-		{
-			name:     "cspm envelope omits empty nextToken",
-			body:     `{"findings":[{"id":"f1"}],"numItems":1,"version":"1"}`,
-			expected: 1,
-		},
-		{
-			name:     "nil findings slice serialises as null",
-			body:     `{"findings":null,"numItems":0,"nextToken":""}`,
-			expected: 0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := countFindings(tt.body)
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, result)
-		})
-	}
-}
-
-func TestCountFindingsRejectsUnknownEnvelopes(t *testing.T) {
-	tests := []struct {
-		name string
-		body string
-	}{
-		{name: "invalid json", body: `not json`},
-		{name: "empty object", body: `{}`},
-		{name: "bare array", body: `[{"id":"f1"}]`},
-		{name: "items envelope", body: `{"items":[{"id":"f1"}]}`},
-		{name: "total envelope", body: `{"total":42}`},
-		{name: "findings is not an array", body: `{"findings":{"id":"f1"}}`},
-		{name: "empty body", body: ``},
-		{name: "object with zero count", body: `{"findings":{},"numItems":0}`},
-		{name: "boolean with zero count", body: `{"findings":false,"numItems":0}`},
-		{name: "negative count", body: `{"findings":[],"numItems":-1}`},
-		{name: "understated positive count", body: `{"findings":[{"id":"f1"},{"id":"f2"}],"numItems":1}`},
-		{name: "overstated count", body: `{"findings":[],"numItems":1}`},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			count, err := countFindings(tt.body)
-			require.ErrorIs(t, err, errUnreadableFindings)
-			require.Zero(t, count)
-		})
-	}
 }
 
 func TestCIGateResponseValidation(t *testing.T) {

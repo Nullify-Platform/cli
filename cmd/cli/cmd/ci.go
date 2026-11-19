@@ -1,14 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
 
+	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/nullify-platform/cli/internal/output"
 	"github.com/spf13/cobra"
@@ -92,7 +93,8 @@ Exit codes:
 			for _, sev := range scannerSeverities(ep, severities) {
 				ep, sev := ep, sev
 				g.Go(func() error {
-					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1")...)
+					params := append(scannerQueryParams(ep, sev, repo), "limit", "1")
+					qs := lib.BuildQueryString(queryParams, params...)
 
 					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
 					if err != nil {
@@ -103,7 +105,7 @@ Exit codes:
 						return nil
 					}
 
-					count, err := countFindings(body)
+					page, err := decodeFindingsPage(body)
 					if err != nil {
 						mu.Lock()
 						fmt.Fprintf(os.Stderr, "Error: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
@@ -112,7 +114,7 @@ Exit codes:
 						return nil
 					}
 
-					if count > 0 {
+					if len(page.findings) > 0 {
 						atomic.AddInt64(&findingsFound, 1)
 						mu.Lock()
 						fmt.Println(gateFailLine(ep, sev))
@@ -162,7 +164,7 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 		if err != nil {
 			return err
 		}
-		nullifyClient := authCtx.Client()
+		get := clientGetter(authCtx.Client())
 		queryParams := authCtx.QueryParams
 
 		repo, _ := cmd.Flags().GetString("repo")
@@ -197,21 +199,11 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 			for j, sev := range severities {
 				i, j, ep, sev := i, j, ep, sev
 				g.Go(func() error {
-					qs := lib.BuildQueryString(queryParams, scannerQueryParams(ep, sev, repo, "1000")...)
-
-					body, err := lib.DoGet(gctx, nullifyClient.HttpClient, nullifyClient.BaseURL, ep.path+qs)
+					findings, err := collectFindings(gctx, get, ep.path, queryParams, scannerQueryParams(ep, sev, repo))
 					if err != nil {
 						atomic.AddInt64(&apiErrors, 1)
 						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: failed to query %s: %v\n", scannerLabel(ep, sev), err)
-						mu.Unlock()
-						return nil
-					}
-					count, err := countFindings(body)
-					if err != nil {
-						atomic.AddInt64(&apiErrors, 1)
-						mu.Lock()
-						fmt.Fprintf(os.Stderr, "Warning: unreadable response from %s: %v\n", scannerLabel(ep, sev), err)
+						fmt.Fprintf(os.Stderr, "Warning: failed to read %s: %v\n", scannerLabel(ep, sev), err)
 						mu.Unlock()
 						return nil
 					}
@@ -220,8 +212,8 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.`,
 					rows[i*len(severities)+j] = reportRow{
 						scanner:  ep.name,
 						severity: sev,
-						count:    count,
-						findings: extractFindings(body),
+						count:    len(findings),
+						findings: findings,
 					}
 					return nil
 				})
@@ -302,8 +294,10 @@ func scannerSeverities(ep scannerEndpoint, severities []string) []string {
 	return severities
 }
 
-func scannerQueryParams(ep scannerEndpoint, severity, repo, limit string) []string {
-	params := []string{"limit", limit}
+// scannerQueryParams returns the filters for one scanner list request. The
+// page size and cursor are added per page by visitFindingPages.
+func scannerQueryParams(ep scannerEndpoint, severity, repo string) []string {
+	params := []string{}
 	if ep.supportsSeverity && severity != "" {
 		params = append(params, "severity", strings.ToUpper(severity))
 	}
@@ -338,57 +332,9 @@ func gateFailLine(ep scannerEndpoint, severity string) string {
 	return fmt.Sprintf("FAIL: %s has open %s findings", ep.name, severity)
 }
 
-// errUnreadableFindings reports a findings response that does not carry the
-// scanner envelope. It is never reported as a count of zero: a gate that cannot
-// read the response must block the build rather than declare the repo clean.
-var errUnreadableFindings = errors.New("unrecognised findings response envelope")
-
-func countFindings(body string) (int, error) {
-	var envelope struct {
-		Findings json.RawMessage `json:"findings"`
-		NumItems *int            `json:"numItems"`
+// clientGetter sends finding list requests through the authenticated client.
+func clientGetter(c *client.NullifyClient) findingsGetter {
+	return func(ctx context.Context, path string) (string, error) {
+		return lib.DoGet(ctx, c.HttpClient, c.BaseURL, path)
 	}
-	if err := json.Unmarshal([]byte(body), &envelope); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUnreadableFindings, err)
-	}
-	if len(envelope.Findings) == 0 {
-		return 0, fmt.Errorf("%w: no \"findings\" field", errUnreadableFindings)
-	}
-
-	var findings []json.RawMessage
-	if err := json.Unmarshal(envelope.Findings, &findings); err != nil {
-		return 0, fmt.Errorf("%w: \"findings\" is not an array: %w", errUnreadableFindings, err)
-	}
-	if envelope.NumItems != nil && *envelope.NumItems != 0 && *envelope.NumItems != len(findings) {
-		return 0, fmt.Errorf(
-			"%w: numItems %d does not match findings length %d",
-			errUnreadableFindings, *envelope.NumItems, len(findings),
-		)
-	}
-	return len(findings), nil
-}
-
-// extractFindings pulls the finding objects out of an API response body so they
-// can be rendered (e.g. as SARIF). It understands a top-level array as well as
-// the common {findings:[...]} and {items:[...]} envelopes.
-func extractFindings(body string) []json.RawMessage {
-	var arr []json.RawMessage
-	if err := json.Unmarshal([]byte(body), &arr); err == nil {
-		return arr
-	}
-
-	var obj struct {
-		Findings []json.RawMessage `json:"findings"`
-		Items    []json.RawMessage `json:"items"`
-	}
-	if err := json.Unmarshal([]byte(body), &obj); err == nil {
-		if obj.Findings != nil {
-			return obj.Findings
-		}
-		if obj.Items != nil {
-			return obj.Items
-		}
-	}
-
-	return nil
 }
