@@ -160,7 +160,7 @@ Exit codes:
 	analyzeCmd.Flags().DurationVar(&waitInterval, "wait-interval", defaultWaitInterval, "With --wait, delay between poll attempts")
 	analyzeCmd.Flags().StringVar(&failOn, "fail-on", "malicious", "Exit non-zero when any finding of this severity or worse: vulnerable|suspicious|malicious|none")
 	analyzeCmd.Flags().StringVar(&outputFormat, "format", "text", "Output format: text|json")
-	analyzeCmd.Flags().StringVar(&idempotencySeed, "idempotency-seed", "", "Prefix for the scpm idempotency key; default is the CI provider name")
+	analyzeCmd.Flags().StringVar(&idempotencySeed, "idempotency-seed", "", "Prefix for the scpm idempotency key, which is matched across all tenants, so make it unique to your org; by default no key is sent and scpm keys each job by tenant and package version")
 	depsCmd.AddCommand(analyzeCmd)
 }
 
@@ -270,7 +270,7 @@ func runDepsAnalyze(ctx context.Context, client *api.Client, opts depsAnalyzeOpt
 			Name:            d.Name,
 			Version:         d.Version,
 			PreviousVersion: d.PreviousVersion,
-			IdempotencyKey:  buildIdempotencyKey(opts.IdempotencySeed, provider, d),
+			IdempotencyKey:  buildIdempotencyKey(opts.IdempotencySeed, d),
 		}
 		resp, err := analyzeDep(ctx, client, provider, req, opts)
 		if err != nil {
@@ -289,19 +289,19 @@ func runDepsAnalyze(ctx context.Context, client *api.Client, opts depsAnalyzeOpt
 	return depsGateResult(analyzed, opts.FailOn)
 }
 
-// buildIdempotencyKey combines the caller-supplied seed (or, by default,
-// the CI provider name) with the (ecosystem, name, version) tuple. The
-// default seed is stable across runs of the same provider on purpose:
-// re-runs and re-triggers of a flaky pipeline then coalesce onto the same
-// scpm job and reuse its cached verdict rather than re-queuing analysis.
-func buildIdempotencyKey(seed string, p ci.Provider, d scan.ChangedDep) string {
+// buildIdempotencyKey combines the caller-supplied seed with the
+// (ecosystem, name, version) tuple. Without a seed it returns "", so the
+// request carries no key and scpm builds its own from the tenant ID and the
+// same tuple. vuln-database looks keys up across every tenant, so a key the
+// CLI built from the CI provider alone was shared by every tenant on that
+// provider. The tenant-scoped key still lets re-runs and re-triggers of a
+// flaky pipeline coalesce onto the same job and reuse its cached verdict.
+func buildIdempotencyKey(seed string, d scan.ChangedDep) string {
 	if seed == "" {
-		if v := os.Getenv("NULLIFY_IDEMPOTENCY_SEED"); v != "" {
-			seed = v
-		}
+		seed = os.Getenv("NULLIFY_IDEMPOTENCY_SEED")
 	}
 	if seed == "" {
-		seed = fmt.Sprintf("ci-%s", p.Platform())
+		return ""
 	}
 	return fmt.Sprintf("%s|%s|%s|%s", seed, d.Ecosystem, d.Name, d.Version)
 }

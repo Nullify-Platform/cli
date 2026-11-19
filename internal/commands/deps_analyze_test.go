@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
@@ -157,21 +158,40 @@ func assertExitCode(t *testing.T, err error, want int) {
 }
 
 func TestBuildIdempotencyKey(t *testing.T) {
-	t.Setenv("NULLIFY_IDEMPOTENCY_SEED", "")
-	clearLocalEnv(t)
-	p := ci.NewLocal()
 	d := dep("lodash")
+	cases := []struct {
+		name    string
+		seed    string
+		envSeed string
+		want    string
+	}{
+		{"no seed sends no key, so scpm keys the job by tenant", "", "", ""},
+		{"an explicit seed wins", "myseed", "envseed", "myseed|npm|lodash|1.0.0"},
+		{"the environment seed is used without a flag", "", "envseed", "envseed|npm|lodash|1.0.0"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Setenv("NULLIFY_IDEMPOTENCY_SEED", c.envSeed)
+			clearLocalEnv(t)
 
-	// Default seed is provider-name scoped (stable across runs).
-	got := buildIdempotencyKey("", p, d)
-	want := "ci-OTHER|npm|lodash|1.0.0"
-	if got != want {
-		t.Errorf("default key = %q, want %q", got, want)
+			require.Equal(t, c.want, buildIdempotencyKey(c.seed, d))
+		})
 	}
-	// Explicit seed wins.
-	if got := buildIdempotencyKey("myseed", p, d); got != "myseed|npm|lodash|1.0.0" {
-		t.Errorf("explicit seed key = %q", got)
-	}
+}
+
+func TestPostSCPMAnalyzeOmitsAnEmptyIdempotencyKey(t *testing.T) {
+	var body map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		_, _ = w.Write([]byte(`{"jobId":"j1","status":"queued"}`))
+	}))
+	defer srv.Close()
+
+	client := &api.Client{BaseURL: srv.URL, HTTPClient: srv.Client()}
+	_, err := postSCPMAnalyze(context.Background(), client, ci.NewLocal(), scpmAnalyzeRequest{Ecosystem: manifest.EcosystemNPM, Name: "x", Version: "1.0.0"})
+
+	require.NoError(t, err)
+	require.NotContains(t, body, "idempotencyKey")
 }
 
 func clearLocalEnv(t *testing.T) {
