@@ -22,6 +22,9 @@ type gateResult struct {
 	check   gateCheck
 	blocked bool
 	err     error
+	// unnarrowed counts findings of other repositories on a list the server
+	// was asked to narrow to the scope's repository.
+	unnarrowed int
 }
 
 func gateChecks(endpoints []scannerEndpoint, severities []string) []gateCheck {
@@ -66,18 +69,35 @@ func runGateCheck(
 	threshold severityLevel,
 	scope repositoryScope,
 ) gateResult {
-	blocked := false
+	blocked, outOfScope := false, 0
 	err := visitFindingPages(
 		ctx, get, check.ep.path, base,
 		scannerQueryParams(check.ep, check.severity, scope),
 		func(page []json.RawMessage) bool {
+			outOfScope += countOutOfScope(check.ep, scope, page)
 			blocked = slices.ContainsFunc(page, func(finding json.RawMessage) bool {
 				return blocksGate(check.ep, scope, finding, threshold)
 			})
 			return !blocked
 		},
 	)
-	return gateResult{check: check, blocked: blocked, err: err}
+	result := gateResult{check: check, blocked: blocked, err: err}
+	if len(scope.queryParams(check.ep)) > 0 {
+		result.unnarrowed = outOfScope
+	}
+	return result
+}
+
+// countOutOfScope counts the findings of a page that belong to another
+// repository.
+func countOutOfScope(ep scannerEndpoint, scope repositoryScope, page []json.RawMessage) int {
+	count := 0
+	for _, finding := range page {
+		if !scope.includes(ep, finding) {
+			count++
+		}
+	}
+	return count
 }
 
 // blocksGate reports whether a finding fails the gate at the threshold.
@@ -92,6 +112,7 @@ func gateVerdict(results []gateResult, threshold severityLevel) error {
 	var denied, failed, unreadable, blocked int
 	for _, result := range results {
 		label := scannerLabel(result.check.ep, result.check.severity)
+		warnUnnarrowed(label, result.unnarrowed)
 		switch {
 		case isAccessDenied(result.err):
 			denied++
@@ -124,6 +145,21 @@ func gateVerdict(results []gateResult, threshold severityLevel) error {
 	default:
 		return nil
 	}
+}
+
+// warnUnnarrowed reports a list the server did not narrow to the scope's
+// repository. The CLI leaves the other repositories' findings out either
+// way, but when the ID is wrong for the tenant's git provider, this
+// repository's findings are missing too and the gate passes on nothing.
+func warnUnnarrowed(label string, unnarrowed int) {
+	if unnarrowed == 0 {
+		return
+	}
+	fmt.Fprintf(os.Stderr,
+		"Warning: %s returned %d finding(s) of other repositories, so the server did not narrow the list "+
+			"to this repository and the CLI left them out. If this repository's findings are missing, "+
+			"check that --repository-id is its ID at the tenant's git provider.\n",
+		label, unnarrowed)
 }
 
 // gateFailLine reports a check that found a blocking finding.

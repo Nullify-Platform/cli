@@ -284,3 +284,41 @@ func TestCIGateCountsServerFilteredFindingsOfUnknownSeverity(t *testing.T) {
 		})
 	}
 }
+
+func TestCIGateWarnsWhenTheServerDidNotNarrowToTheRepository(t *testing.T) {
+	tests := []struct {
+		name     string
+		env      map[string]string
+		flags    map[string]string
+		wantWarn bool
+	}{
+		{"a github id the server ignored", nil, map[string]string{"repository-id": "42"}, true},
+		{"gitlab, which the server cannot narrow", map[string]string{"GITLAB_CI": "true", "CI_PROJECT_ID": "42"}, nil, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			useCIEnv(t)
+			for name, value := range tt.env {
+				t.Setenv(name, value)
+			}
+			serveScannerAPI(t, func(*http.Request) (int, string) {
+				return http.StatusOK, `{"findings":[{"id":"s1","repositoryId":"99"},{"id":"s2","repositoryId":"98"}]}`
+			})
+			flags := map[string]string{"type": "secrets"}
+			for name, value := range tt.flags {
+				flags[name] = value
+			}
+
+			var err error
+			stderr := captureStderr(t, func() { _, err = runCI(t, ciGateCmd, flags) })
+
+			require.Equal(t, ExitSuccess, ExitCodeForError(err))
+			warning := "Warning: secrets returned 2 finding(s) of other repositories"
+			if tt.wantWarn {
+				require.Contains(t, stderr, warning)
+			} else {
+				require.NotContains(t, stderr, warning)
+			}
+		})
+	}
+}
