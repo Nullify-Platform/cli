@@ -1,6 +1,9 @@
 <p align="center">
   <a href="https://nullify.ai">
-    <img src="https://uploads-ssl.webflow.com/6492db86d53f84f396b6623d/64dad6c12b98dee05eb08088_nullify%20logo.png" alt="Nullify" width="300"/>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/nullify-logo-dark.svg">
+      <img src="assets/nullify-logo-light.svg" alt="Nullify" width="320">
+    </picture>
   </a>
 </p>
 
