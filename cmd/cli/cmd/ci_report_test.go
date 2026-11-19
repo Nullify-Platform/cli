@@ -71,3 +71,27 @@ func TestCIReportCountsEachFindingOnceUnderItsOwnSeverity(t *testing.T) {
 	require.Len(t, document.Runs, 1)
 	require.Len(t, document.Runs[0].Results, 4, "each finding appears once")
 }
+
+func TestCIReportCountsOnlyOpenBughuntFindings(t *testing.T) {
+	useCIEnv(t)
+	serveScannerAPI(t, func(r *http.Request) (int, string) {
+		if r.URL.Path != "/dast/bughunt/findings" {
+			return emptyFindings(r)
+		}
+		return http.StatusOK, `{"findings":[
+			{"id":"b1","title":"Open","severity":"HIGH","isLatest":true},
+			{"id":"b2","title":"Allowlisted","severity":"HIGH","isAllowlisted":true},
+			{"id":"b3","title":"Fixed","severity":"HIGH","isFixed":true}
+		]}`
+	})
+
+	markdown, err := runCI(t, ciReportCmd, map[string]string{"repo": "org/repo"})
+	require.NoError(t, err)
+	require.Contains(t, markdown, "| bughunt | high | 1 |")
+
+	sarif, err := runCI(t, ciReportCmd, map[string]string{"repo": "org/repo", "format": "sarif"})
+	require.NoError(t, err)
+	require.Contains(t, sarif, "Open")
+	require.NotContains(t, sarif, "Allowlisted")
+	require.NotContains(t, sarif, "Fixed")
+}

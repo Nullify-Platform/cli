@@ -123,3 +123,34 @@ func TestCIGateReadsLaterPages(t *testing.T) {
 	require.Contains(t, out, "FAIL: sca_dependencies has open findings at or above critical severity")
 	require.Len(t, api.requests(), 2)
 }
+
+func TestCIGateCountsOnlyOpenBughuntFindings(t *testing.T) {
+	tests := []struct {
+		name    string
+		finding string
+		exit    int
+	}{
+		{"an open finding fails the gate", `{"id":"b1","severity":"CRITICAL","isLatest":true}`, ExitFindings},
+		{"an allowlisted finding passes", `{"id":"b1","severity":"CRITICAL","isAllowlisted":true}`, ExitSuccess},
+		{"an archived finding passes", `{"id":"b1","severity":"CRITICAL","isArchived":true}`, ExitSuccess},
+		{"a false positive passes", `{"id":"b1","severity":"CRITICAL","isFalsePositive":true}`, ExitSuccess},
+		{"a fixed finding passes", `{"id":"b1","severity":"CRITICAL","isFixed":true}`, ExitSuccess},
+		{"a superseded finding passes", `{"id":"b1","severity":"CRITICAL","isLatest":false}`, ExitSuccess},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			useCIEnv(t)
+			serveScannerAPI(t, func(*http.Request) (int, string) {
+				return http.StatusOK, `{"findings":[` + tt.finding + `]}`
+			})
+
+			_, err := runCI(t, ciGateCmd, map[string]string{
+				"severity-threshold": "high",
+				"type":               "bughunt",
+				"repo":               "acme/app",
+			})
+
+			require.Equal(t, tt.exit, ExitCodeForError(err))
+		})
+	}
+}

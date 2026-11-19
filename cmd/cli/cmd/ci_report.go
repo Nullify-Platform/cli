@@ -25,7 +25,8 @@ type reportRow struct {
 }
 
 // collectScannerReports reads each scanner's list once, with no severity
-// filter, so that every finding is read exactly once.
+// filter, so that every finding is read exactly once. It keeps only the
+// findings the report counts.
 func collectScannerReports(
 	ctx context.Context,
 	get findingsGetter,
@@ -38,7 +39,7 @@ func collectScannerReports(
 	for i, ep := range endpoints {
 		wg.Go(func() {
 			findings, err := collectFindings(ctx, get, ep.path, base, scannerQueryParams(ep, "", repo))
-			reports[i] = scannerReport{ep: ep, findings: findings, err: err}
+			reports[i] = scannerReport{ep: ep, findings: countedFindings(ep, findings), err: err}
 		})
 	}
 	wg.Wait()

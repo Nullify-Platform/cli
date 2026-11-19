@@ -82,7 +82,7 @@ func runGateCheck(
 
 // blocksGate reports whether a finding fails the gate at the threshold.
 func blocksGate(ep scannerEndpoint, finding json.RawMessage, threshold severityLevel) bool {
-	return findingSeverity(ep, finding).meets(threshold)
+	return countsForScanner(ep, finding) && findingSeverity(ep, finding).meets(threshold)
 }
 
 // gateVerdict prints the result of every check and returns the gate's error.

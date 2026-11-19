@@ -26,7 +26,9 @@ Use this in CI/CD pipelines to block deployments with critical/high findings.
 The threshold applies to every scanner. A finding counts when its own
 severity is at or above the threshold. Secrets findings carry no severity,
 and neither does a finding whose severity is missing or unknown, so every
-open one counts at any threshold.
+open one counts at any threshold. The bughunt list returns closed findings
+too, so the gate leaves out bughunt findings that are fixed, allowlisted,
+archived, false positives or superseded by a later scan.
 
 Exit codes:
   0 - No findings above threshold
@@ -54,7 +56,8 @@ summary table suitable for PR comments (counts by type and severity). The sarif
 format emits a SARIF v2.1.0 document for upload to code-scanning tools.
 
 Each finding is counted once, under its own severity. Findings without a
-severity, which includes every secrets finding, are counted as unknown.`,
+severity, which includes every secrets finding, are counted as unknown.
+Closed bughunt findings are left out, as the gate leaves them out.`,
 	Example: `  nullify ci report
   nullify ci report --repo my-org/my-repo
   nullify ci report --format sarif > nullify.sarif`,

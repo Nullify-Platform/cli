@@ -13,6 +13,10 @@ type scannerEndpoint struct {
 	// listed before the value it overrides. A scanner whose findings carry
 	// no severity has none, and its findings count at every threshold.
 	severityFields []string
+	// filtersOpenOnClient marks a list route with no lifecycle filter. It
+	// returns allowlisted, archived, false-positive and fixed findings
+	// too, so the CLI drops them itself.
+	filtersOpenOnClient bool
 }
 
 func allScannerEndpoints() []scannerEndpoint {
@@ -22,7 +26,7 @@ func allScannerEndpoints() []scannerEndpoint {
 		{name: "sca_containers", path: "/sca/containers/findings", supportsIsResolved: true, severityFields: []string{"vulnerabilitiesMaxSeverity"}},
 		{name: "secrets", path: "/secrets/findings", supportsIsResolved: true},
 		{name: "pentest", path: "/dast/pentest/findings", supportsIsResolved: true, severityFields: []string{"effectiveSeverity", "severity"}},
-		{name: "bughunt", path: "/dast/bughunt/findings", severityFields: []string{"severityOverride", "severity"}},
+		{name: "bughunt", path: "/dast/bughunt/findings", filtersOpenOnClient: true, severityFields: []string{"severityOverride", "severity"}},
 		{name: "cspm", path: "/cspm/findings", supportsSeverity: true, supportsOpenStatus: true, severityFields: []string{"severity"}},
 	}
 }
