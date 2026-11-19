@@ -12,7 +12,7 @@ import (
 
 var whoamiCmd = &cobra.Command{
 	Use:   "whoami",
-	Short: "Show current authentication status",
+	Short: "Show the host, auth source and organization commands run as",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 

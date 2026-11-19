@@ -56,15 +56,26 @@ Pre-configure your instance during install:
 curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh -s -- --host api.acme.nullify.ai
 ```
 
+Pin a release, for example in CI:
+
+```sh
+curl -sSfL https://raw.githubusercontent.com/Nullify-Platform/cli/main/install.sh | sh -s -- --version v0.28.0
+```
+
+The installer writes `nullify` to `/usr/local/bin` when it can, otherwise to `~/.local/bin`. Without `--version` it asks the GitHub API for the latest release; set `GITHUB_TOKEN` to avoid that API's rate limit on shared CI runners. Unknown options are an error, and `--help` lists the options.
+
 ### Go
 
 ```sh
 go install github.com/nullify-platform/cli/cmd/cli@latest
+mv "$(go env GOPATH)/bin/cli" "$(go env GOPATH)/bin/nullify"
 ```
+
+`go install` names the binary `cli`, after its directory, and puts it in `$(go env GOPATH)/bin` (or `$GOBIN` when set). Rename it to `nullify`, as above, so the commands in this README work.
 
 ### Windows
 
-Download the latest `.zip` for your architecture from [GitHub Releases](https://github.com/Nullify-Platform/cli/releases) and add the binary to your `PATH`.
+Download `nullify_windows_amd64.zip` from [GitHub Releases](https://github.com/Nullify-Platform/cli/releases), unpack it and add `nullify.exe` to your `PATH`. Windows on Arm runs the same build. In Git Bash, the install script above works too.
 
 ### Verify
 
@@ -72,7 +83,11 @@ Download the latest `.zip` for your architecture from [GitHub Releases](https://
 nullify --version
 ```
 
-The installer verifies SHA-256 checksums automatically. Binaries are available for Linux, macOS, and Windows on both amd64 and arm64.
+The installer verifies SHA-256 checksums automatically and refuses an archive without one. Binaries are available for Linux and macOS on amd64 and arm64, and for Windows on amd64. A `go install` build reports its module version.
+
+### Upgrade
+
+`nullify update` checks for a newer release and prints the installer command pinned to it (on Windows, the steps for the zip). It does not change the installed binary itself.
 
 ## Quick Start
 
@@ -150,8 +165,12 @@ Your login and your selected organization carry over. If you used an API token a
 ```sh
 export NULLIFY_HOST=api.acme.nullify.ai
 export NULLIFY_TOKEN=your-token-here
-export NULLIFY_ORG=acme-web   # optional: organization to run as, by name or id
+export NULLIFY_ORG=acme-web              # optional: organization to run as, by name or id
+export NULLIFY_GITHUB_OWNER_ID=12345678  # optional: organization to run as, by GitHub owner id
+export NULLIFY_HTTP_TIMEOUT=120s         # optional: API request timeout as a Go duration (default 30s)
 ```
+
+`NULLIFY_HOST` applies when `--host` is not passed (see [Configuration](#configuration)), and `NULLIFY_ORG` and `NULLIFY_GITHUB_OWNER_ID` when `--org` is not (see [Organizations](#organizations)). Raise `NULLIFY_HTTP_TIMEOUT` for slow calls such as starting a scan or an autofix.
 
 ### Multiple Instances
 
@@ -182,6 +201,13 @@ nullify auth switch
 | `nullify findings get` / `triage` | Read a finding or its AI triage |
 | `nullify findings create-ticket` / `delete-ticket` | Manage the ticket of a finding |
 | `nullify findings feedback` / `get-feedback` | Record or read feedback on a finding of any type |
+| `nullify fix <finding-id>` | Generate an autofix for a finding and wait for it (`--create-pr` reports the pull request it opened, `--no-wait` returns at once) |
+| `nullify findings fix-status` / `fix-diff` | Read the state and pull requests of a finding's autofix run, or the change it proposes |
+| `nullify repos` | List every monitored repository |
+| `nullify sbom get` | Get the latest SBOM of each project in a repository, or of one with `--project-id` |
+| `nullify threat list` / `get` / `create` | List, read or create threat investigations (`--severity` takes `critical`, `high`, `medium`, `low` or `informational`) |
+| `nullify open` | Open the Nullify dashboard in your browser |
+
 ### Authentication
 
 | Command | Description |
@@ -192,6 +218,7 @@ nullify auth switch
 | `nullify auth token` | Print raw access token to stdout (pipe-friendly) |
 | `nullify auth switch` | Switch active instance or list configured instances |
 | `nullify auth config` | Print the effective host, auth host, data host, and organization as JSON |
+| `nullify whoami` | Show the host, the auth source (a login, an API token or a GitHub Actions token), and the organization commands run as |
 | `nullify org list` | List the organizations you can use, and which one commands run as and why |
 | `nullify org use <name\|id>` | Remember the organization commands run as (and, through the Nullify router, its instance) |
 
@@ -202,6 +229,8 @@ nullify auth switch
 | `nullify pentest` | Run DAST pentest scans (cloud or local via Docker) |
 | `nullify bughunt` | Cloud-based automated bug hunting |
 | `nullify secrets scan-file` | Local secret scan of a single file or stdin buffer; no API call or network access |
+| `nullify scan start` / `status <scanId>` | Start a cloud scan, or check the status of one |
+| `nullify scan runs` | List a repository's scan runs (`--type` takes `sast`, `sca`, `sca_dependencies`, `sca_containers` or `secrets`) |
 
 ### CI/CD
 
@@ -216,6 +245,9 @@ nullify auth switch
 |---------|-------------|
 | `nullify mcp serve` | Start the MCP server for AI coding tools |
 | `nullify completion` | Generate shell completions (bash, zsh, fish, powershell) |
+| `nullify api` | Direct API access, one command per API route (see [Command stability](#command-stability)) |
+| `nullify update` | Check for a newer release and print how to install it |
+| `nullify version` | Show the version, commit, build date, Go version, and platform |
 
 ## Findings
 
@@ -452,7 +484,7 @@ When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.
 
 ## Requirements
 
-- **macOS, Linux, or Windows** (amd64 or arm64)
+- **macOS or Linux** (amd64 or arm64), or **Windows** (amd64, which Windows on Arm also runs)
 - **Docker** — required only for local pentest scans (`--local`)
 - A [Nullify](https://nullify.ai) instance — [request access](https://nullify.ai)
 
