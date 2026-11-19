@@ -29,16 +29,34 @@ type RetiredFlag struct {
 	Evidence string
 }
 
+// RemovedFlag records a flag that is gone. A script that passes it fails with
+// an unknown-flag error that names it.
+type RemovedFlag struct {
+	Command  string
+	Flag     string
+	Evidence string
+}
+
 // SurfaceDecisions is the record of every approved change to the command surface.
 type SurfaceDecisions struct {
 	Moved           []MovedCommand
 	RemovedCommands []RemovedCommand
 	RetiredFlags    []RetiredFlag
+	RemovedFlags    []RemovedFlag
 }
 
 func (d SurfaceDecisions) commandMoved(command string) bool {
 	for _, m := range d.Moved {
 		if m.From == command {
+			return true
+		}
+	}
+	return false
+}
+
+func (d SurfaceDecisions) flagRemoved(command, flag string) bool {
+	for _, r := range d.RemovedFlags {
+		if r.Command == command && r.Flag == flag {
 			return true
 		}
 	}

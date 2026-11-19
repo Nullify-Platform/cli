@@ -38,7 +38,7 @@ Scan, triage, fix, and track security vulnerabilities across your entire stack �
 - **Unified findings** — Query vulnerabilities across all scanner types (SAST, SCA, secrets, DAST, CSPM) in a single command
 - **AI-powered remediation** — Generate fix patches and open PRs automatically
 - **CI/CD quality gates** — Block deployments when critical findings are present
-- **DAST/Pentest scanning** — Run API security scans in the cloud or locally via Docker
+- **Pentest requests** — Request a reviewed pentest assessment of an application
 - **MCP server** — 50+ tools for AI coding assistants (Claude Code, Cursor, VS Code, and more)
 - **Multi-instance support** — Manage multiple Nullify instances and switch between them
 
@@ -226,7 +226,7 @@ nullify auth switch
 
 | Command | Description |
 |---------|-------------|
-| `nullify pentest` | Run DAST pentest scans (cloud or local via Docker) |
+| `nullify pentest` | Request a pentest assessment of an application |
 | `nullify bughunt` | Cloud-based automated bug hunting |
 | `nullify secrets scan-file` | Local secret scan of a single file or stdin buffer; no API call or network access |
 | `nullify scan start` / `status <scanId>` | Start a cloud scan, or check the status of one |
@@ -304,33 +304,21 @@ Raw API commands follow the API spec: `nullify api cspm create-allowlist-by-id`,
 
 ## Pentest Scans
 
-### Cloud Scan
+`nullify pentest` requests a pentest assessment of an application that is configured in Nullify, as the dashboard's **Request assessment** button does. Nullify reviews every request before the pentest runs, so the command returns with the scan awaiting review and no traffic sent to the target yet. The target must be confirmed as non-production.
 
 ```sh
-nullify pentest \
-  --app-name      "My REST API" \
-  --spec-path     ./openapi.json \
-  --target-host   https://api.myapp.dev \
-  --github-owner  my-org \
-  --github-repo   my-repo \
-  --header        "Authorization: Bearer token123"
+# The application's only deployment
+nullify pentest --app-name "My REST API"
+
+# One deployment of an application with several
+nullify pentest --app-id 01HXYZ... --target-host https://api.myapp.dev
 ```
 
-### Local Scan (Docker)
+The API schema, credentials and repository come from the application's configuration in Nullify.
 
-For APIs that aren't publicly accessible. Requires Docker.
+Migrating from an earlier version: `--spec-path`, `--header`, `--auth-config`, `--github-repo`, `--local`, `--image-label`, `--force-pull` and `--use-host-network` are removed, and passing one fails with an unknown-flag error. Configure the API schema and credentials on the application in Nullify, then name it with `--app-name` or `--app-id`.
 
-```sh
-nullify pentest \
-  --app-name      "My REST API" \
-  --spec-path     ./openapi.json \
-  --target-host   http://localhost:8080 \
-  --github-owner  my-org \
-  --github-repo   my-repo \
-  --local
-```
-
-Add `--use-host-network` if the target is running directly on the host machine.
+Check the request with `nullify pentest get-pentest-scans <scan-id>`.
 
 ## CI/CD Integration
 
@@ -491,6 +479,7 @@ When the host is `nullify.ai`, the CLI signs in and refreshes tokens on nullify.
 
 - **macOS or Linux** (amd64 or arm64), or **Windows** (amd64, which Windows on Arm also runs)
 - **Docker** — required only for local pentest scans (`--local`)
+- **macOS, Linux, or Windows** (amd64 or arm64)
 - A [Nullify](https://nullify.ai) instance — [request access](https://nullify.ai)
 
 ## Documentation

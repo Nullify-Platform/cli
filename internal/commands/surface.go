@@ -121,7 +121,7 @@ func CheckSurface(base, live []SurfaceEntry, decisions SurfaceDecisions) error {
 			errs = append(errs, fmt.Errorf("%w: %s: %s to %s", ErrRouteChanged, want.Command, want.Route, got.Route))
 		}
 		for _, flag := range want.Flags {
-			if !slices.Contains(got.Flags, flag) {
+			if !slices.Contains(got.Flags, flag) && !decisions.flagRemoved(want.Command, flag) {
 				errs = append(errs, fmt.Errorf("%w: %s --%s", ErrFlagDisappeared, want.Command, flag))
 			}
 		}

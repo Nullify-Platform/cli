@@ -16,6 +16,8 @@
 - `nullify auth logout` revokes the refresh token at Nullify before deleting the local credentials, so a copied credentials file stops working. A failed revocation prints a warning and the local credentials still go.
 - `nullify auth login`, `logout` and `token` honour `NULLIFY_HOST`, in the same order as every other command: `--host`, then `NULLIFY_HOST`, then the configured host.
 - `nullify whoami` reports an API token or GitHub Actions token as the sign-in, instead of "no credentials found".
+- `nullify pentest` works again. It called API routes that no longer exist, so every run failed with 404. It now requests an assessment of an application configured in Nullify, as the dashboard's Request assessment button does. Nullify reviews the request before the pentest runs, so the command returns with the scan awaiting review and no traffic sent to the target. Name the application with `--app-name` or the new `--app-id`; when both are set they must name the same application. `--target-host` picks the deployment when the application has several. The command refuses a target that is not confirmed as non-production. The output is JSON with `scan_id`, `status`, `mode`, `awaiting_review`, `target_url` and `check_with`.
+- The MCP tool `start_pentest` takes optional `web_service_id` and `target_id`, so it can request an assessment of an application with more than one deployment.
 - `nullify fix` now follows the run. It used to send the request, read the diff and exit 0 without waiting for the run. CI callers now wait up to 50 minutes by default, because a run can take 45. `--timeout` sets the wait. A failed run, or a run still going at the timeout, exits 1 and prints how to check it. The run continues on the server. `--no-wait` gives the fast return: it starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
 - `nullify mcp serve` and `nullify fix` honour `NULLIFY_HTTP_TIMEOUT`.
 - `nullify ci gate` is unchanged.
@@ -139,6 +141,8 @@ These commands called staff-only routes. The API gives a customer token 403 on t
 `ci gate --repo` and `ci report --repo` are deprecated and have no effect. They never narrowed the results; use `--repository-id`.
 
 The MCP tool `list_escalations` is removed. Its route `GET /manager/escalations` is gone from prod (#5596), so the tool only returned errors. Use `list_action_items`, which returns a different schema, so it is not an alias. `spec/mcp-tools.tsv` now locks the MCP tool names, annotations and tool sets.
+
+`nullify pentest` drops `--spec-path`, `--header`, `--auth-config` and `--github-repo`, because the API schema, credentials and repository now come from the application's configuration in Nullify. It also drops `--local`, `--image-label`, `--force-pull` and `--use-host-network`, because the API does not accept results from a local scan. Passing one of these flags fails with an unknown-flag error that names it. Migration: configure the API schema and credentials on the application in Nullify, then run `nullify pentest --app-name <name>`, adding `--target-host <url>` when the application has several deployments.
 
 ### Deprecated flags
 
