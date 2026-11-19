@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -105,4 +106,19 @@ func resetFlags(t *testing.T, c *cobra.Command) {
 		require.NoError(t, f.Value.Set(f.DefValue))
 		f.Changed = false
 	})
+}
+
+// captureStderr returns what run wrote to stderr.
+func captureStderr(t *testing.T, run func()) string {
+	t.Helper()
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+	old := os.Stderr
+	os.Stderr = w
+	defer func() { os.Stderr = old }()
+	run()
+	require.NoError(t, w.Close())
+	out, err := io.ReadAll(r)
+	require.NoError(t, err)
+	return string(out)
 }

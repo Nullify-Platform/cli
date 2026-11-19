@@ -246,3 +246,18 @@ func nilIfEmpty(values []string) []string {
 	}
 	return values
 }
+
+func TestCIGateNamesAListItCouldNotFinish(t *testing.T) {
+	useCIEnv(t)
+	serveScannerAPI(t, func(*http.Request) (int, string) {
+		return http.StatusOK, `{"findings":[],"numItems":0,"nextToken":"again"}`
+	})
+
+	var err error
+	stderr := captureStderr(t, func() {
+		_, err = runCI(t, ciGateCmd, map[string]string{"type": "secrets", "repository-id": "42"})
+	})
+
+	require.Equal(t, ExitNetworkError, ExitCodeForError(err))
+	require.Contains(t, stderr, "Error: could not read all of secrets: the finding list did not end within 100 pages")
+}

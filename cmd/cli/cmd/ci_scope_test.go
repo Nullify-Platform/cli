@@ -33,11 +33,14 @@ func TestResolveRepositoryScope(t *testing.T) {
 		},
 		{
 			name:   "a uuid may be a Bitbucket or an Azure id",
-			id:     " {0f1e2d3c-aaaa} ",
+			id:     " {0F1E2D3C-AAAA-BBBB-CCCC-0123456789AB} ",
 			detect: notDetected,
 			want: repositoryScope{
-				id: "0f1e2d3c-aaaa", source: "--repository-id",
-				providerParams: []string{"bitbucketRepositoryId", "0f1e2d3c-aaaa", "azureRepositoryId", "0f1e2d3c-aaaa"},
+				id: "0F1E2D3C-AAAA-BBBB-CCCC-0123456789AB", source: "--repository-id",
+				providerParams: []string{
+					"bitbucketRepositoryId", "0F1E2D3C-AAAA-BBBB-CCCC-0123456789AB",
+					"azureRepositoryId", "0F1E2D3C-AAAA-BBBB-CCCC-0123456789AB",
+				},
 			},
 		},
 		{
@@ -75,6 +78,9 @@ func TestResolveRepositoryScope(t *testing.T) {
 		{name: "no repository", detect: notDetected, wantErr: errNoRepositoryScope},
 		{name: "a blank id", id: "  ", detect: notDetected, wantErr: errInvalidRepositoryID},
 		{name: "a numeric id too large for any provider", id: "99999999999999999999", detect: notDetected, wantErr: errInvalidRepositoryID},
+		{name: "a repository name is not an id", id: "acme/app", detect: notDetected, wantErr: errInvalidRepositoryID},
+		{name: "a bare name is not an id", id: "app", detect: notDetected, wantErr: errInvalidRepositoryID},
+		{name: "a malformed uuid is not an id", id: "0f1e2d3c-aaaa", detect: notDetected, wantErr: errInvalidRepositoryID},
 		{name: "both an id and every repository", id: "42", all: true, detect: notDetected, wantErr: errConflictingRepositoryScope},
 	}
 	for _, tt := range tests {

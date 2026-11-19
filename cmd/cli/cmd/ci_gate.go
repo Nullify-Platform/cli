@@ -96,7 +96,10 @@ func gateVerdict(results []gateResult, threshold severityLevel) error {
 		case isAccessDenied(result.err):
 			denied++
 			fmt.Fprintf(os.Stderr, "Error: access refused for %s: %v\n", label, result.err)
-		case isUnreadable(result.err):
+		case errors.Is(result.err, errTooManyFindingPages):
+			unreadable++
+			fmt.Fprintf(os.Stderr, "Error: could not read all of %s: %v\n", label, result.err)
+		case errors.Is(result.err, errUnreadableFindings):
 			unreadable++
 			fmt.Fprintf(os.Stderr, "Error: unreadable response from %s: %v\n", label, result.err)
 		case result.err != nil:
@@ -121,11 +124,6 @@ func gateVerdict(results []gateResult, threshold severityLevel) error {
 	default:
 		return nil
 	}
-}
-
-// isUnreadable reports a list whose responses could not be read in full.
-func isUnreadable(err error) bool {
-	return errors.Is(err, errUnreadableFindings) || errors.Is(err, errTooManyFindingPages)
 }
 
 // gateFailLine reports a check that found a blocking finding.

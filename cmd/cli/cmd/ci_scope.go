@@ -80,16 +80,24 @@ func resolveRepositoryScope(
 // explicitRepositoryScope reads --repository-id. The flag does not say which
 // git provider the ID belongs to, so the ID is sent under every provider
 // parameter it can be: GitHub IDs are numeric, Bitbucket and Azure IDs are
-// not. The server reads only the parameter of the tenant's own provider.
+// UUIDs. The server reads only the parameter of the tenant's own provider.
+// Any other value is rejected, because a repository name would match no
+// finding and the gate would pass without checking anything.
 func explicitRepositoryScope(value string) (repositoryScope, error) {
 	id := normalizeRepositoryID(value)
-	if id == "" {
-		return repositoryScope{}, fmt.Errorf("%w: the value is empty", errInvalidRepositoryID)
-	}
 	scope := repositoryScope{id: id, source: "--repository-id"}
-	if !isDigits(id) {
+	switch {
+	case id == "":
+		return repositoryScope{}, fmt.Errorf("%w: the value is empty", errInvalidRepositoryID)
+	case isUUID(id):
 		scope.providerParams = []string{"bitbucketRepositoryId", id, "azureRepositoryId", id}
 		return scope, nil
+	case !isDigits(id):
+		return repositoryScope{}, fmt.Errorf(
+			"%w %q: pass the repository's ID at its git provider, not its name: "+
+				"a GitHub or GitLab numeric ID, or a Bitbucket or Azure Repos UUID",
+			errInvalidRepositoryID, value,
+		)
 	}
 	if _, err := strconv.ParseInt(id, 10, 64); err != nil {
 		return repositoryScope{}, fmt.Errorf("%w %q: a numeric ID must fit in 64 bits", errInvalidRepositoryID, value)
@@ -155,4 +163,20 @@ func normalizeRepositoryID(value string) string {
 
 func isDigits(value string) bool {
 	return value != "" && strings.Trim(value, "0123456789") == ""
+}
+
+// isUUID reports a value in the 8-4-4-4-12 hex form that Bitbucket and Azure
+// DevOps use for repository IDs.
+func isUUID(value string) bool {
+	groups := strings.Split(value, "-")
+	lengths := []int{8, 4, 4, 4, 12}
+	if len(groups) != len(lengths) {
+		return false
+	}
+	for i, group := range groups {
+		if len(group) != lengths[i] || strings.Trim(strings.ToLower(group), "0123456789abcdef") != "" {
+			return false
+		}
+	}
+	return true
 }
