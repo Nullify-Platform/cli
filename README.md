@@ -314,6 +314,8 @@ nullify pentest --app-name "My REST API"
 nullify pentest --app-id 01HXYZ... --target-host https://api.myapp.dev
 ```
 
+When `--target-host` includes a path, the path must match the deployment.
+
 The API schema, credentials and repository come from the application's configuration in Nullify.
 
 Migrating from an earlier version: `--spec-path`, `--header`, `--auth-config`, `--github-repo`, `--local`, `--image-label`, `--force-pull` and `--use-host-network` are removed, and passing one fails with an unknown-flag error. Configure the API schema and credentials on the application in Nullify, then name it with `--app-name` or `--app-id`.

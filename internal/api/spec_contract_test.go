@@ -18,11 +18,11 @@ import (
 )
 
 // The generated client cannot call a route the spec does not list, but a
-// hand-written call can. These tests read every hand-written Go file and
-// check that each API path it names, with its method where the call names
-// one, is in the spec the typed client is generated from. A hand-written call
-// that keeps a path after the API moves it then fails here instead of
-// returning 404 to users.
+// hand-written call can. These tests check recognizable route literals in
+// hand-written Go files against the spec. The check uses known service
+// prefixes and reads methods from calls that enclose a route literal.
+// Constructed routes and methods passed separately from the literal need
+// request-level tests.
 
 const specFile = "../../spec/nullify-openapi-bundle.yaml"
 
@@ -197,13 +197,20 @@ func handWrittenRoutes(t *testing.T, services map[string]bool) []handWrittenRout
 			if err != nil || d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 				return err
 			}
-			file, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+			source, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
-			if !ast.IsGenerated(file) {
-				routes = append(routes, routesInSource(fset, file, services)...)
+			header, err := parser.ParseFile(token.NewFileSet(), path, source,
+				parser.PackageClauseOnly|parser.ParseComments)
+			if err != nil || ast.IsGenerated(header) {
+				return err
 			}
+			file, err := parser.ParseFile(fset, path, source, 0)
+			if err != nil {
+				return err
+			}
+			routes = append(routes, routesInSource(fset, file, services)...)
 			return nil
 		})
 		require.NoError(t, err)
