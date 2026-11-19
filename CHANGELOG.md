@@ -70,6 +70,8 @@
 - `list_applications` sends its `limit`; `nullify://recent-findings` returns the newest findings, not the highest priority; the `investigate-repo` prompt no longer searches cloud and bug hunt findings by repository; the MCP server no longer advertises resource subscriptions it does not send.
 - Login refuses an empty or zero-lifetime token, and a sign-in URL that is not https on the instance's domain. `~/.nullify` is tightened to 0700 when it already exists with looser permissions. Auth requests send the CLI's User-Agent.
 - `make lint-docker` no longer lints a Dockerfile that does not exist.
+- `nullify api context push` asked for upload credentials at `POST /admin/context/credentials`, which the API does not serve. It now uses `POST /admin/context/ingest`, which takes the same request and returns the same response.
+- A test now checks every API path that hand-written code calls, with its method where the call names one, against the vendored OpenAPI spec that the typed client is generated from. A hand-written call that keeps an old path now fails CI instead of returning 404.
 - `nullify fix --create-pr` stops when the server rescues an abandoned pull-request step and moves the run to `cached`. It exits 1 and says that no new pull request was opened. It used to wait for the whole timeout and then say that the run was still going.
 - `nullify findings` and the MCP search reject a `--from` or `--to` that is not RFC 3339, plain dates included. The server ignored such a value, so the result was not filtered and the command exited 0.
 - `nullify findings --type secrets` and `--type bughunt` sent filter values that the API rejects, and exited 3 with a 400.

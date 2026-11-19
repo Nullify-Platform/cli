@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-// ContextCredentialsRequest is the request body for POST /admin/context/credentials.
+// ContextCredentialsRequest is the request body for POST /admin/context/ingest.
 type ContextCredentialsRequest struct {
 	ContextType string `json:"contextType"`
 	Repository  string `json:"repository"`
@@ -20,7 +20,7 @@ type ContextCredentialsRequest struct {
 	CommitSHA   string `json:"commitSha,omitempty"`
 }
 
-// ContextCredentialsResponse is the response from POST /admin/context/credentials.
+// ContextCredentialsResponse is the response from POST /admin/context/ingest.
 type ContextCredentialsResponse struct {
 	Credentials struct {
 		AccessKeyID     string `json:"accessKeyId"`
@@ -36,7 +36,7 @@ type ContextCredentialsResponse struct {
 
 // PostContextCredentials requests scoped STS credentials for uploading context data.
 func (c *Client) PostContextCredentials(ctx context.Context, req ContextCredentialsRequest) (*ContextCredentialsResponse, error) {
-	path := "/admin/context/credentials"
+	path := "/admin/context/ingest"
 
 	query := url.Values{}
 	for k, v := range c.DefaultParams {
