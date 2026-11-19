@@ -129,6 +129,8 @@ func gateVerdict(results []gateResult, threshold severityLevel) error {
 // gateFailLine reports a check that found a blocking finding.
 func gateFailLine(check gateCheck, threshold severityLevel) string {
 	switch {
+	case check.severity == severityUnknown.String():
+		return fmt.Sprintf("FAIL: %s has open findings of unknown severity", check.ep.name)
 	case check.severity != "":
 		return fmt.Sprintf("FAIL: %s has open %s findings", check.ep.name, check.severity)
 	case len(check.ep.severityFields) == 0:

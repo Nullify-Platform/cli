@@ -17,7 +17,7 @@ func gateRequests(severities ...string) []string {
 		"/dast/pentest/findings?isResolved=false&limit=100",
 		"/dast/bughunt/findings?limit=100",
 	}
-	for _, severity := range severities {
+	for _, severity := range append(severities, "unknown") {
 		want = append(want,
 			"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity="+strings.ToUpper(severity),
 			"/cspm/findings?limit=100&severity="+strings.ToUpper(severity)+"&status=open",
@@ -39,12 +39,12 @@ func TestCIGateRequestsAndExitCodes(t *testing.T) {
 	}{
 		{name: "the default set", threshold: "high", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical", "high")},
 		{name: "every severity", threshold: "low", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical", "high", "low", "medium")},
-		{name: "a list route type", threshold: "critical", findType: "cspm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: []string{"/cspm/findings?limit=100&severity=CRITICAL&status=open"}},
+		{name: "a list route type", threshold: "critical", findType: "cspm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: []string{"/cspm/findings?limit=100&severity=CRITICAL&status=open", "/cspm/findings?limit=100&severity=UNKNOWN&status=open"}},
 		{name: "scpm is not a gate type", threshold: "critical", findType: "scpm", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
 		{name: "sensitive data is not a gate type", threshold: "critical", findType: "secrets_sensitive_data", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
 		{name: "a monorepo name is not a gate type", threshold: "critical", findType: "dast_pentest", status: http.StatusOK, body: `{"findings":[]}`, exit: ExitSuccess, requests: gateRequests("critical")},
-		{name: "findings fail the gate", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"findings":[{"id":"f1","severity":"CRITICAL"},{"id":"f2","severity":"CRITICAL"}]}`, exit: ExitFindings, requests: []string{"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=CRITICAL"}},
-		{name: "a total without findings fails closed", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"total":0}`, exit: ExitNetworkError, requests: []string{"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=CRITICAL"}},
+		{name: "findings fail the gate", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"findings":[{"id":"f1","severity":"CRITICAL"},{"id":"f2","severity":"CRITICAL"}]}`, exit: ExitFindings, requests: []string{"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=CRITICAL", "/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=UNKNOWN"}},
+		{name: "a total without findings fails closed", threshold: "critical", findType: "sast", status: http.StatusOK, body: `{"total":0}`, exit: ExitNetworkError, requests: []string{"/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=CRITICAL", "/sast/findings?githubRepositoryId=42&isResolved=false&limit=100&repositoryIds=42&severity=UNKNOWN"}},
 		{name: "a failed request exits 3", threshold: "critical", findType: "sast", status: http.StatusBadRequest, body: `{}`, exit: ExitNetworkError},
 	}
 	for _, tt := range tests {
@@ -260,4 +260,27 @@ func TestCIGateNamesAListItCouldNotFinish(t *testing.T) {
 
 	require.Equal(t, ExitNetworkError, ExitCodeForError(err))
 	require.Contains(t, stderr, "Error: could not read all of secrets: the finding list did not end within 100 pages")
+}
+
+func TestCIGateCountsServerFilteredFindingsOfUnknownSeverity(t *testing.T) {
+	for _, scanner := range []string{"sast", "cspm"} {
+		t.Run(scanner, func(t *testing.T) {
+			useCIEnv(t)
+			serveScannerAPI(t, func(r *http.Request) (int, string) {
+				if r.URL.Query().Get("severity") == "UNKNOWN" {
+					return http.StatusOK, `{"findings":[{"id":"u1","severity":"UNKNOWN"}]}`
+				}
+				return emptyFindings(r)
+			})
+
+			out, err := runCI(t, ciGateCmd, map[string]string{
+				"severity-threshold": "critical",
+				"type":               scanner,
+				"repository-id":      "42",
+			})
+
+			require.Equal(t, ExitFindings, ExitCodeForError(err))
+			require.Contains(t, out, "FAIL: "+scanner+" has open findings of unknown severity")
+		})
+	}
 }

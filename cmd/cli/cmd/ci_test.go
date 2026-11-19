@@ -60,8 +60,10 @@ func TestScannerSeveritiesCollapseWithoutServerSideFilter(t *testing.T) {
 
 	threshold := []string{"critical", "high"}
 
-	require.Equal(t, threshold, scannerSeverities(byName["sast"], threshold))
-	require.Equal(t, threshold, scannerSeverities(byName["cspm"], threshold))
+	withUnknown := []string{"critical", "high", "unknown"}
+	require.Equal(t, withUnknown, scannerSeverities(byName["sast"], threshold))
+	require.Equal(t, withUnknown, scannerSeverities(byName["cspm"], threshold))
+	require.Equal(t, []string{"critical", "high"}, threshold, "the caller's slice is not changed")
 	require.Equal(t, []string{""}, scannerSeverities(byName["secrets"], threshold))
 	require.Equal(t, []string{""}, scannerSeverities(byName["bughunt"], threshold))
 
@@ -103,7 +105,8 @@ func TestCIGateResponseValidation(t *testing.T) {
 			api := serveScannerAPI(t, func(req *http.Request) (int, string) {
 				if tt.scanner == "cspm" {
 					query := req.URL.Query()
-					if query.Get("status") != "open" || query.Get("severity") != "CRITICAL" {
+					severity := query.Get("severity")
+					if query.Get("status") != "open" || (severity != "CRITICAL" && severity != "UNKNOWN") {
 						t.Errorf("unexpected CSPM filters: %s", req.URL.RawQuery)
 					}
 				}
@@ -117,7 +120,11 @@ func TestCIGateResponseValidation(t *testing.T) {
 			})
 
 			require.Equal(t, tt.wantExit, ExitCodeForError(err))
-			require.Len(t, api.requests(), 1)
+			wantRequests := 1
+			if scannerByName(t, tt.scanner).supportsSeverity {
+				wantRequests = 2 // CRITICAL and UNKNOWN
+			}
+			require.Len(t, api.requests(), wantRequests)
 		})
 	}
 }

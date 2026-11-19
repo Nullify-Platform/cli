@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -22,10 +23,13 @@ Use this in CI/CD pipelines to block deployments with critical/high findings.
 
 The threshold applies to every scanner. A finding counts when its own
 severity is at or above the threshold. Secrets findings carry no severity,
-and neither does a finding whose severity is missing or unknown, so every
-open one counts at any threshold. The bughunt list returns closed findings
-too, so the gate leaves out bughunt findings that are fixed, allowlisted,
-archived, false positives or superseded by a later scan.
+so every open one counts at any threshold, and so does a finding whose
+severity is UNKNOWN or missing. SAST and CSPM are filtered by severity on
+the server, which is also asked for their UNKNOWN findings; a SAST or CSPM
+finding with no severity value at all matches no filter and is not seen.
+The bughunt list returns closed findings too, so the gate leaves out
+bughunt findings that are fixed, allowlisted, archived, false positives or
+superseded by a later scan.
 
 ` + repositoryScopeHelp + `
 
@@ -216,12 +220,14 @@ func severitiesAboveThreshold(threshold string) []string {
 // scannerSeverities returns the severity values to query an endpoint with. An
 // endpoint with no server-side severity filter is queried once with an empty
 // severity: fanning out over the threshold list there would issue identical
-// requests and attribute the same findings to every severity.
+// requests and attribute the same findings to every severity. An endpoint
+// that filters by severity is also asked for its UNKNOWN findings, which
+// count at every threshold and no threshold name would return.
 func scannerSeverities(ep scannerEndpoint, severities []string) []string {
 	if !ep.supportsSeverity {
 		return []string{""}
 	}
-	return severities
+	return append(slices.Clone(severities), severityUnknown.String())
 }
 
 // scannerQueryParams returns the filters for one scanner list request. The
