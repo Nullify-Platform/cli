@@ -32,7 +32,7 @@ lint-go:
 
 lint-docker:
 	docker build --quiet --target hadolint -t hadolint:latest .
-	docker run --rm -v $(shell pwd):/app -w /app hadolint hadolint Dockerfile demo_server/Dockerfile
+	docker run --rm -v $(shell pwd):/app -w /app hadolint hadolint Dockerfile
 
 # OpenAPI bundle sourcing. The spec is published in the (private) nullify
 # monorepo; we pin a commit and vendor the bundle into spec/ so generation is
