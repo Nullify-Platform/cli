@@ -179,16 +179,6 @@ func setupLogger(ctx context.Context) (context.Context, error) {
 	return logger.ConfigureDevelopmentLogger(ctx, logLevel)
 }
 
-func getLogLevel() string {
-	if debug {
-		return "debug"
-	}
-	if verbose {
-		return "info"
-	}
-	return "warn"
-}
-
 func resolveHostE(ctx context.Context) (string, error) {
 	if host != "" {
 		sanitized, err := lib.SanitizeNullifyHost(host)

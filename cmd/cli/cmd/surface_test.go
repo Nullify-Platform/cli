@@ -49,6 +49,19 @@ func TestRemovedCommandsStayRemoved(t *testing.T) {
 	}
 }
 
+func TestRemovedFlagsStayRemoved(t *testing.T) {
+	for _, removed := range commands.Decisions.RemovedFlags {
+		t.Run(removed.Command+" --"+removed.Flag, func(t *testing.T) {
+			_, path, _ := strings.Cut(removed.Command, " ")
+			cmd, remaining, err := rootCmd.Find(strings.Fields(path))
+			require.NoError(t, err)
+			require.Empty(t, remaining)
+			require.Equal(t, removed.Command, cmd.CommandPath())
+			require.Nil(t, cmd.Flag(removed.Flag))
+		})
+	}
+}
+
 func TestMovedCommandsCallTheNewRoute(t *testing.T) {
 	byPath := map[string]string{}
 	for _, e := range commands.Surface(rootCmd) {

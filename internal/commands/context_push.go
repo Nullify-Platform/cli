@@ -5,10 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/nullify-platform/cli/internal/api"
+	"github.com/nullify-platform/cli/internal/api/models"
 	"github.com/nullify-platform/cli/internal/lib"
+	"github.com/nullify-platform/cli/internal/logger"
 	"github.com/nullify-platform/cli/internal/upload"
-	"github.com/nullify-platform/logger/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -91,18 +93,6 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient ClientFactory) 
 				name = deriveNameFromPath(filePath)
 			}
 
-			// Request scoped credentials
-			credsReq := api.ContextCredentialsRequest{
-				ContextType: contextType,
-				Repository:  repo,
-				Branch:      branch,
-				Environment: environment,
-				Name:        name,
-				PRNumber:    prNumber,
-				FromPR:      fromPR,
-				CommitSHA:   commitSHA,
-			}
-
 			if dryRun {
 				fmt.Printf("Dry run — would upload:\n")
 				fmt.Printf("  Type:        %s\n", contextType)
@@ -132,19 +122,31 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient ClientFactory) 
 				logger.String("name", name),
 			)
 
-			creds, err := client.PostContextCredentials(ctx, credsReq)
+			creds, err := client.CreateAdminContextIngest(ctx, api.CreateAdminContextIngestInput{
+				ContextType: contextType,
+				Repository:  repo,
+				Branch:      nonzeroPointer(branch),
+				Environment: nonzeroPointer(models.EndpointsContextEnvironment(environment)),
+				Name:        name,
+				PrNumber:    nonzeroPointer(prNumber),
+				FromPR:      nonzeroPointer(fromPR),
+				CommitSha:   nonzeroPointer(commitSHA),
+			})
 			if err != nil {
 				return fmt.Errorf("failed to get upload credentials: %w", err)
 			}
+			if err := validateContextUploadCredentials(creds); err != nil {
+				return err
+			}
 
 			uploader := upload.NewS3Uploader(
-				creds.Credentials.AccessKeyID,
-				creds.Credentials.SecretAccessKey,
-				creds.Credentials.SessionToken,
-				creds.Region,
-				creds.Bucket,
-				creds.KeyPrefix,
-				creds.KMSKeyARN,
+				*creds.Credentials.AccessKeyID,
+				*creds.Credentials.SecretAccessKey,
+				*creds.Credentials.SessionToken,
+				*creds.Region,
+				*creds.Bucket,
+				*creds.KeyPrefix,
+				aws.ToString(creds.KmsKeyArn),
 			)
 
 			metadata := upload.ContextMetadata{
@@ -163,7 +165,7 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient ClientFactory) 
 			if err := uploader.Upload(ctx, filePath, metadata); err != nil {
 				return fmt.Errorf("failed to upload %s: %w", filePath, err)
 			}
-			fmt.Printf("Uploaded %s → s3://%s/%slatest.json\n", filePath, creds.Bucket, creds.KeyPrefix)
+			fmt.Printf("Uploaded %s → s3://%s/%slatest.json\n", filePath, *creds.Bucket, *creds.KeyPrefix)
 
 			return nil
 		},
@@ -181,6 +183,27 @@ func RegisterContextPushCommand(parent *cobra.Command, getClient ClientFactory) 
 	_ = pushCmd.MarkFlagRequired("type")
 
 	contextCmd.AddCommand(pushCmd)
+}
+
+func nonzeroPointer[T comparable](value T) *T {
+	var zero T
+	if value == zero {
+		return nil
+	}
+	return &value
+}
+
+func validateContextUploadCredentials(out *models.EndpointsContextIngestOutput) error {
+	if out.Credentials == nil ||
+		aws.ToString(out.Credentials.AccessKeyID) == "" ||
+		aws.ToString(out.Credentials.SecretAccessKey) == "" ||
+		aws.ToString(out.Credentials.SessionToken) == "" ||
+		aws.ToString(out.Region) == "" ||
+		aws.ToString(out.Bucket) == "" ||
+		aws.ToString(out.KeyPrefix) == "" {
+		return fmt.Errorf("the API returned incomplete context upload credentials")
+	}
+	return nil
 }
 
 // deriveNameFromPath extracts a logical name from the file path.

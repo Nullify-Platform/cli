@@ -28,6 +28,17 @@ func TestCheckSurface(t *testing.T) {
 		{name: "command renamed", live: []SurfaceEntry{{Command: "nullify api cspm list-cspm-scans", Route: base.Route, Args: base.Args, Flags: base.Flags}}, want: ErrCommandDisappeared},
 		{name: "command gone with a decision", live: nil, decisions: SurfaceDecisions{RemovedCommands: []RemovedCommand{{Command: base.Command}}}},
 		{name: "flag gone", live: []SurfaceEntry{{Command: base.Command, Route: base.Route, Args: base.Args, Flags: []string{"limit"}}}, want: ErrFlagDisappeared},
+		{
+			name:      "flag gone with a decision",
+			live:      []SurfaceEntry{{Command: base.Command, Route: base.Route, Args: base.Args, Flags: []string{"limit"}}},
+			decisions: SurfaceDecisions{RemovedFlags: []RemovedFlag{{Command: base.Command, Flag: "region"}}},
+		},
+		{
+			name:      "a decision for another command does not cover the flag",
+			live:      []SurfaceEntry{{Command: base.Command, Route: base.Route, Args: base.Args, Flags: []string{"limit"}}},
+			decisions: SurfaceDecisions{RemovedFlags: []RemovedFlag{{Command: "nullify api cspm get-scan", Flag: "region"}}},
+			want:      ErrFlagDisappeared,
+		},
 		{name: "route changed", live: []SurfaceEntry{{Command: base.Command, Route: "GET /cspm/other", Args: base.Args, Flags: base.Flags}}, want: ErrRouteChanged},
 		{
 			name:      "route changed with a move",
