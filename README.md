@@ -38,7 +38,7 @@ Scan, triage, fix, and track security vulnerabilities across your entire stack �
 - **Unified findings** — Query vulnerabilities across all scanner types (SAST, SCA, secrets, DAST, CSPM) in a single command
 - **AI-powered remediation** — Generate fix patches and open PRs automatically
 - **CI/CD quality gates** — Block deployments when critical findings are present
-- **Pentest requests** — Request a reviewed pentest assessment of an application
+- **Pentest requests** — Request a reviewed pentest assessment of an application, or scan a private target from your machine with `--local`
 - **MCP server** — 50+ tools for AI coding assistants (Claude Code, Cursor, VS Code, and more)
 - **Multi-instance support** — Manage multiple Nullify instances and switch between them
 
@@ -226,7 +226,7 @@ nullify auth switch
 
 | Command | Description |
 |---------|-------------|
-| `nullify pentest` | Request a pentest assessment of an application |
+| `nullify pentest` | Request a pentest assessment of an application, or run a local scan in Docker with `--local` |
 | `nullify bughunt` | Cloud-based automated bug hunting |
 | `nullify secrets scan-file` | Local secret scan of a single file or stdin buffer; no API call or network access |
 | `nullify scan start` / `status <scanId>` | Start a cloud scan, or check the status of one |
@@ -318,9 +318,35 @@ When `--target-host` includes a path, the path must match the deployment.
 
 The API schema, credentials and repository come from the application's configuration in Nullify.
 
-Migrating from an earlier version: `--spec-path`, `--header`, `--auth-config`, `--github-repo`, `--local`, `--image-label`, `--force-pull` and `--use-host-network` are removed, and passing one fails with an unknown-flag error. Configure the API schema and credentials on the application in Nullify, then name it with `--app-name` or `--app-id`.
-
 Check the request with `nullify pentest get-pentest-scans <scan-id>`.
+
+### Local scans
+
+`nullify pentest --local` runs the scanner on your machine in Docker, so it can reach a target that Nullify cannot, such as one on a private network. It records a scan on the application in Nullify and uploads the findings when the scan ends. There is no review step: the scanner sends attack traffic to `--target-host` as soon as it starts, so point it only at a target you are allowed to test.
+
+```sh
+nullify pentest --local --app-name "My REST API" \
+  --target-host http://payments.internal:8080 \
+  --spec-path ./openapi.yaml \
+  --header "Authorization: Bearer $TOKEN"
+```
+
+| Flag | Meaning |
+|------|---------|
+| `--target-host` | Required. The URL the scanner tests. |
+| `--spec-path` | Required. The OpenAPI spec of the API, as JSON or YAML. |
+| `--header` | A header the scanner sends with each request, as `Name: value`. Repeat it for each header. |
+| `--image-label` | The tag of `ghcr.io/nullify-platform/dast` to run. The default is `latest`. |
+| `--force-pull` | Pull the image even when it is already on your machine. |
+| `--use-host-network` | Run the scanner on your machine's network. |
+
+The scanner runs in a container, where `localhost` is the container itself. Reach a service on your machine at `http://host.docker.internal:<port>`, or pass `--use-host-network`. The command refuses a `localhost` target without it.
+
+Before the upload, the command redacts each `--header` value from the evidence, including the token after a scheme such as `Bearer`, a decoded `Basic` credential, each cookie value and their URL-escaped forms. It also redacts the values of `Authorization`, `Proxy-Authorization`, `Cookie`, `Set-Cookie` and `X-Api-Key` headers. Request and response bodies longer than 16 KiB are cut. `--target-host` must not hold a user name or password, because it is uploaded with the scan.
+
+Only the credential that created a local scan can upload its findings. A GitHub Actions token (`--github-token`) has no identity of its own, so `--local` refuses it before recording a scan: sign in with `nullify auth login`, or pass a service account token with `--nullify-token` or `NULLIFY_TOKEN`. The command also checks that it can update the scan before the scan runs. If the scan fails, the command marks it failed. Ctrl-C stops the scanner, removes its container and marks the scan cancelled.
+
+Migrating from an earlier version: `--auth-config` and `--github-repo` are removed, and passing one fails with an unknown-flag error. The scanner used only the headers in an auth config, so pass each one with `--header`.
 
 ## CI/CD Integration
 

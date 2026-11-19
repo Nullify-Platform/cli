@@ -29,9 +29,11 @@ const specFile = "../../spec/nullify-openapi-bundle.yaml"
 // privateRoutes are routes that hand-written code calls and that the API
 // serves but leaves out of the published spec.
 var privateRoutes = map[string]string{
-	"/auth/cli/config":  "CLI sign-in: the login flow reads the API host to sign in against",
-	"/auth/cli/session": "CLI sign-in: starts a browser login session",
-	"/auth/cli/token":   "CLI sign-in: redeems the browser login for a token",
+	"/auth/cli/config":              "CLI sign-in: the login flow reads the API host to sign in against",
+	"/auth/cli/session":             "CLI sign-in: starts a browser login session",
+	"/auth/cli/token":               "CLI sign-in: redeems the browser login for a token",
+	"/dast/pentest/scans/external":  "nullify pentest --local: records a scan that ran on this machine",
+	"/dast/pentest/scans/external/": "nullify pentest --local: uploads the findings of that scan",
 }
 
 // specRoutes maps each spec path, with its parameters written as {}, to the

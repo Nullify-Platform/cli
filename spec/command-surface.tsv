@@ -980,7 +980,7 @@ nullify open				active
 nullify org				active
 nullify org list				active
 nullify org use	<name|id>			active
-nullify pentest			app-id,app-name,github-owner,target-host	active
+nullify pentest			app-id,app-name,force-pull,github-owner,header,image-label,local,spec-path,target-host,use-host-network	active
 nullify pentest create-allowlist-by-id	<findingId>	POST /dast/pentest/findings/{findingId}/allowlist	data,data-file,github-installation-id	active
 nullify pentest create-answer-by-id	<credentialId>	POST /dast/credentials/{credentialId}/login-assist/answer	data,data-file,github-installation-id	active
 nullify pentest create-applications		POST /dast/pentest/applications	data,data-file,github-installation-id	active

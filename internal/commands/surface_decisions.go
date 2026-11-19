@@ -74,13 +74,7 @@ var Decisions = SurfaceDecisions{
 		{Command: "nullify api cspm list-scans", Flag: "scan-type", Evidence: "GET /cspm/scans no longer filters by scan type; the flag has no effect"},
 	},
 	RemovedFlags: []RemovedFlag{
-		{Command: "nullify pentest", Flag: "auth-config", Evidence: "the command requests an assessment of an application configured in Nullify, which holds the API schema, credentials and repository"},
+		{Command: "nullify pentest", Flag: "auth-config", Evidence: "the local scanner reads only headers from the auth config, so --header replaces it; an assessment takes credentials from the application's configuration in Nullify"},
 		{Command: "nullify pentest", Flag: "github-repo", Evidence: "the command requests an assessment of an application configured in Nullify, which holds the API schema, credentials and repository"},
-		{Command: "nullify pentest", Flag: "header", Evidence: "the command requests an assessment of an application configured in Nullify, which holds the API schema, credentials and repository"},
-		{Command: "nullify pentest", Flag: "spec-path", Evidence: "the command requests an assessment of an application configured in Nullify, which holds the API schema, credentials and repository"},
-		{Command: "nullify pentest", Flag: "force-pull", Evidence: "the removed Docker workflow used retired external scan routes"},
-		{Command: "nullify pentest", Flag: "image-label", Evidence: "the removed Docker workflow used retired external scan routes"},
-		{Command: "nullify pentest", Flag: "local", Evidence: "the removed Docker workflow used retired external scan routes"},
-		{Command: "nullify pentest", Flag: "use-host-network", Evidence: "the removed Docker workflow used retired external scan routes"},
 	},
 }
