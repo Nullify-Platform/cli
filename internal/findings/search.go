@@ -115,6 +115,30 @@ func Search(ctx context.Context, c *api.Client, opts SearchOptions) (SearchResul
 	return result, nil
 }
 
+// Count returns the number of findings that match the filters of opts, as the
+// server reports it. It reads one finding, whatever opts.Limit is.
+func Count(ctx context.Context, c *api.Client, opts SearchOptions) (int, error) {
+	query, err := opts.query()
+	if err != nil {
+		return 0, err
+	}
+	page, pageSize := 1, 1
+	query.Page, query.PageSize = &page, &pageSize
+
+	body, err := c.CreateAdminFindingsRaw(ctx, query)
+	if err != nil {
+		return 0, err
+	}
+	var out searchPage
+	if err := json.Unmarshal(body, &out); err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrUnreadableResponse, err)
+	}
+	if out.Findings == nil {
+		return 0, fmt.Errorf("%w: no findings field", ErrUnreadableResponse)
+	}
+	return out.Total, nil
+}
+
 func (o SearchOptions) query() (models.ModelsUnifiedFindingsQuery, error) {
 	query := models.ModelsUnifiedFindingsQuery{Type: o.APITypes}
 	if o.Repository != "" {
