@@ -148,14 +148,16 @@ var Types = map[string]Type{
 		AutofixFix:    write((*api.Client).CreateScaContainersFindingsFindingIdAutofixFix),
 		AutofixStatus: read((*api.Client).ListScaContainersFindingsFindingIdAutofixStatus),
 	},
+	// secrets uses the canonical /secrets/credentials/findings routes, not the
+	// /secrets/findings alias that the server keeps for older clients.
 	"secrets": {
 		APITypes:     []string{"SecretsCredentials", "SecretsSensitiveData"},
-		Get:          read((*api.Client).GetSecretsFindingsFindingId),
-		Triage:       read((*api.Client).ListSecretsFindingsFindingIdTriage),
-		CreateTicket: write((*api.Client).CreateSecretsFindingsFindingIdTicket),
-		DeleteTicket: read((*api.Client).DeleteSecretsFindingsFindingIdTicket),
-		Allowlist:    writeRaw((*api.Client).CreateSecretsFindingsFindingIdAllowlist),
-		Unallowlist:  writeRaw((*api.Client).CreateSecretsFindingsFindingIdUnallowlist),
+		Get:          read((*api.Client).GetSecretsCredentialsFindingsFindingId),
+		Triage:       read((*api.Client).ListSecretsCredentialsFindingsFindingIdTriage),
+		CreateTicket: write((*api.Client).CreateSecretsCredentialsFindingsFindingIdTicket),
+		DeleteTicket: read((*api.Client).DeleteSecretsCredentialsFindingsFindingIdTicket),
+		Allowlist:    writeRaw((*api.Client).CreateSecretsCredentialsFindingsFindingIdAllowlist),
+		Unallowlist:  writeRaw((*api.Client).CreateSecretsCredentialsFindingsFindingIdUnallowlist),
 	},
 	"secrets_sensitive_data": {
 		APITypes:     []string{"SecretsSensitiveData"},

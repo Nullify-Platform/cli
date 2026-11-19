@@ -128,6 +128,22 @@ func TestVerbRun(t *testing.T) {
 			requests: []request{{"POST", "/dast/bughunt/findings/f1/unallowlist", `{"unallowlistReason":"reopen"}`}},
 		},
 		{
+			name: "secrets allowlist uses the credential route", verb: "allowlist", findType: "secrets", id: "f1", params: falsePositive,
+			requests: []request{{"POST", "/secrets/credentials/findings/f1/allowlist", `{"allowlistReason":"public by design","allowlistType":"UserFalsePositive"}`}},
+		},
+		{
+			name: "secrets triage uses the credential route", verb: "triage", findType: "secrets", id: "f1",
+			requests: []request{{"GET", "/secrets/credentials/findings/f1/triage", ""}},
+		},
+		{
+			name: "secrets create ticket uses the credential route", verb: "create-ticket", findType: "secrets", id: "f1",
+			requests: []request{{"POST", "/secrets/credentials/findings/f1/ticket", `{}`}},
+		},
+		{
+			name: "secrets delete ticket uses the credential route", verb: "delete-ticket", findType: "secrets", id: "f1",
+			requests: []request{{"DELETE", "/secrets/credentials/findings/f1/ticket", ""}},
+		},
+		{
 			name: "alias reaches the same type", verb: "get", findType: "sca", id: "f1",
 			requests: []request{{"GET", "/sca/dependencies/findings/f1", ""}},
 		},
@@ -1058,12 +1074,12 @@ func TestSensitiveDataVerbsUseTheirRoutes(t *testing.T) {
 		{name: "triage", verb: "triage", findType: "secrets_sensitive_data", request: request{"GET", base + "/triage", ""}},
 		{name: "allowlist", verb: "allowlist", findType: "secrets_sensitive_data", params: falsePositive, request: request{"POST", base + "/allowlist", `{"allowlistReason":"test data","allowlistType":"UserFalsePositive"}`}},
 		{name: "unallowlist", verb: "unallowlist", findType: "secrets_sensitive_data", params: Params{Reason: "real"}, request: request{"POST", base + "/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
-		{name: "credential unallowlist names a type", verb: "unallowlist", findType: "secrets", params: Params{Reason: "real"}, request: request{"POST", "/secrets/findings/f1/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
+		{name: "credential unallowlist names a type", verb: "unallowlist", findType: "secrets", params: Params{Reason: "real"}, request: request{"POST", "/secrets/credentials/findings/f1/unallowlist", `{"unallowlistReason":"real","unallowlistType":"UserOther"}`}},
 		{name: "create ticket", verb: "create-ticket", findType: "secrets_sensitive_data", request: request{"POST", base + "/ticket", `{}`}},
 		{name: "delete ticket", verb: "delete-ticket", findType: "secrets_sensitive_data", request: request{"DELETE", base + "/ticket", ""}},
 		{name: "row type of a sensitive-data finding", verb: "get", findType: "SecretsSensitiveData", request: request{"GET", base, ""}},
-		{name: "row type of a credential", verb: "get", findType: "SecretsCredentials", request: request{"GET", "/secrets/findings/f1", ""}},
-		{name: "secrets keeps the credential routes", verb: "get", findType: "secrets", request: request{"GET", "/secrets/findings/f1", ""}},
+		{name: "row type of a credential", verb: "get", findType: "SecretsCredentials", request: request{"GET", "/secrets/credentials/findings/f1", ""}},
+		{name: "secrets uses the canonical credential routes", verb: "get", findType: "secrets", request: request{"GET", "/secrets/credentials/findings/f1", ""}},
 		{name: "row type of a cloud finding", verb: "get", findType: "Cloud", request: request{"GET", "/cspm/findings/f1", ""}},
 	}
 	for _, tt := range tests {
