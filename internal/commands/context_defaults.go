@@ -60,29 +60,17 @@ func ApplyContextCommandDefaults(parent *cobra.Command, getClient ClientFactory)
 }
 
 // latestCommitForProject finds the most recent commit SHA for the given
-// (repository, project) by reading the SBOM key tree. The tree stores commits
-// in ascending order (oldest first), so the newest is the last element.
+// (repository, project) by reading the SBOM key tree.
 func latestCommitForProject(cmd *cobra.Command, client *api.Client, repoID, projectID string) (string, error) {
 	tree, err := client.ListContextSbomsTree(cmd.Context(), api.ListContextSbomsTreeInput{})
 	if err != nil {
 		return "", fmt.Errorf("list sbom tree: %w", err)
 	}
-
-	for _, r := range tree.Repositories {
-		if r.RepositoryID != repoID {
-			continue
-		}
-		for _, p := range r.Projects {
-			if p.ProjectID != projectID {
-				continue
-			}
-			if len(p.Commits) == 0 {
-				return "", fmt.Errorf("no SBOMs found for repository %s, project %s", repoID, projectID)
-			}
-			return p.Commits[len(p.Commits)-1], nil
-		}
+	commits, err := newestSBOMCommits(tree, repoID, projectID)
+	if err != nil {
+		return "", err
 	}
-	return "", fmt.Errorf("repository %s, project %s not found in SBOM tree", repoID, projectID)
+	return commits[0].commit, nil
 }
 
 func findChild(parent *cobra.Command, name string) *cobra.Command {
