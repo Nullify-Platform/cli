@@ -336,24 +336,26 @@ Add a security report to your pull request:
 
 ## MCP Server
 
-The CLI includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server with 50+ tools, giving AI coding assistants full access to your security data. Capabilities include:
+The CLI includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server with about 50 tools, giving AI coding assistants access to your security data. Capabilities include:
 
-- **Query** — findings, repositories, SBOMs, cloud accounts, metrics, trends
-- **Triage** — allowlist, archive or mark false positive across every finding type, including CSPM, reopen, and record feedback
-- **Remediate** — start AI-powered fixes, then follow them with `nullify_get_fix_status` and `nullify_get_fix_diff`
-- **Track** — campaigns, action items, SLA policies, code reviews
+- **Query**: findings, repositories, applications, SBOMs and dependencies, scan runs, cloud scans, metrics and trends
+- **Triage**: allowlist and unallowlist a finding of any type, and record feedback. Archive, unarchive and mark false positive are for CSPM findings only, and unmark false positive covers CSPM and SCPM findings.
+- **Remediate**: start AI-powered fixes, then follow them with `nullify_get_fix_status` and `nullify_get_fix_diff`
+- **Track**: campaigns, action items, SLA policies and threat investigations
 
 `nullify mcp serve --tools findings-write` adds the tools that the default set leaves out: archive, unarchive, mark and unmark false positive, and delete ticket. `--tools all` also has them. Every tool that changes state carries the destructive annotation, so a client can ask a person first. `spec/mcp-tools.tsv` lists every tool, its access and its tool sets.
 
 ### Setup
 
-Add the following to your MCP config file:
+`nullify init` configures each client it finds. To do it yourself:
 
-| Tool | Config path |
-|------|-------------|
-| Claude Code | `.mcp.json` (project root) or `~/.claude.json` (user) |
-| Cursor | `.cursor/mcp.json` |
-| VS Code | `.vscode/mcp.json` |
+| Tool | How to add the server |
+|------|-----------------------|
+| Claude Code | `claude mcp add --scope user nullify -- nullify mcp serve`, or `.mcp.json` in the project root with the `mcpServers` snippet below |
+| Cursor | `.cursor/mcp.json` with the `mcpServers` snippet below |
+| VS Code | `.vscode/mcp.json` with the `servers` snippet below |
+
+Claude Code (`.mcp.json`) and Cursor (`.cursor/mcp.json`):
 
 ```json
 {
@@ -366,7 +368,21 @@ Add the following to your MCP config file:
 }
 ```
 
-One server serves one instance. When your login covers several organizations there, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them; every result says which organization it ran as. Without the argument a call uses the default the server settled when it started (`--org`, then the same order as the CLI); `nullify org use` in a terminal does not change a running server. If that leaves several organizations, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization:
+VS Code (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "nullify": {
+      "type": "stdio",
+      "command": "nullify",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+One server serves one instance. When your login covers several organizations there, every tool takes an optional `org` argument (name or id), and the `list_organizations` tool lists them; every result says which organization it ran as. Without the argument a call uses the default the server settled when it started (`--org`, then the same order as the CLI); `nullify org use` in a terminal does not change a running server. If that leaves several organizations, the call returns the choices instead of guessing. To give each organization its own server, add one entry per organization (VS Code puts the same entries under `servers`, each with `"type": "stdio"`):
 
 ```json
 {
@@ -386,17 +402,19 @@ One server serves one instance. When your login covers several organizations the
 With Claude Code:
 
 ```sh
-claude mcp add nullify-acme-web -- nullify mcp serve --org acme-web
+claude mcp add --scope user nullify-acme-web -- nullify mcp serve --org acme-web
 ```
 
-Scope findings to a specific repository with `--repo`:
+### Default repository
+
+Findings searches and metrics default to one repository: the one that `--repo` names (owner/name preferred), or else the repository of the git remote in the directory where the server starts. `nullify_search_findings`, `get_critical_path` and `get_security_posture_summary` filter to it for every finding type that can belong to a repository; cloud and bug hunt findings have none, so they are not filtered. The metrics tools and the `nullify://posture` resource filter to it as well, which leaves cloud and bug hunt findings out of them. A call that names a repository searches that one instead, and `nullify_search_findings` with `repository` set to `*` searches every repository. A result that the default filtered says so.
 
 ```json
 {
   "mcpServers": {
     "nullify": {
       "command": "nullify",
-      "args": ["mcp", "serve", "--repo", "my-repo"]
+      "args": ["mcp", "serve", "--repo", "acme/my-repo"]
     }
   }
 }
