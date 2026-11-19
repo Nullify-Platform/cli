@@ -210,6 +210,9 @@ func runDepsAnalyze(ctx context.Context, client *api.Client, opts depsAnalyzeOpt
 	if client == nil || client.BaseURL == "" {
 		return exitError(exitInvalidInvocation, "no API client configured (run `nullify auth login` first)")
 	}
+	if err := validateFailOn(opts.FailOn); err != nil {
+		return err
+	}
 
 	// Detect provider so we can auto-fill BaseRef when omitted + stamp
 	// CI headers on every outbound request.

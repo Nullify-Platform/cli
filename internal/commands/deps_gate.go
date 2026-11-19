@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/nullify-platform/cli/internal/scan"
 )
@@ -135,6 +137,20 @@ func verdictRank(v Verdict) int {
 	default:
 		return 0
 	}
+}
+
+// failOnValues are the values --fail-on accepts.
+var failOnValues = []string{"vulnerable", "suspicious", "malicious", "none"}
+
+// validateFailOn rejects a --fail-on value the gate does not know. Without
+// this, a typo such as "vulnerble" fell back to the malicious threshold and
+// silently weakened the gate.
+func validateFailOn(failOn string) error {
+	if slices.Contains(failOnValues, failOn) {
+		return nil
+	}
+	return exitError(exitInvalidInvocation,
+		"invalid --fail-on %q; valid values: %s", failOn, strings.Join(failOnValues, ", "))
 }
 
 func verdictThreshold(failOn string) Verdict {

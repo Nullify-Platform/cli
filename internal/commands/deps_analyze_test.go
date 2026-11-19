@@ -380,3 +380,31 @@ func TestPostSCPMAnalyzeSendsTheClientDefaultParams(t *testing.T) {
 		})
 	}
 }
+
+func TestRunDepsAnalyzeRejectsAnUnknownFailOn(t *testing.T) {
+	cases := []struct {
+		failOn   string
+		wantExit int
+	}{
+		{"vulnerble", exitInvalidInvocation},
+		{"MALICIOUS", exitInvalidInvocation},
+		{"", exitInvalidInvocation},
+	}
+	for _, c := range cases {
+		t.Run(c.failOn, func(t *testing.T) {
+			client := &api.Client{BaseURL: "https://api.acme.nullify.ai"}
+			err := runDepsAnalyze(context.Background(), client, depsAnalyzeOpts{FailOn: c.failOn, RepoPath: t.TempDir()})
+
+			assertExitCode(t, err, c.wantExit)
+			require.ErrorContains(t, err, "--fail-on")
+		})
+	}
+}
+
+func TestValidateFailOnAcceptsEveryDocumentedValue(t *testing.T) {
+	for _, failOn := range []string{"vulnerable", "suspicious", "malicious", "none"} {
+		t.Run(failOn, func(t *testing.T) {
+			require.NoError(t, validateFailOn(failOn))
+		})
+	}
+}
