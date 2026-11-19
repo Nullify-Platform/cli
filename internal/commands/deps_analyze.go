@@ -45,19 +45,6 @@ const (
 	exitTransientFailure  = 1
 )
 
-// Verdict is a dependency malware-analysis verdict as returned by
-// vuln-database (passed through scpm). The recognised set is below; any
-// other non-empty verdict is treated as unknown and fails closed (see
-// classifyVerdict) so a server-side rename can't silently bypass the gate.
-type Verdict string
-
-const (
-	VerdictBenign     Verdict = "benign"
-	VerdictVulnerable Verdict = "vulnerable"
-	VerdictSuspicious Verdict = "suspicious"
-	VerdictMalicious  Verdict = "confirmed_malicious"
-)
-
 // Default polling cadence/cap for --wait. Analysis is asynchronous, so
 // without --wait the first response usually carries an empty verdict.
 const (
@@ -66,15 +53,18 @@ const (
 )
 
 // terminalStatuses are the job statuses we treat as "done" when polling.
-// The exact strings originate in vuln-database; this set is intentionally
-// broad so an unanticipated terminal label still ends the poll rather than
-// spinning to the --wait timeout. A populated verdict or a cache hit is
-// also treated as terminal regardless of status.
+// The exact strings originate in vuln-database (queued, running, completed,
+// failed, cancelled, timed_out); this set is intentionally broad so an
+// unanticipated terminal label still ends the poll rather than spinning to
+// the --wait timeout. A populated verdict is also treated as terminal
+// regardless of status. A cache hit is not: vuln-database reports a hit for
+// a job that is still queued or running.
 var terminalStatuses = map[string]bool{
 	"completed": true, "complete": true,
 	"succeeded": true, "success": true,
 	"failed": true, "failure": true,
 	"error": true, "cancelled": true, "canceled": true,
+	"timed_out": true, "timed-out": true, "timeout": true,
 }
 
 // RegisterDepsAnalyzeCommand attaches `deps analyze` to the given
@@ -124,13 +114,20 @@ Analysis is asynchronous: by default each dep is enqueued and the command
 returns immediately with whatever verdict is already cached. Pass --wait
 to block (per --wait-timeout) until every job reaches a terminal verdict.
 
+The gate never passes a dependency without a verdict. A job that is still
+queued or running, that failed, timed out or was cancelled, that completed
+without a verdict, or whose verdict is inconclusive makes the run exit 1,
+unless a malicious or suspicious verdict elsewhere fails it first. To only
+queue analyses without gating, pass --fail-on=none.
+
 Exit codes:
   0  no concerning findings (or --fail-on=none)
   10 vulnerable dependency detected
   20 suspicious malware signal
   30 confirmed (or unrecognised) malicious verdict
   2  invalid invocation
-  1  transient failure / incomplete analysis (retry)
+  1  transient failure / incomplete analysis: no verdict came back for
+     at least one dependency (retry, or pass --wait)
 `,
 		// A verdict-based failure is a legitimate gate result, not a
 		// usage error — don't dump cobra usage text on it.
@@ -267,8 +264,6 @@ func runDepsAnalyze(ctx context.Context, client *api.Client, opts depsAnalyzeOpt
 	fmt.Fprintf(os.Stderr, "nullify deps analyze: %d changed, %d actionable\n", len(changed), len(actionable))
 
 	analyzed := make([]analyzedDep, 0, len(actionable))
-	worst := gateOutcome{}
-	errCount := 0
 	for _, d := range actionable {
 		req := scpmAnalyzeRequest{
 			Ecosystem:       d.Ecosystem,
@@ -280,68 +275,18 @@ func runDepsAnalyze(ctx context.Context, client *api.Client, opts depsAnalyzeOpt
 		resp, err := analyzeDep(ctx, client, provider, req, opts)
 		if err != nil {
 			// A single failed/incomplete analysis shouldn't be silently
-			// greenlit — record it and fail transiently at the end unless
-			// a worse verdict already gates the run.
+			// greenlit — record it; depsGateResult fails the run on it.
 			fmt.Fprintf(os.Stderr, "  %s/%s@%s: analyze failed: %v\n", d.Ecosystem, d.Name, d.Version, err)
 			analyzed = append(analyzed, analyzedDep{Dep: d, Err: err.Error()})
-			errCount++
 			continue
 		}
 		analyzed = append(analyzed, analyzedDep{Dep: d, Resp: resp})
-		if o := classifyVerdict(resp.Verdict, d); o.rank > worst.rank {
-			worst = o
-		}
 	}
 
 	if err := renderResults(opts.OutputFormat, analyzed); err != nil {
 		return exitError(exitTransientFailure, "render: %v", err)
 	}
-
-	if err := checkFailOn(opts.FailOn, worst); err != nil {
-		return err
-	}
-	// Gate passed on observed verdicts, but if any analysis didn't
-	// complete we can't certify the run — exit transiently so CI retries
-	// rather than merging on incomplete data (unless the operator opted
-	// out of gating entirely).
-	if errCount > 0 && opts.FailOn != "none" {
-		return exitError(exitTransientFailure, "%d of %d dependency analyses did not complete; re-run", errCount, len(actionable))
-	}
-	return nil
-}
-
-// gateOutcome is the worst result seen across analysed deps: a comparable
-// rank, a human label for messaging, and the exit code to use if it ends
-// up being the worst.
-type gateOutcome struct {
-	rank  int
-	label string
-	code  int
-}
-
-// classifyVerdict maps a verdict + its dependency to a gateOutcome.
-// Recognised verdicts use their normal rank; a non-empty verdict the CLI
-// doesn't recognise fails closed — it warns and is ranked as malicious so
-// it crosses any --fail-on threshold except "none". An empty verdict (job
-// still pending, no --wait) is not a verdict and contributes nothing.
-func classifyVerdict(v Verdict, d scan.ChangedDep) gateOutcome {
-	switch v {
-	case "":
-		return gateOutcome{}
-	case VerdictBenign:
-		return gateOutcome{rank: 1, label: string(v), code: exitVulnerableFound}
-	case VerdictVulnerable:
-		return gateOutcome{rank: 2, label: string(v), code: exitVulnerableFound}
-	case VerdictSuspicious:
-		return gateOutcome{rank: 3, label: string(v), code: exitSuspiciousFound}
-	case VerdictMalicious:
-		return gateOutcome{rank: 4, label: string(v), code: exitMaliciousFound}
-	default:
-		fmt.Fprintf(os.Stderr,
-			"  WARNING: %s/%s@%s returned unrecognised verdict %q — failing closed (treating as malicious)\n",
-			d.Ecosystem, d.Name, d.Version, v)
-		return gateOutcome{rank: 4, label: string(v) + " (unrecognised)", code: exitMaliciousFound}
-	}
+	return depsGateResult(analyzed, opts.FailOn)
 }
 
 // buildIdempotencyKey combines the caller-supplied seed (or, by default,
@@ -408,9 +353,10 @@ func analyzeDep(ctx context.Context, client *api.Client, provider ci.Provider, r
 }
 
 // isTerminal reports whether an analyze response represents a finished
-// job: a cache hit, a populated verdict, or a terminal status string.
+// job: a populated verdict, or a terminal status string. A cache hit alone
+// is not enough, because the cached job may still be queued or running.
 func isTerminal(resp *scpmAnalyzeResponse) bool {
-	if resp.CacheHit || resp.Verdict != "" {
+	if resp.Verdict != "" {
 		return true
 	}
 	return terminalStatuses[strings.ToLower(strings.TrimSpace(resp.Status))]
@@ -453,48 +399,6 @@ func postSCPMAnalyze(ctx context.Context, client *api.Client, provider ci.Provid
 		return nil, err
 	}
 	return &out, nil
-}
-
-// checkFailOn maps (--fail-on, worst-outcome) to an exit code. A
-// zero-rank threshold means --fail-on=none, which never fails.
-func checkFailOn(failOn string, worst gateOutcome) error {
-	threshold := verdictRank(verdictThreshold(failOn))
-	if threshold == 0 || worst.rank < threshold {
-		return nil
-	}
-	return exitError(worst.code, "dependency gate failed: %s", worst.label)
-}
-
-// verdictRank maps a recognised verdict to the same comparable rank used
-// by classifyVerdict, for translating the --fail-on threshold. Unknown
-// values (including "") rank 0 here; unknown *response* verdicts are
-// handled by classifyVerdict (fail-closed) before they reach the gate.
-func verdictRank(v Verdict) int {
-	switch v {
-	case VerdictMalicious:
-		return 4
-	case VerdictSuspicious:
-		return 3
-	case VerdictVulnerable:
-		return 2
-	case VerdictBenign:
-		return 1
-	default:
-		return 0
-	}
-}
-
-func verdictThreshold(failOn string) Verdict {
-	switch failOn {
-	case "none":
-		return "" // rank 0 — checkFailOn never crosses it
-	case "vulnerable":
-		return VerdictVulnerable
-	case "suspicious":
-		return VerdictSuspicious
-	default: // "malicious" and the default
-		return VerdictMalicious
-	}
 }
 
 func renderResults(format string, analyzed []analyzedDep) error {

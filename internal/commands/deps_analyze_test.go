@@ -57,6 +57,71 @@ func TestCheckFailOn(t *testing.T) {
 	}
 }
 
+func TestClassifyVerdict_InconclusiveIsNotMalicious(t *testing.T) {
+	worst := classifyVerdict(VerdictInconclusive, dep("x"))
+	require.Zero(t, worst.rank)
+	require.NoError(t, checkFailOn("vulnerable", worst))
+}
+
+func TestDepsGateResult(t *testing.T) {
+	answered := func(name string, status string, verdict Verdict) analyzedDep {
+		return analyzedDep{Dep: dep(name), Resp: &scpmAnalyzeResponse{JobID: "j-" + name, Status: status, Verdict: verdict}}
+	}
+	failed := func(name string) analyzedDep {
+		return analyzedDep{Dep: dep(name), Err: "scpm 500"}
+	}
+	cases := []struct {
+		name     string
+		failOn   string
+		analyzed []analyzedDep
+		wantExit int
+	}{
+		{"every dependency benign", "malicious", []analyzedDep{answered("a", "completed", VerdictBenign)}, 0},
+		{"a malicious dependency", "malicious", []analyzedDep{answered("a", "completed", VerdictMalicious)}, exitMaliciousFound},
+		{"a suspicious dependency at a suspicious gate", "suspicious", []analyzedDep{answered("a", "completed", VerdictSuspicious)}, exitSuspiciousFound},
+		{"an unrecognised verdict fails closed", "malicious", []analyzedDep{answered("a", "completed", "brand_new_label")}, exitMaliciousFound},
+		{"a completed job without a verdict is incomplete", "malicious", []analyzedDep{answered("a", "completed", "")}, exitTransientFailure},
+		{"a failed job is incomplete", "malicious", []analyzedDep{answered("a", "failed", "")}, exitTransientFailure},
+		{"a timed out job is incomplete", "malicious", []analyzedDep{answered("a", "timed_out", "")}, exitTransientFailure},
+		{"a queued job without --wait is incomplete", "malicious", []analyzedDep{answered("a", "queued", "")}, exitTransientFailure},
+		{"an inconclusive verdict is incomplete", "malicious", []analyzedDep{answered("a", "completed", VerdictInconclusive)}, exitTransientFailure},
+		{"a request that failed is incomplete", "malicious", []analyzedDep{failed("a")}, exitTransientFailure},
+		{"a verdict below the gate does not hide an incomplete one", "malicious", []analyzedDep{answered("a", "completed", VerdictSuspicious), answered("b", "completed", "")}, exitTransientFailure},
+		{"a malicious verdict outranks an incomplete one", "malicious", []analyzedDep{answered("a", "completed", ""), answered("b", "completed", VerdictMalicious)}, exitMaliciousFound},
+		{"--fail-on none never fails", "none", []analyzedDep{answered("a", "completed", ""), answered("b", "completed", VerdictMalicious)}, 0},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			err := depsGateResult(c.analyzed, c.failOn)
+			if c.wantExit == 0 {
+				require.NoError(t, err)
+				return
+			}
+			assertExitCode(t, err, c.wantExit)
+		})
+	}
+}
+
+func TestAnalyzeDep_WaitKeepsPollingACachedJobThatIsStillRunning(t *testing.T) {
+	var calls atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if calls.Add(1) < 3 {
+			_, _ = w.Write([]byte(`{"jobId":"j1","status":"queued","cacheHit":true}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"jobId":"j1","status":"completed","cacheHit":true,"verdict":"benign"}`))
+	}))
+	defer srv.Close()
+
+	client := &api.Client{BaseURL: srv.URL, HTTPClient: srv.Client()}
+	opts := depsAnalyzeOpts{Wait: true, WaitInterval: time.Millisecond, WaitTimeout: 5 * time.Second}
+	resp, err := analyzeDep(context.Background(), client, ci.NewLocal(), scpmAnalyzeRequest{Name: "x"}, opts)
+
+	require.NoError(t, err)
+	require.Equal(t, VerdictBenign, resp.Verdict)
+	require.Equal(t, int32(3), calls.Load())
+}
+
 func TestClassifyVerdict_UnknownFailsClosed(t *testing.T) {
 	worst := classifyVerdict(Verdict("brand_new_label"), dep("evil"))
 	if worst.rank != 4 {
@@ -141,10 +206,14 @@ func TestIsTerminal(t *testing.T) {
 		resp scpmAnalyzeResponse
 		want bool
 	}{
-		{scpmAnalyzeResponse{CacheHit: true}, true},
+		{scpmAnalyzeResponse{CacheHit: true, Status: "completed"}, true},
+		{scpmAnalyzeResponse{CacheHit: true, Status: "queued"}, false},
+		{scpmAnalyzeResponse{CacheHit: true, Status: "running"}, false},
 		{scpmAnalyzeResponse{Verdict: VerdictBenign}, true},
 		{scpmAnalyzeResponse{Status: "completed"}, true},
 		{scpmAnalyzeResponse{Status: "FAILED"}, true},
+		{scpmAnalyzeResponse{Status: "timed_out"}, true},
+		{scpmAnalyzeResponse{Status: "cancelled"}, true},
 		{scpmAnalyzeResponse{Status: "queued"}, false},
 		{scpmAnalyzeResponse{Status: "running"}, false},
 		{scpmAnalyzeResponse{}, false},
