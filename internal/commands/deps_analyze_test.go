@@ -262,3 +262,32 @@ func TestResolveCommitRevisionBoundary(t *testing.T) {
 		})
 	}
 }
+
+func TestPostSCPMAnalyzeSendsTheClientDefaultParams(t *testing.T) {
+	tests := []struct {
+		name      string
+		params    map[string]string
+		wantQuery string
+	}{
+		{"an org query", map[string]string{"githubOwnerId": "42"}, "githubOwnerId=42"},
+		{"several org parameters", map[string]string{"azureOrganizationId": "org", "installationId": "i1"}, "azureOrganizationId=org&installationId=i1"},
+		{"no parameters", nil, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var gotPath, gotQuery string
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				gotPath, gotQuery = r.URL.Path, r.URL.RawQuery
+				_, _ = w.Write([]byte(`{"jobId":"j1","status":"queued"}`))
+			}))
+			defer srv.Close()
+
+			client := &api.Client{BaseURL: srv.URL, HTTPClient: srv.Client(), DefaultParams: tt.params}
+			_, err := postSCPMAnalyze(context.Background(), client, ci.NewLocal(), scpmAnalyzeRequest{Name: "x"})
+
+			require.NoError(t, err)
+			require.Equal(t, "/scpm/dependencies/analyze", gotPath)
+			require.Equal(t, tt.wantQuery, gotQuery)
+		})
+	}
+}

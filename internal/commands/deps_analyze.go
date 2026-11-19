@@ -421,7 +421,10 @@ func postSCPMAnalyze(ctx context.Context, client *api.Client, provider ci.Provid
 	if err != nil {
 		return nil, err
 	}
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, client.BaseURL+"/scpm/dependencies/analyze", bytes.NewReader(body))
+	// The org parameters must be sent: the analyze route takes the tenant
+	// from them for a user login, and only an API token carries its own.
+	analyzeURL := client.DefaultParamsURL("/scpm/dependencies/analyze")
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, analyzeURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
