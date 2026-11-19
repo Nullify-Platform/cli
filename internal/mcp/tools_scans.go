@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -94,6 +95,47 @@ func (l scanRunLister) check(scanner string, q scanRunQuery) error {
 	return nil
 }
 
+// cloudProviders are the integrations that POST /context/cloud-scan/start
+// accepts as provider.
+var cloudProviders = []string{"AWS", "AZURE", "GCP", "K8S"}
+
+// cloudScanInput reads the scope of a cloud scan and rejects one that the
+// handler would refuse, before any request is sent.
+func cloudScanInput(req mcp.CallToolRequest) (api.CreateContextCloudScanStartInput, error) {
+	provider := getStringArg(req.GetArguments(), "provider")
+	if provider != "" && !slices.Contains(cloudProviders, provider) {
+		return api.CreateContextCloudScanStartInput{}, fmt.Errorf("provider must be one of %s, got %q", strings.Join(cloudProviders, ", "), provider)
+	}
+	accountIDs, err := optionalStringSlice(req, "account_ids")
+	if err != nil {
+		return api.CreateContextCloudScanStartInput{}, err
+	}
+	clusterIDs, err := optionalStringSlice(req, "cluster_ids")
+	if err != nil {
+		return api.CreateContextCloudScanStartInput{}, err
+	}
+	if len(accountIDs) > 0 && provider == "" {
+		return api.CreateContextCloudScanStartInput{}, errors.New("account_ids requires provider")
+	}
+	if len(clusterIDs) > 0 && provider != "K8S" {
+		return api.CreateContextCloudScanStartInput{}, errors.New("cluster_ids requires provider K8S")
+	}
+	return api.CreateContextCloudScanStartInput{
+		Provider:   optionalString(provider),
+		AccountIds: accountIDs,
+		ClusterIds: clusterIDs,
+	}, nil
+}
+
+// optionalStringSlice returns the string array argument key, nil when it is
+// absent, and an error when it is not an array of strings.
+func optionalStringSlice(req mcp.CallToolRequest, key string) ([]string, error) {
+	if v, ok := req.GetArguments()[key]; !ok || v == nil {
+		return nil, nil
+	}
+	return req.RequireStringSlice(key)
+}
+
 // optionalString returns nil for an empty value, so that the query leaves the
 // parameter out.
 func optionalString(v string) *string {
@@ -115,15 +157,17 @@ func optionalLimit(n int) *int {
 func registerScanTools(s *server.MCPServer, c *api.Client) {
 	s.AddTool(
 		writeTool("nullify_start_cloud_scan",
-			mcp.WithDescription("Start a cloud security scan (CSPM / cloud reconnaissance) for the authenticated installation. Returns a scanId; poll nullify_get_cloud_scan_status."),
+			mcp.WithDescription("Start a cloud security scan (CSPM / cloud reconnaissance) for the authenticated installation. Every installed integration is scanned unless provider narrows it. Returns a scanId; poll nullify_get_cloud_scan_status."),
+			mcp.WithString("provider", mcp.Description("Scan only this integration. Every installed integration is scanned when it is omitted."), mcp.Enum(cloudProviders...)),
+			mcp.WithArray("account_ids", mcp.WithStringItems(), mcp.Description("Scan only these accounts (AWS), subscriptions (Azure), projects (GCP) or cluster ids (K8S). Requires provider.")),
+			mcp.WithArray("cluster_ids", mcp.WithStringItems(), mcp.Description("Managed Kubernetes cluster scan identities or admin cluster IDs to scan. Requires provider K8S.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			out, err := c.CreateContextCloudScanStart(ctx, api.CreateContextCloudScanStartInput{})
+			in, err := cloudScanInput(req)
 			if err != nil {
 				return toolError(err), nil
 			}
-			b, _ := json.Marshal(out)
-			return toolResult(string(b)), nil
+			return wrapTyped(c.CreateContextCloudScanStart(ctx, in))
 		},
 	)
 

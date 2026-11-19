@@ -78,3 +78,46 @@ func TestEveryAdvertisedScannerHasALister(t *testing.T) {
 		require.Contains(t, scanRunMethods, scanner)
 	}
 }
+
+func TestStartCloudScanSendsItsScope(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    map[string]any
+		query   url.Values
+		isError bool
+	}{
+		{name: "no scope scans every integration", args: map[string]any{}, query: url.Values{}},
+		{
+			name:  "accounts of one provider",
+			args:  map[string]any{"provider": "AWS", "account_ids": []any{"111111111111", "222222222222"}},
+			query: url.Values{"provider": {"AWS"}, "accountIds": {"111111111111", "222222222222"}},
+		},
+		{
+			name:  "clusters of Kubernetes",
+			args:  map[string]any{"provider": "K8S", "cluster_ids": []any{"c1"}},
+			query: url.Values{"provider": {"K8S"}, "clusterIds": {"c1"}},
+		},
+		{name: "accounts without a provider send nothing", args: map[string]any{"account_ids": []any{"111111111111"}}, isError: true},
+		{name: "clusters of another provider send nothing", args: map[string]any{"provider": "AWS", "cluster_ids": []any{"c1"}}, isError: true},
+		{name: "an unknown provider sends nothing", args: map[string]any{"provider": "aws"}, isError: true},
+		{name: "account ids that are not strings send nothing", args: map[string]any{"provider": "AWS", "account_ids": []any{1}}, isError: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ft := &fakeTransport{}
+			s := server.NewMCPServer("test", "1", server.WithToolCapabilities(true))
+			registerScanTools(s, testClient(ft))
+
+			result := callFindingTool(t, s, "nullify_start_cloud_scan", tt.args)
+
+			require.Equal(t, tt.isError, result.IsError, result.Content)
+			if tt.isError {
+				require.Empty(t, ft.requests)
+				return
+			}
+			require.Len(t, ft.requests, 1)
+			require.Equal(t, "/context/cloud-scan/start", ft.requests[0].path)
+			require.Equal(t, tt.query, ft.queries[0])
+		})
+	}
+}
