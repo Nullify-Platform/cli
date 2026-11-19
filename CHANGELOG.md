@@ -4,6 +4,18 @@
 
 ### Changed
 
+- `nullify ci gate` and `nullify ci report` now cover the repository being built. They sent `repository=<name>`, which no findings route reads, so every repository's gate counted every other repository's findings. They now read the repository's ID from GitHub Actions, GitLab CI, Bitbucket Pipelines or Azure Pipelines (Azure Repos), and send it the way each route scopes a request. Elsewhere, pass `--repository-id`, or `--all-repositories` for every repository. With neither, they exit 4 rather than count other repositories' findings. Pentest, bug hunt and CSPM findings have no repository and still count in every gate.
+- `--severity-threshold` on `ci gate` and `ci report` applies to every scanner. It used to apply to SAST and CSPM only, so a low SCA, secrets, pentest or bug hunt finding failed a `critical` gate. Secrets findings carry no severity, so they count at any threshold, as do findings of unknown severity.
+- Exit codes of `ci gate` and `ci report`: 2 now covers a scanner that refuses access (401 or 403), which exited 3, and the new 4 means invalid flags, which exited 1 like a failed gate.
+- `nullify deps analyze` exits 1 when a dependency comes back with no verdict, or with an inconclusive one, so a pass means every dependency was judged. The API does not return verdicts yet, so until it does, pass `--fail-on=none` to queue analyses without gating. An unknown `--fail-on` value is an error.
+- `nullify mcp serve --repo`, and the git remote it falls back to, now make the server filter findings searches and metrics to that repository. The flag used to add `?repository=` to every request, which no route reads, so nothing was filtered. A tool call that names a repository searches that one instead, and `repository: "*"` searches every repository.
+- `nullify init` writes each AI client's MCP config where that client reads it. For Claude Code it runs `claude mcp add --scope user nullify -- nullify mcp serve`, or writes `.mcp.json` in the project when `claude` is not installed; it used to write `~/.claude/mcp.json`, which Claude Code does not read. For VS Code it writes `.vscode/mcp.json` with `servers` and `type: stdio`; it used to write `mcpServers`, which VS Code does not read. It no longer overwrites a config file it cannot parse, such as one with comments: it prints the entry to add by hand.
+- `get_security_posture_summary` reports real totals of open findings by type and severity. It reported a page count of 0 or 1 per scanner, and fetched every bug hunt finding.
+- `nullify update` compares versions, recognises development builds, and prints steps that work: the install script pinned to the new version on macOS and Linux, and the zip on Windows. It no longer suggests the Homebrew tap, which does not exist.
+- `nullify open` opens `app.<instance>.nullify.ai`, or `app.nullify.ai` for an instance that signs in through the router. It opened `<instance>.nullify.ai`, which is the marketing site.
+- `nullify auth logout` revokes the refresh token at Nullify before deleting the local credentials, so a copied credentials file stops working. A failed revocation prints a warning and the local credentials still go.
+- `nullify auth login`, `logout` and `token` honour `NULLIFY_HOST`, in the same order as every other command: `--host`, then `NULLIFY_HOST`, then the configured host.
+- `nullify whoami` reports an API token or GitHub Actions token as the sign-in, instead of "no credentials found".
 - `nullify fix` now follows the run. It used to send the request, read the diff and exit 0 without waiting for the run. CI callers now wait up to 50 minutes by default, because a run can take 45. `--timeout` sets the wait. A failed run, or a run still going at the timeout, exits 1 and prints how to check it. The run continues on the server. `--no-wait` gives the fast return: it starts the run, prints its state and exits 0. If the token expires during the wait, the command refreshes it and continues. If it cannot refresh it, the command prints `run_id`, `state` and `check_with`, and exits 3.
 - `nullify mcp serve` and `nullify fix` honour `NULLIFY_HTTP_TIMEOUT`.
 - `nullify ci gate` is unchanged.
@@ -16,6 +28,10 @@
 
 ### Added
 
+- `nullify api` follows the API that prod serves (bundle of 19 November 2026). New commands include batch allowlist and unallowlist for every scanner, pentest schedules, credential login status and runs, Slack identity links, application folders, scanner mirror reads and code review overrides.
+- `ci gate` and `ci report`: `--repository-id` and `--all-repositories`.
+- The install script takes `--version <tag>` to install a specific release, sends `GITHUB_TOKEN` to the GitHub API when it is set, and has `--help`.
+- MCP: `nullify_list_scan_runs` takes `scan_type` (`sca_dependencies` or `sca_containers`) and lists SCPM runs; `list_repositories` takes `next_token`; `nullify_start_cloud_scan` takes `provider`, `account_ids` and `cluster_ids`; `nullify_create_threat_investigation` takes `informational`.
 - `nullify api` now follows the API published on 2 November 2026 (it was pinned to 26 May). This adds about 530 commands, including `nullify api cspm` allowlist, unallowlist, archive, unarchive, mark and unmark false positive, patch, triage and ticket delete, and a new `nullify api dast` group.
 - `nullify findings` subcommands: `list`, `get`, `triage`, `allowlist`, `unallowlist`, `archive`, `unarchive`, `mark-false-positive`, `unmark-false-positive`, `create-ticket`, `delete-ticket`, `feedback` and `get-feedback`.
 - `nullify findings --type` accepts `scpm`. `--from` and `--to` set time bounds. The output adds `returned` and `truncated`. Each row is the JSON that the server sent, so it holds only the fields of that row and any field that the CLI does not know.
@@ -27,13 +43,31 @@
 ### Known limits
 
 - `nullify fix` exits 1 when a run succeeded but its diff cannot be read, even when it prints a new pull request. The exit is the same as before.
-- `nullify findings unallowlist --reason` is required for every type, but the CSPM route does not record it. CSPM returns a `warning` field, and the CLI also writes the warning to stderr.
 - `nullify findings` and the MCP search tools use the unified search. It returns triaged findings only, and a repository filter matches the exact stored name. With no `--type` inside a repository, cloud and bug hunt findings are excluded.
-- `--allowlist-type` and the MCP `allowlist_type` are required for every finding type, but the server may not record them for `bughunt`, `sca_dependencies`, `sca_containers` and `secrets_sensitive_data`. These types return a `warning` field, and the CLI also writes the warning to stderr. The reason is recorded. Bug hunt has no such input. SCA and sensitive-data handlers ignore the type until monorepo #17588 deploys: remove `AllowlistTypeUnrecorded` from these rows when the spec moves past that pull request.
 
 
 ### Fixed
 
+- The GitHub Actions token exchange (`--github-token`) posted to `https://<instance>.nullify.ai/auth/github_token`, which is the marketing site, so it has failed TLS on every run since v0.13.0. It now posts to the API host.
+- The MCP server recovers from an expired token. Instance APIs deny an expired token with API Gateway's own 403, not 401, and the server only refreshed on 401, so a long session saw up to five minutes of 403s every hour. A refreshable token is now also replaced six minutes before it expires.
+- `nullify_list_scan_runs` sent no repository, and no scan type for SCA, so every call failed or returned nothing.
+- `nullify ci report` asked for 1,000 findings per page, which the SAST, SCA and secrets routes reject above 100, so those sections were empty and the command still exited 0. It now reads every page of 100. It also counted every SCA, secrets, pentest and bug hunt finding four times, once per severity, in the summary and in SARIF.
+- Closed bug hunt findings (fixed, allowlisted, archived or false positive) no longer fail `ci gate`. SAST and CSPM findings of unknown severity now count.
+- `nullify deps analyze` sends the organization for a user login, waits for a cached job that is still queued, treats `timed_out` as finished, and no longer sends one idempotency key shared by every tenant.
+- `nullify auth login --org` on an instance that signs in itself now selects that organization. It was ignored. An unknown name saves no login.
+- A pasted dashboard host (`app.<instance>.nullify.ai`) names the instance. It became `api.app.<instance>.nullify.ai`.
+- An API token with no host says to set `--host` or `NULLIFY_HOST`, instead of suggesting `nullify auth login`.
+- Bug hunt allowlisting records the allowlist type, through the new POST routes. SCA, sensitive data, bug hunt and CSPM now record the type and the unallowlist reason, so the `warning` field and the stderr warning are gone.
+- Secrets credential actions call `/secrets/credentials/findings/*`, not the deprecated `/secrets/findings/*` alias.
+- `nullify threat create --severity` and the MCP tool send the upper-case value the server filters on. The CLI rejects an unknown severity.
+- `nullify repos` lists every repository, not only the first 100.
+- `nullify sbom get` returns the newest SBOM of each project, or of `--project-id`, through a download link. Large repositories failed with a 500 at the 6 MB response cap, and `--project-id` returned the oldest SBOMs first.
+- `nullify scan runs --type sca` sends the scan type the route requires. `--type` also takes `sca_dependencies` and `sca_containers`.
+- `nullify --version` works on a build from `go install`; it was an unknown flag.
+- The install script installs `nullify.exe` on Windows (Git Bash, MSYS), refuses an archive that has no checksum instead of skipping the check, and reports a `--host` with no value or an unknown option.
+- `list_applications` sends its `limit`; `nullify://recent-findings` returns the newest findings, not the highest priority; the `investigate-repo` prompt no longer searches cloud and bug hunt findings by repository; the MCP server no longer advertises resource subscriptions it does not send.
+- Login refuses an empty or zero-lifetime token, and a sign-in URL that is not https on the instance's domain. `~/.nullify` is tightened to 0700 when it already exists with looser permissions. Auth requests send the CLI's User-Agent.
+- `make lint-docker` no longer lints a Dockerfile that does not exist.
 - `nullify fix --create-pr` stops when the server rescues an abandoned pull-request step and moves the run to `cached`. It exits 1 and says that no new pull request was opened. It used to wait for the whole timeout and then say that the run was still going.
 - `nullify findings` and the MCP search reject a `--from` or `--to` that is not RFC 3339, plain dates included. The server ignored such a value, so the result was not filtered and the command exited 0.
 - `nullify findings --type secrets` and `--type bughunt` sent filter values that the API rejects, and exited 3 with a 400.
@@ -86,6 +120,23 @@ The API no longer serves these routes, so these commands could only return 404. 
 | `nullify api manager list-credits`, `create-credits` | None: the credits system is gone |
 | `nullify api manager list-customer-questions`, `get-customer-questions`, `delete-customer-questions`, `delete-customer-questions-2`, `delete-questions`, `patch-answers` | `nullify api manager list-action-items` |
 | `nullify api manager list-escalations`, `patch-escalations` | `nullify api manager list-action-items` |
+
+These commands called staff-only routes. The API gives a customer token 403 on them, so they could only fail. The published API lists them because they are not marked private at source.
+
+| Command | Route |
+|---------|-------|
+| `nullify api admin create-approve`, `create-invitation`, `create-renew`, `create-revoke`, `list-operation`, `list-requests` | `/admin/operator/workspace-bootstrap/*` |
+| `nullify api admin create-operator-github-tenant-route`, `create-operator-native-tenant-route` | `/admin/operator/{github,native}-tenant/route` |
+| `nullify api admin create-operator-external-writes-initialize` | `/admin/operator/external-writes/initialize` |
+| `nullify api admin list-package-feeds`, `create-package-feeds` | `/admin/operator/package-feeds` |
+| `nullify api admin list-scan-entitlement`, `update-scan-entitlement` | `/admin/operator/scan-entitlement` |
+| `nullify api admin list-operator-scan-scope-repositories`, `update-repositories` | `/admin/operator/scan-scope/repositories` |
+| `nullify api admin list-operator-tenant-capabilities`, `update-operator-tenant-capabilities` | `/admin/operator/tenant-capabilities` |
+| `nullify api context create-cloud-connector-pr-runs-recover-by-id`, `create-waf-allowlist-pr-runs-recover-by-id` | `/context/{cloud-connector,waf-allowlist}-pr/runs/{runId}/recover` |
+
+`nullify api context create-reports` and `get-reports` are removed: the API deleted the legacy SBOM PDF reports. Use `nullify sbom get`.
+
+`ci gate --repo` and `ci report --repo` are deprecated and have no effect. They never narrowed the results; use `--repository-id`.
 
 The MCP tool `list_escalations` is removed. Its route `GET /manager/escalations` is gone from prod (#5596), so the tool only returned errors. Use `list_action_items`, which returns a different schema, so it is not an alias. `spec/mcp-tools.tsv` now locks the MCP tool names, annotations and tool sets.
 

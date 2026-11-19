@@ -236,8 +236,13 @@ nullify auth switch
 
 | Command | Description |
 |---------|-------------|
-| `nullify ci gate` | Quality gate — exits non-zero when findings exceed threshold |
-| `nullify ci report` | Generate a markdown summary for PR comments |
+| `nullify ci gate` | Quality gate for the repository being built — exits non-zero when its open findings meet the severity threshold |
+| `nullify ci report` | Markdown (or `--format sarif`) summary of the repository's open findings, for PR comments |
+| `nullify deps analyze` | Malware gate for dependencies (exit 20 on a suspicious package, 30 on a malicious one) |
+
+`ci gate` and `ci report` cover one repository. They read its ID from GitHub Actions (`GITHUB_REPOSITORY_ID`), GitLab CI (`CI_PROJECT_ID`), Bitbucket Pipelines (`BITBUCKET_REPO_UUID`) or Azure Pipelines with Azure Repos (`BUILD_REPOSITORY_ID`). Elsewhere, pass `--repository-id <provider repository ID>`, or `--all-repositories` to gate on every repository; with neither, they exit 4. `--severity-threshold` applies to every scanner; secrets findings, and findings of unknown severity, count at any threshold. Pentest, bug hunt and cloud findings have no repository, so they count in every repository's gate. Exit codes: 0 pass, 1 findings at or above the threshold, 2 authentication failed or a scanner refused access, 3 an API or network failure, 4 invalid flags or no repository ID.
+
+`deps analyze` fails (exit 1) when a dependency has no verdict yet, so a pass always means every dependency was judged benign. Pass `--wait` to wait for verdicts, or `--fail-on=none` to queue analyses without gating.
 
 ### Tooling
 
@@ -281,7 +286,7 @@ The output reports `total`, `returned` and `truncated`:
 | `truncated` true, exit 0 | More findings exist; raise `--limit` |
 | Exit 3 | An API or network failure, including no access (401 or 403) |
 
-Act on a finding. Allowlisting needs a reason and an explicit type: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise. The server may not record the type for `bughunt`, `sca_dependencies`, `sca_containers` and `secrets_sensitive_data` yet. For these types the command writes a warning to stderr and adds a `warning` field to the result. The reason is recorded. For a CSPM false positive, use `findings mark-false-positive`: allowlisting with `UserFalsePositive` does not set `is_false_positive` on a CSPM finding.
+Act on a finding. Allowlisting needs a reason and an explicit type: `UserFalsePositive` when triage was wrong, `UserAssumeRisk` when the risk is real and accepted, `UserFixed` or `UserOther` otherwise. The server records the reason and the type for every finding type. For a CSPM false positive, use `findings mark-false-positive`: allowlisting with `UserFalsePositive` does not set `is_false_positive` on a CSPM finding.
 
 ```sh
 nullify findings mark-false-positive abc123 --type cspm --reason "Bucket is public by design"
