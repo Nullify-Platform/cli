@@ -47,14 +47,21 @@ func collectScannerReports(
 }
 
 // checkReportReads warns about each scanner the report could not read, and
-// fails when it could read none of them.
+// fails when it could read none of them. When every scanner refused access
+// the failure is an authentication error.
 func checkReportReads(reports []scannerReport) error {
-	failed := 0
+	failed, denied := 0, 0
 	for _, report := range reports {
 		if report.err != nil {
 			failed++
 			fmt.Fprintf(os.Stderr, "Warning: failed to read %s: %v\n", report.ep.name, report.err)
 		}
+		if isAccessDenied(report.err) {
+			denied++
+		}
+	}
+	if denied == len(reports) {
+		return authError("every scanner refused access (401 or 403), cannot generate report")
 	}
 	if failed == len(reports) {
 		return networkError("all API requests failed, cannot generate report")

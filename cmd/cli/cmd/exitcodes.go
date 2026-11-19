@@ -11,6 +11,10 @@ const (
 	ExitFindings     = 1
 	ExitAuthError    = 2
 	ExitNetworkError = 3
+	// ExitUsageError reports an invalid flag or flag value. It is distinct
+	// from ExitFindings so that a CI gate with a mistyped flag does not look
+	// like a gate that found something.
+	ExitUsageError = 4
 )
 
 type exitCodeError struct {
@@ -47,6 +51,10 @@ func withExitCode(code int, err error) error {
 
 func authError(format string, args ...any) error {
 	return withExitCode(ExitAuthError, fmt.Errorf(format, args...))
+}
+
+func usageError(format string, args ...any) error {
+	return withExitCode(ExitUsageError, fmt.Errorf(format, args...))
 }
 
 func networkError(format string, args ...any) error {

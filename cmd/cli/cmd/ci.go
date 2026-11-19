@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/nullify-platform/cli/internal/client"
 	"github.com/nullify-platform/cli/internal/lib"
 	"github.com/spf13/cobra"
 )
@@ -33,8 +31,9 @@ archived, false positives or superseded by a later scan.
 Exit codes:
   0 - No findings above threshold
   1 - Findings above threshold found
-  2 - Authentication error
-  3 - Network/API error`,
+  2 - Authentication error, including a scanner that refuses access (401 or 403)
+  3 - Network/API error, or a response that could not be read
+  4 - Invalid flags or flag values`,
 	Example: `  # Block on critical or high findings
   nullify ci gate
 
@@ -57,7 +56,16 @@ format emits a SARIF v2.1.0 document for upload to code-scanning tools.
 
 Each finding is counted once, under its own severity. Findings without a
 severity, which includes every secrets finding, are counted as unknown.
-Closed bughunt findings are left out, as the gate leaves them out.`,
+Closed bughunt findings are left out, as the gate leaves them out.
+
+A scanner that cannot be read is left out of the report with a warning on
+stderr. The report fails only when no scanner can be read.
+
+Exit codes:
+  0 - Report written
+  2 - Authentication error: every scanner refused access (401 or 403)
+  3 - Network/API error: no scanner could be read
+  4 - Invalid flags or flag values`,
 	Example: `  nullify ci report
   nullify ci report --repo my-org/my-repo
   nullify ci report --format sarif > nullify.sarif`,
@@ -77,13 +85,21 @@ func init() {
 
 	ciReportCmd.Flags().String("repo", "", "Repository name (auto-detected from git if not set)")
 	ciReportCmd.Flags().String("format", "markdown", "Report format (markdown, sarif)")
+
+	ciGateCmd.SetFlagErrorFunc(usageFlagError)
+	ciReportCmd.SetFlagErrorFunc(usageFlagError)
+}
+
+// usageFlagError gives a flag the command cannot parse the usage exit code.
+func usageFlagError(_ *cobra.Command, err error) error {
+	return withExitCode(ExitUsageError, err)
 }
 
 func runCIGate(cmd *cobra.Command) error {
 	thresholdName, _ := cmd.Flags().GetString("severity-threshold")
 	threshold, err := parseSeverityThreshold(thresholdName)
 	if err != nil {
-		return withExitCode(1, err)
+		return withExitCode(ExitUsageError, err)
 	}
 
 	ctx := cmd.Context()
@@ -114,7 +130,7 @@ func runCIReport(cmd *cobra.Command) error {
 	switch format {
 	case "markdown", "sarif":
 	default:
-		return withExitCode(1, fmt.Errorf("invalid --format %q. Valid values: markdown, sarif", format))
+		return usageError("invalid --format %q. Valid values: markdown, sarif", format)
 	}
 
 	ctx := cmd.Context()
@@ -208,11 +224,4 @@ func scannerLabel(ep scannerEndpoint, severity string) string {
 		return ep.name
 	}
 	return fmt.Sprintf("%s (%s)", ep.name, severity)
-}
-
-// clientGetter sends finding list requests through the authenticated client.
-func clientGetter(c *client.NullifyClient) findingsGetter {
-	return func(ctx context.Context, path string) (string, error) {
-		return lib.DoGet(ctx, c.HttpClient, c.BaseURL, path)
-	}
 }

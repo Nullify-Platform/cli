@@ -89,10 +89,13 @@ func blocksGate(ep scannerEndpoint, finding json.RawMessage, threshold severityL
 // A list that could not be read fails the gate even when the others are
 // clean, because the gate cannot confirm a clean result without it.
 func gateVerdict(results []gateResult, threshold severityLevel) error {
-	var failed, unreadable, blocked int
+	var denied, failed, unreadable, blocked int
 	for _, result := range results {
 		label := scannerLabel(result.check.ep, result.check.severity)
 		switch {
+		case isAccessDenied(result.err):
+			denied++
+			fmt.Fprintf(os.Stderr, "Error: access refused for %s: %v\n", label, result.err)
 		case isUnreadable(result.err):
 			unreadable++
 			fmt.Fprintf(os.Stderr, "Error: unreadable response from %s: %v\n", label, result.err)
@@ -106,6 +109,8 @@ func gateVerdict(results []gateResult, threshold severityLevel) error {
 	}
 
 	switch {
+	case denied > 0:
+		return authError("%d scanner request(s) were refused (401 or 403); failing the gate (check the token's access)", denied)
 	case failed > 0:
 		return networkError("%d scanner request(s) failed; failing the gate (cannot confirm a clean result)", failed)
 	case unreadable > 0:
