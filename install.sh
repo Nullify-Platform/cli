@@ -6,6 +6,26 @@ set -e
 REPO="Nullify-Platform/cli"
 BINARY_NAME="nullify"
 
+usage() {
+  cat <<'EOF'
+Usage: install.sh [--host <instance>]
+
+Installs the latest Nullify CLI release.
+
+Options:
+  --host <instance>  Save your Nullify instance, for example acme.nullify.ai
+  -h, --help         Show this help
+EOF
+}
+
+# Print an error and the usage, then exit.
+usage_error() {
+  echo "Error: $1" >&2
+  echo "" >&2
+  usage >&2
+  exit 1
+}
+
 # Detect OS
 detect_os() {
   os=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -37,21 +57,75 @@ get_latest_version() {
   echo "$version"
 }
 
+# The release binary is nullify.exe on Windows and nullify elsewhere.
+binary_file_name() {
+  if [ "$1" = "windows" ]; then
+    echo "${BINARY_NAME}.exe"
+  else
+    echo "${BINARY_NAME}"
+  fi
+}
+
+# Print the SHA-256 of a file.
+sha256_of() {
+  if command -v sha256sum > /dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum > /dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    echo "Error: no sha256sum or shasum found, cannot verify binary integrity" >&2
+    exit 1
+  fi
+}
+
+# Verify an archive against checksums.txt. An archive missing from
+# checksums.txt is an error: installing it would skip the integrity check.
+verify_checksum() {
+  archive_path="$1"
+  archive_file="$2"
+  checksums_path="$3"
+
+  expected_checksum=$(awk -v f="$archive_file" '$2 == f {print $1}' "$checksums_path")
+  if [ -z "$expected_checksum" ]; then
+    echo "Error: checksums.txt has no checksum for ${archive_file}, refusing to install an unverified binary" >&2
+    exit 1
+  fi
+
+  actual_checksum=$(sha256_of "$archive_path")
+  if [ "$actual_checksum" != "$expected_checksum" ]; then
+    echo "Checksum verification failed!" >&2
+    echo "Expected: ${expected_checksum}" >&2
+    echo "Actual:   ${actual_checksum}" >&2
+    exit 1
+  fi
+  echo "Checksum verified."
+}
+
 main() {
   # Parse arguments
   NULLIFY_HOST=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --host)
+        if [ $# -lt 2 ] || [ -z "$2" ] || [ "${2#-}" != "$2" ]; then
+          usage_error "--host needs a value, for example --host acme.nullify.ai"
+        fi
         NULLIFY_HOST="$2"
         shift 2
         ;;
       --host=*)
         NULLIFY_HOST="${1#*=}"
+        if [ -z "$NULLIFY_HOST" ]; then
+          usage_error "--host needs a value, for example --host=acme.nullify.ai"
+        fi
         shift
         ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
       *)
-        shift
+        usage_error "unknown argument: $1"
         ;;
     esac
   done
@@ -59,16 +133,20 @@ main() {
   os=$(detect_os)
   arch=$(detect_arch)
   version=$(get_latest_version)
-  version_number="${version#v}"
 
   echo "Installing Nullify CLI ${version} for ${os}/${arch}..."
 
   # Determine archive extension
   if [ "$os" = "windows" ]; then
     ext="zip"
+    if ! command -v unzip > /dev/null 2>&1; then
+      echo "Error: unzip is required to extract the Windows release" >&2
+      exit 1
+    fi
   else
     ext="tar.gz"
   fi
+  binary_file=$(binary_file_name "$os")
 
   archive_name="nullify_${os}_${arch}.${ext}"
   download_url="https://github.com/${REPO}/releases/download/${version}/${archive_name}"
@@ -85,27 +163,7 @@ main() {
 
   # Verify checksum
   echo "Verifying checksum..."
-  expected_checksum=$(grep "${archive_name}" "${tmp_dir}/checksums.txt" | awk '{print $1}')
-  if [ -z "$expected_checksum" ]; then
-    echo "Warning: could not find checksum for ${archive_name}, skipping verification" >&2
-  else
-    if command -v sha256sum > /dev/null 2>&1; then
-      actual_checksum=$(sha256sum "${tmp_dir}/${archive_name}" | awk '{print $1}')
-    elif command -v shasum > /dev/null 2>&1; then
-      actual_checksum=$(shasum -a 256 "${tmp_dir}/${archive_name}" | awk '{print $1}')
-    else
-      echo "Error: no sha256sum or shasum found, cannot verify binary integrity" >&2
-      exit 1
-    fi
-
-    if [ "$actual_checksum" != "$expected_checksum" ]; then
-      echo "Checksum verification failed!" >&2
-      echo "Expected: ${expected_checksum}" >&2
-      echo "Actual:   ${actual_checksum}" >&2
-      exit 1
-    fi
-    echo "Checksum verified."
-  fi
+  verify_checksum "${tmp_dir}/${archive_name}" "$archive_name" "${tmp_dir}/checksums.txt"
 
   # Extract
   echo "Extracting..."
@@ -114,6 +172,11 @@ main() {
   else
     mkdir -p "${tmp_dir}/extracted"
     tar -xzf "${tmp_dir}/${archive_name}" -C "${tmp_dir}/extracted"
+  fi
+
+  if [ ! -f "${tmp_dir}/extracted/${binary_file}" ]; then
+    echo "Error: ${archive_name} does not contain ${binary_file}" >&2
+    exit 1
   fi
 
   # Determine install directory
@@ -127,11 +190,11 @@ main() {
   fi
 
   # Install binary
-  cp "${tmp_dir}/extracted/${BINARY_NAME}" "${install_dir}/${BINARY_NAME}"
-  chmod +x "${install_dir}/${BINARY_NAME}"
+  cp "${tmp_dir}/extracted/${binary_file}" "${install_dir}/${binary_file}"
+  chmod +x "${install_dir}/${binary_file}"
 
   echo ""
-  echo "Nullify CLI ${version} installed to ${install_dir}/${BINARY_NAME}"
+  echo "Nullify CLI ${version} installed to ${install_dir}/${binary_file}"
 
   # Check if install dir is in PATH
   case ":${PATH}:" in
